@@ -1,14 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
-include(cmake_mingw.cmake)
-set(PROJECT_NAME FunctionalComponents)
-project(${PROJECT_NAME} CXX)
+project(FunctionalComponents CXX)
 
 ################################################################################
 # Configure paths
 ################################################################################
 set(GTA_SA_DIR F:/GTASanAndreas)
-
-# Can ignore the below paths if you got them (yes by default) in system paths
 set(PLUGIN_SDK_DIR $ENV{PLUGIN_SDK_DIR})
 ################################################################################
 
@@ -26,8 +22,8 @@ set(src_files
     "src/Gear.h"
     "src/Meter.cpp"
     "src/Meter.h"
-    "src/Sparks.h"
-    "src/Sparks.cpp"
+    "src/pch.cpp"
+    "src/pch.h"
     "src/FunctionalComponents.cpp"
 )
 
@@ -35,8 +31,7 @@ set(src_files
 # Target
 ################################################################################
 add_library(${PROJECT_NAME} SHARED ${src_files})
-
-#add_precompiled_header(${PROJECT_NAME} "pch.h" "pch.cpp")
+target_precompile_headers(${PROJECT_NAME} PUBLIC "src/pch.h")
 
 string(CONCAT "MSVC_RUNTIME_LIBRARY_STR"
     $<$<CONFIG:Release>:
@@ -74,16 +69,9 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
         "_DEBUG"
     ">"
     "_CRT_SECURE_NO_WARNINGS;"
-    "_CRT_NON_CONFORMING_SWPRINTFS;"
-    "GTASA;"
-    "GTAGAME_NAME=\"San Andreas\";"
-    "GTAGAME_ABBR=\"SA\";"
-    "GTAGAME_ABBRLOW=\"sa\";"
-    "GTAGAME_PROTAGONISTNAME=\"CJ\";"
-    "GTAGAME_CITYNAME=\"San Andreas\";"
-    "_LA_SUPPORT;"
-    "_DX9_SDK_INSTALLED;"
-    "PLUGIN_SGV_10US;"
+    "_CRT_NON_CONFORMING_SWPRINTFS"
+    "GTASA"
+    "PLUGIN_SGV_10US"
     "_MBCS"
 )
 

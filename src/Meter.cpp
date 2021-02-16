@@ -1,8 +1,6 @@
 #include "Meter.h"
-#include "CBike.h"
-#include "CAutomobile.h"
 
-void ProcessGearMeter(const std::string& name, RwFrame* frame, FVCData& data, CVehicle* pVeh)
+void ProcessGearMeter(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
 {
 	if (name.find("fc_gm") != std::string::npos)
 	{
@@ -13,7 +11,6 @@ void ProcessGearMeter(const std::string& name, RwFrame* frame, FVCData& data, CV
 		}
 		else
 		{
-
 			if (pVeh->m_nCurrentGear != data.gearmeter.gear_shown)
 			{
 				data.gearmeter.gear_shown = pVeh->m_nCurrentGear;
@@ -26,7 +23,7 @@ void ProcessGearMeter(const std::string& name, RwFrame* frame, FVCData& data, CV
 	}
 }
 
-void ProcessOdoMeter(const std::string& name, RwFrame* frame, FVCData& data, CVehicle* pVeh)
+void ProcessOdoMeter(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
 {
 	if (name.find("fc_om") != std::string::npos)
 	{
@@ -38,13 +35,10 @@ void ProcessOdoMeter(const std::string& name, RwFrame* frame, FVCData& data, CVe
 			data.odometer.bac_val = 1234 + rand() % (57842 - 1234);
 
 			if (name.find("_kph") != std::string::npos)
-			{
 				data.odometer.mul = 100;
-			}
 		}
 		else
 		{
-
 			// Calculate new value
 			int rot = 0;
 			if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
@@ -79,7 +73,7 @@ void ProcessOdoMeter(const std::string& name, RwFrame* frame, FVCData& data, CVe
 					{
 						if (show_str[i] != data.odometer.val_shown[i])
 						{
-							int angle = (std::stoi(std::to_string(show_str[i])) - std::stoi(std::to_string(data.odometer.val_shown[i]))) * 36;
+							float angle = (std::stof(std::to_string(show_str[i])) - std::stof(std::to_string(data.odometer.val_shown[i]))) * 36.0f;
 							RotateFrameX(data.odometer.frames[i], angle);
 						}
 					}
@@ -90,15 +84,62 @@ void ProcessOdoMeter(const std::string& name, RwFrame* frame, FVCData& data, CVe
 	}
 }
 
-void ProcessRPMMeter(const std::string& name, RwFrame* frame, FVCData& data, CVehicle* pVeh)
-{
-}
-
-void ProcessSpeedoMeter(const std::string& name, RwFrame* frame, FVCData& data, CVehicle* pVeh)
+// not accurate
+void ProcessRPMMeter(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
 {
 	if (name.find("fc_sm") != std::string::npos)
 	{
-		lg << name << std::endl;
-		RotateFrameY(frame, 1);
+		if (!data.rpmmeter.init)
+		{
+			data.rpmmeter.max_rpm = std::stoi(ExtractStringValue(name, ".*_m([0-9]+).*", "100"));
+			data.rpmmeter.max_rot = std::stof(ExtractStringValue(name, ".*_([0-9]+).*", "100"));
+			data.rpmmeter.init = true;
+		}
+		else
+		{
+			
+			if (pVeh->m_nCurrentGear != 0)
+				data.rpmmeter.rpm = data.realistic_speed / pVeh->m_nCurrentGear;
+
+
+			float total_rot = (data.rpmmeter.max_rot / data.rpmmeter.max_rpm) * data.rpmmeter.rpm * CTimer::ms_fTimeScale;
+			total_rot = total_rot > data.rpmmeter.max_rot ? data.rpmmeter.max_rot : total_rot;
+			total_rot = total_rot < 0 ? 0 : total_rot;
+			
+			float change = (total_rot - data.rpmmeter.rpm) * 0.5f * CTimer::ms_fTimeScale;
+
+			if (pVeh->m_nVehicleFlags.bEngineOn)
+				change += 20.0f;
+			
+			RotateFrameY(frame, data.rpmmeter.rpm);
+		}
+	}
+}
+
+void ProcessSpeedoMeter(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
+{
+	if (name.find("fc_sm2") != std::string::npos)
+	{
+		if (!data.spdometer.init)
+		{
+			if (name.find("_kph") != std::string::npos)
+				data.spdometer.mul = 100.0f;
+
+			data.spdometer.max_sp = std::stoi(ExtractStringValue(name, ".*m([0-9]+).*", "100"));
+			data.spdometer.max_rot = std::stof(ExtractStringValue(name, ".*r([0-9]+).*", "100"));
+			data.spdometer.init = true;
+		}
+		else
+		{
+			float total_rot = (data.spdometer.max_rot / data.spdometer.max_sp) * data.realistic_speed * CTimer::ms_fTimeScale;
+			total_rot = total_rot > data.spdometer.max_rot ? data.spdometer.max_rot : total_rot;
+			total_rot = total_rot < 0 ? 0 : total_rot;
+			
+			float change = (total_rot - data.spdometer.rot)*0.5f*CTimer::ms_fTimeScale;
+
+			RotateFrameY(frame, change);
+
+			data.spdometer.rot += change;
+		}
 	}
 }

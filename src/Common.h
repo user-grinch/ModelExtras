@@ -3,14 +3,13 @@
 #include <Vector>
 #include "plugin.h"
 
-
 enum {
 	FRAME_AT_ORIGIN,
 	FRAME_MOVING,
 	FRAME_AT_OFFSET,
 };
 
-struct FVCData {
+struct FCData {
 
 public:
 
@@ -37,8 +36,8 @@ public:
 	{
 		bool init = false;
 		int state = FRAME_AT_ORIGIN;
-		int cal_value = 1;
-		int cur_rot = 0;
+		float cal_value = 1.0f;
+		float cur_rot = 0.0f;
 		int rot_offset = 0;
 		uint wait_time = 0;
 		uint last_frame_ms = 0;
@@ -59,9 +58,19 @@ public:
 	} odometer;
 
 	struct {
-
+		bool init = false;
+		float mul = 160.9f;
+		float rot = 0.0f;
+		float max_rot = 0.0f;
+		int max_sp = 0;
 	} spdometer;
 
+	struct {
+		bool init = false;
+		float rpm = 0.0f;
+		float max_rot = 0.0f;
+		int max_rpm = 0;
+	} rpmmeter;
 
 	/*struct
 	{
@@ -73,8 +82,8 @@ public:
 	} throttle;*/
 
 
-	FVCData(CVehicle *vehicle){}
-	~FVCData(){}
+	FCData(CVehicle *vehicle){}
+	~FCData(){}
 };
 
 struct HSL {
@@ -85,12 +94,10 @@ struct RGB {
 	float r, g, b;
 };
 
-extern std::fstream lg;
-
 std::string ExtractStringValue(const std::string& src_str, const std::string&& pattern, const std::string&& default_val);
-void RotateFrameX(RwFrame* frame, int angle);
-void RotateFrameY(RwFrame* frame, int angle);
-void RotateFrameZ(RwFrame* frame, int angle);
+void RotateFrameX(RwFrame* frame, float angle);
+void RotateFrameY(RwFrame* frame, float angle);
+void RotateFrameZ(RwFrame* frame, float angle);
 void StoreChilds(RwFrame * parent_frame, std::vector<RwFrame*>& frame);
 void ShowAllAtomics(RwFrame * frame);
 void HideAllAtomics(RwFrame * frame);

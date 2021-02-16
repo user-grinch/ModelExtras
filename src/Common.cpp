@@ -1,9 +1,4 @@
-#include "Common.h"
-#include <regex>
-#include "NodeName.h"
-#include "CBike.h"
-#include "CAutomobile.h"
-#include "CModelInfo.h"
+#include "pch.h"
 
 std::string ExtractStringValue(const std::string& src_str, const std::string&& pattern, const std::string&& default_val)
 {
@@ -17,19 +12,19 @@ std::string ExtractStringValue(const std::string& src_str, const std::string&& p
 
 }
 
-void RotateFrameX(RwFrame* frame, int angle)
+void RotateFrameX(RwFrame* frame, float angle)
 {
 	RwFrameRotate(frame, (RwV3d *)0x008D2E00, (RwReal)angle, rwCOMBINEPRECONCAT);
 	RwFrameUpdateObjects(frame);
 }
 
-void RotateFrameY(RwFrame* frame, int angle)
+void RotateFrameY(RwFrame* frame, float angle)
 {
 	RwFrameRotate(frame, (RwV3d *)0x008D2E0C, (RwReal)angle, rwCOMBINEPRECONCAT);
 	RwFrameUpdateObjects(frame);
 }
 
-void RotateFrameZ(RwFrame* frame, int angle)
+void RotateFrameZ(RwFrame* frame, float angle)
 {
 	RwFrameRotate(frame, (RwV3d *)0x008D2E18, (RwReal)angle, rwCOMBINEPRECONCAT);
 	RwFrameUpdateObjects(frame);
@@ -153,10 +148,10 @@ HSL RGBtoHSL(const CRGBA& color)
 		rtn.s = 0;
 	else
 	{
-		if (rtn.l <= 0.5)
+		if (rtn.l <= 0.5f)
 			rtn.s = (max-min)/(max+min);
 		else
-			rtn.s = (max-min)/(2.0-max-min);
+			rtn.s = (max-min)/(2.0f-max-min);
 	}
 
 	// calculate hue

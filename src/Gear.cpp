@@ -1,6 +1,6 @@
 #include "Gear.h"
 
-void ProcessClutch(const std::string& name, RwFrame* frame, FVCData& data, CVehicle* pVeh)
+void ProcessClutch(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
 {
 	if (name.find("fc_cl") != std::string::npos)
 	{
@@ -79,7 +79,7 @@ void ProcessClutch(const std::string& name, RwFrame* frame, FVCData& data, CVehi
 	}
 }
 
-void ProcessGearLever(const std::string& name, RwFrame* frame, FVCData& data, CVehicle* pVeh)
+void ProcessGearLever(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
 {
 	if (name.find("fc_gl") != std::string::npos)
 	{
@@ -145,7 +145,6 @@ void ProcessGearLever(const std::string& name, RwFrame* frame, FVCData& data, CV
 							data.gearlever.state = FRAME_AT_OFFSET;
 						}
 					}
-
 
 					data.gearlever.last_frame_ms = data.timer;
 				}

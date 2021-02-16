@@ -1,6 +1,6 @@
 #include "Chain.h"
 
-void ProcessChain(const std::string& name,RwFrame* frame,FVCData& data,CVehicle* pVeh)
+void ProcessChain(const std::string& name,RwFrame* frame,FCData& data,CVehicle* pVeh)
 {
 	if (name.find("fc_chain") != std::string::npos)
 	{

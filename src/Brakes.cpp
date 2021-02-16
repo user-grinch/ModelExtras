@@ -1,6 +1,6 @@
 #include "Brakes.h"
 
-void ProcessFrontBrake(const std::string& name, RwFrame* frame, FVCData& data, CVehicle* pVeh)
+void ProcessFrontBrake(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
 {
 	if (name.find("fc_fbrake") != std::string::npos)
 	{
@@ -17,7 +17,7 @@ void ProcessFrontBrake(const std::string& name, RwFrame* frame, FVCData& data, C
 
 			if (delta_time > data.fbrake.wait_time)
 			{
-				int temp;
+				float temp;
 				if (pVeh->m_nVehicleFlags.bIsHandbrakeOn && data.fbrake.cur_rot != data.fbrake.max_rot)
 				{
 					if (data.fbrake.max_rot < data.fbrake.cur_rot)
@@ -58,7 +58,7 @@ void ProcessFrontBrake(const std::string& name, RwFrame* frame, FVCData& data, C
 	}
 }
 
-void ProcessRearBrake(const std::string& name, RwFrame* frame, FVCData& data, CVehicle* pVeh)
+void ProcessRearBrake(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
 {
 	if (name.find("fc_rbrake") != std::string::npos)
 	{
@@ -74,7 +74,7 @@ void ProcessRearBrake(const std::string& name, RwFrame* frame, FVCData& data, CV
 
 		if (delta_time > data.rbrake.wait_time)
 		{
-			int temp;
+			float temp;
 			if (pVeh->m_fBreakPedal && data.rbrake.cur_rot != data.rbrake.max_rot)
 			{
 				if (data.rbrake.max_rot < data.rbrake.cur_rot)
@@ -115,7 +115,7 @@ void ProcessRearBrake(const std::string& name, RwFrame* frame, FVCData& data, CV
 }
 
 /*
-void ProcessThrottle(const std::string& name, RwFrame* frame, FVCData& data, CVehicle* pVeh, uint timer)
+void ProcessThrottle(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh, uint timer)
 {
 	if (name.find("fc_th") != std::string::npos)
 	{
