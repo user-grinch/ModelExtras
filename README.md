@@ -1,3 +1,4 @@
+# The old v1.0 of the mod. The latest version is [here](https://github.com/user-grinch/FunctionalComponents)
 <p align="center">
   <img width="400" height="250" src="https://i.ibb.co/M19SZT0/Untitled-1.png">
 </p>
