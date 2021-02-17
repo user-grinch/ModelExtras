@@ -13,7 +13,8 @@ struct FCData {
 
 public:
 
-	int realistic_speed;
+	float delta = 0.0f;
+	int realistic_speed = 0;
 	uint timer = 0;
 
 	struct
@@ -67,7 +68,7 @@ public:
 
 	struct {
 		bool init = false;
-		float rpm = 0.0f;
+		float cur_rot = 0.0f;
 		float max_rot = 0.0f;
 		int max_rpm = 0;
 	} rpmmeter;

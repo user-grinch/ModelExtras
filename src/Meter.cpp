@@ -84,10 +84,10 @@ void ProcessOdoMeter(const std::string& name, RwFrame* frame, FCData& data, CVeh
 	}
 }
 
-// not accurate
+// TODO: fix
 void ProcessRPMMeter(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
 {
-	if (name.find("fc_sm") != std::string::npos)
+	if (name.find("fc_rpm") != std::string::npos)
 	{
 		if (!data.rpmmeter.init)
 		{
@@ -97,28 +97,28 @@ void ProcessRPMMeter(const std::string& name, RwFrame* frame, FCData& data, CVeh
 		}
 		else
 		{
+			float rpm = 0.0f;
 			
 			if (pVeh->m_nCurrentGear != 0)
-				data.rpmmeter.rpm = data.realistic_speed / pVeh->m_nCurrentGear;
-
-
-			float total_rot = (data.rpmmeter.max_rot / data.rpmmeter.max_rpm) * data.rpmmeter.rpm * CTimer::ms_fTimeScale;
-			total_rot = total_rot > data.rpmmeter.max_rot ? data.rpmmeter.max_rot : total_rot;
-			total_rot = total_rot < 0 ? 0 : total_rot;
-			
-			float change = (total_rot - data.rpmmeter.rpm) * 0.5f * CTimer::ms_fTimeScale;
+				rpm += 2.0f * data.delta * data.realistic_speed / pVeh->m_nCurrentGear;
 
 			if (pVeh->m_nVehicleFlags.bEngineOn)
-				change += 20.0f;
+				rpm += 6.0f * data.delta;
 			
-			RotateFrameY(frame, data.rpmmeter.rpm);
+			float new_rot = (data.rpmmeter.max_rot / data.rpmmeter.max_rpm) * rpm * data.delta * 0.50f;
+			new_rot = new_rot > data.rpmmeter.max_rot ? data.rpmmeter.max_rot : new_rot;
+			new_rot = new_rot < 0 ? 0 : new_rot;
+
+			float change = (new_rot - data.rpmmeter.cur_rot) * 0.25f * data.delta;
+			RotateFrameY(frame, change);
+			data.rpmmeter.cur_rot += change;
 		}
 	}
 }
 
 void ProcessSpeedoMeter(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
 {
-	if (name.find("fc_sm2") != std::string::npos)
+	if (name.find("fc_sm") != std::string::npos)
 	{
 		if (!data.spdometer.init)
 		{
@@ -131,11 +131,11 @@ void ProcessSpeedoMeter(const std::string& name, RwFrame* frame, FCData& data, C
 		}
 		else
 		{
-			float total_rot = (data.spdometer.max_rot / data.spdometer.max_sp) * data.realistic_speed * CTimer::ms_fTimeScale;
+			float total_rot = (data.spdometer.max_rot / data.spdometer.max_sp) * data.realistic_speed * data.delta;
 			total_rot = total_rot > data.spdometer.max_rot ? data.spdometer.max_rot : total_rot;
 			total_rot = total_rot < 0 ? 0 : total_rot;
 			
-			float change = (total_rot - data.spdometer.rot)*0.5f*CTimer::ms_fTimeScale;
+			float change = (total_rot - data.spdometer.rot)*0.5f*data.delta;
 
 			RotateFrameY(frame, change);
 

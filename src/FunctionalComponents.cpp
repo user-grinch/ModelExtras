@@ -16,7 +16,9 @@ public:
 		Events::vehicleRenderEvent += [](CVehicle* pVeh)
 		{
 			FCData &data = vehdata.Get(pVeh);
+			data.delta = CTimer::ms_fTimeScale;
 			data.realistic_speed = static_cast<int>(GetVehicleSpeedRealistic(pVeh));
+			data.timer = CTimer::m_snTimeInMilliseconds * CTimer::ms_fTimeScale;
 
 			ProcessNodesRecursive((RwFrame *)pVeh->m_pRwClump->object.parent, pVeh, data);
 		};
@@ -31,8 +33,6 @@ static void ProcessNodesRecursive(RwFrame * frame, CVehicle* pVeh, FCData &data)
 
 		if (name[0] == 'f' && name[1] == 'c' && name[2] == '_')
 		{
-			data.timer = CTimer::m_snTimeInMilliseconds;
-
 			ProcessChain(name, frame, data, pVeh);
 
 			ProcessFrontBrake(name, frame, data, pVeh);
@@ -43,6 +43,7 @@ static void ProcessNodesRecursive(RwFrame * frame, CVehicle* pVeh, FCData &data)
 			ProcessGearMeter(name, frame, data, pVeh);
 			ProcessOdoMeter(name, frame, data, pVeh);
 			ProcessSpeedoMeter(name, frame, data, pVeh);
+			ProcessRPMMeter(name, frame, data, pVeh);
 		}
 		
 		if (RwFrame * newFrame = frame->child)
