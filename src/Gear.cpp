@@ -86,7 +86,7 @@ void ProcessGearLever(const std::string& name, RwFrame* frame, FCData& data, CVe
 		if (!data.gearlever.init)
 		{
 			data.gearlever.init = true;
-			data.gearlever.rot_offset = std::stoi(ExtractStringValue(name, ".*_o(-?[0-9]+).*", "0"));
+			data.gearlever.rot_offset = std::stoi(ExtractStringValue(name, ".*_ax(-?[0-9]+).*", "0"));
 
 			data.gearlever.wait_time = static_cast<unsigned int>(abs(data.gearlever.rot_offset / 10));
 		}

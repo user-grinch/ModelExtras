@@ -91,8 +91,8 @@ void ProcessRPMMeter(const std::string& name, RwFrame* frame, FCData& data, CVeh
 	{
 		if (!data.rpmmeter.init)
 		{
-			data.rpmmeter.max_rpm = std::stoi(ExtractStringValue(name, ".*_m([0-9]+).*", "100"));
-			data.rpmmeter.max_rot = std::stof(ExtractStringValue(name, ".*_([0-9]+).*", "100"));
+			data.rpmmeter.max_rpm = std::stoi(ExtractStringValue(name, ".*m([0-9]+).*", "100"));
+			data.rpmmeter.max_rot = std::stof(ExtractStringValue(name, ".*r([0-9]+).*", "100"));
 			data.rpmmeter.init = true;
 		}
 		else
