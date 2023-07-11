@@ -1,0 +1,15 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\program files (x86)\\microsoft visual studio\\2022\\buildtools\\vc\\tools\\msvc\\14.36.32532\\modules\\std.compat.ixx",
+        "ProvidedModule": "std.compat",
+        "Includes": [],
+        "ImportedModules": [
+            {
+                "Name": "std",
+                "BMI": "D:\\FunctionalComponents\\build\\obj\\Win32\\Debug\\std.ixx.ifc"
+            }
+        ],
+        "ImportedHeaderUnits": []
+    }
+}

@@ -1,4 +1,5 @@
 #include "Meter.h"
+#include <CBike.h>
 
 void ProcessGearMeter(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
 {

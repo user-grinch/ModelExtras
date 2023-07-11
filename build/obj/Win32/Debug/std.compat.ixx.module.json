@@ -1,0 +1,26 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "obj\\Win32\\Debug\\std.compat.ixx.obj",
+            "outputs": [
+                "D:\\FunctionalComponents\\build\\obj\\Win32\\Debug\\vc143.pdb",
+                "obj\\Win32\\Debug\\",
+                "D:\\FunctionalComponents\\build\\obj\\Win32\\Debug\\std.compat.ixx.ifc"
+            ],
+            "provides": [
+                {
+                    "logical-name": "std.compat",
+                    "source-path": "c:\\program files (x86)\\microsoft visual studio\\2022\\buildtools\\vc\\tools\\msvc\\14.36.32532\\modules\\std.compat.ixx",
+                    "is-interface": true
+                }
+            ],
+            "requires": [
+                {
+                    "logical-name": "std"
+                }
+            ]
+        }
+    ]
+}

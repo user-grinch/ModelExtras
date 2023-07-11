@@ -1,26 +1,25 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "GTASA",
             "includePath": [
-                "${workspaceFolder}/src/",
-                "${PLUGIN_SDK_DIR}/plugin_sa",
-                "${PLUGIN_SDK_DIR}/plugin_sa/game_sa",
-                "${PLUGIN_SDK_DIR}/shared",
-                "${PLUGIN_SDK_DIR}/shared/game"
+                "${workspaceFolder}/**",
+                "${PLUGIN_SDK_DIR}/*",
+                "${PLUGIN_SDK_DIR}/plugin_sa/*",
+                "${PLUGIN_SDK_DIR}/plugin_sa/game_sa/*",
+                "${PLUGIN_SDK_DIR}/shared/*",
+                "${PLUGIN_SDK_DIR}/shared/game/*",
+                "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\ucrt\\*"
             ],
             "defines": [
                 "_DEBUG",
-                "UNICODE",
-                "_UNICODE",
-                "GTASA"
+                "_DX9_SDK_INSTALLED"
             ],
-            "windowsSdkVersion": "8.1",
-            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/cl.exe",
+            "windowsSdkVersion": "10.0.19041.0",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30037/bin/Hostx64/x64/cl.exe",
             "cStandard": "c17",
-            "cppStandard": "c++14",
-            "intelliSenseMode": "msvc-x86",
-            "configurationProvider": "ms-vscode.cmake-tools"
+            "cppStandard": "c++20",
+            "intelliSenseMode": "windows-msvc-x86"
         }
     ],
     "version": 4

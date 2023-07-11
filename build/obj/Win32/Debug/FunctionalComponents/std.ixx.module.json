@@ -1,0 +1,22 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "obj\\Win32\\Debug\\FunctionalComponents\\std.ixx.obj",
+            "outputs": [
+                "D:\\FunctionalComponents\\build\\obj\\Win32\\Debug\\FunctionalComponents\\vc143.pdb",
+                "obj\\Win32\\Debug\\FunctionalComponents\\",
+                "D:\\FunctionalComponents\\build\\obj\\Win32\\Debug\\FunctionalComponents\\std.ixx.ifc"
+            ],
+            "provides": [
+                {
+                    "logical-name": "std",
+                    "source-path": "c:\\program files (x86)\\microsoft visual studio\\2022\\buildtools\\vc\\tools\\msvc\\14.36.32532\\modules\\std.ixx",
+                    "is-interface": true
+                }
+            ],
+            "requires": []
+        }
+    ]
+}
