@@ -1,5 +1,4 @@
 #include "pch.h"
-
 #include "Brakes.h"
 #include "Chain.h"
 #include "Gear.h"
@@ -10,9 +9,26 @@ static void ProcessNodesRecursive(RwFrame * frame, CVehicle* pObj, FCData &data)
 class FunctionalComponents {
 public:
 	FunctionalComponents() {
+		if (HIWORD(BASS_GetVersion()) != BASSVERSION)
+		{
+			Log::Print<eLogLevel::Error>("Incorrect bass.dll version. Use the version that came with the mod.");
+			return;
+		}
 
-		lg.open("FunctionalComponents.log", std::fstream::out | std::fstream::trunc);
-		lg << "Log started" << std::endl;
+		BASS_DEVICEINFO info;
+		int defaultDevice = -1;
+		for (int i = 0; BASS_GetDeviceInfo(i, &info); i++)
+		{
+			if (info.flags & BASS_DEVICE_DEFAULT) 
+			{
+				defaultDevice = i;
+			}
+		}
+		if (!BASS_Init(defaultDevice, 44100, BASS_DEVICE_3D | BASS_DEVICE_DEFAULT, RsGlobal.ps->window, nullptr))
+		{
+			Log::Print<eLogLevel::Warn>("Failed to initialize BASS device. Audio glitches might occur");
+		}
+
 		Events::vehicleRenderEvent += [](CVehicle* pVeh)
 		{
 			FCData &data = vehdata.Get(pVeh);
@@ -41,6 +57,7 @@ static void ProcessNodesRecursive(RwFrame * frame, CVehicle* pVeh, FCData &data)
 			ProcessClutch(name, frame, data, pVeh);
 			ProcessGearLever(name, frame, data, pVeh);
 			ProcessGearMeter(name, frame, data, pVeh);
+			ProcessGearSound(name, frame, data, pVeh);
 			ProcessOdoMeter(name, frame, data, pVeh);
 			ProcessSpeedoMeter(name, frame, data, pVeh);
 			ProcessRPMMeter(name, frame, data, pVeh);

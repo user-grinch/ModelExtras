@@ -1,4 +1,6 @@
 #include "Gear.h"
+#include "bass.h"
+#include "pch.h"
 
 void ProcessClutch(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
 {
@@ -149,6 +151,39 @@ void ProcessGearLever(const std::string& name, RwFrame* frame, FCData& data, CVe
 					data.gearlever.last_frame_ms = data.timer;
 				}
 			}
+		}
+	}
+}
+
+void ProcessGearSound(const std::string& name, RwFrame* frame, FCData& data, CVehicle* pVeh)
+{
+	if (name.find("fc_gs") != std::string::npos)
+	{
+		if (!data.gearsound.init)
+		{
+			std::string upSoundPath = ExtractStringValue(name, "fc_gs_u_(.*$)", "");
+			data.gearsound.upSound = BASS_StreamCreateFile(false, 
+				MOD_DATA_PATH_S(upSoundPath), NULL, NULL, NULL);
+			BASS_ChannelSetAttribute(data.gearsound.upSound, BASS_ATTRIB_VOL, 1.0);
+			
+			std::string downSoundPath = ExtractStringValue(name, "fc_gs_d_(.*$)", "");
+			data.gearsound.downSound = BASS_StreamCreateFile(false, 
+				MOD_DATA_PATH_S(downSoundPath), NULL, NULL, NULL);
+			BASS_ChannelSetAttribute(data.gearsound.downSound, BASS_ATTRIB_VOL, 1.0);
+		}
+
+		if (data.gearsound.current_gear != pVeh->m_nCurrentGear)
+		{	
+			// Gear Up sound
+			if (data.gearsound.current_gear < pVeh->m_nCurrentGear)
+			{
+				BASS_ChannelPlay(data.gearsound.upSound, false);
+			}
+			else // Gear down sound
+			{
+				BASS_ChannelPlay(data.gearsound.downSound, false);
+			}
+			data.gearsound.current_gear = pVeh->m_nCurrentGear;
 		}
 	}
 }

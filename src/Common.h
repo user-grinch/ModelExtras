@@ -2,6 +2,7 @@
 #include <fstream>
 #include <Vector>
 #include "plugin.h"
+#include "Bass.h"
 
 enum {
 	FRAME_AT_ORIGIN,
@@ -44,6 +45,12 @@ public:
 		uint last_frame_ms = 0;
 		short last_gear = -2;
 	} clutch, gearlever;
+
+	struct {
+		bool init = false;
+		uint current_gear = 0;
+		HSTREAM upSound, downSound;
+	} gearsound;
 
 	struct {
 		int gear_shown = -2;

@@ -15,8 +15,12 @@ workspace "FunctionalComponents"
     location "../build"
     targetdir "../build/bin"
 
+    linkoptions {
+        "/SAFESEH:NO", -- Image Has Safe Exception Handers: No
+    }
+
 -- project "depend"
---     kind "SharedLib"
+--     kind "StaticLib"
 
 --     files { 
 --         "../include/**",
@@ -32,6 +36,8 @@ workspace "FunctionalComponents"
 
 project "FunctionalComponents"
     kind "SharedLib"
+    targetextension ".asi"
+
     -- links { 
     --     "depend",
     -- }
@@ -64,6 +70,7 @@ project "FunctionalComponents"
     libdirs {
         PSDK_DIR .. "/output/lib",
         "build/bin/",
+        "../lib/"
     }
 
     filter "configurations:Debug"
@@ -71,6 +78,7 @@ project "FunctionalComponents"
         links { 
             -- "depend",
             "plugin_d.lib",
+            "bass",
         }
 
     filter "configurations:Release"
@@ -78,4 +86,5 @@ project "FunctionalComponents"
         links { 
             -- "depend",
             "plugin.lib",
+            "bass",
         }
