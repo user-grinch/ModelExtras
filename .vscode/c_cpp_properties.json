@@ -13,6 +13,7 @@
             ],
             "defines": [
                 "_DEBUG",
+                "GTASA",
                 "_DX9_SDK_INSTALLED"
             ],
             "windowsSdkVersion": "10.0.19041.0",

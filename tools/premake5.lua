@@ -46,8 +46,8 @@ project "FunctionalComponents"
         "../src/**",
     }
 
-    -- pchheader "pch.h"
-    -- pchsource "../src/pch.cpp"
+    pchheader "pch.h"
+    pchsource "../src/pch.cpp"
 
     defines { 
         "IS_PLATFORM_WIN" ,

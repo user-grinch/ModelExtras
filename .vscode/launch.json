@@ -5,13 +5,35 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch App",
+            "name": "Launch SA",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/IMGEditorApp.exe",
+            "program": "D:/GTASanAndreas/gta_sa.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/",
+            "cwd": "D:/GTASanAndreas/",
+            "environment": [],
+            "console": "internalConsole"
+        },
+        {
+            "name": "Launch VC",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "F:/GTA Vice City/gta-vc.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "F:/GTA Vice City/",
+            "environment": [],
+            "console": "internalConsole"
+        },
+        {
+            "name": "Launch III",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "F:/GTA3/Gta3.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "F:/GTA3/",
             "environment": [],
             "console": "internalConsole"
         },
