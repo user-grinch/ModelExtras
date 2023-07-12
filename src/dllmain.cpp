@@ -43,8 +43,10 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 {
     if (nReason == DLL_PROCESS_ATTACH)
     {
-		Events::initScriptsEvent += []()
+		Events::initGameEvent += []()
 		{
+			Log::Print<eLogLevel::None>("Starting " MOD_TITLE " (" __DATE__ ")\nAuthor: Grinch_\nDiscord: "
+                                    DISCORD_INVITE "\nPatreon: " PATREON_LINK "\nMore Info: " GITHUB_LINK "\n");
 			if (HIWORD(BASS_GetVersion()) != BASSVERSION)
 			{
 				Log::Print<eLogLevel::Error>("Incorrect bass.dll version. Use the version that came with the mod.");
