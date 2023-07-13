@@ -4,6 +4,6 @@ echo Building Release
 echo --------------------------------------------------
 echo[
 call "tools\Setup.bat"
-MsBuild FunctionalComponents.sln /property:Configuration=Release 
-del %OUT_DIR%"\FunctionalComponents.asi" /Q
-xcopy /s "bin\FunctionalComponents.asi" %OUT_DIR% /K /D /H /Y 
+MsBuild VehExtras.sln /property:Configuration=Release 
+del %OUT_DIR%"\VehExtras.asi" /Q
+xcopy /s "bin\VehExtras.asi" %OUT_DIR% /K /D /H /Y 

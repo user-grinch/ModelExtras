@@ -66,6 +66,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 			{
 				Log::Print<eLogLevel::Warn>("Failed to initialize BASS device. Audio glitches might occur");
 			}
+			BASS_Start();
 		};
 
 		Events::vehicleRenderEvent += [](CVehicle* pVeh)

@@ -177,7 +177,7 @@ void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 		Log::Print<eLogLevel::Warn>("Failed to create BASS audio stream. Error Code: {}", code);
 	}
 
-	BASS_ChannelSetAttribute(data.m_hUpSound, BASS_ATTRIB_VOL, 1.0);
+	// BASS_ChannelSetAttribute(data.m_hUpSound, BASS_ATTRIB_VOL, 1.0);
 
 	std::string downSoundPath = "audio/" + Util::GetRegexVal(name, "fc_gs_d_(.*$)", "") + ".wav";
 	data.m_hDownSound = BASS_StreamCreateFile(false, 
@@ -189,7 +189,7 @@ void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 		Log::Print<eLogLevel::Warn>("Failed to create BASS audio stream. Error Code: {}", code);
 	}
 
-	BASS_ChannelSetAttribute(data.m_hDownSound, BASS_ATTRIB_VOL, 1.0);
+	// BASS_ChannelSetAttribute(data.m_hDownSound, BASS_ATTRIB_VOL, 1.0);
 	IFeature::Initialize();
 }
 
@@ -208,7 +208,7 @@ void GearSoundFeature::Process(RwFrame* frame, CVehicle* pVeh)
 			// Gear Up sound
 			if (data.m_nCurGear < pVeh->m_nCurrentGear)
 			{
-				BASS_ChannelPlay(data.m_hUpSound, false);
+				BASS_ChannelPlay(data.m_hUpSound, true);
 				int code = BASS_ErrorGetCode();
 				if (code != BASS_OK)
 				{
@@ -217,7 +217,7 @@ void GearSoundFeature::Process(RwFrame* frame, CVehicle* pVeh)
 			}
 			else // Gear down sound
 			{
-				BASS_ChannelPlay(data.m_hDownSound, false);
+				BASS_ChannelPlay(data.m_hDownSound, true);
 				int code = BASS_ErrorGetCode();
 				if (code != BASS_OK)
 				{
