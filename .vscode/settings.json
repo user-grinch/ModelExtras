@@ -79,6 +79,7 @@
         "deque": "cpp",
         "coroutine": "cpp",
         "regex": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "variant": "cpp"
     }
 }

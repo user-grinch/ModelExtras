@@ -17,6 +17,10 @@ void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh)
 	std::string name = GetFrameNodeName(frame);
 	if (name.find("fc_cl") != std::string::npos)
 	{
+		if (m_State == eFeatureState::NotInitialized)
+		{
+			Initialize(frame, pVeh);
+		}
 		uint timer = CTimer::m_snTimeInMilliseconds;
 		uint deltaTime = (timer - data.m_nLastFrameMS);
 
@@ -98,6 +102,10 @@ void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh)
 	std::string name = GetFrameNodeName(frame);
 	if (name.find("fc_gl") != std::string::npos)
 	{
+		if (m_State == eFeatureState::NotInitialized)
+		{
+			Initialize(frame, pVeh);
+		}
 		uint timer = CTimer::m_snTimeInMilliseconds;	
 		uint deltaTime = (timer - data.m_nLastFrameMS);
 
@@ -159,14 +167,28 @@ GearSoundFeature GearSound;
 void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	VehData data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(pFrame);
-	std::string upSoundPath = Util::GetRegexVal(name, "fc_gs_u_(.*$)", "");
+	std::string upSoundPath = "audio/" + Util::GetRegexVal(name, "fc_gs_u_(.*$)", "") + ".wav";
 	data.m_hUpSound = BASS_StreamCreateFile(false, 
 		MOD_DATA_PATH_S(upSoundPath), NULL, NULL, NULL);
+	
+	int code = BASS_ErrorGetCode();
+	if (code != BASS_OK)
+	{
+		Log::Print<eLogLevel::Warn>("Failed to create BASS audio stream. Error Code: {}", code);
+	}
+
 	BASS_ChannelSetAttribute(data.m_hUpSound, BASS_ATTRIB_VOL, 1.0);
 
-	std::string downSoundPath = Util::GetRegexVal(name, "fc_gs_d_(.*$)", "");
+	std::string downSoundPath = "audio/" + Util::GetRegexVal(name, "fc_gs_d_(.*$)", "") + ".wav";
 	data.m_hDownSound = BASS_StreamCreateFile(false, 
 		MOD_DATA_PATH_S(downSoundPath), NULL, NULL, NULL);
+	
+	code = BASS_ErrorGetCode();
+	if (code != BASS_OK)
+	{
+		Log::Print<eLogLevel::Warn>("Failed to create BASS audio stream. Error Code: {}", code);
+	}
+
 	BASS_ChannelSetAttribute(data.m_hDownSound, BASS_ATTRIB_VOL, 1.0);
 	IFeature::Initialize();
 }
@@ -177,16 +199,30 @@ void GearSoundFeature::Process(RwFrame* frame, CVehicle* pVeh)
 	std::string name = GetFrameNodeName(frame);
 	if (name.find("fc_gs") != std::string::npos)
 	{
+		if (m_State == eFeatureState::NotInitialized)
+		{
+			Initialize(frame, pVeh);
+		}
 		if (data.m_nCurGear != pVeh->m_nCurrentGear)
 		{	
 			// Gear Up sound
 			if (data.m_nCurGear < pVeh->m_nCurrentGear)
 			{
 				BASS_ChannelPlay(data.m_hUpSound, false);
+				int code = BASS_ErrorGetCode();
+				if (code != BASS_OK)
+				{
+					Log::Print<eLogLevel::Warn>("Failed to play BASS audio stream. Error Code: {}", code);
+				}
 			}
 			else // Gear down sound
 			{
 				BASS_ChannelPlay(data.m_hDownSound, false);
+				int code = BASS_ErrorGetCode();
+				if (code != BASS_OK)
+				{
+					Log::Print<eLogLevel::Warn>("Failed to play BASS audio stream. Error Code: {}", code);
+				}
 			}
 			data.m_nCurGear = pVeh->m_nCurrentGear;
 		}

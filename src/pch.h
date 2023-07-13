@@ -21,5 +21,5 @@ using namespace plugin;
 #define MOD_VERSION MOD_VERSION_NUMBER
 #define MOD_TITLE MOD_NAME " v" MOD_VERSION
 #define DISCORD_INVITE "https://discord.gg/ZzW7kmf"
-#define GITHUB_LINK "https://github.com/user-grinch/Cheat-Menu"
+#define GITHUB_LINK "https://github.com/user-grinch/FunctionalComponents"
 #define PATREON_LINK "https://www.patreon.com/grinch_"

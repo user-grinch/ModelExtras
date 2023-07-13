@@ -62,7 +62,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 					defaultDevice = i;
 				}
 			}
-			if (!BASS_Init(defaultDevice, 44100, BASS_DEVICE_3D | BASS_DEVICE_DEFAULT, RsGlobal.ps->window, nullptr))
+			if (!BASS_Init(defaultDevice, 44100, BASS_DEVICE_DEFAULT, RsGlobal.ps->window, nullptr))
 			{
 				Log::Print<eLogLevel::Warn>("Failed to initialize BASS device. Audio glitches might occur");
 			}
