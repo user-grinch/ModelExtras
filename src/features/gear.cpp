@@ -1,10 +1,11 @@
 #include "pch.h"
 #include "Gear.h"
 #include "bass.h"
+#include "../soundsystem.h"
 
 ClutchFeature Clutch;
 void ClutchFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
-	VehData data = vehData.Get(pVeh);
+	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(pFrame);
 	data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_az(-?[0-9]+).*", "0"));
 	data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nCurOffset / 10));
@@ -13,7 +14,7 @@ void ClutchFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
-	VehData data = vehData.Get(pVeh);
+	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
 	if (name.find("fc_cl") != std::string::npos)
 	{
@@ -89,7 +90,7 @@ void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh)
 
 GearLeverFeature GearLever;
 void GearLeverFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
-	VehData data = vehData.Get(pVeh);
+	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(pFrame);
 	data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_ax(-?[0-9]+).*", "0"));
 	data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nCurOffset / 10));
@@ -98,7 +99,7 @@ void GearLeverFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
-	VehData data = vehData.Get(pVeh);
+	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
 	if (name.find("fc_gl") != std::string::npos)
 	{
@@ -165,65 +166,30 @@ void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh)
 GearSoundFeature GearSound;
 
 void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
-	VehData data = vehData.Get(pVeh);
+	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(pFrame);
-	std::string upSoundPath = "audio/" + Util::GetRegexVal(name, "fc_gs_u_(.*$)", "") + ".wav";
-	data.m_hUpSound = BASS_StreamCreateFile(false, 
-		MOD_DATA_PATH_S(upSoundPath), NULL, NULL, NULL);
-	
-	int code = BASS_ErrorGetCode();
-	if (code != BASS_OK)
-	{
-		Log::Print<eLogLevel::Warn>("Failed to create BASS audio stream. Error Code: {}", code);
-	}
+	std::string regex = Util::GetRegexVal(name, "fc_gs_(.*$)", "");
+	std::string upPath = MOD_DATA_PATH_S(std::format("audio/{}.wav", regex));
 
-	// BASS_ChannelSetAttribute(data.m_hUpSound, BASS_ATTRIB_VOL, 1.0);
+	data.m_pUpAudio = SoundSystem.LoadStream(upPath.c_str(), false);
+	data.m_pUpAudio->SetVolume(0.5f);
 
-	std::string downSoundPath = "audio/" + Util::GetRegexVal(name, "fc_gs_d_(.*$)", "") + ".wav";
-	data.m_hDownSound = BASS_StreamCreateFile(false, 
-		MOD_DATA_PATH_S(downSoundPath), NULL, NULL, NULL);
-	
-	code = BASS_ErrorGetCode();
-	if (code != BASS_OK)
-	{
-		Log::Print<eLogLevel::Warn>("Failed to create BASS audio stream. Error Code: {}", code);
-	}
-
-	// BASS_ChannelSetAttribute(data.m_hDownSound, BASS_ATTRIB_VOL, 1.0);
 	IFeature::Initialize();
 }
 
 void GearSoundFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
-	VehData data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
 	if (name.find("fc_gs") != std::string::npos)
 	{
-		if (m_State == eFeatureState::NotInitialized)
+		if (m_State != eFeatureState::Initialized)
 		{
 			Initialize(frame, pVeh);
 		}
+		VehData &data = vehData.Get(pVeh);
 		if (data.m_nCurGear != pVeh->m_nCurrentGear)
 		{	
-			// Gear Up sound
-			if (data.m_nCurGear < pVeh->m_nCurrentGear)
-			{
-				BASS_ChannelPlay(data.m_hUpSound, true);
-				int code = BASS_ErrorGetCode();
-				if (code != BASS_OK)
-				{
-					Log::Print<eLogLevel::Warn>("Failed to play BASS audio stream. Error Code: {}", code);
-				}
-			}
-			else // Gear down sound
-			{
-				BASS_ChannelPlay(data.m_hDownSound, true);
-				int code = BASS_ErrorGetCode();
-				if (code != BASS_OK)
-				{
-					Log::Print<eLogLevel::Warn>("Failed to play BASS audio stream. Error Code: {}", code);
-				}
-			}
+			data.m_pUpAudio->Play();
 			data.m_nCurGear = pVeh->m_nCurrentGear;
 		}
 	}

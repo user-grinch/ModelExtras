@@ -4,7 +4,7 @@
 ChainFeature Chain;
 
 void ChainFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
-	VehData data = vehData.Get(pVeh);
+	VehData &data = vehData.Get(pVeh);
 	Util::StoreChilds(pFrame, data.m_FrameList);
 	IFeature::Initialize();
 }
@@ -14,7 +14,7 @@ void ChainFeature::Process(RwFrame* frame, CVehicle* pVeh)
 	std::string name = GetFrameNodeName(frame);
 	if (name.find("fc_chain") != std::string::npos)
 	{
-		VehData data = vehData.Get(pVeh);
+		VehData &data = vehData.Get(pVeh);
 		if (m_State == eFeatureState::NotInitialized)
 		{
 			Initialize(frame, pVeh);

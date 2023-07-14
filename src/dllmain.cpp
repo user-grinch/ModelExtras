@@ -3,6 +3,7 @@
 #include "features/chain.h"
 #include "features/meter.h"
 #include "features/gear.h"
+#include "soundsystem.h"
 
 static void ProcessNodesRecursive(RwFrame * frame, CVehicle* pVeh)
 {
@@ -47,26 +48,8 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 		{
 			Log::Print<eLogLevel::None>("Starting " MOD_TITLE " (" __DATE__ ")\nAuthor: Grinch_\nDiscord: "
                                     DISCORD_INVITE "\nPatreon: " PATREON_LINK "\nMore Info: " GITHUB_LINK "\n");
-			if (HIWORD(BASS_GetVersion()) != BASSVERSION)
-			{
-				Log::Print<eLogLevel::Error>("Incorrect bass.dll version. Use the version that came with the mod.");
-				return;
-			}
-
-			BASS_DEVICEINFO info;
-			int defaultDevice = -1;
-			for (int i = 0; BASS_GetDeviceInfo(i, &info); i++)
-			{
-				if (info.flags & BASS_DEVICE_DEFAULT) 
-				{
-					defaultDevice = i;
-				}
-			}
-			if (!BASS_Init(defaultDevice, 44100, BASS_DEVICE_DEFAULT, RsGlobal.ps->window, nullptr))
-			{
-				Log::Print<eLogLevel::Warn>("Failed to initialize BASS device. Audio glitches might occur");
-			}
-			BASS_Start();
+			SoundSystem.Inject();
+			SoundSystem.Init(RsGlobal.ps->window);
 		};
 
 		Events::vehicleRenderEvent += [](CVehicle* pVeh)

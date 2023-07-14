@@ -3,6 +3,8 @@
 #include "../interface/ifeature.hpp"
 #include <vector>
 
+extern class CAudioStream;
+
 enum class eFrameState {
 	AtOrigin,
 	IsMoving,
@@ -48,7 +50,7 @@ protected:
     struct VehData
 	{
 		uint m_nCurGear = 0;
-		HSTREAM m_hUpSound, m_hDownSound;
+		CAudioStream *m_pUpAudio, *m_pDownAudio;
 		
 		VehData(CVehicle *pVeh){}
 		~VehData(){}
