@@ -16,7 +16,7 @@ void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("fc_cl") != std::string::npos)
+	if (name.find("x_cl") != std::string::npos)
 	{
 		if (m_State == eFeatureState::NotInitialized)
 		{
@@ -101,7 +101,7 @@ void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("fc_gl") != std::string::npos)
+	if (name.find("x_gl") != std::string::npos)
 	{
 		if (m_State == eFeatureState::NotInitialized)
 		{
@@ -168,7 +168,7 @@ GearSoundFeature GearSound;
 void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(pFrame);
-	std::string regex = Util::GetRegexVal(name, "fc_gs_(.*$)", "");
+	std::string regex = Util::GetRegexVal(name, "x_gs_(.*$)", "");
 	std::string upPath = MOD_DATA_PATH_S(std::format("audio/{}.wav", regex));
 
 	data.m_pUpAudio = SoundSystem.LoadStream(upPath.c_str(), false);
@@ -180,7 +180,7 @@ void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void GearSoundFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("fc_gs") != std::string::npos)
+	if (name.find("x_gs") != std::string::npos)
 	{
 		if (m_State != eFeatureState::Initialized)
 		{
