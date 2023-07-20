@@ -80,6 +80,7 @@
         "coroutine": "cpp",
         "regex": "cpp",
         "set": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "codecvt": "cpp"
     }
 }

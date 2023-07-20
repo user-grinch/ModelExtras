@@ -15,6 +15,7 @@ class ClutchFeature : public IFeature {
 protected:
     struct VehData
 	{
+		bool m_bInitialized = false;
 		eFrameState m_eState = eFrameState::AtOrigin;
 		float m_fCalVal = 1.0f;
 		float m_fCurRotation = 0.0f;
@@ -49,6 +50,7 @@ class GearSoundFeature : public IFeature {
 protected:
     struct VehData
 	{
+		bool m_bInitialized = false;
 		uint m_nCurGear = 0;
 		CAudioStream *m_pUpAudio, *m_pDownAudio;
 		

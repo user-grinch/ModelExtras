@@ -3,6 +3,7 @@
 #include "features/chain.h"
 #include "features/meter.h"
 #include "features/gear.h"
+#include "features/plate.h"
 #include "soundsystem.h"
 
 static void ProcessNodesRecursive(RwFrame * frame, CVehicle* pVeh)
@@ -11,7 +12,7 @@ static void ProcessNodesRecursive(RwFrame * frame, CVehicle* pVeh)
 	{
 		const std::string name = GetFrameNodeName(frame);
 
-		if (name[0] == 'f' && name[1] == 'c' && name[2] == '_')
+		if (name[0] == 'v' && name[1] == 'x' && name[2] == '_')
 		{
 			Chain.Process(frame, pVeh);
 
@@ -27,6 +28,8 @@ static void ProcessNodesRecursive(RwFrame * frame, CVehicle* pVeh)
 			GearLever.Process(frame, pVeh);
 			GearSound.Process(frame, pVeh);
 		}
+		LicensePlate.Process(frame, pVeh);
+
 		
 		if (RwFrame * newFrame = frame->child)
 		{

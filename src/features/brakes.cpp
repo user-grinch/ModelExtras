@@ -9,7 +9,7 @@ void FrontBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	std::string name = GetFrameNodeName(pFrame);
 	data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_az(-?[0-9]+).*", "0"));
 	data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nMaxRotation / 5));
-	IFeature::Initialize();
+	
 }
 
 void RearBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
@@ -17,18 +17,19 @@ void RearBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	std::string name = GetFrameNodeName(pFrame);
 	data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_ax(-?[0-9]+).*", "0"));
 	data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nMaxRotation / 5));
-	IFeature::Initialize();
+	
 }
 
 void FrontBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_fbrake") != std::string::npos)
+	if (name.find("vx_fbrake") != std::string::npos)
 	{
 		VehData &data = vehData.Get(pVeh);
 
-		if (m_State == eFeatureState::NotInitialized)
+		if (!data.m_bInitialized)
 		{
 			Initialize(frame, pVeh);
+			data.m_bInitialized = true;
 		}
 
 		uint timer = CTimer::m_snTimeInMilliseconds * CTimer::ms_fTimeScale;;
@@ -80,13 +81,14 @@ void FrontBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 
 void RearBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_rbrake") != std::string::npos)
+	if (name.find("vx_rbrake") != std::string::npos)
 	{
 		VehData &data = vehData.Get(pVeh);
 
-		if (m_State == eFeatureState::NotInitialized)
+		if (!data.m_bInitialized)
 		{
 			Initialize(frame, pVeh);
+			data.m_bInitialized = true;
 		}
 
 		uint timer = CTimer::m_snTimeInMilliseconds * CTimer::ms_fTimeScale;;

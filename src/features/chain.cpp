@@ -6,18 +6,19 @@ ChainFeature Chain;
 void ChainFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	Util::StoreChilds(pFrame, data.m_FrameList);
-	IFeature::Initialize();
+	
 }
 
 void ChainFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_chain") != std::string::npos)
+	if (name.find("vx_chain") != std::string::npos)
 	{
 		VehData &data = vehData.Get(pVeh);
-		if (m_State == eFeatureState::NotInitialized)
+		if (!data.m_bInitialized)
 		{
 			Initialize(frame, pVeh);
+			data.m_bInitialized = true;
 		}
 		uint timer = CTimer::m_snTimeInMilliseconds * CTimer::ms_fTimeScale;;		
 		uint deltaTime = timer - data.m_nLastFrameMS;

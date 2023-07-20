@@ -9,18 +9,19 @@ void ClutchFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	std::string name = GetFrameNodeName(pFrame);
 	data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_az(-?[0-9]+).*", "0"));
 	data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nCurOffset / 10));
-	IFeature::Initialize();
+	
 }
 
 void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_cl") != std::string::npos)
+	if (name.find("vx_cl") != std::string::npos)
 	{
-		if (m_State == eFeatureState::NotInitialized)
+		if (!data.m_bInitialized)
 		{
 			Initialize(frame, pVeh);
+			data.m_bInitialized = true;
 		}
 		uint timer = CTimer::m_snTimeInMilliseconds;
 		uint deltaTime = (timer - data.m_nLastFrameMS);
@@ -94,18 +95,19 @@ void GearLeverFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	std::string name = GetFrameNodeName(pFrame);
 	data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_ax(-?[0-9]+).*", "0"));
 	data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nCurOffset / 10));
-	IFeature::Initialize();
+	
 }
 
 void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_gl") != std::string::npos)
+	if (name.find("vx_gl") != std::string::npos)
 	{
-		if (m_State == eFeatureState::NotInitialized)
+		if (!data.m_bInitialized)
 		{
 			Initialize(frame, pVeh);
+			data.m_bInitialized = true;
 		}
 		uint timer = CTimer::m_snTimeInMilliseconds;	
 		uint deltaTime = (timer - data.m_nLastFrameMS);
@@ -168,25 +170,26 @@ GearSoundFeature GearSound;
 void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(pFrame);
-	std::string regex = Util::GetRegexVal(name, "x_gs_(.*$)", "");
+	std::string regex = Util::GetRegexVal(name, "vx_gs_(.*$)", "");
 	std::string upPath = MOD_DATA_PATH_S(std::format("audio/{}.wav", regex));
 
 	data.m_pUpAudio = SoundSystem.LoadStream(upPath.c_str(), false);
 	data.m_pUpAudio->SetVolume(0.5f);
 
-	IFeature::Initialize();
+	
 }
 
 void GearSoundFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_gs") != std::string::npos)
+	if (name.find("vx_gs") != std::string::npos)
 	{
-		if (m_State != eFeatureState::Initialized)
+		VehData &data = vehData.Get(pVeh);
+		if (!data.m_bInitialized)
 		{
 			Initialize(frame, pVeh);
+			data.m_bInitialized = true;
 		}
-		VehData &data = vehData.Get(pVeh);
 		if (data.m_nCurGear != pVeh->m_nCurrentGear)
 		{	
 			data.m_pUpAudio->Play();

@@ -5,17 +5,18 @@ GearMeterFeature GearMeter;
 void GearMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	Util::StoreChilds(pFrame, data.m_FrameList);
-	IFeature::Initialize();
+	
 }
 
 void GearMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_gm") != std::string::npos)
+	if (name.find("vx_gm") != std::string::npos)
 	{
-		if (m_State == eFeatureState::NotInitialized)
+		if (!data.m_bInitialized)
 		{
 			Initialize(frame, pVeh);
+			data.m_bInitialized = true;
 		}
 
 		if (pVeh->m_nCurrentGear != data.m_nCurrent)
@@ -43,17 +44,18 @@ void OdoMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	{
 		data.m_fMul = 100;
 	}
-	IFeature::Initialize();
+	
 }
 
 void OdoMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_om") != std::string::npos)
+	if (name.find("vx_om") != std::string::npos)
 	{
-		if (m_State == eFeatureState::NotInitialized)
+		if (!data.m_bInitialized)
 		{
 			Initialize(frame, pVeh);
+			data.m_bInitialized = true;
 		}
 
 		// Calculate new value
@@ -107,20 +109,21 @@ void RpmMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	std::string name = GetFrameNodeName(pFrame);
 	data.m_nMaxRpm = std::stoi(Util::GetRegexVal(name, ".*m([0-9]+).*", "100"));
 	data.m_fMaxRotation = std::stof(Util::GetRegexVal(name, ".*r([0-9]+).*", "100"));
-	IFeature::Initialize();
+	
 }
 
 void RpmMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_rpm") != std::string::npos)
+	if (name.find("vx_rpm") != std::string::npos)
 	{
-		if (m_State == eFeatureState::NotInitialized)
+		VehData &data = vehData.Get(pVeh);
+		if (!data.m_bInitialized)
 		{
 			Initialize(frame, pVeh);
+			data.m_bInitialized = true;
 		}
 
 		float rpm = 0.0f;
-		VehData &data = vehData.Get(pVeh);
 		float speed = Util::GetVehicleSpeedRealistic(pVeh);
 		float delta = CTimer::ms_fTimeScale;
 		
@@ -152,13 +155,12 @@ void SpeedMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 	data.m_nMaxSpeed = std::stoi(Util::GetRegexVal(name, ".*m([0-9]+).*", "100"));
 	data.m_fMaxRotation = std::stof(Util::GetRegexVal(name, ".*r([0-9]+).*", "100"));
-	IFeature::Initialize();
 }
 
 void SpeedMeterFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_sm") != std::string::npos)
+	if (name.find("vx_sm") != std::string::npos)
 	{
 		VehData &data = vehData.Get(pVeh);
 		float speed = Util::GetVehicleSpeedRealistic(pVeh);
