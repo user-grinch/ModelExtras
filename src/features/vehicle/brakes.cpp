@@ -22,7 +22,7 @@ void RearBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 void FrontBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("vx_fbrake") != std::string::npos)
+	if (name.find("x_fbrake") != std::string::npos)
 	{
 		VehData &data = vehData.Get(pVeh);
 
@@ -81,7 +81,7 @@ void FrontBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 
 void RearBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("vx_rbrake") != std::string::npos)
+	if (name.find("x_rbrake") != std::string::npos)
 	{
 		VehData &data = vehData.Get(pVeh);
 

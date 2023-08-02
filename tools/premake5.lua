@@ -1,6 +1,6 @@
 PSDK_DIR = os.getenv("PLUGIN_SDK_DIR")
 
-workspace "VehExtras"
+workspace "ModelExtras"
     configurations { 
         "Debug", 
         "Release" 
@@ -34,7 +34,7 @@ workspace "VehExtras"
 --         defines { "NDEBUG" }
 --         optimize "On"
 
-project "VehExtras"
+project "ModelExtras"
     kind "SharedLib"
     targetextension ".asi"
 

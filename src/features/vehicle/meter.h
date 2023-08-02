@@ -1,6 +1,6 @@
 #pragma once
 #include "plugin.h"
-#include "../interface/ifeature.hpp"
+#include "../../interface/ifeature.hpp"
 #include <vector>
 
 class GearMeterFeature : public IFeature {

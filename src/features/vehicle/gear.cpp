@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Gear.h"
 #include "bass.h"
-#include "../soundsystem.h"
+#include "../../soundsystem.h"
 
 ClutchFeature Clutch;
 void ClutchFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
@@ -16,7 +16,7 @@ void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("vx_cl") != std::string::npos)
+	if (name.find("x_cl") != std::string::npos)
 	{
 		if (!data.m_bInitialized)
 		{
@@ -102,7 +102,7 @@ void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("vx_gl") != std::string::npos)
+	if (name.find("x_gl") != std::string::npos)
 	{
 		if (!data.m_bInitialized)
 		{
@@ -170,7 +170,7 @@ GearSoundFeature GearSound;
 void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(pFrame);
-	std::string regex = Util::GetRegexVal(name, "vx_gs_(.*$)", "");
+	std::string regex = Util::GetRegexVal(name, "x_gs_(.*$)", "");
 	std::string upPath = MOD_DATA_PATH_S(std::format("audio/{}.wav", regex));
 
 	data.m_pUpAudio = SoundSystem.LoadStream(upPath.c_str(), false);
@@ -182,7 +182,7 @@ void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void GearSoundFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("vx_gs") != std::string::npos)
+	if (name.find("x_gs") != std::string::npos)
 	{
 		VehData &data = vehData.Get(pVeh);
 		if (!data.m_bInitialized)

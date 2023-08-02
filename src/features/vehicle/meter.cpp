@@ -11,7 +11,7 @@ void GearMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void GearMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("vx_gm") != std::string::npos)
+	if (name.find("x_gm") != std::string::npos)
 	{
 		if (!data.m_bInitialized)
 		{
@@ -50,7 +50,7 @@ void OdoMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void OdoMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("vx_om") != std::string::npos)
+	if (name.find("x_om") != std::string::npos)
 	{
 		if (!data.m_bInitialized)
 		{
@@ -114,7 +114,7 @@ void RpmMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 void RpmMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("vx_rpm") != std::string::npos)
+	if (name.find("x_rpm") != std::string::npos)
 	{
 		VehData &data = vehData.Get(pVeh);
 		if (!data.m_bInitialized)
@@ -160,7 +160,7 @@ void SpeedMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void SpeedMeterFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("vx_sm") != std::string::npos)
+	if (name.find("x_sm") != std::string::npos)
 	{
 		VehData &data = vehData.Get(pVeh);
 		float speed = Util::GetVehicleSpeedRealistic(pVeh);

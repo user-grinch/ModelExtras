@@ -12,7 +12,7 @@ void ChainFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void ChainFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("vx_chain") != std::string::npos)
+	if (name.find("x_chain") != std::string::npos)
 	{
 		VehData &data = vehData.Get(pVeh);
 		if (!data.m_bInitialized)
