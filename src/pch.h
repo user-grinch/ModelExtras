@@ -13,13 +13,13 @@
 
 using namespace plugin;
 
-#define MOD_DATA_PATH(x) PLUGIN_PATH((char*)("VehExtras/"x))
-#define MOD_DATA_PATH_S(x) PLUGIN_PATH((char*)("VehExtras/" + x).c_str())
+#define MOD_DATA_PATH(x) PLUGIN_PATH((char*)("ModelExtras/"x))
+#define MOD_DATA_PATH_S(x) PLUGIN_PATH((char*)("ModelExtras/" + x).c_str())
 
-#define MOD_NAME "VehExtras"
+#define MOD_NAME "ModelExtras"
 #define MOD_VERSION_NUMBER "1.2"
 #define MOD_VERSION MOD_VERSION_NUMBER
 #define MOD_TITLE MOD_NAME " v" MOD_VERSION
 #define DISCORD_INVITE "https://discord.gg/ZzW7kmf"
-#define GITHUB_LINK "https://github.com/user-grinch/VehExtras"
+#define GITHUB_LINK "https://github.com/user-grinch/ModelExtras"
 #define PATREON_LINK "https://www.patreon.com/grinch_"

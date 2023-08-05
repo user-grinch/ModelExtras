@@ -11,7 +11,7 @@ void GearMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void GearMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_gm") != std::string::npos)
+	if (name.find("x_gearmeter") != std::string::npos)
 	{
 		if (!data.m_bInitialized)
 		{
@@ -50,7 +50,7 @@ void OdoMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void OdoMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_om") != std::string::npos)
+	if (name.find("x_ometer") != std::string::npos)
 	{
 		if (!data.m_bInitialized)
 		{

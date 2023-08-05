@@ -7,7 +7,7 @@ ClutchFeature Clutch;
 void ClutchFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(pFrame);
-	data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_az(-?[0-9]+).*", "0"));
+	data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
 	data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nCurOffset / 10));
 	
 }
@@ -16,7 +16,7 @@ void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_cl") != std::string::npos)
+	if (name.find("x_clutch") != std::string::npos)
 	{
 		if (!data.m_bInitialized)
 		{
@@ -93,7 +93,7 @@ GearLeverFeature GearLever;
 void GearLeverFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(pFrame);
-	data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_ax(-?[0-9]+).*", "0"));
+	data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
 	data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nCurOffset / 10));
 	
 }
@@ -102,7 +102,7 @@ void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh)
 {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("x_gl") != std::string::npos)
+	if (name.find("x_gearlever") != std::string::npos)
 	{
 		if (!data.m_bInitialized)
 		{
@@ -175,8 +175,6 @@ void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 	data.m_pUpAudio = SoundSystem.LoadStream(upPath.c_str(), false);
 	data.m_pUpAudio->SetVolume(0.5f);
-
-	
 }
 
 void GearSoundFeature::Process(RwFrame* frame, CVehicle* pVeh)

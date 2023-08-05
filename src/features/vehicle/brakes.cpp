@@ -7,7 +7,7 @@ RearBrakeFeature RearBrake;
 void FrontBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(pFrame);
-	data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_az(-?[0-9]+).*", "0"));
+	data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
 	data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nMaxRotation / 5));
 	
 }
@@ -15,7 +15,7 @@ void FrontBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void RearBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	std::string name = GetFrameNodeName(pFrame);
-	data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_ax(-?[0-9]+).*", "0"));
+	data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
 	data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nMaxRotation / 5));
 	
 }
