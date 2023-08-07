@@ -13,6 +13,7 @@ private:
 public:
     WeaponExtender(const WeaponExtender&) = delete;
 
+    // Handle Jetpack unload
     WeaponExtender() {
         weaponDtorEvent.before += [](CWeapon *pWeapon) {
             for (auto it = data.begin(); it != data.end(); it++) {

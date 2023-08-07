@@ -28,14 +28,14 @@ void BodyStateFeature::Initialize(RwFrame* pFrame, CWeapon *pWeapon) {
 
 void BodyStateFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
 	std::string name = GetFrameNodeName(frame);
-	if (name.find("wx_body_state") != std::string::npos) {
+	if (name.find("x_body_state") != std::string::npos) {
 		WepData &data = wepData.Get(pWeapon);
 		if (!data.m_bInitialized) {
 			Initialize(frame, pWeapon);
 			data.m_bInitialized = true;
 		}
-
-		Util::HideAllAtomics(frame);
+		
+		Util::HideAllChilds(frame);
 		if (GetStatValue(23) == 1000.0f) { // muscle
 			Util::ShowAllAtomics(data.pMuscle);
 		} else if (GetStatValue(21) == 1000.0f) { // fat
