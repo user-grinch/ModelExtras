@@ -1,4 +1,4 @@
-# VehExtras
+# ModelExtras
 Adds functions to vehicle components. Similar to [VehFuncs](https://gtaforums.com/topic/904475-vehfuncs/) & [ImVehFt](https://gtaforums.com/topic/528175-improved-vehicle-features/).
 
 
@@ -8,11 +8,12 @@ Adds functions to vehicle components. Similar to [VehFuncs](https://gtaforums.co
 - Front brake
 - Gear meter
 - Gear shifter
+- Gear sound
 - Odometer
 - Rear brake
 - RPM meter
 - Speedometer
-
+- Body state
 
 ## Installation
 1. Install [Visual C++ Redistributable 2019 x86](https://aka.ms/vs/16/release/vc_redist.x86.exe) &  [Asi Loader](https://www.gtagarage.com/mods/show.php?id=21709).
