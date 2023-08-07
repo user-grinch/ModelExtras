@@ -7,10 +7,10 @@ static ThiscallEvent <AddressList<0x5E6342, H_CALL>, PRIORITY_BEFORE, ArgPickN<C
 
 template <class T>
 class WeaponExtender {
-private:
+  private:
     inline static std::vector<std::pair<CWeapon*, T>> data{};
 
-public:
+  public:
     WeaponExtender(const WeaponExtender&) = delete;
 
     // Handle Jetpack unload

@@ -11,8 +11,7 @@
 class CAudioStream;
 class C3DAudioStream;
 
-class CSoundSystem
-{
+class CSoundSystem {
     friend class CAudioStream;
     friend class C3DAudioStream;
 
@@ -24,22 +23,21 @@ class CSoundSystem
     bool bUseFPAudio;
     HWND hwnd;
 
-public:
+  public:
     virtual void Inject();
     bool Init(HWND hwnd);
-    inline bool Initialized() { return initialized; }
+    inline bool Initialized() {
+        return initialized;
+    }
 
-    CSoundSystem() : initialized(false), forceDevice(-1), paused(false), bUseFPAudio(false)
-    {
+    CSoundSystem() : initialized(false), forceDevice(-1), paused(false), bUseFPAudio(false) {
         // TODO: give to user an ability to force a sound device to use (ini-file or cmd-lineflog << "
 
     }
 
-    ~CSoundSystem()
-    {
+    ~CSoundSystem() {
         UnloadAllStreams();
-        if (initialized)
-        {
+        if (initialized) {
             BASS_Free();
             initialized = false;
         }
@@ -53,16 +51,14 @@ public:
     void Update();
 };
 
-class CAudioStream
-{
+class CAudioStream {
     friend class CSoundSystem;
 
     CAudioStream(const CAudioStream&);
 
-protected:
+  protected:
     HSTREAM streamInternal;
-    enum eStreamState
-    {
+    enum eStreamState {
         Unknown,
         Playing,
         Paused,
@@ -70,7 +66,7 @@ protected:
     } state;
     bool OK;
 
-public:
+  public:
     CAudioStream();
     CAudioStream(const char *src);
     virtual ~CAudioStream();
@@ -85,7 +81,7 @@ public:
     float GetVolume();
     void SetVolume(float val);
     void Loop(bool enable);
-	HSTREAM GetInternal();
+    HSTREAM GetInternal();
 
     // overloadable actions
     virtual void Set3dPosition(const CVector& pos);
@@ -93,16 +89,15 @@ public:
     virtual void Process();
 };
 
-class C3DAudioStream : public CAudioStream
-{
+class C3DAudioStream : public CAudioStream {
     friend class CSoundSystem;
 
     C3DAudioStream(const C3DAudioStream&);
 
-protected:
+  protected:
     CPlaceable	*	link;
     BASS_3DVECTOR	position;
-public:
+  public:
     C3DAudioStream(const char *src);
     virtual ~C3DAudioStream();
 

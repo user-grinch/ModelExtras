@@ -4,19 +4,18 @@
 #include <vector>
 
 class LicensePlateFeature : public IFeature {
-protected:
-    struct VehData
-	{
-		bool m_bInitialized = false;
-		
-		VehData(CVehicle *pVeh){}
-		~VehData(){}
-	};
+  protected:
+    struct VehData {
+        bool m_bInitialized = false;
 
-	VehicleExtendedData<VehData> vehData;
-public:
+        VehData(CVehicle *pVeh) {}
+        ~VehData() {}
+    };
+
+    VehicleExtendedData<VehData> vehData;
+  public:
     void Initialize(RwFrame* frame, CVehicle* pVeh);
-	void Process(RwFrame* frame, CVehicle* pVeh);
+    void Process(RwFrame* frame, CVehicle* pVeh);
 };
 
 extern LicensePlateFeature LicensePlate;

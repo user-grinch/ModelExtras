@@ -4,23 +4,22 @@
 #include <vector>
 
 class ChainFeature : public IFeature {
-protected:
-    struct VehData
-	{
-		bool m_bInitialized = false;
-		uint m_nCurChain = 0;
-		uint m_nLastFrameMS = 0;
+  protected:
+    struct VehData {
+        bool m_bInitialized = false;
+        uint m_nCurChain = 0;
+        uint m_nLastFrameMS = 0;
         std::vector<RwFrame*> m_FrameList;
-		
-		VehData(CVehicle *pVeh){}
-		~VehData(){}
-	};
 
-	VehicleExtendedData<VehData> vehData;
+        VehData(CVehicle *pVeh) {}
+        ~VehData() {}
+    };
 
-public:
+    VehicleExtendedData<VehData> vehData;
+
+  public:
     void Initialize(RwFrame* frame, CVehicle* pVeh);
-	void Process(RwFrame* frame, CVehicle* pVeh);
+    void Process(RwFrame* frame, CVehicle* pVeh);
 };
 
 extern ChainFeature Chain;

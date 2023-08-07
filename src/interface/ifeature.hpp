@@ -1,7 +1,7 @@
 #pragma once
 
 class IFeature {
-public:
+  public:
     // Called on game init, setup stuff goes here
     virtual void Initialize() {
     }
@@ -21,4 +21,4 @@ public:
     // Called on game close
     virtual void Shutdown() {
     };
-}; 
+};

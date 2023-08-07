@@ -2,7 +2,7 @@
 #include "plugin.h"
 
 class Util {
-public:
+  public:
     // Returns value of regex from source string
     static std::string GetRegexVal(const std::string& src, const std::string&& ptrn, const std::string&& def);
 
@@ -19,7 +19,7 @@ public:
 
     static void HideAllAtomics(RwFrame * frame);
     static void ShowAllAtomics(RwFrame * frame);
-    
+
     static void HideAllChilds(RwFrame *parent_frame);
     static void ShowAllChilds(RwFrame *parent_frame);
 };

@@ -21,7 +21,7 @@ void LicensePlateFeature::Process(RwFrame* frame, CVehicle* pVeh) {
         std::string name = GetFrameNodeName(frame);
         // if (name.find("x_plate") != std::string::npos)
         // {
-            Initialize(frame, pVeh);
+        Initialize(frame, pVeh);
         // }
     }
 }
