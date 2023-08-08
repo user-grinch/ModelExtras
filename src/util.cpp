@@ -73,6 +73,28 @@ void Util::HideAllAtomics(RwFrame * frame) {
     return;
 }
 
+void Util::HideChildWithName(RwFrame *parent_frame, const char* name) {
+    RwFrame* child = parent_frame->child;
+    while (child) {
+        if (!strcmp(GetFrameNodeName(child), name)) {
+            Util::HideAllAtomics(child);
+            return;
+        }
+        child = child->next;
+    }
+}
+
+void Util::ShowChildWithName(RwFrame *parent_frame, const char* name) {
+    RwFrame* child = parent_frame->child;
+    while (child) {
+        if (!strcmp(GetFrameNodeName(child), name)) {
+            Util::ShowAllAtomics(child);
+            return;
+        }
+        child = child->next;
+    }
+}
+
 void Util::HideAllChilds(RwFrame *parent_frame) {
     RwFrame* child = parent_frame->child;
     while (child) {

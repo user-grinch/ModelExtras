@@ -8,6 +8,7 @@
 #include "soundsystem.h"
 
 static ThiscallEvent <AddressList<0x5E7859, H_CALL>, PRIORITY_BEFORE, ArgPickN<CPed*, 0>, void(CPed*)> weaponRenderEvent;
+static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
 
 enum class eNodeEntityType {
     Ped,
@@ -37,6 +38,14 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityTyp
                 CWeapon *pWep = static_cast<CWeapon*>(pEntity);
                 BodyState.Process(frame, pWep);
                 BodyState.ProcessZen(frame, pWep);
+            } else if (type == eNodeEntityType::Object) {
+
+                /*
+                    processing weapon & jetpack pickups here
+                */
+                CWeapon *pWep = static_cast<CWeapon*>(pEntity);
+                BodyState.Process(frame, pWep);
+                BodyState.ProcessZen(frame, pWep);
             }
         }
         // LicensePlate.Process(frame, pVeh);
@@ -62,6 +71,10 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
 
         Events::vehicleRenderEvent += [](CVehicle* pVeh) {
             ProcessNodesRecursive((RwFrame *)pVeh->m_pRwClump->object.parent, pVeh, eNodeEntityType::Vehicle);
+        };
+
+         objectRenderEvent += [](CObject *pObj) {
+            ProcessNodesRecursive((RwFrame *)pObj->m_pRwClump->object.parent, pObj, eNodeEntityType::Object);
         };
 
         Events::pedRenderEvent += [](CPed* pPed) {

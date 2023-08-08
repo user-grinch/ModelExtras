@@ -20,6 +20,8 @@ class Util {
     static void HideAllAtomics(RwFrame * frame);
     static void ShowAllAtomics(RwFrame * frame);
 
+    static void HideChildWithName(RwFrame *parent_frame, const char* name);
+    static void ShowChildWithName(RwFrame *parent_frame, const char* name);
     static void HideAllChilds(RwFrame *parent_frame);
     static void ShowAllChilds(RwFrame *parent_frame);
 };
