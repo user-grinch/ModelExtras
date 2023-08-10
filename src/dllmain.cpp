@@ -5,17 +5,11 @@
 #include "features/vehicle/gear.h"
 #include "features/vehicle/plate.h"
 #include "features/weapon/bodystate.h"
+#include "features/common/randomizer.h"
 #include "soundsystem.h"
 
 static ThiscallEvent <AddressList<0x5E7859, H_CALL>, PRIORITY_BEFORE, ArgPickN<CPed*, 0>, void(CPed*)> weaponRenderEvent;
 static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
-
-enum class eNodeEntityType {
-    Ped,
-    Object,
-    Vehicle,
-    Weapon,
-};
 
 static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityType type) {
     if(frame) {
@@ -34,10 +28,12 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityTyp
                 Clutch.Process(frame, pVeh);
                 GearLever.Process(frame, pVeh);
                 GearSound.Process(frame, pVeh);
+                Randomizer.Process(frame, static_cast<void*>(pVeh), type);
             } else if (type == eNodeEntityType::Weapon) {
                 CWeapon *pWep = static_cast<CWeapon*>(pEntity);
                 BodyState.Process(frame, pWep);
                 BodyState.ProcessZen(frame, pWep);
+                Randomizer.Process(frame, static_cast<void*>(pWep), type);
             } else if (type == eNodeEntityType::Object) {
 
                 /*

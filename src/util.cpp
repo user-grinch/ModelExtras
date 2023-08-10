@@ -28,6 +28,19 @@ void Util::RotateFrameZ(RwFrame* frame, float angle) {
     RwFrameUpdateObjects(frame);
 }
 
+uint32_t Util::GetChildCount(RwFrame* parent) {
+    RwFrame* child = parent->child;
+    if (child) {
+        uint32_t count = 0U;
+        while (child) {
+            ++count;
+            child = child->next;
+        }
+        return count;
+    }
+    return 0U;
+}
+
 void Util::StoreChilds(RwFrame * parent_frame, std::vector<RwFrame*>& frame) {
     RwFrame* child = parent_frame->child;
     while (child) {

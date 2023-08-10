@@ -1,5 +1,4 @@
 #pragma once
-
 #include <CBike.h>
 #include <CAutomobile.h>
 #include <CTimer.h>
@@ -12,6 +11,13 @@
 #include "util.h"
 
 using namespace plugin;
+
+enum class eNodeEntityType {
+    Ped,
+    Object,
+    Vehicle,
+    Weapon,
+};
 
 #define MOD_DATA_PATH(x) PLUGIN_PATH((char*)("ModelExtras/"x))
 #define MOD_DATA_PATH_S(x) PLUGIN_PATH((char*)("ModelExtras/" + x).c_str())

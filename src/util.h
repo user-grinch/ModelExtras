@@ -6,6 +6,9 @@ class Util {
     // Returns value of regex from source string
     static std::string GetRegexVal(const std::string& src, const std::string&& ptrn, const std::string&& def);
 
+    // Returns the number of childs a parent contains
+    static uint32_t GetChildCount(RwFrame* parent);
+
     // Returns the speed of the vehicle handler
     static float GetVehicleSpeedRealistic(CVehicle * vehicle);
 
