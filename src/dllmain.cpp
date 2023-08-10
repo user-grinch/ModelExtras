@@ -69,7 +69,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             ProcessNodesRecursive((RwFrame *)pVeh->m_pRwClump->object.parent, pVeh, eNodeEntityType::Vehicle);
         };
 
-         objectRenderEvent += [](CObject *pObj) {
+        objectRenderEvent += [](CObject *pObj) {
             ProcessNodesRecursive((RwFrame *)pObj->m_pRwClump->object.parent, pObj, eNodeEntityType::Object);
         };
 
@@ -91,7 +91,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
                 if (pWeaponInfo) {
                     CWeaponModelInfo* pWeaponModelInfo = static_cast<CWeaponModelInfo*>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
                     if (pWeaponModelInfo) {
-                        ProcessNodesRecursive((RwFrame *)pPed->m_pRwClump->object.parent, pPed, eNodeEntityType::Weapon);
+                        ProcessNodesRecursive((RwFrame *)pWeaponModelInfo->m_pRwClump->object.parent, pWeapon, eNodeEntityType::Weapon);
                     }
                 }
             }

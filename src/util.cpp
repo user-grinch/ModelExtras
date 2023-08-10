@@ -30,8 +30,8 @@ void Util::RotateFrameZ(RwFrame* frame, float angle) {
 
 uint32_t Util::GetChildCount(RwFrame* parent) {
     RwFrame* child = parent->child;
+    uint32_t count = 0U;
     if (child) {
-        uint32_t count = 0U;
         while (child) {
             ++count;
             child = child->next;

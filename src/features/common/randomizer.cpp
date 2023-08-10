@@ -8,10 +8,10 @@ void RandomizerFeature::Initialize(RwFrame* pFrame) {
     uint32_t frameNum = Random(1, total);
     std::vector<RwFrame*> childVec;
     Util::StoreChilds(pFrame, childVec);
-
+    Util::ShowAllChilds(pFrame);
     for (size_t i = 0; i < childVec.size(); ++i) {
         if (i != frameNum) {
-            RwFrameDestroy(childVec[i]);
+            Util::HideAllAtomics(childVec[i]);
         }
     }
 }

@@ -89,9 +89,12 @@ bool CSoundSystem::Init(HWND hwnd) {
     Log::Print<eLogLevel::Info>("On system found {} devices, {} enabled devices, assuming device to use: {} {} ",
                                 total_devices, enabled_devices, default_device, (BASS_GetDeviceInfo(default_device, &info) ? info.name : "Unknown device"));
 
-    if (BASS_Init(default_device, 44100, BASS_DEVICE_3D | BASS_DEVICE_DEFAULT, hwnd, nullptr) &&
-            BASS_Set3DFactors(1.0f, 0.3f, 1.0f) &&
-            BASS_Set3DPosition(&pos, &vel, &front, &top)) {
+    BOOL state = BASS_Init(default_device, 44100, BASS_DEVICE_3D | BASS_DEVICE_DEFAULT, hwnd, nullptr);
+    int erorCode = BASS_ErrorGetCode();
+    // Don't init bass if it was already initialized
+    if (state || erorCode == BASS_ERROR_ALREADY) {
+        BASS_Set3DFactors(1.0f, 0.3f, 1.0f);
+        BASS_Set3DPosition(&pos, &vel, &front, &top);
         Log::Print<eLogLevel::Info>("SoundSystem initialized");
 
         // Can we use floating-point (HQ) audio streams?
@@ -113,8 +116,9 @@ bool CSoundSystem::Init(HWND hwnd) {
         this->hwnd = hwnd;
         BASS_Apply3D();
         return true;
+    } else {
+        Log::Print<eLogLevel::Info>("Could not initialize BASS sound system. Error code: {}", erorCode);
     }
-    Log::Print<eLogLevel::Info>("Could not initialize BASS sound system");
     return false;
 }
 
