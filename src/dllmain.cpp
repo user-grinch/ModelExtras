@@ -5,6 +5,7 @@
 #include "features/vehicle/gear.h"
 #include "features/vehicle/plate.h"
 #include "features/weapon/bodystate.h"
+#include "features/weapon/bloodremap.h"
 #include "features/common/randomizer.h"
 #include "soundsystem.h"
 
@@ -91,6 +92,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
                 if (pWeaponInfo) {
                     CWeaponModelInfo* pWeaponModelInfo = static_cast<CWeaponModelInfo*>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
                     if (pWeaponModelInfo) {
+                        // BloodRemap.Process(nullptr, pWeapon);
                         ProcessNodesRecursive((RwFrame *)pWeaponModelInfo->m_pRwClump->object.parent, pWeapon, eNodeEntityType::Weapon);
                     }
                 }
