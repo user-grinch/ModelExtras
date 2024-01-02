@@ -3,15 +3,8 @@
 #include "../../interface/ifeature.hpp"
 #include "../../weaponextender.h"
 
-enum class eBloodOverlay {
-  None,
-  Low,
-  Mid,
-  High,
-};
-
 struct TextureData {
-  eBloodOverlay m_nCurrent = eBloodOverlay::None;
+  bool m_bInit = false;
   uint m_nKills = 0;
 
   TextureData(CWeapon*) {}
@@ -19,8 +12,9 @@ struct TextureData {
 };
 
 class BloodRemapFeature : public IFeature {
-  WeaponExtender<TextureData> texData;
+  WeaponExtender<TextureData> xData;
   public:
+    void Initialize(RwFrame* frame, CWeapon* pWeapon);
     void Process(RwFrame* frame, CWeapon *pWeapon);
 };
 

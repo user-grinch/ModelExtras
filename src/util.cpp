@@ -59,14 +59,13 @@ void Util::ShowAllAtomics(RwFrame * frame) {
         RwLLLink * current = rwLinkListGetFirstLLLink(&frame->objectList);
         RwLLLink * end = rwLinkListGetTerminator(&frame->objectList);
 
-        while (current != end) {
+        do {
             atomic = rwLLLinkGetData(current, RwObjectHasFrame, lFrame);
             atomic->object.flags |= rpATOMICRENDER; // clear
 
             current = rwLLLinkGetNext(current);
-        }
+        } while (current != end);
     }
-    return;
 }
 
 void Util::HideAllAtomics(RwFrame * frame) {
@@ -75,7 +74,7 @@ void Util::HideAllAtomics(RwFrame * frame) {
 
         RwLLLink * current = rwLinkListGetFirstLLLink(&frame->objectList);
         RwLLLink * end = rwLinkListGetTerminator(&frame->objectList);
-
+        
         while (current != end) {
             atomic = rwLLLinkGetData(current, RwObjectHasFrame, lFrame);
             atomic->object.flags &= ~rpATOMICRENDER;
@@ -83,7 +82,6 @@ void Util::HideAllAtomics(RwFrame * frame) {
             current = rwLLLinkGetNext(current);
         }
     }
-    return;
 }
 
 void Util::HideChildWithName(RwFrame *parent_frame, const char* name) {
@@ -108,20 +106,16 @@ void Util::ShowChildWithName(RwFrame *parent_frame, const char* name) {
     }
 }
 
-void Util::HideAllChilds(RwFrame *parent_frame) {
-    RwFrame* child = parent_frame->child;
-    while (child) {
-        Util::HideAllAtomics(child);
-        child = child->next;
-    }
+void Util::HideAllChilds(RwFrame *parent) {
+    HideAllAtomics(parent);
+	if (RwFrame *next = parent->child) HideAllChilds(next);
+	if (RwFrame *next = parent->next)  HideAllChilds(next);
 }
 
-void Util::ShowAllChilds(RwFrame *parent_frame) {
-    RwFrame* child = parent_frame->child;
-    while (child) {
-        Util::ShowAllAtomics(child);
-        child = child->next;
-    }
+void Util::ShowAllChilds(RwFrame *parent) {
+    ShowAllAtomics(parent);
+	if (RwFrame *next = parent->child) ShowAllChilds(next);
+	if (RwFrame *next = parent->next)  ShowAllChilds(next);
 }
 
 // Taken from vehfuncs
