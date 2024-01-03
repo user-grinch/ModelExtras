@@ -47,6 +47,23 @@ void BloodRemapFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
 
         if (!data.m_Textures[name].m_bInit) {
             Initialize(frame, pWeapon);
+            CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(pWeapon->m_eWeaponType, FindPlayerPed()->GetWeaponSkill(pWeapon->m_eWeaponType));
+            if (!pWeaponInfo) return;
+
+            CWeaponModelInfo* pWeaponModelInfo = static_cast<CWeaponModelInfo*>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
+            if (!pWeaponModelInfo) return;
+
+            RpClumpForAllAtomics(pWeaponModelInfo->m_pRwClump, [](RpAtomic *atomic, void *data) {
+                if (atomic->geometry) {
+                    RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *material, void *data) {
+                        WepData *pData = reinterpret_cast<WepData*>(data);
+                        material->texture = pData->m_Textures[pData->m_CurNode].m_pFrames[0];
+                        return material;
+                    }, data);
+                }
+                return atomic;
+            }, &data);
+
             data.m_Textures[name].m_bInit = true;
         }
 

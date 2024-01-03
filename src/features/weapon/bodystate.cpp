@@ -64,7 +64,7 @@ void BodyStateFeature::ProcessZen(RwFrame* frame, CWeapon *pWeapon) {
          if (bodyState != data.prevBodyState) {
             Util::HideAllChilds(frame);
             if (isFat && isMuscle) {
-                Util::ShowChildWithName(frame, "fat_muscle");
+                Util::ShowChildWithName(frame, "muscle_fat");
             }
             else if (isFat) { 
                 Util::ShowChildWithName(frame, isPlus? "fat+" : "fat");
