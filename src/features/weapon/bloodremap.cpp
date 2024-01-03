@@ -7,22 +7,11 @@
 
 BloodRemapFeature BloodRemap;
 
-static ThiscallEvent <AddressList<0x63075C, H_CALL>, PRIORITY_BEFORE, ArgPickN<CPed*, 0>, void(CPed*)> pedKilledEvent;
-
-void BloodRemapFeature::Initialize(RwFrame* frame, CWeapon* pWeapon) {
-    pedKilledEvent += [&](CPed* pPed) {
-        TextureData &data = xData.Get(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]);
-        data.m_nKills++;
-
-        if (data.m_nKills > 3) data.m_nKills = 3;
-    };
-}
-
 void BloodRemapFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
     TextureData &data = xData.Get(pWeapon);
 
     if (!data.m_bInit) {
-        Initialize(frame, pWeapon);
+        // Initialize(frame, pWeapon);
         data.m_bInit = true;
     }
 

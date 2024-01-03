@@ -22,17 +22,17 @@ void BodyStateFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
 
         if (bodyState != data.prevBodyState) {
             Util::HideAllChilds(frame);
-            if (isMuscle) { // muscle
+            if (isMuscle) { 
                 Util::ShowChildWithName(frame, "muscle");
-            } else if (isMuscle) { // fat
+            } else if (isMuscle) {
                 Util::ShowChildWithName(frame, "fat");
-            } else { // slim
+            } else { 
                 Util::ShowChildWithName(frame, "slim");
             }
             data.prevBodyState = bodyState;
 
             auto play = FindPlayerPed();
-            if (play->m_nWeaponModelId == PARACHUTE_MODEL) {
+            if (play && play->m_nWeaponModelId == PARACHUTE_MODEL) {
                 plugin::Call<0x4395B0>();
             }
         }
@@ -51,7 +51,7 @@ void BodyStateFeature::ProcessZen(RwFrame* frame, CWeapon *pWeapon) {
             return;
         }
 
-        bool isLarge = pPlayer->m_pPlayerData->m_pPedClothesDesc->m_anModelKeys[0] != 3139216588; //hoodyA model
+        bool isLarge = pPlayer->m_pPlayerData->m_pPedClothesDesc->m_anModelKeys[0] != 3139216588; // hoodyA model
         bool isUniform = pPlayer->m_pPlayerData->m_pPedClothesDesc->m_anTextureKeys[17] != 0; // default outfit
         bool isPlus = isLarge && !isUniform;
 
@@ -74,7 +74,7 @@ void BodyStateFeature::ProcessZen(RwFrame* frame, CWeapon *pWeapon) {
                 Util::ShowChildWithName(frame, isPlus? "slim+" : "slim");
             }
             auto play = FindPlayerPed();
-            if (play->m_nWeaponModelId == PARACHUTE_MODEL) {
+            if (play && play->m_nWeaponModelId == PARACHUTE_MODEL) {
                 plugin::Call<0x4395B0>();
             }
             data.prevBodyState = bodyState;
