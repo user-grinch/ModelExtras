@@ -5,7 +5,6 @@ GearMeterFeature GearMeter;
 void GearMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     Util::StoreChilds(pFrame, data.m_FrameList);
-
 }
 
 void GearMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
