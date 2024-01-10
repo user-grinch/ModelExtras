@@ -1,26 +1,11 @@
 #pragma once
 #include "plugin.h"
 #include "../../interface/ifeature.hpp"
-#include "../../weaponextender.h"
+#include <vector>
 
 class RandomizerFeature : public IFeature {
   protected:
-    struct VehData {
-        bool m_bInitialized = false;
-
-        VehData(CVehicle *pVeh) {}
-        ~VehData() {}
-    };
-
-    struct WepData {
-        bool m_bInitialized = false;
-
-        WepData(CWeapon *pWeapon) {}
-        ~WepData() {}
-    };
-
-    VehicleExtendedData<VehData> vehData;
-    WeaponExtender<WepData> wepData;
+  std::vector<RwFrame*> frameStore;    
 
   public:
     void Initialize(RwFrame* frame);

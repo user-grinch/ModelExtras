@@ -65,6 +65,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
                                         DISCORD_INVITE "\nPatreon: " PATREON_LINK "\nMore Info: " GITHUB_LINK "\n");
             SoundSystem.Inject();
             SoundSystem.Init(RsGlobal.ps->window);
+            InitRandom();
         };
 
         Events::vehicleRenderEvent += [](CVehicle* pVeh) {

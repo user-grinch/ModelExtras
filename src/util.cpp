@@ -41,12 +41,11 @@ uint32_t Util::GetChildCount(RwFrame* parent) {
     return 0U;
 }
 
-void Util::StoreChilds(RwFrame * parent_frame, std::vector<RwFrame*>& frame) {
-    RwFrame* child = parent_frame->child;
+void Util::StoreChilds(RwFrame * parent, std::vector<RwFrame*>& store) {
+    RwFrame* child = parent->child;
+    
     while (child) {
-        const std::string name = GetFrameNodeName(child);
-
-        frame.push_back(child);
+        store.push_back(child);
         child = child->next;
     }
 }
@@ -108,14 +107,28 @@ void Util::ShowChildWithName(RwFrame *parent_frame, const char* name) {
 
 void Util::HideAllChilds(RwFrame *parent) {
     HideAllAtomics(parent);
-	if (RwFrame *next = parent->child) HideAllChilds(next);
-	if (RwFrame *next = parent->next)  HideAllChilds(next);
+    RwFrame* child = parent->child;
+
+    if (child) {
+        HideAllAtomics(child);
+        if (child->child) {
+            HideAllChilds(child);
+        }
+        child = child->next;
+    }
 }
 
 void Util::ShowAllChilds(RwFrame *parent) {
     ShowAllAtomics(parent);
-	if (RwFrame *next = parent->child) ShowAllChilds(next);
-	if (RwFrame *next = parent->next)  ShowAllChilds(next);
+    RwFrame* child = parent->child;
+
+    if (child) {
+        ShowAllAtomics(parent);
+        if (child->child) {
+            ShowAllChilds(child);
+        }
+        child = child->next;
+    }
 }
 
 // Taken from vehfuncs
