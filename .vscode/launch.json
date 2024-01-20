@@ -1,0 +1,47 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch SA",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "F:/GTA San Andreas/gta_sa.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "F:/GTA San Andreas/",
+            "environment": [],
+            "console": "internalConsole"
+        },
+        {
+            "name": "Launch VC",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "F:/GTA Vice City/gta-vc.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "F:/GTA Vice City/",
+            "environment": [],
+            "console": "internalConsole"
+        },
+        {
+            "name": "Launch III",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "F:/GTA3/Gta3.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "F:/GTA3/",
+            "environment": [],
+            "console": "internalConsole"
+        },
+        {
+            "name": "Attach",
+            "type": "cppvsdbg",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        }
+    ]
+}
