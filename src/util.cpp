@@ -105,30 +105,22 @@ void Util::ShowChildWithName(RwFrame *parent_frame, const char* name) {
     }
 }
 
-void Util::HideAllChilds(RwFrame *parent) {
-    HideAllAtomics(parent);
-    RwFrame* child = parent->child;
-
-    if (child) {
-        HideAllAtomics(child);
-        if (child->child) {
-            HideAllChilds(child);
-        }
+void Util::HideAllChilds(RwFrame *parent_frame) {
+    RwFrame* child = parent_frame->child;
+    while (child) {
+        Util::HideAllAtomics(child);
         child = child->next;
     }
+    Util::HideAllAtomics(parent_frame);
 }
 
-void Util::ShowAllChilds(RwFrame *parent) {
-    ShowAllAtomics(parent);
-    RwFrame* child = parent->child;
-
-    if (child) {
-        ShowAllAtomics(parent);
-        if (child->child) {
-            ShowAllChilds(child);
-        }
+void Util::ShowAllChilds(RwFrame *parent_frame) {
+    RwFrame* child = parent_frame->child;
+    while (child) {
+        Util::ShowAllAtomics(child);
         child = child->next;
     }
+    Util::ShowAllAtomics(parent_frame);
 }
 
 // Taken from vehfuncs
