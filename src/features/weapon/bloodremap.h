@@ -1,7 +1,7 @@
 #pragma once
 #include "plugin.h"
 #include "../../interface/ifeature.hpp"
-#include "../../weaponextender.h"
+#include "../../weaponExtender.h"
 #include <map>
 
 struct TextureData {
@@ -11,17 +11,17 @@ struct TextureData {
   std::vector<RwTexture*> m_pFrames;
 };
 
-struct WepData {
+struct FrameData {
   std::string m_CurNode = "";
   CPed* m_pLastKilledEntity = nullptr;
   std::map<std::string, TextureData> m_Textures;
 
-  WepData(CWeapon*) {}
-  ~WepData() {}
+  FrameData(CWeapon*) {}
+  ~FrameData() {}
 };
 
 class BloodRemapFeature : public IFeature {
-  WeaponExtender<WepData> xData;
+  WeaponExtender<FrameData> xData;
   public:
     void Initialize(RwFrame* frame, CWeapon* pWeapon);
     void Process(RwFrame* frame, CWeapon *pWeapon);

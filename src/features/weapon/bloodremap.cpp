@@ -9,7 +9,7 @@
 BloodRemapFeature BloodRemap;
 
 void BloodRemapFeature::Initialize(RwFrame* pFrame, CWeapon* pWeapon) {
-    WepData &data = xData.Get(pWeapon);
+    FrameData &data = xData.Get(pWeapon);
     std::string name = GetFrameNodeName(pFrame);
     std::string str = Util::GetRegexVal(name, "x_remap_(.*)", "");
 
@@ -40,7 +40,7 @@ void BloodRemapFeature::Initialize(RwFrame* pFrame, CWeapon* pWeapon) {
 }
 
 void BloodRemapFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
-    WepData &data = xData.Get(pWeapon);
+    FrameData &data = xData.Get(pWeapon);
     std::string name = GetFrameNodeName(frame);
     data.m_CurNode = name;
     if (name.find("x_remap") != std::string::npos) {
@@ -75,7 +75,7 @@ void BloodRemapFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
         RpClumpForAllAtomics(pWeaponModelInfo->m_pRwClump, [](RpAtomic *atomic, void *data) {
             if (atomic->geometry) {
                 RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *material, void *data) {
-                    WepData *pData = reinterpret_cast<WepData*>(data);
+                    FrameData *pData = reinterpret_cast<FrameData*>(data);
                     if (material->texture == pData->m_Textures[pData->m_CurNode].m_pFrames[0]) {
                         material->texture = pData->m_Textures[pData->m_CurNode].m_pFrames[pData->m_Textures[pData->m_CurNode].m_nCurRemap];
                     }

@@ -7,6 +7,7 @@
 #include "features/weapon/bodystate.h"
 #include "features/weapon/bloodremap.h"
 #include "features/common/randomizer.h"
+#include "features/common/randomremap.h"
 #include "soundsystem.h"
 
 static ThiscallEvent <AddressList<0x5E7859, H_CALL>, PRIORITY_BEFORE, ArgPickN<CPed*, 0>, void(CPed*)> weaponRenderEvent;
@@ -30,12 +31,14 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityTyp
                 GearLever.Process(frame, pVeh);
                 GearSound.Process(frame, pVeh);
                 Randomizer.Process(frame, static_cast<void*>(pVeh), type);
+                RandomRemap.Process(frame, static_cast<void*>(pVeh), type);
             } else if (type == eNodeEntityType::Weapon) {
                 CWeapon *pWep = static_cast<CWeapon*>(pEntity);
                 BodyState.Process(frame, pWep);
                 BodyState.ProcessZen(frame, pWep);
                 BloodRemap.Process(frame, pWep);
                 Randomizer.Process(frame, static_cast<void*>(pWep), type);
+                RandomRemap.Process(frame, static_cast<void*>(pWep), type);
             } else if (type == eNodeEntityType::Object) {
 
                 /*
@@ -44,6 +47,9 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityTyp
                 CWeapon *pWep = static_cast<CWeapon*>(pEntity);
                 BodyState.Process(frame, pWep);
                 BodyState.ProcessZen(frame, pWep);
+            } else if (type == eNodeEntityType::Ped) {
+                Randomizer.Process(frame, pEntity, type);
+                RandomRemap.Process(frame, pEntity, type);
             }
         }
         // LicensePlate.Process(frame, pVeh);

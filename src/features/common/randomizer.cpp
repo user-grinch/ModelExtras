@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "randomizer.h"
+#define NODE_ID "x_randomizer"
 
 RandomizerFeature Randomizer;
 
@@ -17,7 +18,7 @@ void RandomizerFeature::Initialize(RwFrame* pFrame) {
 
 void RandomizerFeature::Process(RwFrame* frame, void* ptr, eNodeEntityType type) {
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_randomizer") != std::string::npos) {
+    if (name.find(NODE_ID) != std::string::npos) {
         if (std::find(frameStore.begin(), frameStore.end(), frame) == frameStore.end()) {
             Initialize(frame);
             frameStore.push_back(frame);

@@ -1,7 +1,7 @@
 #pragma once
 #include "plugin.h"
 #include "../../interface/ifeature.hpp"
-#include "../../weaponextender.h"
+#include "../../weaponExtender.h"
 #include <vector>
 
 enum class eBodyState {
