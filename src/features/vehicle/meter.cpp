@@ -10,7 +10,11 @@ void GearMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void GearMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_gearmeter") != std::string::npos) {
+    if (name.find("x_gearmeter") != std::string::npos 
+#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
+        || name.find("fc_gm") != std::string::npos 
+#endif
+        ) {
         if (!data.m_bInitialized) {
             Initialize(frame, pVeh);
             data.m_bInitialized = true;
@@ -44,7 +48,11 @@ void OdoMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void OdoMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_ometer") != std::string::npos) {
+    if (name.find("x_ometer") != std::string::npos
+#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
+        || name.find("fc_om") != std::string::npos 
+#endif
+    ) {
         if (!data.m_bInitialized) {
             Initialize(frame, pVeh);
             data.m_bInitialized = true;
@@ -98,7 +106,11 @@ void RpmMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 void RpmMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_rpm") != std::string::npos) {
+    if (name.find("x_rpm") != std::string::npos
+#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
+        || name.find("fc_rpm") != std::string::npos 
+#endif
+    ) {
         VehData &data = vehData.Get(pVeh);
         if (!data.m_bInitialized) {
             Initialize(frame, pVeh);
@@ -140,7 +152,11 @@ void SpeedMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 void SpeedMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_sm") != std::string::npos) {
+    if (name.find("x_sm") != std::string::npos
+#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
+        || name.find("fc_sm") != std::string::npos 
+#endif
+    ) {
         VehData &data = vehData.Get(pVeh);
         float speed = Util::GetVehicleSpeedRealistic(pVeh);
         float delta = CTimer::ms_fTimeScale;
