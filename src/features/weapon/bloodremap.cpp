@@ -43,7 +43,7 @@ void BloodRemapFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
     FrameData &data = xData.Get(pWeapon);
     std::string name = GetFrameNodeName(frame);
     data.m_CurNode = name;
-    if (name.find("x_remap") != std::string::npos) {
+    if (NODE_FOUND(name, "x_remap")) {
 
         if (!data.m_Textures[name].m_bInit) {
             Initialize(frame, pWeapon);

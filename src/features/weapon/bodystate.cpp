@@ -11,7 +11,7 @@ float GetStatValue(unsigned short stat) {
 void BodyStateFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
     xData &data = wepData.Get(pWeapon);
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_body_state") != std::string::npos && name.find("x_body_state_zen") == std::string::npos) {
+    if (NODE_FOUND(name, "x_body_state") && name.find("x_body_state_zen") == std::string::npos) {
         bool isMuscle = GetStatValue(23) == 1000.0f;
         bool isFat = GetStatValue(21) == 1000.0f;
         bool isSlim = !(isMuscle && isFat);
@@ -42,7 +42,7 @@ void BodyStateFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
 void BodyStateFeature::ProcessZen(RwFrame* frame, CWeapon *pWeapon) {
     xData &data = wepData.Get(pWeapon);
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_body_state_zen") != std::string::npos) {
+    if (NODE_FOUND(name, "x_body_state_zen")) {
         bool isMuscle = GetStatValue(23) == 1000;
         bool isFat = GetStatValue(21) == 1000;
         bool isSlim = !(isMuscle && isFat);

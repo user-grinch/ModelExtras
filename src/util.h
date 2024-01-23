@@ -13,9 +13,18 @@ class Util {
     static float GetVehicleSpeedRealistic(CVehicle * vehicle);
 
     // Rotate model frame
-    static void RotateFrameX(RwFrame* frame, float angle);
-    static void RotateFrameY(RwFrame* frame, float angle);
-    static void RotateFrameZ(RwFrame* frame, float angle);
+    static void SetFrameRotationX(RwFrame* frame, float angle);
+    static void SetFrameRotationY(RwFrame* frame, float angle);
+    static void SetFrameRotationZ(RwFrame* frame, float angle);
+    
+    // rotate matrix
+    static float GetMatrixRotationX(RwMatrix *matrix);
+    static float GetMatrixRotationY(RwMatrix *matrix);
+    static float GetMatrixRotationZ(RwMatrix *matrix);
+
+    static void SetMatrixRotationX(RwMatrix *matrix, float angle);
+    static void SetMatrixRotationY(RwMatrix *matrix, float angle);
+    static void SetMatrixRotationZ(RwMatrix *matrix, float angle);
 
     // Stores all the childs in a vector
     static void StoreChilds(RwFrame * parent_frame, std::vector<RwFrame*>& frame);

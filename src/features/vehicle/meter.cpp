@@ -10,11 +10,7 @@ void GearMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void GearMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_gearmeter") != std::string::npos 
-#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
-        || name.find("fc_gm") != std::string::npos 
-#endif
-        ) {
+    if (NODE_FOUND(name, "x_gearmeter") || NODE_FOUND(name, "fc_gm")) {
         if (!data.m_bInitialized) {
             Initialize(frame, pVeh);
             data.m_bInitialized = true;
@@ -39,7 +35,7 @@ void OdoMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     data.m_nTempVal = 1234 + rand() % (57842 - 1234);
 
     std::string name = GetFrameNodeName(pFrame);
-    if (name.find("_kph") != std::string::npos) {
+    if (NODE_FOUND(name, "_kph")) {
         data.m_fMul = 100;
     }
 
@@ -48,11 +44,7 @@ void OdoMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void OdoMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_ometer") != std::string::npos
-#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
-        || name.find("fc_om") != std::string::npos 
-#endif
-    ) {
+    if (NODE_FOUND(name, "x_ometer") || NODE_FOUND(name, "fc_om")) {
         if (!data.m_bInitialized) {
             Initialize(frame, pVeh);
             data.m_bInitialized = true;
@@ -85,7 +77,7 @@ void OdoMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
                 for (unsigned int i = 0; i < 6; i++) {
                     if (showStr[i] != data.m_ScreenText[i]) {
                         float angle = (std::stof(std::to_string(showStr[i])) - std::stof(std::to_string(data.m_ScreenText[i]))) * 36.0f;
-                        Util::RotateFrameX(data.m_FrameList[i], angle);
+                        Util::SetFrameRotationX(data.m_FrameList[i], angle);
                     }
                 }
                 data.m_ScreenText = showStr;
@@ -106,11 +98,7 @@ void RpmMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 void RpmMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_rpm") != std::string::npos
-#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
-        || name.find("fc_rpm") != std::string::npos 
-#endif
-    ) {
+    if (NODE_FOUND(name, "x_rpm")|| NODE_FOUND(name, "fc_rpm")) {
         VehData &data = vehData.Get(pVeh);
         if (!data.m_bInitialized) {
             Initialize(frame, pVeh);
@@ -132,7 +120,7 @@ void RpmMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
         new_rot = new_rot < 0 ? 0 : new_rot;
 
         float change = (new_rot - data.m_fCurRotation) * 0.25f * delta;
-        Util::RotateFrameY(frame, change);
+        Util::SetFrameRotationY(frame, change);
         data.m_fCurRotation += change;
     }
 }
@@ -142,7 +130,7 @@ SpeedMeterFeature SpeedMeter;
 void SpeedMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(pFrame);
-    if (name.find("_kph") != std::string::npos) {
+    if (NODE_FOUND(name, "_kph")) {
         data.m_fMul= 100.0f;
     }
 
@@ -152,11 +140,7 @@ void SpeedMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 void SpeedMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_sm") != std::string::npos
-#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
-        || name.find("fc_sm") != std::string::npos 
-#endif
-    ) {
+    if (NODE_FOUND(name, "x_sm") || NODE_FOUND(name, "fc_sm")) {
         VehData &data = vehData.Get(pVeh);
         float speed = Util::GetVehicleSpeedRealistic(pVeh);
         float delta = CTimer::ms_fTimeScale;
@@ -167,7 +151,7 @@ void SpeedMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 
         float change = (totalRot - data.m_fCurRotation) * 0.5f * delta;
 
-        Util::RotateFrameY(frame, change);
+        Util::SetFrameRotationY(frame, change);
 
         data.m_fCurRotation += change;
     }

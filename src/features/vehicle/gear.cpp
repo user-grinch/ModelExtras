@@ -15,11 +15,7 @@ void ClutchFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_clutch") != std::string::npos
-#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
-        || name.find("fc_cl") != std::string::npos 
-#endif
-    ) {
+    if (NODE_FOUND(name, "x_clutch") || NODE_FOUND(name, "fc_cl")) {
         if (!data.m_bInitialized) {
             Initialize(frame, pVeh);
             data.m_bInitialized = true;
@@ -46,7 +42,7 @@ void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh) {
                             data.m_fCalVal = 1;
                         }
 
-                        Util::RotateFrameZ(frame, data.m_fCalVal);
+                        Util::SetFrameRotationZ(frame, data.m_fCalVal);
                         data.m_nLastFrameMS = timer;
                     }
                 } else {
@@ -61,7 +57,7 @@ void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh) {
                             data.m_fCalVal = 1;
                         }
 
-                        Util::RotateFrameZ(frame, data.m_fCalVal);
+                        Util::SetFrameRotationZ(frame, data.m_fCalVal);
                         data.m_nLastFrameMS = timer;
                     }
                 }
@@ -75,11 +71,9 @@ void GearLeverFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(pFrame);
     data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
-#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
     if (data.m_nCurOffset == 0) {
         data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_o(-?[0-9]+).*", "0"));
     }
-#endif
     data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nCurOffset / 10));
 
 }
@@ -87,11 +81,7 @@ void GearLeverFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_gearlever") != std::string::npos
-#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
-        || name.find("fc_gl") != std::string::npos 
-#endif
-    ) {
+    if (NODE_FOUND(name, "x_gearlever") || NODE_FOUND(name, "fc_gl")) {
         if (!data.m_bInitialized) {
             Initialize(frame, pVeh);
             data.m_bInitialized = true;
@@ -116,14 +106,14 @@ void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh) {
                             data.m_fCurRotation += 1;
                             data.m_fCalVal = 1;
                         }
-                        Util::RotateFrameX(frame, data.m_fCalVal);
+                        Util::SetFrameRotationX(frame, data.m_fCalVal);
                     } else {
                         data.m_eState = eFrameState::AtOrigin;
                     }
                 } else {
                     if (data.m_nCurOffset != abs(data.m_fCurRotation)) {
                         data.m_fCurRotation += data.m_fCalVal;
-                        Util::RotateFrameX(frame, data.m_fCalVal);
+                        Util::SetFrameRotationX(frame, data.m_fCalVal);
                     } else {
                         data.m_eState = eFrameState::AtOffset;
                     }
@@ -149,7 +139,7 @@ void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 void GearSoundFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_gs") != std::string::npos) {
+    if (NODE_FOUND(name, "x_gs")) {
         VehData &data = vehData.Get(pVeh);
         if (!data.m_bInitialized) {
             Initialize(frame, pVeh);

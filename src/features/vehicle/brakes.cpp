@@ -8,12 +8,9 @@ void FrontBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(pFrame);
     data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
-
-#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
     if (data.m_nMaxRotation) {
         data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_az(-?[0-9]+).*", "0"));
     }
-#endif
     data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nMaxRotation / 5));
 
 }
@@ -22,22 +19,16 @@ void RearBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(pFrame);
     data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
-#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
     if (data.m_nMaxRotation) {
         data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_ax(-?[0-9]+).*", "0"));
     }
-#endif
     data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nMaxRotation / 5));
 
 }
 
 void FrontBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_fbrake") != std::string::npos
-#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
-        || name.find("fc_fbrake") != std::string::npos 
-#endif
-    ) {
+    if (NODE_FOUND(name, "x_fbrake") || NODE_FOUND(name, "fc_fbrake")) {
         VehData &data = vehData.Get(pVeh);
 
         if (!data.m_bInitialized) {
@@ -59,7 +50,7 @@ void FrontBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
                     temp = 1;
                 }
 
-                Util::RotateFrameZ(frame, temp);
+                Util::SetFrameRotationZ(frame, temp);
                 data.m_nLastFrameMS = timer;
             } else {
                 if (data.m_nCurRotation != 0) {
@@ -71,7 +62,7 @@ void FrontBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
                         temp = 1;
                     }
 
-                    Util::RotateFrameZ(frame, temp);
+                    Util::SetFrameRotationZ(frame, temp);
                     data.m_nLastFrameMS = timer;
                 }
             }
@@ -83,11 +74,7 @@ void FrontBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 
 void RearBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     std::string name = GetFrameNodeName(frame);
-    if (name.find("x_rbrake") != std::string::npos
-#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
-        || name.find("fc_rbrake") != std::string::npos 
-#endif
-    ) {
+    if (NODE_FOUND(name, "x_rbrake") || NODE_FOUND(name, "fc_rbrake")) {
         VehData &data = vehData.Get(pVeh);
 
         if (!data.m_bInitialized) {
@@ -109,7 +96,7 @@ void RearBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
                     temp = 1;
                 }
 
-                Util::RotateFrameX(frame, temp);
+                Util::SetFrameRotationX(frame, temp);
                 data.m_nLastFrameMS = timer;
             } else {
                 if (data.m_nCurRotation != 0) {
@@ -121,7 +108,7 @@ void RearBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
                         temp = 1;
                     }
 
-                    Util::RotateFrameX(frame, temp);
+                    Util::SetFrameRotationX(frame, temp);
                     data.m_nLastFrameMS = timer;
                 }
             }

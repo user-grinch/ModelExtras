@@ -4,6 +4,7 @@
 #include "features/vehicle/meter.h"
 #include "features/vehicle/gear.h"
 #include "features/vehicle/plate.h"
+#include "features/vehicle/handlebar.h"
 #include "features/weapon/bodystate.h"
 #include "features/weapon/bloodremap.h"
 #include "features/common/randomizer.h"
@@ -17,11 +18,12 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityTyp
     if(frame) {
         const std::string name = GetFrameNodeName(frame);
 
-        if ((name[0] == 'x' && name[1] == '_')
-#ifdef ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
-            || (name[0] == 'f' && name[1] == 'c' && name[2] == '_')
-#endif
-        ){
+        if (type == eNodeEntityType::Vehicle) {
+            CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
+            HandleBar.Process(frame, pVeh);
+        }
+
+        if ((name[0] == 'x' && name[1] == '_')|| (name[0] == 'f' && name[1] == 'c' && name[2] == '_')) {
             if (type == eNodeEntityType::Vehicle) {
                 CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
                 Chain.Process(frame, pVeh);

@@ -30,4 +30,5 @@ enum class eNodeEntityType {
 #define GITHUB_LINK "https://github.com/user-grinch/ModelExtras"
 #define PATREON_LINK "https://www.patreon.com/grinch_"
 
-#define ENABLE_FUNCTIONAL_COMPONENTS_SUPPORT
+#define NODE_FOUND(x, y) x.find(y) != std::string::npos
+#define NODE_NOT_FOUND(x, y) x.find(y) == std::string::npos

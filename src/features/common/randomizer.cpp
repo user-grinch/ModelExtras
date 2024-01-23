@@ -18,7 +18,7 @@ void RandomizerFeature::Initialize(RwFrame* pFrame) {
 
 void RandomizerFeature::Process(RwFrame* frame, void* ptr, eNodeEntityType type) {
     std::string name = GetFrameNodeName(frame);
-    if (name.find(NODE_ID) != std::string::npos) {
+    if (NODE_FOUND(name, NODE_ID)) {
         if (std::find(frameStore.begin(), frameStore.end(), frame) == frameStore.end()) {
             Initialize(frame);
             frameStore.push_back(frame);
