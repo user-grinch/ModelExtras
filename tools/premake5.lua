@@ -31,6 +31,7 @@ project "ModelExtras"
     pchsource "../src/pch.cpp"
 
     defines { 
+        "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING",
         "IS_PLATFORM_WIN" ,
         "_CRT_SECURE_NO_WARNINGS",
         "_CRT_NON_CONFORMING_SWPRINTFS",

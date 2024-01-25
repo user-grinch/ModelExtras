@@ -45,7 +45,7 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityTyp
                 CWeapon *pWep = static_cast<CWeapon*>(pEntity);
                 BodyState.Process(frame, pWep);
                 BodyState.ProcessZen(frame, pWep);
-                BloodRemap.Process(frame, pWep);
+                // BloodRemap.Process(frame, pWep);
                 Randomizer.Process(frame, static_cast<void*>(pWep), type);
             } else if (type == eNodeEntityType::Object) {
 

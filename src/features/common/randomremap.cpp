@@ -52,14 +52,55 @@ void RandomRemapFeature::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eNode
 static std::vector<std::pair<unsigned int *, unsigned int>> m_pOriginalTextures;
 static std::map<void*, int> m_pRandom;
 
+static CdeclEvent <AddressList<0x5E7859, H_CALL>, PRIORITY_BEFORE, ArgPickN<CPed*, 0>, void(CPed*)> weaponRenderEvent;
+static ThiscallEvent <AddressList<0x43D821, H_CALL,
+                                  0x43D939, H_CALL,
+                                  0x45CC78, H_CALL,
+                                  0x47D3AD, H_CALL,
+                                  0x5E3B53, H_CALL,
+                                  0x5E5F14, H_CALL,
+                                  0x5E6150, H_CALL,
+                                  0x5E6223, H_CALL,
+                                  0x5E6327, H_CALL,
+                                  0x63072E, H_CALL,
+                                  0x5E6483, H_CALL,
+                                  0x6348FC, H_CALL>, PRIORITY_BEFORE, ArgPick2N<void*, 0, int, 1>, void(void*, int)> weaponRemoveEvent;
+
 void RandomRemapFeature::Initialize() {
+    Events::vehicleRenderEvent.before += [this](CVehicle* ptr) {
+        BeforeRender(reinterpret_cast<void*>(ptr), eNodeEntityType::Vehicle);
+    };
+
     Events::pedRenderEvent.before += [this](CPed* pPed) {
         BeforeRender(reinterpret_cast<void*>(pPed), eNodeEntityType::Ped);
     };
+
+    weaponRenderEvent.before += [this](CPed* pPed) {
+        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
+        if (pWeapon) {
+            BeforeRender(reinterpret_cast<void*>(pWeapon), eNodeEntityType::Weapon);
+        }
+    };
     
+    Events::vehicleRenderEvent.after += [this](CVehicle* ptr) {
+        AfterRender(reinterpret_cast<void*>(ptr), eNodeEntityType::Vehicle);
+    };
 
     Events::pedRenderEvent.after += [this](CPed* pPed) {
         AfterRender(reinterpret_cast<void*>(pPed), eNodeEntityType::Ped);
+    };
+
+    weaponRenderEvent.after += [this](CPed* pPed) {
+        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
+        if (pWeapon) {
+            AfterRender(reinterpret_cast<void*>(pWeapon), eNodeEntityType::Weapon);
+        }
+    };
+
+    weaponRemoveEvent.before += [this](void* ptr, int model) {
+        if(m_pRandom.contains(ptr)) {
+            m_pRandom.erase(m_pRandom.find(ptr));
+        }
     };
 }
 
@@ -90,6 +131,10 @@ void RandomRemapFeature::BeforeRender(void* ptr, eNodeEntityType type) {
             RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *mat, void *data) {
                 std::string name = mat->texture->name;
                 RemapData *pData = reinterpret_cast<RemapData*>(data);
+
+                if (pData->m_pTextures[name].empty()) {
+                    return mat;
+                }
                 if (m_pRandom.find(pData->curPtr) == m_pRandom.end()) {
                     m_pRandom[pData->curPtr] = Random(0u, pData->m_pTextures[name].size()-1);
                 }
