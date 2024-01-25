@@ -8,71 +8,96 @@
 
 RandomRemapFeature RandomRemap;
 
-struct RemapData {
-    bool m_bInit;
-    unsigned int rand;
-    std::vector<RwTexture*> m_pTextures;
-};
+void RandomRemapFeature::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eNodeEntityType type)
+{
+	if (pModelInfo)
+	{
+		TxdDef pedTxd = CTxdStore::ms_pTxdPool->m_pObjects[pModelInfo->m_nTxdIndex];
 
-void RandomRemapFeature::Process(RwFrame* frame, void* ptr, eNodeEntityType type) {
-    FrameData &data = xFrame.Get(frame);
+		RwTexDictionary * pedTxdDic = pedTxd.m_pRwDictionary;
+		if (pedTxdDic)
+		{
+			RwLinkList *objectList = &pedTxdDic->texturesInDict;
+			if (!rwLinkListEmpty(objectList))
+			{
+				RwLLLink *current = rwLinkListGetFirstLLLink(objectList);
+				RwLLLink *end = rwLinkListGetTerminator(objectList);
 
-    if (data.m_bInit) {
+				current = rwLinkListGetFirstLLLink(objectList);
+				while (current != end)
+				{
+					RwTexture *pTexture = rwLLLinkGetData(current, RwTexture, lInDictionary);
+
+					std::string name = pTexture->name;
+					std::size_t found = name.find("_remap");
+
+					if (found != std::string::npos)
+					{
+                        std::string ogRemap = name.substr(0, found);
+                        RemapData &data = xRemaps.Get(model);
+                        if (data.m_pTextures[ogRemap].size() == 0) {
+                            RwTexture *ogTexture = RwTexDictionaryFindHashNamedTexture(pedTxdDic, CKeyGen::GetUppercaseKey(ogRemap.c_str()));
+                            data.m_pTextures[ogRemap].push_back(ogTexture);
+                        }
+
+						data.m_pTextures[ogRemap].push_back(pTexture);
+					}
+					current = rwLLLinkGetNext(current);
+				}
+			}
+		}
+	}
+}
+  
+static std::vector<std::pair<unsigned int *, unsigned int>> m_pOriginalTextures;
+static std::map<void*, int> m_pRandom;
+
+void RandomRemapFeature::Initialize() {
+    Events::pedRenderEvent.before += [this](CPed* pPed) {
+        BeforeRender(reinterpret_cast<void*>(pPed), eNodeEntityType::Ped);
+    };
+    
+
+    Events::pedRenderEvent.after += [this](CPed* pPed) {
+        AfterRender(reinterpret_cast<void*>(pPed), eNodeEntityType::Ped);
+    };
+}
+
+void RandomRemapFeature::AfterRender(void* ptr, eNodeEntityType type) {
+    for (auto &e : m_pOriginalTextures) {
+		*e.first = e.second;
+    }
+	m_pOriginalTextures.clear();
+}
+
+void RandomRemapFeature::BeforeRender(void* ptr, eNodeEntityType type) {
+    int model = Util::GetEntityModel(ptr, type);
+    CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(model);
+
+    RemapData &data = xRemaps.Get(model);
+    if (!data.m_bRemapsLoaded) {
+        LoadRemaps(pModelInfo, model, type);
+        data.m_bRemapsLoaded = true;
+    }
+
+    if (data.m_pTextures.empty()) {
         return;
     }
 
-    std::string name = GetFrameNodeName(frame);
-    if (NODE_FOUND(name, NODE_ID)) {
-        std::string str = Util::GetRegexVal(name, NODE_ID"_(.*)", "");
-
-        RpClump *pClump;
-        RemapData remapData;
-
-        CBaseModelInfo *pModelInfo = nullptr;
-        if (type == eNodeEntityType::Weapon) {
-            CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(reinterpret_cast<CWeapon*>(ptr)->m_eWeaponType, 
-                                                                    FindPlayerPed()->GetWeaponSkill(reinterpret_cast<CWeapon*>(ptr)->m_eWeaponType));
-            if (pWeaponInfo){
-                pModelInfo = CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1);
-            }
-        } else {
-            pModelInfo = CModelInfo::GetModelInfo(reinterpret_cast<CEntity*>(ptr)->m_nModelIndex);
-        }
-
-
-        if (pModelInfo) {
-            pClump = pModelInfo->m_pRwClump;
-
-            TxdDef pedTxd = CTxdStore::ms_pTxdPool->m_pObjects[pModelInfo->m_nTxdIndex];
-            RwTexDictionary *pedTxdDic = pedTxd.m_pRwDictionary;
-            if (pedTxdDic) {
-                RwTexture *ptr = RwTexDictionaryFindHashNamedTexture(pedTxdDic, CKeyGen::GetUppercaseKey(str.c_str()));
-                remapData.m_pTextures.push_back(ptr);
-                for (int i = 1; i != MAX_REMAPS; i++) {
-                    RwTexture *ptr = RwTexDictionaryFindHashNamedTexture(pedTxdDic, 
-                                        CKeyGen::GetUppercaseKey((str + "_" + std::to_string(i)).c_str()));
-
-                    if (ptr) {
-                        remapData.m_pTextures.push_back(ptr);
-                    }
+    data.curPtr = ptr;
+    RpClumpForAllAtomics(pModelInfo->m_pRwClump, [](RpAtomic *atomic, void *data) {
+        if (atomic->geometry) {
+            RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *mat, void *data) {
+                std::string name = mat->texture->name;
+                RemapData *pData = reinterpret_cast<RemapData*>(data);
+                if (m_pRandom.find(pData->curPtr) == m_pRandom.end()) {
+                    m_pRandom[pData->curPtr] = Random(0u, pData->m_pTextures[name].size()-1);
                 }
-            }
+                m_pOriginalTextures.push_back({reinterpret_cast<unsigned int *>(&mat->texture), *reinterpret_cast<unsigned int *>(&mat->texture)});
+                mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]];
+                return mat;
+            }, data);
         }
-
-        remapData.rand = Random(0u, remapData.m_pTextures.size()-1);
-        RpClumpForAllAtomics(pClump, [](RpAtomic *atomic, void *data) {
-            if (atomic->geometry) {
-                RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *material, void *data) {
-                    RemapData *pData = reinterpret_cast<RemapData*>(data);
-                    if (material->texture == pData->m_pTextures[0]) {
-                        material->texture = pData->m_pTextures[pData->rand];
-                    }
-                    return material;
-                }, data);
-            }
-            return atomic;
-        }, &remapData);
-
-        data.m_bInit = true;
-    }
+        return atomic;
+    }, &data);
 }

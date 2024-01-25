@@ -2,20 +2,30 @@
 #include "plugin.h"
 #include "../../interface/ifeature.hpp"
 #include "../../extender.h"
+#include <map>
 
 class RandomRemapFeature : public IFeature {
 private: 
-  struct FrameData {
-    bool m_bInit = false;
-    FrameData(RwFrame*) {}
-    ~FrameData() {}
+  struct RemapData {
+    bool m_bRemapsLoaded = false;
+    std::map<std::string, std::vector<RwTexture*>> m_pTextures;
+    void* curPtr = nullptr;
+    RemapData(int) {}
+    ~RemapData() {}
   };
-  Extender<RwFrame*, FrameData> xFrame;
+  Extender<int, RemapData> xRemaps;
+
+private:
+  void LoadRemaps(CBaseModelInfo *pModelInfo, int model, eNodeEntityType type);
+
+  void BeforeRender(void* ptr, eNodeEntityType type);
+  void AfterRender(void* ptr, eNodeEntityType type);
 
 public:
   RandomRemapFeature () {};
- 
-  void Process(RwFrame* frame, void* ptr, eNodeEntityType type);
+  
+  void Initialize();
+  
 };
 
 extern RandomRemapFeature RandomRemap;

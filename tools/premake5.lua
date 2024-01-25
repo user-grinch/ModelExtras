@@ -16,31 +16,12 @@ workspace "ModelExtras"
     targetdir "../build/bin"
 
     linkoptions {
-        "/SAFESEH:NO", -- Image Has Safe Exception Handers: No
+        "/SAFESEH:NO",
     }
-
--- project "depend"
---     kind "StaticLib"
-
---     files { 
---         "../include/**",
---     }
-
---     filter "configurations:Debug"
---         defines { "DEBUG" }
---         symbols "On"
-
---     filter "configurations:Release"
---         defines { "NDEBUG" }
---         optimize "On"
 
 project "ModelExtras"
     kind "SharedLib"
     targetextension ".asi"
-
-    -- links { 
-    --     "depend",
-    -- }
 
     files { 
         "../src/**",
@@ -76,7 +57,6 @@ project "ModelExtras"
     filter "configurations:Debug"
         symbols "On"
         links { 
-            -- "depend",
             "plugin_d.lib",
             "bass",
         }
@@ -84,7 +64,6 @@ project "ModelExtras"
     filter "configurations:Release"
         optimize "On"
         links { 
-            -- "depend",
             "plugin.lib",
             "bass",
         }

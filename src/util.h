@@ -1,5 +1,6 @@
 #pragma once
-#include "plugin.h"
+
+typedef enum class eNodeEntityType eNodeEntityType;
 
 class Util {
   public:
@@ -11,6 +12,7 @@ class Util {
 
     // Returns the speed of the vehicle handler
     static float GetVehicleSpeedRealistic(CVehicle * vehicle);
+    static unsigned int GetEntityModel(void *ptr, eNodeEntityType type);
 
     // Rotate model frame
     static void SetFrameRotationX(RwFrame* frame, float angle);

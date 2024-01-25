@@ -14,6 +14,10 @@
 static ThiscallEvent <AddressList<0x5E7859, H_CALL>, PRIORITY_BEFORE, ArgPickN<CPed*, 0>, void(CPed*)> weaponRenderEvent;
 static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
 
+static void InitFeatures() {
+    RandomRemap.Initialize();
+}
+
 static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityType type) {
     if(frame) {
         const std::string name = GetFrameNodeName(frame);
@@ -37,14 +41,12 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityTyp
                 GearLever.Process(frame, pVeh);
                 GearSound.Process(frame, pVeh);
                 Randomizer.Process(frame, static_cast<void*>(pVeh), type);
-                RandomRemap.Process(frame, static_cast<void*>(pVeh), type);
             } else if (type == eNodeEntityType::Weapon) {
                 CWeapon *pWep = static_cast<CWeapon*>(pEntity);
                 BodyState.Process(frame, pWep);
                 BodyState.ProcessZen(frame, pWep);
                 BloodRemap.Process(frame, pWep);
                 Randomizer.Process(frame, static_cast<void*>(pWep), type);
-                RandomRemap.Process(frame, static_cast<void*>(pWep), type);
             } else if (type == eNodeEntityType::Object) {
 
                 /*
@@ -55,7 +57,6 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityTyp
                 BodyState.ProcessZen(frame, pWep);
             } else if (type == eNodeEntityType::Ped) {
                 Randomizer.Process(frame, pEntity, type);
-                RandomRemap.Process(frame, pEntity, type);
             }
         }
         // LicensePlate.Process(frame, pVeh);
@@ -78,6 +79,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             SoundSystem.Inject();
             SoundSystem.Init(RsGlobal.ps->window);
             InitRandom();
+            InitFeatures();
         };
 
         Events::vehicleRenderEvent += [](CVehicle* pVeh) {

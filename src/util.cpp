@@ -1,6 +1,8 @@
 #include "pch.h"
+#include "plugin.h"
 #include "util.h"
 #include <regex>
+#include <CWeaponInfo.h>
 
 std::string Util::GetRegexVal(const std::string& src, const std::string&& ptrn, const std::string&& def) {
     std::smatch match;
@@ -301,4 +303,18 @@ float Util::GetVehicleSpeedRealistic(CVehicle * vehicle) {
     wheelSpeed *= -186.0f; // tweak based on km/h
 
     return wheelSpeed;
+}
+
+unsigned int Util::GetEntityModel(void *ptr, eNodeEntityType type) {
+    int model = 0;
+    if (type == eNodeEntityType::Weapon) {
+        CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(reinterpret_cast<CWeapon*>(ptr)->m_eWeaponType, 
+                                                                FindPlayerPed()->GetWeaponSkill(reinterpret_cast<CWeapon*>(ptr)->m_eWeaponType));
+        if (pWeaponInfo){
+            model = pWeaponInfo->m_nModelId1;
+        }
+    } else {
+       model = reinterpret_cast<CEntity*>(ptr)->m_nModelIndex;
+    }
+    return model;
 }
