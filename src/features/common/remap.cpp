@@ -156,6 +156,10 @@ void RemapFeature::BeforeRender(void* ptr, eNodeEntityType type) {
     RpClumpForAllAtomics(pModelInfo->m_pRwClump, [](RpAtomic *atomic, void *data) {
         if (atomic->geometry) {
             RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *mat, void *data) {
+                if (!mat->texture) {
+                    return mat;
+                }
+
                 std::string name = mat->texture->name;
                 RemapData *pData = reinterpret_cast<RemapData*>(data);
 
@@ -163,7 +167,7 @@ void RemapFeature::BeforeRender(void* ptr, eNodeEntityType type) {
                     return mat;
                 }
                 size_t sz = pData->m_pTextures[name].size();
-                if (m_pRandom.find(pData->curPtr) == m_pRandom.end() || m_pRandom[pData->curPtr] > sz) {
+                if (m_pRandom.find(pData->curPtr) == m_pRandom.end() || m_pRandom[pData->curPtr] >= sz) {
                     m_pRandom[pData->curPtr] = Random(0u, sz-1);
                 }
 

@@ -2,14 +2,16 @@
 #include "plugin.h"
 #include "../../interface/ifeature.hpp"
 #include <vector>
+#include <map>
 
 class RandomizerFeature : public IFeature {
-  protected:
-  std::vector<RwFrame*> frameStore;    
-
-  public:
-    void Initialize(RwFrame* frame);
-    void Process(RwFrame* frame, void* ptr, eNodeEntityType type);
+private:
+  std::map<int, std::vector<RwFrame*>> m_pStoredFrames;
+  std::map<void*, std::map<std::string, int>> m_pStoredRandoms;
+  
+public:
+  void Initialize();
+  void Process(RwFrame* frame, void* ptr, eNodeEntityType type);
 };
 
 extern RandomizerFeature Randomizer;

@@ -15,6 +15,7 @@ static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<C
 
 static void InitFeatures() {
     Remap.Initialize();
+    Randomizer.Initialize();
 }
 
 static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityType type) {
@@ -44,7 +45,7 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityTyp
                 CWeapon *pWep = static_cast<CWeapon*>(pEntity);
                 BodyState.Process(frame, pWep);
                 BodyState.ProcessZen(frame, pWep);
-                // BloodRemap.Process(frame, pWep);
+                BloodRemap.Process(frame, pWep);
                 Randomizer.Process(frame, static_cast<void*>(pWep), type);
             } else if (type == eNodeEntityType::Object) {
 
@@ -106,7 +107,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
                 CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(weaponType, pPed->GetWeaponSkill(weaponType));
                 if (pWeaponInfo) {
                     CWeaponModelInfo* pWeaponModelInfo = static_cast<CWeaponModelInfo*>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
-                    if (pWeaponModelInfo) {
+                    if (pWeaponModelInfo && pWeaponModelInfo->m_pRwClump) {
                         ProcessNodesRecursive((RwFrame *)pWeaponModelInfo->m_pRwClump->object.parent, pWeapon, eNodeEntityType::Weapon);
                     }
                 }
