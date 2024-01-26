@@ -11,7 +11,6 @@
 #include "features/common/randomremap.h"
 #include "soundsystem.h"
 
-static ThiscallEvent <AddressList<0x5E7859, H_CALL>, PRIORITY_BEFORE, ArgPickN<CPed*, 0>, void(CPed*)> weaponRenderEvent;
 static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
 
 static void InitFeatures() {
