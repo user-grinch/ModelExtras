@@ -4,28 +4,35 @@
 #include "../../extender.h"
 #include <map>
 
-class RandomRemapFeature : public IFeature {
+class RemapFeature : public IFeature {
 private: 
+  struct TextureVariant {
+    RwTexture *m_pNormal, *m_pBlood;
+  };
+
   struct RemapData {
     bool m_bRemapsLoaded = false;
-    std::map<std::string, std::vector<RwTexture*>> m_pTextures;
+    std::map<std::string, std::vector<TextureVariant>> m_pTextures;
     void* curPtr = nullptr;
+    bool useBlood = false;
     RemapData(int) {}
     ~RemapData() {}
   };
   Extender<int, RemapData> xRemaps;
 
 private:
+  bool GetKilledState(CWeapon *pWeapon);
+
   void LoadRemaps(CBaseModelInfo *pModelInfo, int model, eNodeEntityType type);
 
   void BeforeRender(void* ptr, eNodeEntityType type);
   void AfterRender(void* ptr, eNodeEntityType type);
 
 public:
-  RandomRemapFeature () {};
+  RemapFeature () {};
   
   void Initialize();
   
 };
 
-extern RandomRemapFeature RandomRemap;
+extern RemapFeature Remap;

@@ -8,13 +8,13 @@
 #include "features/weapon/bodystate.h"
 #include "features/weapon/bloodremap.h"
 #include "features/common/randomizer.h"
-#include "features/common/randomremap.h"
+#include "features/common/remap.h"
 #include "soundsystem.h"
 
 static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
 
 static void InitFeatures() {
-    RandomRemap.Initialize();
+    Remap.Initialize();
 }
 
 static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityType type) {

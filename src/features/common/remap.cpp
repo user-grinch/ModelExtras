@@ -1,14 +1,14 @@
 #include "pch.h"
-#include "randomremap.h"
+#include "remap.h"
 #include <TxdDef.h>
 #include <CTxdStore.h>
 #include <CKeyGen.h>
 #define MAX_REMAPS 32
 #define NODE_ID "x_ranmap"
 
-RandomRemapFeature RandomRemap;
+RemapFeature Remap;
 
-void RandomRemapFeature::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eNodeEntityType type)
+void RemapFeature::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eNodeEntityType type)
 {
 	if (pModelInfo)
 	{
@@ -30,17 +30,23 @@ void RandomRemapFeature::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eNode
 
 					std::string name = pTexture->name;
 					std::size_t found = name.find("_remap");
+                    std::size_t bloodFound = name.find("_b");
 
-					if (found != std::string::npos)
+					if (found != std::string::npos && bloodFound == std::string::npos)
 					{
                         std::string ogRemap = name.substr(0, found);
                         RemapData &data = xRemaps.Get(model);
+
                         if (data.m_pTextures[ogRemap].size() == 0) {
-                            RwTexture *ogTexture = RwTexDictionaryFindHashNamedTexture(pedTxdDic, CKeyGen::GetUppercaseKey(ogRemap.c_str()));
-                            data.m_pTextures[ogRemap].push_back(ogTexture);
+                            std::string blood = ogRemap + "_b";
+                            RwTexture *tex = RwTexDictionaryFindHashNamedTexture(pedTxdDic, CKeyGen::GetUppercaseKey(ogRemap.c_str()));
+                            RwTexture *texblood = RwTexDictionaryFindHashNamedTexture(pedTxdDic, CKeyGen::GetUppercaseKey(blood.c_str()));
+                            data.m_pTextures[ogRemap].push_back({tex, texblood});
                         }
 
-						data.m_pTextures[ogRemap].push_back(pTexture);
+                        std::string blood = name + "_b";
+                        RwTexture *texblood = RwTexDictionaryFindHashNamedTexture(pedTxdDic, CKeyGen::GetUppercaseKey(blood.c_str()));
+						data.m_pTextures[ogRemap].push_back({pTexture, texblood});
 					}
 					current = rwLLLinkGetNext(current);
 				}
@@ -51,8 +57,9 @@ void RandomRemapFeature::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eNode
   
 static std::vector<std::pair<unsigned int *, unsigned int>> m_pOriginalTextures;
 static std::map<void*, int> m_pRandom;
+static std::map<void*, bool> m_pBloodState;
 
-void RandomRemapFeature::Initialize() {
+void RemapFeature::Initialize() {
     Events::vehicleRenderEvent.before += [this](CVehicle* ptr) {
         BeforeRender(reinterpret_cast<void*>(ptr), eNodeEntityType::Vehicle);
     };
@@ -89,18 +96,45 @@ void RandomRemapFeature::Initialize() {
             if(m_pRandom.contains(pWeapon)) {
                 m_pRandom.erase(m_pRandom.find(pWeapon));
             }
+
+            if(m_pBloodState.contains(pWeapon)) {
+                m_pBloodState.erase(m_pBloodState.find(pWeapon));
+            }
         }
     };
 }
 
-void RandomRemapFeature::AfterRender(void* ptr, eNodeEntityType type) {
+void RemapFeature::AfterRender(void* ptr, eNodeEntityType type) {
     for (auto &e : m_pOriginalTextures) {
 		*e.first = e.second;
     }
 	m_pOriginalTextures.clear();
 }
 
-void RandomRemapFeature::BeforeRender(void* ptr, eNodeEntityType type) {
+bool RemapFeature::GetKilledState(CWeapon *pWeapon) {
+    if (m_pBloodState[pWeapon]) {
+        return true;
+    }
+
+    bool state = false;
+    static CPed *lastKilled = nullptr;
+
+    auto player = FindPlayerPed();
+    if (player && player->m_aWeapons[player->m_nActiveWeaponSlot].m_eWeaponType == pWeapon->m_eWeaponType) {
+        CPed *pPed = static_cast<CPed*>(player->m_pDamageEntity);
+        if (!pPed) {
+            pPed = static_cast<CPed*>(player->m_pLastEntityDamage);
+        }
+        if (pPed && pPed->m_nType == ENTITY_TYPE_PED && !pPed->IsAlive() && pPed != lastKilled) {
+            state = true;
+            m_pBloodState[pWeapon] = true;
+            lastKilled = pPed;
+        }
+    }
+    return state;
+}
+
+void RemapFeature::BeforeRender(void* ptr, eNodeEntityType type) {
     int model = Util::GetEntityModel(ptr, type);
     CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(model);
 
@@ -112,6 +146,10 @@ void RandomRemapFeature::BeforeRender(void* ptr, eNodeEntityType type) {
 
     if (data.m_pTextures.empty()) {
         return;
+    }
+    
+    if (type == eNodeEntityType::Weapon) {
+        data.useBlood = GetKilledState(static_cast<CWeapon*>(ptr));
     }
 
     data.curPtr = ptr;
@@ -130,7 +168,13 @@ void RandomRemapFeature::BeforeRender(void* ptr, eNodeEntityType type) {
                 }
 
                 m_pOriginalTextures.push_back({reinterpret_cast<unsigned int *>(&mat->texture), *reinterpret_cast<unsigned int *>(&mat->texture)});
-                mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]];
+
+                if (pData->useBlood && pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pBlood) {
+                    mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pBlood;
+                } else {
+                    mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pNormal;
+                }
+
                 return mat;
             }, data);
         }

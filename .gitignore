@@ -248,3 +248,5 @@ build/obj/Win32/Release/ModelExtras.tlog/ModelExtras.lastbuildstate
 build/obj/Win32/Debug/randomremap.obj
 build/obj/Win32/Release/randomremap.obj
 build/obj/Win32/Debug/handlebar.obj
+build/obj/Win32/Debug/remap.obj
+build/obj/Win32/Release/handlebar.obj
