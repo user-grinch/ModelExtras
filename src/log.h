@@ -1,65 +1,76 @@
 #pragma once
-#define FILE_NAME "ModelExtras"
 
-#include <format>
-#include <stdarg.h>
+#include <iostream>
 #include <fstream>
-#include <memory>
+#include <string>
+#include <format>
+#include <utility>
+#include <mutex>
 
-enum class eLogLevel {
-    Debug,
-    Info,
-    Warn,
-    Error,
-    None,
-};
+class Logger {
+private:
+  enum class LogLevel {
+      Debug,
+      Info,
+      Warn,
+      Error,
+      None,
+  };
 
-// Logging Class
-class Log {
-  private:
-    static inline eLogLevel level = eLogLevel::Debug;
-    static inline std::string name = "Logger.log";
-    static inline std::unique_ptr<std::ofstream> pLog = nullptr;
+  std::mutex logMutex;  // Add a mutex for thread safety
 
-    // Appends log level to string
-    static void AppendLogLevel(std::string& text) noexcept;
+public:
+  explicit Logger(const std::string& logName = "Logger.log") : logName(logName) {
+      pLog.open(logName, std::ios::out); // Open in out mode
+  }
 
-    // Sets current log level
-    static void SetLogLevel(eLogLevel logLevel) noexcept;
+  Logger(const Logger&) = delete;
+  Logger& operator=(const Logger&) = delete;
 
-  public:
-    Log() = delete;
-    Log(Log&) = delete;
+  template <typename... Args>
+  void Warn(const std::string& fmt, Args&&... args) noexcept {
+      LogMessage(LogLevel::Warn, fmt, std::forward<Args>(args)...);
+  }
 
-    static inline void SetName(const char* logName) noexcept;
+  template <typename... Args>
+  void Info(const std::string& fmt, Args&&... args) noexcept {
+      LogMessage(LogLevel::Info, fmt, std::forward<Args>(args)...);
+  }
 
-    // Prints to log with current log level
-    template <eLogLevel T, typename... Args>
-    static inline void Print(std::string&& fmt, Args&&... args) noexcept {
-        SetLogLevel(T);
-        if(!pLog) {
-#ifdef _GTA_
-            pLog = std::make_unique<std::ofstream>(FILE_NAME ".log");
-#else
-            pLog = std::make_unique<std::ofstream>(name);
-#endif
-        }
-        AppendLogLevel(fmt);
-        *pLog << std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...)) << std::endl;
-    }
+  template <typename... Args>
+  void Debug(const std::string& fmt, Args&&... args) noexcept {
+      LogMessage(LogLevel::Debug, fmt, std::forward<Args>(args)...);
+  }
 
-    template <eLogLevel T>
-    static inline void Print(const char* text) noexcept {
-        SetLogLevel(T);
-        if (!pLog) {
-#ifdef _GTA_
-            pLog = std::make_unique<std::ofstream>(FILE_NAME".log");
-#else
-            pLog = std::make_unique<std::ofstream>(name);
-#endif
-        }
-        std::string str { text };
-        AppendLogLevel(str);
-        *pLog << str << std::endl;
-    }
+  template <typename... Args>
+  void Error(const std::string& fmt, Args&&... args) noexcept {
+      LogMessage(LogLevel::Error, fmt, std::forward<Args>(args)...);
+  }
+
+  template <typename... Args>
+  void Print(const std::string& fmt, Args&&... args) noexcept {
+      LogMessage(LogLevel::None, fmt, std::forward<Args>(args)...);
+  }
+
+private:
+  LogLevel level = LogLevel::Debug;
+  std::ofstream pLog;
+  std::string logName;
+
+  template <typename... Args>
+  void LogMessage(LogLevel logLevel, const std::string& fmt, Args&&... args) noexcept {
+      std::scoped_lock lock(logMutex);  // Lock for thread safety
+
+      if (!pLog.is_open()) {
+          pLog.open(logName, std::ios::out); // Open in out mode
+      }
+
+      std::string logMessage = fmt;
+      if (logLevel != LogLevel::None) {
+          const char* levelNames[] = {"D", "I", "W", "E", ""};
+          logMessage = "[" + std::string(levelNames[static_cast<int>(logLevel)]) + "] " + logMessage;
+      }
+
+      pLog << std::vformat(logMessage, std::make_format_args(std::forward<Args>(args)...)) << std::endl;
+  }
 };

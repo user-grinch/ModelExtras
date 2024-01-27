@@ -23,9 +23,8 @@ enum class eNodeEntityType {
 #define MOD_DATA_PATH_S(x) PLUGIN_PATH((char*)("ModelExtras/" + x).c_str())
 
 #define MOD_NAME "ModelExtras"
-#define MOD_VERSION_NUMBER "1.4"
-#define MOD_VERSION MOD_VERSION_NUMBER
-#define MOD_TITLE MOD_NAME " v" MOD_VERSION
+#define MOD_VERSION_NUMBER "1.5"
+#define MOD_TITLE MOD_NAME " v" MOD_VERSION_NUMBER "rc1"
 #define DISCORD_INVITE "https://discord.gg/ZzW7kmf"
 #define GITHUB_LINK "https://github.com/user-grinch/ModelExtras"
 #define PATREON_LINK "https://www.patreon.com/grinch_"
@@ -33,6 +32,7 @@ enum class eNodeEntityType {
 #define NODE_FOUND(x, y) x.find(y) != std::string::npos
 #define NODE_NOT_FOUND(x, y) x.find(y) == std::string::npos
 
+extern std::shared_ptr<Logger> gLogger;
 static inline CdeclEvent <AddressList<0x5E7859, H_CALL>, PRIORITY_BEFORE, ArgPickN<CPed*, 0>, void(CPed*)> weaponRenderEvent;
 static inline ThiscallEvent <AddressList<//0x43D821, H_CALL,
                                //   0x43D939, H_CALL,
