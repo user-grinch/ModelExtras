@@ -5,6 +5,7 @@
 #include "features/vehicle/gear.h"
 #include "features/vehicle/plate.h"
 #include "features/vehicle/handlebar.h"
+#include "features/vehicle/turnlights.h"
 #include "features/weapon/bodystate.h"
 #include "features/weapon/bloodremap.h"
 #include "features/common/randomizer.h"
@@ -16,6 +17,7 @@ static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<C
 static void InitFeatures() {
     Remap.Initialize();
     Randomizer.Initialize();
+    TurnLights.Initialize();
 }
 
 static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityType type) {

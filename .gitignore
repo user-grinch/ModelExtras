@@ -251,3 +251,4 @@ build/obj/Win32/Debug/handlebar.obj
 build/obj/Win32/Debug/remap.obj
 build/obj/Win32/Release/handlebar.obj
 build/obj/Win32/Release/remap.obj
+build/obj/Win32/Debug/turnlights.obj
