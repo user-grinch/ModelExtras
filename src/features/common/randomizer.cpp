@@ -15,7 +15,7 @@ void RandomizerFeature::Initialize() {
     };
 }
 
-void RandomizerFeature::Process(RwFrame* frame, void* ptr, eNodeEntityType type) {
+void RandomizerFeature::Process(RwFrame* frame, void* ptr, eModelEntityType type) {
     std::string name = GetFrameNodeName(frame);
 
     if (NODE_FOUND(name, NODE_ID)) {

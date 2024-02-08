@@ -11,7 +11,7 @@ private:
   
 public:
   void Initialize();
-  void Process(RwFrame* frame, void* ptr, eNodeEntityType type);
+  void Process(RwFrame* frame, void* ptr, eModelEntityType type);
 };
 
 extern RandomizerFeature Randomizer;

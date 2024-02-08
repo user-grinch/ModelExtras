@@ -12,11 +12,11 @@
 
 using namespace plugin;
 
-enum class eNodeEntityType {
-    Ped,
-    Object,
-    Vehicle,
-    Weapon,
+enum class eModelEntityType {
+  Ped,
+  Object,
+  Vehicle,
+  Weapon,
 };
 
 #define MOD_DATA_PATH(x) PLUGIN_PATH((char*)("ModelExtras/"x))

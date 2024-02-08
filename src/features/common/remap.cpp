@@ -8,7 +8,7 @@
 
 RemapFeature Remap;
 
-void RemapFeature::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eNodeEntityType type)
+void RemapFeature::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType type)
 {
 	if (pModelInfo)
 	{
@@ -61,32 +61,32 @@ static std::map<void*, bool> m_pBloodState;
 
 void RemapFeature::Initialize() {
     Events::vehicleRenderEvent.before += [this](CVehicle* ptr) {
-        BeforeRender(reinterpret_cast<void*>(ptr), eNodeEntityType::Vehicle);
+        BeforeRender(reinterpret_cast<void*>(ptr), eModelEntityType::Vehicle);
     };
 
     Events::pedRenderEvent.before += [this](CPed* pPed) {
-        BeforeRender(reinterpret_cast<void*>(pPed), eNodeEntityType::Ped);
+        BeforeRender(reinterpret_cast<void*>(pPed), eModelEntityType::Ped);
     };
 
     weaponRenderEvent.before += [this](CPed* pPed) {
         CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
         if (pWeapon) {
-            BeforeRender(reinterpret_cast<void*>(pWeapon), eNodeEntityType::Weapon);
+            BeforeRender(reinterpret_cast<void*>(pWeapon), eModelEntityType::Weapon);
         }
     };
     
     Events::vehicleRenderEvent.after += [this](CVehicle* ptr) {
-        AfterRender(reinterpret_cast<void*>(ptr), eNodeEntityType::Vehicle);
+        AfterRender(reinterpret_cast<void*>(ptr), eModelEntityType::Vehicle);
     };
 
     Events::pedRenderEvent.after += [this](CPed* pPed) {
-        AfterRender(reinterpret_cast<void*>(pPed), eNodeEntityType::Ped);
+        AfterRender(reinterpret_cast<void*>(pPed), eModelEntityType::Ped);
     };
 
     weaponRenderEvent.after += [this](CPed* pPed) {
         CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
         if (pWeapon) {
-            AfterRender(reinterpret_cast<void*>(pWeapon), eNodeEntityType::Weapon);
+            AfterRender(reinterpret_cast<void*>(pWeapon), eModelEntityType::Weapon);
         }
     };
 
@@ -104,7 +104,7 @@ void RemapFeature::Initialize() {
     };
 }
 
-void RemapFeature::AfterRender(void* ptr, eNodeEntityType type) {
+void RemapFeature::AfterRender(void* ptr, eModelEntityType type) {
     for (auto &e : m_pOriginalTextures) {
 		*e.first = e.second;
     }
@@ -134,7 +134,7 @@ bool RemapFeature::GetKilledState(CWeapon *pWeapon) {
     return state;
 }
 
-void RemapFeature::BeforeRender(void* ptr, eNodeEntityType type) {
+void RemapFeature::BeforeRender(void* ptr, eModelEntityType type) {
     int model = Util::GetEntityModel(ptr, type);
     CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(model);
 
@@ -148,7 +148,7 @@ void RemapFeature::BeforeRender(void* ptr, eNodeEntityType type) {
         return;
     }
     
-    if (type == eNodeEntityType::Weapon) {
+    if (type == eModelEntityType::Weapon) {
         data.useBlood = GetKilledState(static_cast<CWeapon*>(ptr));
     }
 

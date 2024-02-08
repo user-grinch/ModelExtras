@@ -305,9 +305,9 @@ float Util::GetVehicleSpeedRealistic(CVehicle * vehicle) {
     return wheelSpeed;
 }
 
-unsigned int Util::GetEntityModel(void *ptr, eNodeEntityType type) {
+unsigned int Util::GetEntityModel(void *ptr, eModelEntityType type) {
     int model = 0;
-    if (type == eNodeEntityType::Weapon) {
+    if (type == eModelEntityType::Weapon) {
         CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(reinterpret_cast<CWeapon*>(ptr)->m_eWeaponType, 
                                                                 FindPlayerPed()->GetWeaponSkill(reinterpret_cast<CWeapon*>(ptr)->m_eWeaponType));
         if (pWeaponInfo){

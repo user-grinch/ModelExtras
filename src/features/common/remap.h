@@ -23,10 +23,10 @@ private:
 private:
   bool GetKilledState(CWeapon *pWeapon);
 
-  void LoadRemaps(CBaseModelInfo *pModelInfo, int model, eNodeEntityType type);
+  void LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType type);
 
-  void BeforeRender(void* ptr, eNodeEntityType type);
-  void AfterRender(void* ptr, eNodeEntityType type);
+  void BeforeRender(void* ptr, eModelEntityType type);
+  void AfterRender(void* ptr, eModelEntityType type);
 
 public:
   RemapFeature () {};

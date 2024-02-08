@@ -1,6 +1,6 @@
 #pragma once
 
-typedef enum class eNodeEntityType eNodeEntityType;
+typedef enum class eModelEntityType eModelEntityType;
 
 class Util {
   public:
@@ -12,7 +12,7 @@ class Util {
 
     // Returns the speed of the vehicle handler
     static float GetVehicleSpeedRealistic(CVehicle * vehicle);
-    static unsigned int GetEntityModel(void *ptr, eNodeEntityType type);
+    static unsigned int GetEntityModel(void *ptr, eModelEntityType type);
 
     // Rotate model frame
     static void SetFrameRotationX(RwFrame* frame, float angle);

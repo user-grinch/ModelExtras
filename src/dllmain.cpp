@@ -18,17 +18,17 @@ static void InitFeatures() {
     Randomizer.Initialize();
 }
 
-static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityType type) {
+static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityType type) {
     if(frame) {
         const std::string name = GetFrameNodeName(frame);
 
-        if (type == eNodeEntityType::Vehicle) {
+        if (type == eModelEntityType::Vehicle) {
             CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
             HandleBar.Process(frame, pVeh);
         }
 
         if ((name[0] == 'x' && name[1] == '_')|| (name[0] == 'f' && name[1] == 'c' && name[2] == '_')) {
-            if (type == eNodeEntityType::Vehicle) {
+            if (type == eModelEntityType::Vehicle) {
                 CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
                 Chain.Process(frame, pVeh);
                 FrontBrake.Process(frame, pVeh);
@@ -41,13 +41,13 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityTyp
                 GearLever.Process(frame, pVeh);
                 GearSound.Process(frame, pVeh);
                 Randomizer.Process(frame, static_cast<void*>(pVeh), type);
-            } else if (type == eNodeEntityType::Weapon) {
+            } else if (type == eModelEntityType::Weapon) {
                 CWeapon *pWep = static_cast<CWeapon*>(pEntity);
                 BodyState.Process(frame, pWep);
                 BodyState.ProcessZen(frame, pWep);
                 BloodRemap.Process(frame, pWep);
                 Randomizer.Process(frame, static_cast<void*>(pWep), type);
-            } else if (type == eNodeEntityType::Object) {
+            } else if (type == eModelEntityType::Object) {
 
                 /*
                     processing weapon & jetpack pickups here
@@ -55,7 +55,7 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eNodeEntityTyp
                 CWeapon *pWep = static_cast<CWeapon*>(pEntity);
                 BodyState.Process(frame, pWep);
                 BodyState.ProcessZen(frame, pWep);
-            } else if (type == eNodeEntityType::Ped) {
+            } else if (type == eModelEntityType::Ped) {
                 Randomizer.Process(frame, pEntity, type);
             }
         }
@@ -83,21 +83,21 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
         };
 
         Events::vehicleRenderEvent += [](CVehicle* pVeh) {
-            ProcessNodesRecursive((RwFrame *)pVeh->m_pRwClump->object.parent, pVeh, eNodeEntityType::Vehicle);
+            ProcessNodesRecursive((RwFrame *)pVeh->m_pRwClump->object.parent, pVeh, eModelEntityType::Vehicle);
         };
 
         objectRenderEvent += [](CObject *pObj) {
-            ProcessNodesRecursive((RwFrame *)pObj->m_pRwClump->object.parent, pObj, eNodeEntityType::Object);
+            ProcessNodesRecursive((RwFrame *)pObj->m_pRwClump->object.parent, pObj, eModelEntityType::Object);
         };
 
         Events::pedRenderEvent += [](CPed* pPed) {
             // peds
-            ProcessNodesRecursive((RwFrame *)pPed->m_pRwClump->object.parent, pPed, eNodeEntityType::Ped);
+            ProcessNodesRecursive((RwFrame *)pPed->m_pRwClump->object.parent, pPed, eModelEntityType::Ped);
 
             // jetpack
             CTaskSimpleJetPack *pTask = pPed->m_pIntelligence->GetTaskJetPack();
             if (pTask && pTask->m_pJetPackClump) {
-                ProcessNodesRecursive((RwFrame *)pTask->m_pJetPackClump->object.parent, pPed, eNodeEntityType::Weapon);
+                ProcessNodesRecursive((RwFrame *)pTask->m_pJetPackClump->object.parent, pPed, eModelEntityType::Weapon);
             }
 
             // weapons
@@ -108,7 +108,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
                 if (pWeaponInfo) {
                     CWeaponModelInfo* pWeaponModelInfo = static_cast<CWeaponModelInfo*>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
                     if (pWeaponModelInfo && pWeaponModelInfo->m_pRwClump) {
-                        ProcessNodesRecursive((RwFrame *)pWeaponModelInfo->m_pRwClump->object.parent, pWeapon, eNodeEntityType::Weapon);
+                        ProcessNodesRecursive((RwFrame *)pWeaponModelInfo->m_pRwClump->object.parent, pWeapon, eModelEntityType::Weapon);
                     }
                 }
             }
