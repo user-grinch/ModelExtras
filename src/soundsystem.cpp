@@ -13,14 +13,14 @@ LRESULT(__stdcall * imp_DefWindowProc)(HWND wnd, UINT msg, WPARAM wparam, LPARAM
 
 HWND OnCreateMainWindow(HINSTANCE hinst) {
     if (HIWORD(BASS_GetVersion()) != BASSVERSION) {
-        gLogger->Warn("An incorrect version of bass.dll has been loaded");
+        gLogger.Warn("An incorrect version of bass.dll has been loaded");
     }
 
-    gLogger->Debug("Creating main window...");
+    gLogger.Debug("Creating main window...");
     HWND wnd = CreateMainWindow(hinst);
 
     if (!SoundSystem.Init(wnd)) {
-        gLogger->Warn("CSoundSystem::Init() failed. Error code: {}", BASS_ErrorGetCode());
+        gLogger.Warn("CSoundSystem::Init() failed. Error code: {}", BASS_ErrorGetCode());
     }
     return wnd;
 }
@@ -53,7 +53,7 @@ LRESULT __stdcall HOOK_DefWindowProc(HWND wnd, UINT msg, WPARAM wparam, LPARAM l
 }
 
 void CSoundSystem::Inject() {
-    gLogger->Info("Injecting SoundSystem...");
+    gLogger.Info("Injecting SoundSystem...");
     CreateMainWindow = (HWND(*)(HINSTANCE hinst))0x00745560;
     plugin::patch::ReplaceFunction(0x007487A8, OnCreateMainWindow);
     camera = (CPlaceable*)0x00B6F028;
@@ -72,7 +72,7 @@ void EnumerateBassDevices(int& total, int& enabled, int& default_device) {
     for (default_device = -1, enabled = 0, total = 0; BASS_GetDeviceInfo(total, &info); ++total) {
         if (info.flags & BASS_DEVICE_ENABLED) ++enabled;
         if (info.flags & BASS_DEVICE_DEFAULT) default_device = total;
-        gLogger->Info("Found sound device {} {}{}", total, (default_device == total) ? "(default)" : "", info.name);
+        gLogger.Info("Found sound device {} {}{}", total, (default_device == total) ? "(default)" : "", info.name);
     }
 }
 
@@ -86,7 +86,7 @@ bool CSoundSystem::Init(HWND hwnd) {
             info.flags & BASS_DEVICE_ENABLED)
         default_device = forceDevice;
 
-    gLogger->Info("On system found {} devices, {} enabled devices, assuming device to use: {} {} ",
+    gLogger.Info("On system found {} devices, {} enabled devices, assuming device to use: {} {} ",
                                 total_devices, enabled_devices, default_device, (BASS_GetDeviceInfo(default_device, &info) ? info.name : "Unknown device"));
 
     BOOL state = BASS_Init(default_device, 44100, BASS_DEVICE_3D | BASS_DEVICE_DEFAULT, hwnd, nullptr);
@@ -95,21 +95,22 @@ bool CSoundSystem::Init(HWND hwnd) {
     if (state || erorCode == BASS_ERROR_ALREADY) {
         BASS_Set3DFactors(1.0f, 0.3f, 1.0f);
         BASS_Set3DPosition(&pos, &vel, &front, &top);
-        gLogger->Info("SoundSystem initialized");
+        gLogger.Info("SoundSystem initialized");
 
         // Can we use floating-point (HQ) audio streams?
         DWORD floatable; // floating-point channel support? 0 = no, else yes
         if (floatable = BASS_StreamCreate(44100, 1, BASS_SAMPLE_FLOAT, NULL, NULL)) {
-            gLogger->Info("Floating-point audio supported!");
+            gLogger.Info("Floating-point audio supported!");
             BASS_StreamFree(floatable);
-        } else gLogger->Info("Floating-point audio not supported!");
+        } else gLogger.Info("Floating-point audio not supported!");
 
         //
         if (BASS_GetInfo(&SoundDevice)) {
             if (SoundDevice.flags & DSCAPS_EMULDRIVER)
-                gLogger->Info("Audio drivers not installed - using DirectSound emulation");
+                gLogger.Info("Audio drivers not installed - using DirectSound emulation");
             if (!SoundDevice.eax)
-                gLogger->Info("Audio hardware acceleration disabled (no EAX)");
+                gLogger.Info("Audio hardware acceleration disabled (no EAX)");
+                gLogger.Print("\n");
         }
 
         initialized = true;
@@ -117,7 +118,7 @@ bool CSoundSystem::Init(HWND hwnd) {
         BASS_Apply3D();
         return true;
     } else {
-        gLogger->Info("Could not initialize BASS sound system. Error code: {}", erorCode);
+        gLogger.Info("Could not initialize BASS sound system. Error code: {}", erorCode);
     }
     return false;
 }
@@ -136,7 +137,7 @@ void CSoundSystem::UnloadStream(CAudioStream *stream) {
     if (streams.erase(stream))
         delete stream;
     else
-        gLogger->Info("Unloading of stream that is not in list of loaded streams");
+        gLogger.Info("Unloading of stream that is not in list of loaded streams");
 }
 
 void CSoundSystem::UnloadAllStreams() {
@@ -204,7 +205,7 @@ CAudioStream::CAudioStream(const char *src) : state(Unknown), OK(false) {
         flags |= BASS_SAMPLE_FLOAT;
     if (!(streamInternal = BASS_StreamCreateFile(FALSE, src, 0, 0, flags)) &&
             !(streamInternal = BASS_StreamCreateURL(src, 0, flags, 0, nullptr))) {
-        gLogger->Info("Loading audiostream {} failed. Error code: {}", src, BASS_ErrorGetCode());
+        gLogger.Info("Loading audiostream {} failed. Error code: {}", src, BASS_ErrorGetCode());
     } else OK = true;
 }
 
@@ -217,7 +218,7 @@ C3DAudioStream::C3DAudioStream(const char *src) : CAudioStream(), link(nullptr) 
     if (SoundSystem.bUseFPAudio)
         flags |= BASS_SAMPLE_FLOAT;
     if (!(streamInternal = BASS_StreamCreateFile(FALSE, src, 0, 0, flags)) && !(streamInternal = BASS_StreamCreateURL(src, 0, flags, nullptr, nullptr))) {
-        gLogger->Info("Loading 3d audiostream {} failed. Error code: {}", src, BASS_ErrorGetCode());
+        gLogger.Info("Loading 3d audiostream {} failed. Error code: {}", src, BASS_ErrorGetCode());
     } else {
         BASS_ChannelSet3DAttributes(streamInternal, 0, -1.0, -1.0, -1, -1, -1.0);
         OK = true;

@@ -75,8 +75,9 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityTy
 
 BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
     if (nReason == DLL_PROCESS_ATTACH) {
+        
         Events::initGameEvent += []() {
-            gLogger->Print("Starting " MOD_TITLE " (" __DATE__ ")\nAuthor: Grinch_\nDiscord: "
+            gLogger.Print("Starting " MOD_TITLE " (" __DATE__ ")\nAuthor: Grinch_\nDiscord: "
                                         DISCORD_INVITE "\nPatreon: " PATREON_LINK "\nMore Info: " GITHUB_LINK "\n");
             SoundSystem.Inject();
             SoundSystem.Init(RsGlobal.ps->window);

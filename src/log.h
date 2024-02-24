@@ -17,8 +17,6 @@ private:
     None,
   };
 
-  std::mutex logMutex;  // Add a mutex for thread safety
-
 public:
   explicit Logger(const std::string& logName = "Logger.log") : logName(logName) {
     pLog.open(logName, std::ios::out); // Open in out mode
@@ -59,8 +57,6 @@ private:
 
   template <typename... Args>
   void LogMessage(LogLevel logLevel, const std::string& fmt, Args&&... args) noexcept {
-    std::scoped_lock lock(logMutex);  // Lock for thread safety
-
     if (!pLog.is_open()) {
       pLog.open(logName, std::ios::out); // Open in out mode
     }
