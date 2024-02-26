@@ -21,10 +21,11 @@ static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<C
 static void InitFeatures() {
     Remap.Initialize();
     Randomizer.Initialize();
-    // TurnLights.Initialize();
+    TurnLights.Initialize();
+    VehicleSirens.Initialize();
+
     VehicleLights::RegisterEvents();
     VehicleIndicators::RegisterEvents();
-    VehicleSirens::RegisterEvents();
 
     plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {
         VehicleMaterials::RestoreMaterials();
