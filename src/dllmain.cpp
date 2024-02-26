@@ -6,18 +6,32 @@
 #include "features/vehicle/plate.h"
 #include "features/vehicle/handlebar.h"
 #include "features/vehicle/turnlights.h"
+#include "features/vehicle/lights.h"
+#include "features/vehicle/indicators.h"
+#include "features/vehicle/sirens.h"
 #include "features/weapon/bodystate.h"
 #include "features/weapon/bloodremap.h"
 #include "features/common/randomizer.h"
 #include "features/common/remap.h"
 #include "soundsystem.h"
 
+
 static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
 
 static void InitFeatures() {
     Remap.Initialize();
     Randomizer.Initialize();
-    TurnLights.Initialize();
+    // TurnLights.Initialize();
+    VehicleLights::RegisterEvents();
+    VehicleIndicators::RegisterEvents();
+    VehicleSirens::RegisterEvents();
+
+    plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {
+        VehicleMaterials::RestoreMaterials();
+
+        VehicleMaterials::OnRender(vehicle);
+    };
+    plugin::Events::vehicleSetModelEvent += VehicleMaterials::OnModelSet;
 }
 
 static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityType type) {
@@ -77,8 +91,27 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
     if (nReason == DLL_PROCESS_ATTACH) {
         
         Events::initGameEvent += []() {
-            gLogger.Print("Starting " MOD_TITLE " (" __DATE__ ")\nAuthor: Grinch_\nDiscord: "
-                                        DISCORD_INVITE "\nPatreon: " PATREON_LINK "\nMore Info: " GITHUB_LINK "\n");
+            gLogger->flush_on(spdlog::level::info);
+            gLogger->set_pattern("%v"); 
+            gLogger->info("Starting " MOD_TITLE " (" __DATE__ ")\nAuthor: Grinch_\nDiscord: "
+                                        DISCORD_INVITE "\nPatreon: " PATREON_LINK "\nMore Info: " GITHUB_LINK "");
+
+            // date time
+            SYSTEMTIME st;
+            GetSystemTime(&st);
+            gLogger->info("Date: {}-{}-{} Time: {}:{}\n", st.wYear, st.wMonth, st.wDay,
+                                        st.wHour, st.wMinute);
+            gLogger->set_pattern("[%L] %v");
+            /*
+                Had to put this in place since some people put the folder in root
+                directory and the asi in modloader. Why??
+            */
+            if (!std::filesystem::is_directory(PLUGIN_PATH((char*)MOD_NAME))) {
+                std::string msg = std::format("{} folder not found. You need to put both '{}.asi' & '{}' folder in the same directory", MOD_NAME, MOD_NAME, MOD_NAME);
+                gLogger->error(msg.c_str());
+                MessageBox(NULL, msg.c_str(), MOD_NAME, MB_ICONERROR);
+                return;
+            }
             SoundSystem.Inject();
             SoundSystem.Init(RsGlobal.ps->window);
             InitRandom();

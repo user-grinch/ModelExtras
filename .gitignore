@@ -278,3 +278,15 @@ build/obj/Win32/Debug/VehicleSteering.obj
 build/obj/Win32/Debug/VehicleTextures.obj
 build/obj/Win32/Debug/world.obj
 build/obj/Win32/Release/turnlights.obj
+build/obj/Win32/Debug/dummy.obj
+build/obj/Win32/Debug/indicators.obj
+build/obj/Win32/Debug/lights.obj
+build/obj/Win32/Debug/materials.obj
+build/obj/Win32/Debug/sirens.obj
+build/obj/Win32/Debug/ModelExtras.tlog/link.secondary.1.tlog
+build/obj/Win32/Release/dummy.obj
+build/obj/Win32/Release/indicators.obj
+build/obj/Win32/Release/lights.obj
+build/obj/Win32/Release/materials.obj
+build/obj/Win32/Release/sirens.obj
+build/obj/Win32/Release/ModelExtras.tlog/link.secondary.1.tlog

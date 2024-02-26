@@ -6,8 +6,10 @@
 #include <CModelInfo.h>
 
 #include "bass.h"
+#include "json.hpp"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
 
-#include "log.h"
 #include "util.h"
 
 using namespace plugin;
@@ -32,7 +34,7 @@ enum class eModelEntityType {
 #define NODE_FOUND(x, y) x.find(y) != std::string::npos
 #define NODE_NOT_FOUND(x, y) x.find(y) == std::string::npos
 
-extern Logger gLogger;
+extern std::shared_ptr<spdlog::logger> gLogger;
 static inline CdeclEvent <AddressList<0x5E7859, H_CALL>, PRIORITY_BEFORE, ArgPickN<CPed*, 0>, void(CPed*)> weaponRenderEvent;
 static inline ThiscallEvent <AddressList<//0x43D821, H_CALL,
                                //   0x43D939, H_CALL,

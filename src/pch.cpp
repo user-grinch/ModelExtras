@@ -1,3 +1,3 @@
 #include "pch.h"
 
-Logger gLogger = Logger(MOD_NAME".log");
+std::shared_ptr<spdlog::logger> gLogger = spdlog::basic_logger_mt("Logger", MOD_NAME".log", true);

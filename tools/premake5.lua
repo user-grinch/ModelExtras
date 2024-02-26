@@ -43,6 +43,7 @@ project "ModelExtras"
     
     includedirs {
         "../include/",
+        "../src/",
         PSDK_DIR .. "/plugin_sa/",
         PSDK_DIR .. "/plugin_sa/game_sa/",
         PSDK_DIR .. "/shared/",

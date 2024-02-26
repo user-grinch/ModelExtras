@@ -81,6 +81,8 @@
         "regex": "cpp",
         "set": "cpp",
         "variant": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "ranges": "cpp",
+        "span": "cpp"
     }
 }
