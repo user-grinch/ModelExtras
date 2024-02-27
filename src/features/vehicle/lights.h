@@ -1,12 +1,13 @@
 #pragma once
 #include <map>
+#include <plugin.h>
 
-#include "plugin.h"
+#include "../../interface/ifeature.hpp"
 #include "internals/dummy.h"
 #include "internals/materials.h"
 
 enum class eLightState { 
-	None = 0, 
+	None, 
 	LightLeft, 
 	LightRight, 
 	TailLight, 
@@ -17,20 +18,19 @@ enum class eLightState {
 	Nightlight 
 };
 
-class VehicleLights {
+class LightsFeature : public IFeature {
 public:
-	static void RegisterEvents();
+	void Initialize();
 
 private:
-	static inline std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> materials;
-	static inline std::map<int, std::map<eLightState, std::vector<VehicleDummy*>>> dummies;
-	static inline std::map<int, bool> states;
+	std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> materials;
+	std::map<int, std::map<eLightState, std::vector<VehicleDummy*>>> dummies;
+	std::map<int, bool> states;
 
-	static void registerMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state);
-
-	static void renderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle);
-
-	static void enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle);
-
-	static void enableMaterial(VehicleMaterial* material);
+	void registerMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state);
+	void renderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle);
+	void enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle);
+	void enableMaterial(VehicleMaterial* material);
 };
+
+extern LightsFeature Lights;

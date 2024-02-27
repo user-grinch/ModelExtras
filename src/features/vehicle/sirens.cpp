@@ -688,12 +688,24 @@ void VehicleSirensFeature::registerSirenConfiguration() {
 	}
 };
 
+static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay) {
+	CVehicle* vehicle = NULL;
+
+	_asm {
+		pushad
+		mov vehicle, esi
+		popad
+	}
+
+	if (vehicle && VehicleSirens.modelData.contains(vehicle->m_nModelIndex))
+		return;
+
+	CCoronas::RegisterCorona(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
+};
+
 void VehicleSirensFeature::Initialize() {
 	readSirenConfiguration();
-
-	// if (PluginConfig::Helper->ImVehFt)
-		readSirenConfigurationIVF();
-
+	readSirenConfigurationIVF();
 	registerSirenConfiguration();
 
 	VehicleMaterials::Register((VehicleMaterialFunction)[](CVehicle* vehicle, RpMaterial* material) {
@@ -710,9 +722,6 @@ void VehicleSirensFeature::Initialize() {
 
 		return material;
 	});
-
-	// if (!PluginConfig::Siren->Enabled)
-	// 	return;
 
 	VehicleMaterials::RegisterDummy((VehicleDummyFunction)[](CVehicle* vehicle, RwFrame* frame, std::string name, bool parent) {
 		if (!VehicleSirens.modelData.contains(vehicle->m_nModelIndex))
@@ -753,10 +762,10 @@ void VehicleSirensFeature::Initialize() {
 		if (start == 8)
 			mat = 256 - mat;
 
-		for (std::vector<VehicleDummy*>::iterator dummy = VehicleSirens.vehicleData[index]->Dummies[mat].begin(); dummy != VehicleSirens.vehicleData[index]->Dummies[mat].end(); ++dummy) {
-			//if ((*dummy)->Frame == frame)
-			//	return;
-		}
+		// for (std::vector<VehicleDummy*>::iterator dummy = VehicleSirens.vehicleData[index]->Dummies[mat].begin(); dummy != VehicleSirens.vehicleData[index]->Dummies[mat].end(); ++dummy) {
+		// 	//if ((*dummy)->Frame == frame)
+		// 	//	return;
+		// }
 
 		VehicleSirens.vehicleData[index]->Dummies[mat].push_back(new VehicleDummy(frame, name, start, parent));
 	});
@@ -845,42 +854,40 @@ void VehicleSirensFeature::Initialize() {
 		}
 	}
 
-	// if (PluginConfig::Keys->SirenStateNumbers) {
-		for (int number = 0; number < 10; number++) {
-			if (KeyPressed(0x30 + number)) {
-				CVehicle *vehicle = FindPlayerVehicle(-1, false);
-				int model = vehicle->m_nModelIndex;
+	for (int number = 0; number < 10; number++) {
+		if (KeyPressed(0x30 + number)) {
+			CVehicle *vehicle = FindPlayerVehicle(-1, false);
+			int model = vehicle->m_nModelIndex;
 
-				if (!VehicleSirens.modelData.contains(model))
-					return;
+			if (!VehicleSirens.modelData.contains(model))
+				return;
 
-				int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
+			int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-				if (!VehicleSirens.vehicleData.contains(index))
-					return;
+			if (!VehicleSirens.vehicleData.contains(index))
+				return;
 
-				if (!VehicleSirens.vehicleData[index]->GetSirenState())
-					return;
+			if (!VehicleSirens.vehicleData[index]->GetSirenState())
+				return;
 
-				if (VehicleSirens.modelData[model]->States.size() == 0)
-					return;
+			if (VehicleSirens.modelData[model]->States.size() == 0)
+				return;
 
-				int newState = number;//(key - PluginData::DigitKey);
+			int newState = number;//(key - PluginData::DigitKey);
 
-				if ((int)VehicleSirens.modelData[model]->States.size() <= newState)
-					return;
+			if ((int)VehicleSirens.modelData[model]->States.size() <= newState)
+				return;
 
-				if (VehicleSirens.vehicleData[index]->State == newState)
-					return;
+			if (VehicleSirens.vehicleData[index]->State == newState)
+				return;
 
-				if (VehicleSirens.modelData[model]->States[newState]->Paintjob != -1 && VehicleSirens.modelData[model]->States[newState]->Paintjob != vehicle->GetRemapIndex())
-					return;
+			if (VehicleSirens.modelData[model]->States[newState]->Paintjob != -1 && VehicleSirens.modelData[model]->States[newState]->Paintjob != vehicle->GetRemapIndex())
+				return;
 
-				VehicleSirens.vehicleData[index]->State = newState;
+			VehicleSirens.vehicleData[index]->State = newState;
 
-			}
 		}
-	// }
+	}
 
 	VehicleMaterials::RegisterRender((VehicleMaterialRender)[](CVehicle* vehicle, int index) {
 		int model = vehicle->m_nModelIndex;
@@ -1047,30 +1054,14 @@ void VehicleSirensFeature::Initialize() {
 		}
 	});
 
-	// if (PluginConfig::Siren->DisableDefault) {
-	// 	/*plugin::Events::initGameEvent += [] {
-	// 		injector::MakeNOP((void*)0x6ABA60, 5, true);
-	// 	};*/
+	// Disable default corona
+	/*plugin::Events::initGameEvent += [] {
+		injector::MakeNOP((void*)0x6ABA60, 5, true);
+	};*/
 
-	// 	plugin::Events::initGameEvent += [] {
-	// 		injector::MakeCALL((void*)0x6aba60, VehicleSirens::registerCorona, true);
-	// 	};
-	// }
-};
-
-void VehicleSirensFeature::registerCorona(unsigned int id, CEntity* attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay) {
-	CVehicle* vehicle = NULL;
-
-	_asm {
-		pushad
-		mov vehicle, esi
-		popad
-	}
-
-	if (vehicle && VehicleSirens.modelData.contains(vehicle->m_nModelIndex))
-		return;
-
-	CCoronas::RegisterCorona(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
+	plugin::Events::initGameEvent += [this] {
+		injector::MakeCALL((void*)0x6aba60, hkRegisterCorona, true);
+	};
 };
 
 void VehicleSirensFeature::enableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time) {

@@ -174,24 +174,22 @@ private:
 
 class VehicleSirensFeature : public IFeature {
 public:
-    void Initialize();
     int CurrentModel = -1;
-
-    void ShowWarning(std::string message) {
-        MessageBoxA(NULL, message.c_str(), "Siren Configuration Exception", MB_ICONWARNING | MB_OK);
-    };
-
-private:
     std::map<int, VehicleSiren*> vehicleData;
     std::map<int, VehicleSirenData*> modelData;
     std::map<int, std::vector<VehicleDummy*>> modelRotators;
 
+    void Initialize();
+
+private:
+    void ShowWarning(std::string message) {
+        MessageBoxA(NULL, message.c_str(), "Siren Configuration Exception", MB_ICONWARNING | MB_OK);
+    };
     void readSirenConfiguration();
     void readSirenConfigurationIVF();
     void registerSirenConfiguration();
     void createSirenConfiguration(int model, nlohmann::json json);
     void registerMaterial(CVehicle* vehicle, RpMaterial* material, bool ImVehFt = false);
-    void registerCorona(unsigned int id, CEntity* attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay);
     void enableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time);
     void enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time);
     void enableShadow(CVehicle* vehicle, VehicleDummy* dummy, VehicleSirenMaterial* material, CVector position);

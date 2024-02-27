@@ -5,7 +5,6 @@
 #include "features/vehicle/gear.h"
 #include "features/vehicle/plate.h"
 #include "features/vehicle/handlebar.h"
-#include "features/vehicle/turnlights.h"
 #include "features/vehicle/lights.h"
 #include "features/vehicle/indicators.h"
 #include "features/vehicle/sirens.h"
@@ -21,11 +20,9 @@ static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<C
 static void InitFeatures() {
     Remap.Initialize();
     Randomizer.Initialize();
-    TurnLights.Initialize();
+    Indicator.Initialize();
+    Lights.Initialize();
     VehicleSirens.Initialize();
-
-    VehicleLights::RegisterEvents();
-    VehicleIndicators::RegisterEvents();
 
     plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {
         VehicleMaterials::RestoreMaterials();
