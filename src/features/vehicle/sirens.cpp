@@ -792,71 +792,30 @@ void VehicleSirensFeature::Initialize() {
 		VehicleSirens.vehicleData.erase(index);
 	};
 
-	if (KeyPressed(0x4C)) {
+	Events::processScriptsEvent += []() {
 		CVehicle *vehicle = FindPlayerVehicle(-1, false);
-		int model = vehicle->m_nModelIndex;
-
-		if (!VehicleSirens.modelData.contains(model))
+		if (!vehicle) {
 			return;
-
-		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-
-		if (!VehicleSirens.vehicleData.contains(index))
-			return;
-
-		VehicleSirens.vehicleData[index]->Mute = !VehicleSirens.vehicleData[index]->Mute;
-
-		if (VehicleSirens.vehicleData[index]->Mute)
-			vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
-	}
-
-	if (KeyPressed(0x52)) {
-		CVehicle *vehicle = FindPlayerVehicle(-1, false);
-		int model = vehicle->m_nModelIndex;
-
-		if (!VehicleSirens.modelData.contains(model))
-			return;
-
-		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-
-		if (!VehicleSirens.vehicleData.contains(index))
-			return;
-
-		if (!VehicleSirens.vehicleData[index]->GetSirenState())
-			return;
-
-		if (VehicleSirens.modelData[model]->States.size() == 0)
-			return;
-
-		int addition = (plugin::KeyPressed(0x10)) ? (-1) : (1);
-
-		VehicleSirens.vehicleData[index]->State += addition;
-
-		if (VehicleSirens.vehicleData[index]->State == VehicleSirens.modelData[model]->States.size())
-			VehicleSirens.vehicleData[index]->State = 0;
-
-		if (VehicleSirens.vehicleData[index]->State == -1)
-			VehicleSirens.vehicleData[index]->State = VehicleSirens.modelData[model]->States.size() - 1;
-
-		while (VehicleSirens.modelData[model]->States[VehicleSirens.vehicleData[index]->State]->Paintjob != -1 && VehicleSirens.modelData[model]->States[VehicleSirens.vehicleData[index]->State]->Paintjob != vehicle->GetRemapIndex()) {
-			VehicleSirens.vehicleData[index]->State += (plugin::KeyPressed(0x10)) ? (-1) : (1);
-
-			if (VehicleSirens.vehicleData[index]->State == VehicleSirens.modelData[model]->States.size()) {
-				VehicleSirens.vehicleData[index]->State = 0;
-
-				break;
-			}
-			else if (VehicleSirens.vehicleData[index]->State == -1) {
-				VehicleSirens.vehicleData[index]->State = VehicleSirens.modelData[model]->States.size() - 1;
-
-				break;
-			}
 		}
-	}
 
-	for (int number = 0; number < 10; number++) {
-		if (KeyPressed(0x30 + number)) {
-			CVehicle *vehicle = FindPlayerVehicle(-1, false);
+		if (KeyPressed(0x4C)) { // L
+			int model = vehicle->m_nModelIndex;
+
+			if (!VehicleSirens.modelData.contains(model))
+				return;
+
+			int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
+
+			if (!VehicleSirens.vehicleData.contains(index))
+				return;
+
+			VehicleSirens.vehicleData[index]->Mute = !VehicleSirens.vehicleData[index]->Mute;
+
+			if (VehicleSirens.vehicleData[index]->Mute)
+				vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+		}
+
+		if (KeyPressed(0x52)) { // R
 			int model = vehicle->m_nModelIndex;
 
 			if (!VehicleSirens.modelData.contains(model))
@@ -873,21 +832,67 @@ void VehicleSirensFeature::Initialize() {
 			if (VehicleSirens.modelData[model]->States.size() == 0)
 				return;
 
-			int newState = number;//(key - PluginData::DigitKey);
+			int addition = (plugin::KeyPressed(0x10)) ? (-1) : (1);
 
-			if ((int)VehicleSirens.modelData[model]->States.size() <= newState)
-				return;
+			VehicleSirens.vehicleData[index]->State += addition;
 
-			if (VehicleSirens.vehicleData[index]->State == newState)
-				return;
+			if (VehicleSirens.vehicleData[index]->State == VehicleSirens.modelData[model]->States.size())
+				VehicleSirens.vehicleData[index]->State = 0;
 
-			if (VehicleSirens.modelData[model]->States[newState]->Paintjob != -1 && VehicleSirens.modelData[model]->States[newState]->Paintjob != vehicle->GetRemapIndex())
-				return;
+			if (VehicleSirens.vehicleData[index]->State == -1)
+				VehicleSirens.vehicleData[index]->State = VehicleSirens.modelData[model]->States.size() - 1;
 
-			VehicleSirens.vehicleData[index]->State = newState;
+			while (VehicleSirens.modelData[model]->States[VehicleSirens.vehicleData[index]->State]->Paintjob != -1 && VehicleSirens.modelData[model]->States[VehicleSirens.vehicleData[index]->State]->Paintjob != vehicle->GetRemapIndex()) {
+				VehicleSirens.vehicleData[index]->State += (plugin::KeyPressed(0x10)) ? (-1) : (1);
 
+				if (VehicleSirens.vehicleData[index]->State == VehicleSirens.modelData[model]->States.size()) {
+					VehicleSirens.vehicleData[index]->State = 0;
+
+					break;
+				}
+				else if (VehicleSirens.vehicleData[index]->State == -1) {
+					VehicleSirens.vehicleData[index]->State = VehicleSirens.modelData[model]->States.size() - 1;
+
+					break;
+				}
+			}
 		}
-	}
+
+		for (int number = 0; number < 10; number++) {
+			if (KeyPressed(0x30 + number)) { // 0 -> 9
+				CVehicle *vehicle = FindPlayerVehicle(-1, false);
+				int model = vehicle->m_nModelIndex;
+
+				if (!VehicleSirens.modelData.contains(model))
+					return;
+
+				int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
+
+				if (!VehicleSirens.vehicleData.contains(index))
+					return;
+
+				if (!VehicleSirens.vehicleData[index]->GetSirenState())
+					return;
+
+				if (VehicleSirens.modelData[model]->States.size() == 0)
+					return;
+
+				int newState = number;//(key - PluginData::DigitKey);
+
+				if ((int)VehicleSirens.modelData[model]->States.size() <= newState)
+					return;
+
+				if (VehicleSirens.vehicleData[index]->State == newState)
+					return;
+
+				if (VehicleSirens.modelData[model]->States[newState]->Paintjob != -1 && VehicleSirens.modelData[model]->States[newState]->Paintjob != vehicle->GetRemapIndex())
+					return;
+
+				VehicleSirens.vehicleData[index]->State = newState;
+
+			}
+		}
+	};
 
 	VehicleMaterials::RegisterRender((VehicleMaterialRender)[](CVehicle* vehicle, int index) {
 		int model = vehicle->m_nModelIndex;

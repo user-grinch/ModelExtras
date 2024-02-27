@@ -7,13 +7,13 @@
 #include "features/vehicle/handlebar.h"
 #include "features/vehicle/lights.h"
 #include "features/vehicle/indicators.h"
+#include "features/vehicle/foglights.h"
 #include "features/vehicle/sirens.h"
 #include "features/weapon/bodystate.h"
 #include "features/weapon/bloodremap.h"
 #include "features/common/randomizer.h"
 #include "features/common/remap.h"
 #include "soundsystem.h"
-
 
 static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
 
@@ -22,6 +22,7 @@ static void InitFeatures() {
     Randomizer.Initialize();
     Indicator.Initialize();
     Lights.Initialize();
+    FogLights.Initialize();
     VehicleSirens.Initialize();
 
     plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {
