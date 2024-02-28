@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "indicators.h"
 #include <CCoronas.h>
+#include <CShadows.h>
 
 void RegisterCoronaEx(CEntity* ent, int id, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float size) {
 	return CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(ent) + 30 + id, ent, red, green, blue, alpha, posn,
@@ -21,6 +22,8 @@ void DrawTurnlight(CVehicle *vehicle, unsigned int dummyId, bool leftSide) {
     if (posn.x == 0.0f) posn.x = 0.15f;
     if (leftSide) posn.x *= -1.0f;
 	dummyId += (leftSide ? 0 : 2);
+
+	Indicator.enableShadow(vehicle, 255, 128, 0, 255, posn, 0.0f, 0.0f);
     RegisterCoronaEx(vehicle, dummyId, 255, 128, 0, 255, posn, 0.3f);
 }
 
@@ -72,7 +75,7 @@ void IndicatorFeature::Initialize() {
 		return material;
 	});
 
-	VehicleMaterials::RegisterDummy((VehicleDummyFunction)[](CVehicle* vehicle, RwFrame* frame, std::string name, bool parent) {
+	VehicleMaterials::RegisterDummy((VehicleDummyFunction)[](CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent) {
 		int start = -1;
 
 		if (name.rfind("turnl_", 0) == 0)
@@ -83,38 +86,28 @@ void IndicatorFeature::Initialize() {
 		if (start == -1)
 			return;
 
-		int model = vehicle->m_nModelIndex;
-
 		eIndicatorState state = (toupper(name[start]) == 'L') ? (eIndicatorState::Left) : (eIndicatorState::Right);
+		char position = toupper(name[start + 1]);
+		int type = (position == 'F') ? 0 : ((position == 'R') ? (0) : (2));
 
-		char position = tolower(name[start + 1]);
-
-		int type = (position == 'f') ? (0) : ((position == 'r') ? (0) : (2));
-
-		Indicator.dummies[model][state].push_back(new VehicleDummy(frame, name, start + 3, parent, type, { 255, 98, 0, 128 }));
+		Indicator.dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, start + 3, parent, type, { 255, 98, 0, 128 }));
 	});
 	
-	Events::processScriptsEvent += [this]() {
-		CVehicle *vehicle = FindPlayerVehicle(-1, false);
+	Events::vehicleRenderEvent += [this](CVehicle *pVeh) {
+		VehData &data = vehData.Get(pVeh);
 
-		if (!vehicle) {
-			return;
-		}
-
-		VehData &data = vehData.Get(vehicle);
-
-		if (vehicle->m_pDriver == FindPlayerPed()) {
-			if (KeyPressed(90)) { // Z
+		if (pVeh->m_pDriver == FindPlayerPed()) {
+			if (KeyPressed(VK_Z)) {
 				data.indicatorState = eIndicatorState::None;
 				delay = 0;
 				delayState = false;
 			}
 
-			if (KeyPressed(88)) { // X
+			if (KeyPressed(VK_X)) {
 				data.indicatorState = eIndicatorState::Left;
 			}
 
-			if (KeyPressed(67)) { // C
+			if (KeyPressed(VK_C)) { 
 				data.indicatorState = eIndicatorState::Right;
 			}
 
@@ -123,9 +116,9 @@ void IndicatorFeature::Initialize() {
 			}
 		} else {
 			data.indicatorState = eIndicatorState::None;
-			CVector2D prevPoint = GetCarPathLinkPosition(vehicle->m_autoPilot.m_nPreviousPathNodeInfo);
-			CVector2D currPoint = GetCarPathLinkPosition(vehicle->m_autoPilot.m_nCurrentPathNodeInfo);
-			CVector2D nextPoint = GetCarPathLinkPosition(vehicle->m_autoPilot.m_nNextPathNodeInfo);
+			CVector2D prevPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nPreviousPathNodeInfo);
+			CVector2D currPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nCurrentPathNodeInfo);
+			CVector2D nextPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nNextPathNodeInfo);
 
 			float angle = GetZAngleForPoint(nextPoint - currPoint) - GetZAngleForPoint(currPoint - prevPoint);
 			while (angle < 0.0f) angle += 360.0f;
@@ -137,9 +130,9 @@ void IndicatorFeature::Initialize() {
 				data.indicatorState = eIndicatorState::Right;
 
 			if (data.indicatorState == eIndicatorState::None) {
-				if (vehicle->m_autoPilot.m_nCurrentLane == 0 && vehicle->m_autoPilot.m_nNextLane == 1)
+				if (pVeh->m_autoPilot.m_nCurrentLane == 0 && pVeh->m_autoPilot.m_nNextLane == 1)
 					data.indicatorState = eIndicatorState::Right;
-				else if (vehicle->m_autoPilot.m_nCurrentLane == 1 && vehicle->m_autoPilot.m_nNextLane == 0)
+				else if (pVeh->m_autoPilot.m_nCurrentLane == 1 && pVeh->m_autoPilot.m_nNextLane == 0)
 					data.indicatorState = eIndicatorState::Left;
 			}
 		}
@@ -249,5 +242,40 @@ void IndicatorFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicl
 			return;
 	}
 
+	enableShadow(vehicle, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Color.alpha, dummy->Position, dummy->Angle, dummy->CurrentAngle);
 	RegisterCoronaEx(vehicle, id, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Color.alpha, dummy->Position, dummy->Size);
+};
+
+void IndicatorFeature::enableShadow(CVehicle* pVeh, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector position, float angle, float currentAngle) {
+
+	static RwTexture *pShadowTex = nullptr;
+	if (!pShadowTex) {
+		pShadowTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight256.png")));
+	}
+
+	float Offset = 0.0f;
+	float Size = 0.6f;
+	float InertiaMultiplier = 1.0f;
+	
+	CVector center = pVeh->TransformFromObjectSpace(
+		CVector(
+			position.x + (Offset * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+			position.y + ((0.5f + Offset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+			position.z
+		)
+	);
+
+	float fAngle = pVeh->GetHeading() + (((angle + currentAngle) + 180.0f) * 3.14f / 180.0f);
+
+	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
+
+	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
+
+	alpha = static_cast<char>((static_cast<float>(alpha) * -1) * InertiaMultiplier);
+	
+	CShadows::StoreShadowToBeRendered(2, pShadowTex, &center,
+		up.x, up.y,
+		right.x, right.y,
+		alpha, red, green, blue,
+		2.0f, false, 1.0f, 0, true);
 };

@@ -29,26 +29,24 @@ void PluginCoronas_AddWithAngle(CEntity* attachTo, int id, float cameraAngle, fl
 	if (differenceAngle < diameter || differenceAngle > (360.0f - diameter))
 		return;
 
-	// if (PluginConfig::Lights->Enhancement->InertiaEnabled) {
-		float alphaFloat = static_cast<float>(alpha);
+	float alphaFloat = static_cast<float>(alpha);
 
-		alphaFloat = (alphaFloat < 0.0f) ? (alphaFloat * -1) : (alphaFloat);
+	alphaFloat = (alphaFloat < 0.0f) ? (alphaFloat * -1) : (alphaFloat);
 
-		if (differenceAngle < diameter + 15.0f) { // 15.0f
-			float angle = diameter - differenceAngle;
+	if (differenceAngle < diameter + 15.0f) { // 15.0f
+		float angle = diameter - differenceAngle;
 
-			float multiplier = (angle / 15.0f);
+		float multiplier = (angle / 15.0f);
 
-			alpha = static_cast<char>(alphaFloat * multiplier);
-		}
-		else if (differenceAngle > (360.0f - diameter) - 15.0f) {
-			float angle = 15.0f - (differenceAngle - ((360.0f - diameter) - 15.0f));
+		alpha = static_cast<char>(alphaFloat * multiplier);
+	}
+	else if (differenceAngle > (360.0f - diameter) - 15.0f) {
+		float angle = 15.0f - (differenceAngle - ((360.0f - diameter) - 15.0f));
 
-			float multiplier = angle / 15.0f;
+		float multiplier = angle / 15.0f;
 
-			alpha = static_cast<char>(alphaFloat * multiplier);
-		}
-	// }
+		alpha = static_cast<char>(alphaFloat * multiplier);
+	}
 
 	return PluginCoronas_Add(attachTo, id, red, green, blue, alpha, posn, size, farClip, coronaType, flaretype);
 };
@@ -783,7 +781,7 @@ void VehicleSirensFeature::Initialize() {
 			return;
 		}
 
-		if (KeyPressed(0x4C)) { // L
+		if (KeyPressed(VK_L)) {
 			int model = vehicle->m_nModelIndex;
 
 			if (!VehicleSirens.modelData.contains(model))
@@ -800,7 +798,7 @@ void VehicleSirensFeature::Initialize() {
 				vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
 		}
 
-		if (KeyPressed(0x52)) { // R
+		if (KeyPressed(VK_R)) {
 			int model = vehicle->m_nModelIndex;
 
 			if (!VehicleSirens.modelData.contains(model))
@@ -817,7 +815,7 @@ void VehicleSirensFeature::Initialize() {
 			if (VehicleSirens.modelData[model]->States.size() == 0)
 				return;
 
-			int addition = (plugin::KeyPressed(0x10)) ? (-1) : (1);
+			int addition = (plugin::KeyPressed(VK_SHIFT)) ? (-1) : (1);
 
 			VehicleSirens.vehicleData[index]->State += addition;
 
@@ -828,7 +826,7 @@ void VehicleSirensFeature::Initialize() {
 				VehicleSirens.vehicleData[index]->State = VehicleSirens.modelData[model]->States.size() - 1;
 
 			while (VehicleSirens.modelData[model]->States[VehicleSirens.vehicleData[index]->State]->Paintjob != -1 && VehicleSirens.modelData[model]->States[VehicleSirens.vehicleData[index]->State]->Paintjob != vehicle->GetRemapIndex()) {
-				VehicleSirens.vehicleData[index]->State += (plugin::KeyPressed(0x10)) ? (-1) : (1);
+				VehicleSirens.vehicleData[index]->State += (plugin::KeyPressed(VK_SHIFT)) ? (-1) : (1);
 
 				if (VehicleSirens.vehicleData[index]->State == VehicleSirens.modelData[model]->States.size()) {
 					VehicleSirens.vehicleData[index]->State = 0;
@@ -844,7 +842,7 @@ void VehicleSirensFeature::Initialize() {
 		}
 
 		for (int number = 0; number < 10; number++) {
-			if (KeyPressed(0x30 + number)) { // 0 -> 9
+			if (KeyPressed(VK_0 + number)) { // 0 -> 9
 				CVehicle *vehicle = FindPlayerVehicle(-1, false);
 				int model = vehicle->m_nModelIndex;
 
@@ -990,13 +988,10 @@ void VehicleSirensFeature::Initialize() {
 		float cameraAngle = (((CCamera*)0xB6F028)->GetHeading() * 180.0f) / 3.14f;
 
 		eCoronaFlareType type = FLARETYPE_NONE;
+		CVector distance = vehicle->GetPosition() - ((CCamera*)0xB6F028)->GetPosition();
 
-		// if (PluginConfig::Siren->Flare->Enabled) {
-			CVector distance = vehicle->GetPosition() - ((CCamera*)0xB6F028)->GetPosition();
-
-			if (distance.Magnitude() > 30.0f) // PluginConfig::Siren->Flare->Distance
-				type = FLARETYPE_HEADLIGHTS;
-		// }
+		if (distance.Magnitude() > 30.0f) // PluginConfig::Siren->Flare->Distance
+			type = FLARETYPE_HEADLIGHTS;
 
 		for (std::map<int, VehicleSirenMaterial*>::iterator material = state->Materials.begin(); material != state->Materials.end(); ++material) {
 			if (!material->second->State)
@@ -1089,7 +1084,6 @@ void VehicleSirensFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* ve
 
 	char alpha = material->Color.alpha;
 
-	// if (PluginConfig::Siren->InertiaEnabled && material->PatternTotal != 0 && material->Inertia != 0.0f) {
 	if (material->PatternTotal != 0 && material->Inertia != 0.0f) {
 		float alphaFloat = static_cast<float>(alpha);
 
@@ -1146,20 +1140,13 @@ void VehicleSirensFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* ve
 		enableShadow(vehicle, dummy, material, position);
 	}
 
-	// (CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + 255 + id
-
-	//CCoronas::RegisterCorona((CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + 255 + id, vehicle, material->Color.red, material->Color.green, material->Color.blue, alpha, position,
-	//	material->Size, PluginConfig::Siren->StreamDistance, eCoronaType::CORONATYPE_HEADLIGHT, type, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, true);
+	CCoronas::RegisterCorona((CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + 255 + id, vehicle, material->Color.red, material->Color.green, material->Color.blue, alpha, position,
+		material->Size, 300.0f, eCoronaType::CORONATYPE_HEADLIGHT, type, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, true);
 };
 
 void VehicleSirensFeature::enableShadow(CVehicle* vehicle, VehicleDummy* dummy, VehicleSirenMaterial* material, CVector position) {
-	// if (PluginConfig::Siren->Shadow->Enabled == false)
-	// 	return;
 
 	if (material->Shadow.Size == 0.0f) {
-		// if(!PluginConfig::Siren->Shadow->ForceEnabled)
-		// 	return;
-
 		material->Shadow.Size = material->Size * 3.0f;
 	}
 
@@ -1178,19 +1165,17 @@ void VehicleSirensFeature::enableShadow(CVehicle* vehicle, VehicleDummy* dummy, 
 	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
 
 	char alpha = material->Color.alpha;
-
-	// if (PluginConfig::Siren->InertiaEnabled)
-		alpha = static_cast<char>((static_cast<float>(alpha) * -1) * material->InertiaMultiplier);
-
-	// CShadows::StoreShadowToBeRendered(2, PluginTextures_GetTexture("siren\\" + material->Shadow.Type), &center,
-	// 	up.x, up.y,
-	// 	right.x, right.y,
-	// 	alpha, material->Color.red, material->Color.green, material->Color.blue,
-	// 	2.0f, false, 1.0f, 0, true);
+	alpha = static_cast<char>((static_cast<float>(alpha) * -1) * material->InertiaMultiplier);
+	
+	CShadows::StoreShadowToBeRendered(2, PluginTextures_GetTexture(material->Shadow.Type), &center,
+		up.x, up.y,
+		right.x, right.y,
+		alpha, material->Color.red, material->Color.green, material->Color.blue,
+		2.0f, false, 1.0f, 0, true);
 };
 
-VehicleSiren::VehicleSiren(CVehicle* _vehicle) {
-	vehicle = _vehicle;
+VehicleSiren::VehicleSiren(CVehicle* pVeh) {
+	vehicle = pVeh;
 
 	int model = vehicle->m_nModelIndex;
 
@@ -1199,7 +1184,7 @@ VehicleSiren::VehicleSiren(CVehicle* _vehicle) {
 	if (modelInfo->m_nVehicleType == eVehicleType::VEHICLE_HELI || modelInfo->m_nVehicleType == eVehicleType::VEHICLE_PLANE)
 		this->Mute = true;
 
-	SirenState = _vehicle->m_nVehicleFlags.bSirenOrAlarm;
+	SirenState = pVeh->m_nVehicleFlags.bSirenOrAlarm;
 
 	if (modelInfo->m_nVehicleType == eVehicleType::VEHICLE_TRAILER)
 		Trailer = true;

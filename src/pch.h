@@ -10,6 +10,7 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "util.h"
+#include "vkeys.h"
 
 using namespace plugin;
 

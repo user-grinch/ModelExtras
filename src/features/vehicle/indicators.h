@@ -31,9 +31,11 @@ private:
 	void registerMaterial(CVehicle* vehicle, RpMaterial* &material, eIndicatorState state);
 	void enableMaterial(RpMaterial* material);
 	void enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle);
-
+	
 public:
 	void Initialize();
+	void enableShadow(CVehicle* pVeh, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector position, float angle, float currentAngle);
+
 };
 
 extern IndicatorFeature Indicator;

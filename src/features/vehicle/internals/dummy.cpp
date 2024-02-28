@@ -46,8 +46,7 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, int start, bool par
 	int size = name.size();
 
 	if (start > size) {
-		//PluginMultiplayer::AddChatMessage(std::string(name + ", " + std::to_string(start) + " exceeds " + std::to_string(size)).c_str());
-		
+		gLogger->warn(std::string(name + ", " + std::to_string(start) + " exceeds " + std::to_string(size)).c_str());
 		return;
 	}
 
@@ -62,8 +61,7 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, int start, bool par
 	}
 
 	if ((size - start) != 12) {
-		//PluginMultiplayer::AddChatMessage(std::string(name + ", 12 is not " + std::to_string(size - start)).c_str());
-
+		gLogger->warn(std::string(name + ", 12 is not " + std::to_string(size - start)).c_str());
 		return;
 	}
 

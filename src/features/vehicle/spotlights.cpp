@@ -39,7 +39,7 @@ void SpotLightFeature::OnHudRender() {
 	VehData &data = vehData.Get(pVeh);
 
 	static size_t prev = 0;
-	if (KeyPressed(0x42)) {
+	if (KeyPressed(VK_B)) {
 		size_t now = CTimer::m_snTimeInMilliseconds;
 		if (now - prev > 500.0f) {
 

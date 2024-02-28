@@ -182,9 +182,6 @@ public:
     void Initialize();
 
 private:
-    void ShowWarning(std::string message) {
-        MessageBoxA(NULL, message.c_str(), "Siren Configuration Exception", MB_ICONWARNING | MB_OK);
-    };
     void readSirenConfiguration();
     void readSirenConfigurationIVF();
     void registerSirenConfiguration();
