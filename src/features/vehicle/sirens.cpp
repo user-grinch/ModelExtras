@@ -55,25 +55,10 @@ void PluginCoronas_AddWithAngle(CEntity* attachTo, int id, float cameraAngle, fl
 
 std::map<std::string, RwTexture*> Textures;
 
-RwTexture* loadTextureFromFile(const char* filename) {
-    RwImage* image = RtPNGImageRead(filename);
-
-    RwInt32 width, height, depth, flags;
-    RwImageFindRasterFormat(image, 4, &width, &height, &depth, &flags);
-
-    RwRaster* raster = RwRasterCreate(width, height, depth, flags);
-
-    RwRasterSetFromImage(raster, image);
-
-    RwImageDestroy(image);
-
-    return RwTextureCreate(raster);
-};
-
 RwTexture* PluginTextures_GetTexture(std::string texture) {
 	if (Textures.contains(texture) && Textures[texture])
 		return Textures[texture];
-	Textures[texture] = loadTextureFromFile(std::format("{}textures/{}.png", MOD_DATA_PATH(), texture).c_str());
+	Textures[texture] = Util::LoadTextureFromFile(std::format("{}textures/{}.png", MOD_DATA_PATH(), texture).c_str());
 
     return Textures[texture];
 };

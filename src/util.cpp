@@ -318,3 +318,18 @@ unsigned int Util::GetEntityModel(void *ptr, eModelEntityType type) {
     }
     return model;
 }
+
+RwTexture* Util::LoadTextureFromFile(const char* filename) {
+    RwImage* image = RtPNGImageRead(filename);
+
+    RwInt32 width, height, depth, flags;
+    RwImageFindRasterFormat(image, 4, &width, &height, &depth, &flags);
+
+    RwRaster* raster = RwRasterCreate(width, height, depth, flags);
+
+    RwRasterSetFromImage(raster, image);
+
+    RwImageDestroy(image);
+
+    return RwTextureCreate(raster);
+};

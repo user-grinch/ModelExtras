@@ -8,6 +8,7 @@
 #include "features/vehicle/lights.h"
 #include "features/vehicle/indicators.h"
 #include "features/vehicle/foglights.h"
+#include "features/vehicle/spotlights.h"
 #include "features/vehicle/sirens.h"
 #include "features/weapon/bodystate.h"
 #include "features/weapon/bloodremap.h"
@@ -42,7 +43,8 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityTy
             HandleBar.Process(frame, pVeh);
         }
 
-        if ((name[0] == 'x' && name[1] == '_')|| (name[0] == 'f' && name[1] == 'c' && name[2] == '_')) {
+        if ((name[0] == 'x' && name[1] == '_') || (name[0] == 'f' && name[1] == 'c' && name[2] == '_')
+        || name == "spotlight_dummy") {
             if (type == eModelEntityType::Vehicle) {
                 CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
                 Chain.Process(frame, pVeh);
@@ -56,6 +58,7 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityTy
                 GearLever.Process(frame, pVeh);
                 GearSound.Process(frame, pVeh);
                 Randomizer.Process(frame, static_cast<void*>(pVeh), type);
+                SpotLight.Process(frame, pVeh);
             } else if (type == eModelEntityType::Weapon) {
                 CWeapon *pWep = static_cast<CWeapon*>(pEntity);
                 BodyState.Process(frame, pWep);
