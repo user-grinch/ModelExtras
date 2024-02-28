@@ -13,6 +13,12 @@ enum class eIndicatorState {
 	None, 
 };
 
+enum class eIndicatorPos { 
+	Forward, 
+	Backward, 
+	None, 
+};
+
 class IndicatorFeature : public IFeature {
 private:
 	uint64_t delay;

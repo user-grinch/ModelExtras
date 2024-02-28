@@ -293,3 +293,4 @@ build/obj/Win32/Release/ModelExtras.tlog/link.secondary.1.tlog
 src/features/vehicle/foglights.cpp
 build/obj/Win32/Debug/foglights.obj
 build/obj/Win32/Release/foglights.obj
+src/features/vehicle/indicators.cpp

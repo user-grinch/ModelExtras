@@ -16,25 +16,26 @@ CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
     return CVector2D(0.0f, 0.0f);
 }
 
-void DrawTurnlight(CVehicle *vehicle, unsigned int dummyId, bool leftSide) {
+void DrawTurnlight(CVehicle *vehicle, eIndicatorPos indicatorPos, bool leftSide) {
     CVector posn =
-        reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[dummyId];
+        reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[static_cast<int>(indicatorPos)];
+	
     if (posn.x == 0.0f) posn.x = 0.15f;
     if (leftSide) posn.x *= -1.0f;
-	dummyId += (leftSide ? 0 : 2);
+	int dummyId = static_cast<int>(indicatorPos) + (leftSide ? 0 : 2);
 
-	Indicator.enableShadow(vehicle, 255, 128, 0, 255, posn, 0.0f, 0.0f);
+	Indicator.enableShadow(vehicle, 255, 128, 0, 255, posn, (indicatorPos == eIndicatorPos::Backward) ? 180.0f : 0.0f, 0.0f);
     RegisterCoronaEx(vehicle, dummyId, 255, 128, 0, 255, posn, 0.3f);
 }
 
 void DrawVehicleTurnlights(CVehicle *vehicle, eIndicatorState lightsStatus) {
     if (lightsStatus == eIndicatorState::Both || lightsStatus == eIndicatorState::Right) {
-        DrawTurnlight(vehicle, 0, false);
-        DrawTurnlight(vehicle, 1, false);
+        DrawTurnlight(vehicle, eIndicatorPos::Forward, false);
+        DrawTurnlight(vehicle, eIndicatorPos::Backward, false);
     }
     if (lightsStatus == eIndicatorState::Both || lightsStatus == eIndicatorState::Left) {
-        DrawTurnlight(vehicle, 0, true);
-        DrawTurnlight(vehicle, 1, true);
+        DrawTurnlight(vehicle, eIndicatorPos::Forward, true);
+        DrawTurnlight(vehicle, eIndicatorPos::Backward, true);
     }
 }
 
@@ -88,22 +89,22 @@ void IndicatorFeature::Initialize() {
 
 		eIndicatorState state = (toupper(name[start]) == 'L') ? (eIndicatorState::Left) : (eIndicatorState::Right);
 		char position = toupper(name[start + 1]);
-		int type = (position == 'F') ? 0 : ((position == 'R') ? (0) : (2));
+		eIndicatorPos type = (position == 'F') ? eIndicatorPos::Forward : ((position == 'R') ? eIndicatorPos::Backward : eIndicatorPos::None);
 
-		Indicator.dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, start + 3, parent, type, { 255, 98, 0, 128 }));
+		Indicator.dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, start + 3, parent, static_cast<int>(type), { 255, 98, 0, 128 }));
 	});
 	
 	Events::vehicleRenderEvent += [this](CVehicle *pVeh) {
 		VehData &data = vehData.Get(pVeh);
 
 		if (pVeh->m_pDriver == FindPlayerPed()) {
-			if (KeyPressed(VK_Z)) {
+			if (KeyPressed(VK_X)) {
 				data.indicatorState = eIndicatorState::None;
 				delay = 0;
 				delayState = false;
 			}
 
-			if (KeyPressed(VK_X)) {
+			if (KeyPressed(VK_Z)) {
 				data.indicatorState = eIndicatorState::Left;
 			}
 
@@ -238,8 +239,8 @@ void IndicatorFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicl
 
 		float differenceAngle = ((cameraAngle > dummyAngle) ? (cameraAngle - dummyAngle) : (dummyAngle - cameraAngle));
 
-		if (differenceAngle < 90.0f || differenceAngle > 270.0f)
-			return;
+		// if (differenceAngle < 90.0f || differenceAngle > 270.0f)
+		// 	return;
 	}
 
 	enableShadow(vehicle, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Color.alpha, dummy->Position, dummy->Angle, dummy->CurrentAngle);
