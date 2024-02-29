@@ -99,7 +99,7 @@ void LightsFeature::Initialize() {
 
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-		Lights.dummies[index][state].push_back(new VehicleDummy(frame, name, start, parent, 0, { 255, 255, 255, 128 }));
+		Lights.dummies[index][state].push_back(new VehicleDummy(frame, name, start, parent, eDummyPos::Backward, { 255, 255, 255, 128 }));
 	});
 
 	VehicleMaterials::RegisterRender((VehicleMaterialRender)[](CVehicle* vehicle, int index) {
@@ -172,14 +172,14 @@ void LightsFeature::enableMaterial(VehicleMaterial* material) {
 };
 
 void LightsFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
-	if (dummy->Type < 2) {
-		float dummyAngle = vehicleAngle + dummy->Angle;
+	// if (dummy->Type < 2) {
+	// 	float dummyAngle = vehicleAngle + dummy->Angle;
 
-		float differenceAngle = ((cameraAngle > dummyAngle) ? (cameraAngle - dummyAngle) : (dummyAngle - cameraAngle));
+	// 	float differenceAngle = ((cameraAngle > dummyAngle) ? (cameraAngle - dummyAngle) : (dummyAngle - cameraAngle));
 
-		if (differenceAngle < 90.0f || differenceAngle > 270.0f)
-			return;
-	}
+	// 	if (differenceAngle < 90.0f || differenceAngle > 270.0f)
+	// 		return;
+	// }
 
 	CCoronas::RegisterCorona((CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + id, vehicle, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Color.alpha, dummy->Frame->modelling.pos,
 		dummy->Size, 300.0f, eCoronaType::CORONATYPE_HEADLIGHT, eCoronaFlareType::FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, true);

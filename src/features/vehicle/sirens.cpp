@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "sirens.h"
-
-#include <CShadows.h>
+#include "internals/common.h"
 
 int ImVehFt_ReadColor(std::string input) {
     if (input.length() == 3)
@@ -14,41 +13,6 @@ int ImVehFt_ReadColor(std::string input) {
     stream >> std::hex >> color;
 
     return color;
-};
-
-void PluginCoronas_Add(CEntity* attachTo, int id, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float size, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype) {
-	return CCoronas::RegisterCorona(id, attachTo, red, green, blue, alpha, posn,
-		size, farClip, coronaType, flaretype, false, false, 0, 0.0f, false, 0.5f, 0, 100.0f, false, false);
-};
-
-void PluginCoronas_AddWithAngle(CEntity* attachTo, int id, float cameraAngle, float angle, float radius, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float size, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype) {
-	float differenceAngle = ((cameraAngle > angle) ? (cameraAngle - angle) : (angle - cameraAngle));
-
-	float diameter = (radius / 2.0f);
-
-	if (differenceAngle < diameter || differenceAngle > (360.0f - diameter))
-		return;
-
-	float alphaFloat = static_cast<float>(alpha);
-
-	alphaFloat = (alphaFloat < 0.0f) ? (alphaFloat * -1) : (alphaFloat);
-
-	if (differenceAngle < diameter + 15.0f) { // 15.0f
-		float angle = diameter - differenceAngle;
-
-		float multiplier = (angle / 15.0f);
-
-		alpha = static_cast<char>(alphaFloat * multiplier);
-	}
-	else if (differenceAngle > (360.0f - diameter) - 15.0f) {
-		float angle = 15.0f - (differenceAngle - ((360.0f - diameter) - 15.0f));
-
-		float multiplier = angle / 15.0f;
-
-		alpha = static_cast<char>(alphaFloat * multiplier);
-	}
-
-	return PluginCoronas_Add(attachTo, id, red, green, blue, alpha, posn, size, farClip, coronaType, flaretype);
 };
 
 std::map<std::string, RwTexture*> Textures;
@@ -1126,52 +1090,21 @@ void VehicleSirensFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* ve
 		else if(material->Type == VehicleSirenType::Inversed)
 			dummyAngle -= 180.0f;
 
-		PluginCoronas_AddWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, cameraAngle, dummyAngle, material->Radius,
-			material->Color.red, material->Color.green, material->Color.blue, alpha,
-			position, material->Size, 300.0f, eCoronaType::CORONATYPE_HEADLIGHT, type);
-
-		enableShadow(vehicle, dummy, material, position);
+		Common::RegisterCoronaWithAngle(vehicle, position, material->Color.red, material->Color.green, 
+		material->Color.blue, material->Color.alpha, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
+		cameraAngle, dummyAngle, material->Radius, material->Size);
 	}
 	else {
-		PluginCoronas_Add(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
-			material->Color.red, material->Color.green, material->Color.blue, alpha,
-			position, material->Size, 300.0f, eCoronaType::CORONATYPE_HEADLIGHT, type);
-
-		enableShadow(vehicle, dummy, material, position);
+		Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, 
+		material->Color.blue, material->Color.alpha, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
+		 material->Size);
 	}
+	Common::RegisterShadow(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, 
+	dummy->Color.blue, dummy->Angle, dummy->CurrentAngle);
 
-	CCoronas::RegisterCorona((CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + 255 + id, vehicle, material->Color.red, material->Color.green, material->Color.blue, alpha, position,
-		material->Size, 300.0f, eCoronaType::CORONATYPE_HEADLIGHT, type, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, true);
-};
 
-void VehicleSirensFeature::enableShadow(CVehicle* vehicle, VehicleDummy* dummy, VehicleSirenMaterial* material, CVector position) {
-
-	if (material->Shadow.Size == 0.0f) {
-		material->Shadow.Size = material->Size * 3.0f;
-	}
-
-	CVector center = vehicle->TransformFromObjectSpace(
-		CVector(
-			position.x + (material->Shadow.Offset * cos((90.0f - dummy->Angle + dummy->CurrentAngle) * 3.14f / 180.0f)),
-			position.y + ((0.5f + material->Shadow.Offset) * sin((90.0f - dummy->Angle + dummy->CurrentAngle) * 3.14f / 180.0f)),
-			position.z
-		)
-	);
-
-	float fAngle = vehicle->GetHeading() + (((dummy->Angle + dummy->CurrentAngle) + 180.0f) * 3.14f / 180.0f);
-
-	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
-
-	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-
-	char alpha = material->Color.alpha;
-	alpha = static_cast<char>((static_cast<float>(alpha) * -1) * material->InertiaMultiplier);
-	
-	CShadows::StoreShadowToBeRendered(2, PluginTextures_GetTexture(material->Shadow.Type), &center,
-		up.x, up.y,
-		right.x, right.y,
-		alpha, material->Color.red, material->Color.green, material->Color.blue,
-		2.0f, false, 1.0f, 0, true);
+	// CCoronas::RegisterCorona((CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + 255 + id, vehicle, material->Color.red, material->Color.green, material->Color.blue, alpha, position,
+	// 	material->Size, 300.0f, eCoronaType::CORONATYPE_HEADLIGHT, type, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, true);
 };
 
 VehicleSiren::VehicleSiren(CVehicle* pVeh) {

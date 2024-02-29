@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "foglights.h"
-#include <CCoronas.h>
+#include "internals/common.h"
 
 FogLightsFeature FogLights;
 
@@ -48,7 +48,7 @@ void FogLightsFeature::Initialize() {
 			break;
 		}
 
-		FogLights.dummies[model][state].push_back(new VehicleDummy(frame, name, start, parent, 0, { 255, 255, 255, 128 }));
+		FogLights.dummies[model][state].push_back(new VehicleDummy(frame, name, start, parent, eDummyPos::Backward, { 255, 255, 255, 128 }));
 	});
 
 	Events::processScriptsEvent += [this]() {
@@ -144,6 +144,6 @@ void FogLightsFeature::enableDummy(VehicleDummy* dummy, CVehicle* vehicle, float
 	// 		return;
 	// }
 
-	CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(vehicle) + 40 + reinterpret_cast<unsigned int>(dummy), vehicle, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Color.alpha, dummy->Position,
-		dummy->Size, 300.0f, eCoronaType::CORONATYPE_HEADLIGHT, eCoronaFlareType::FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, true);
+	Common::RegisterShadow(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Angle, dummy->CurrentAngle);
+	Common::RegisterCorona(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Color.alpha, 20, dummy->Size);
 };

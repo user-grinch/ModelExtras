@@ -13,12 +13,6 @@ enum class eIndicatorState {
 	None, 
 };
 
-enum class eIndicatorPos { 
-	Forward, 
-	Backward, 
-	None, 
-};
-
 class IndicatorFeature : public IFeature {
 private:
 	uint64_t delay;
@@ -40,8 +34,6 @@ private:
 	
 public:
 	void Initialize();
-	void enableShadow(CVehicle* pVeh, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector position, float angle, float currentAngle);
-
 };
 
 extern IndicatorFeature Indicator;

@@ -4,6 +4,14 @@
 #include "game_sa/CGeneral.h"
 #include "game_sa/RenderWare.h"
 
+enum class eDummyPos { 
+	Forward, 
+	Backward, 
+	Left, 
+	Right,
+	None
+};
+
 class VehicleDummy {
 	public:
 		RwFrame* Frame;
@@ -12,7 +20,7 @@ class VehicleDummy {
 
 		CVector Position;
 		
-		int Type;
+		eDummyPos Type;
 
 		float Size;
 
@@ -20,7 +28,7 @@ class VehicleDummy {
 
 		float CurrentAngle = 0.0f;
 
-		VehicleDummy(RwFrame* frame, std::string name, int start, bool parent, int type = 0, RwRGBA color = { 255, 255, 255, 128 });
+		VehicleDummy(RwFrame* frame, std::string name, int start, bool parent, eDummyPos type = eDummyPos::None, RwRGBA color = { 255, 255, 255, 128 });
 
 		CVector GetPosition();
 

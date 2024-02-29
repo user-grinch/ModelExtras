@@ -8,6 +8,7 @@
 #include "features/vehicle/lights.h"
 #include "features/vehicle/indicators.h"
 #include "features/vehicle/foglights.h"
+#include "features/vehicle/reverselights.h"
 #include "features/vehicle/spotlights.h"
 #include "features/vehicle/sirens.h"
 #include "features/weapon/bodystate.h"
@@ -24,6 +25,7 @@ static void InitFeatures() {
     Indicator.Initialize();
     Lights.Initialize();
     FogLights.Initialize();
+    ReverseLights.Initialize();
     VehicleSirens.Initialize();
 
     plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {

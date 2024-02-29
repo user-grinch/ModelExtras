@@ -1,12 +1,6 @@
 #include "pch.h"
 #include "indicators.h"
-#include <CCoronas.h>
-#include <CShadows.h>
-
-void RegisterCoronaEx(CEntity* ent, int id, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float size) {
-	return CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(ent) + 30 + id, ent, red, green, blue, alpha, posn,
-		size, 150.0f, CORONATYPE_HEADLIGHT, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, false);
-};
+#include "internals/common.h"
 
 CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
     if (address.m_nAreaId != -1 && address.m_nCarPathLinkId != -1 && ThePaths.m_pPathNodes[address.m_nAreaId]) {
@@ -16,7 +10,7 @@ CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
     return CVector2D(0.0f, 0.0f);
 }
 
-void DrawTurnlight(CVehicle *vehicle, eIndicatorPos indicatorPos, bool leftSide) {
+void DrawTurnlight(CVehicle *vehicle, eDummyPos indicatorPos, bool leftSide) {
     CVector posn =
         reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[static_cast<int>(indicatorPos)];
 	
@@ -24,18 +18,18 @@ void DrawTurnlight(CVehicle *vehicle, eIndicatorPos indicatorPos, bool leftSide)
     if (leftSide) posn.x *= -1.0f;
 	int dummyId = static_cast<int>(indicatorPos) + (leftSide ? 0 : 2);
 
-	Indicator.enableShadow(vehicle, 255, 128, 0, 255, posn, (indicatorPos == eIndicatorPos::Backward) ? 180.0f : 0.0f, 0.0f);
-    RegisterCoronaEx(vehicle, dummyId, 255, 128, 0, 255, posn, 0.3f);
+	Common::RegisterShadow(vehicle, posn, 255, 128, 0, (indicatorPos == eDummyPos::Backward) ? 180.0f : 0.0f, 0.0f);
+    Common::RegisterCorona(vehicle, posn, 255, 128, 0, 255, dummyId, 0.3f);
 }
 
 void DrawVehicleTurnlights(CVehicle *vehicle, eIndicatorState lightsStatus) {
     if (lightsStatus == eIndicatorState::Both || lightsStatus == eIndicatorState::Right) {
-        DrawTurnlight(vehicle, eIndicatorPos::Forward, false);
-        DrawTurnlight(vehicle, eIndicatorPos::Backward, false);
+        DrawTurnlight(vehicle, eDummyPos::Forward, false);
+        DrawTurnlight(vehicle, eDummyPos::Backward, false);
     }
     if (lightsStatus == eIndicatorState::Both || lightsStatus == eIndicatorState::Left) {
-        DrawTurnlight(vehicle, eIndicatorPos::Forward, true);
-        DrawTurnlight(vehicle, eIndicatorPos::Backward, true);
+        DrawTurnlight(vehicle, eDummyPos::Forward, true);
+        DrawTurnlight(vehicle, eDummyPos::Backward, true);
     }
 }
 
@@ -89,16 +83,15 @@ void IndicatorFeature::Initialize() {
 
 		eIndicatorState state = (toupper(name[start]) == 'L') ? (eIndicatorState::Left) : (eIndicatorState::Right);
 		char position = toupper(name[start + 1]);
-		eIndicatorPos type = (position == 'F') ? eIndicatorPos::Forward : ((position == 'R') ? eIndicatorPos::Backward : eIndicatorPos::None);
-
-		Indicator.dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, start + 3, parent, static_cast<int>(type), { 255, 98, 0, 128 }));
+		eDummyPos type = (position == 'F') ? eDummyPos::Forward : ((position == 'R') ? eDummyPos::Backward : eDummyPos::None);
+		Indicator.dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, start + 3, parent, type, { 255, 98, 0, 128 }));
 	});
 	
 	Events::vehicleRenderEvent += [this](CVehicle *pVeh) {
 		VehData &data = vehData.Get(pVeh);
 
 		if (pVeh->m_pDriver == FindPlayerPed()) {
-			if (KeyPressed(VK_X)) {
+			if (KeyPressed(VK_SHIFT)) {
 				data.indicatorState = eIndicatorState::None;
 				delay = 0;
 				delayState = false;
@@ -112,7 +105,7 @@ void IndicatorFeature::Initialize() {
 				data.indicatorState = eIndicatorState::Right;
 			}
 
-			if (KeyPressed(VK_SHIFT)) {
+			if (KeyPressed(VK_X)) {
 				data.indicatorState = eIndicatorState::Both;
 			}
 		} else {
@@ -234,49 +227,15 @@ void IndicatorFeature::enableMaterial(RpMaterial* material) {
 };
 
 void IndicatorFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
-	if (dummy->Type < 2) {
-		float dummyAngle = vehicleAngle + dummy->Angle;
+	// if (dummy->Type < 2) {
+	// 	float dummyAngle = vehicleAngle + dummy->Angle;
 
-		float differenceAngle = ((cameraAngle > dummyAngle) ? (cameraAngle - dummyAngle) : (dummyAngle - cameraAngle));
+	// 	float differenceAngle = ((cameraAngle > dummyAngle) ? (cameraAngle - dummyAngle) : (dummyAngle - cameraAngle));
 
-		// if (differenceAngle < 90.0f || differenceAngle > 270.0f)
-		// 	return;
-	}
+	// 	// if (differenceAngle < 90.0f || differenceAngle > 270.0f)
+	// 	// 	return;
+	// }
 
-	enableShadow(vehicle, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Color.alpha, dummy->Position, dummy->Angle, dummy->CurrentAngle);
-	RegisterCoronaEx(vehicle, id, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Color.alpha, dummy->Position, dummy->Size);
-};
-
-void IndicatorFeature::enableShadow(CVehicle* pVeh, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector position, float angle, float currentAngle) {
-
-	static RwTexture *pShadowTex = nullptr;
-	if (!pShadowTex) {
-		pShadowTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight256.png")));
-	}
-
-	float Offset = 0.0f;
-	float Size = 0.6f;
-	float InertiaMultiplier = 1.0f;
-	
-	CVector center = pVeh->TransformFromObjectSpace(
-		CVector(
-			position.x + (Offset * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-			position.y + ((0.5f + Offset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-			position.z
-		)
-	);
-
-	float fAngle = pVeh->GetHeading() + (((angle + currentAngle) + 180.0f) * 3.14f / 180.0f);
-
-	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
-
-	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-
-	alpha = static_cast<char>((static_cast<float>(alpha) * -1) * InertiaMultiplier);
-	
-	CShadows::StoreShadowToBeRendered(2, pShadowTex, &center,
-		up.x, up.y,
-		right.x, right.y,
-		alpha, red, green, blue,
-		2.0f, false, 1.0f, 0, true);
+	Common::RegisterShadow(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Angle, dummy->CurrentAngle);
+	Common::RegisterCorona(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Color.alpha, id, dummy->Size);
 };
