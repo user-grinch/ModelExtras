@@ -1,70 +1,56 @@
 #pragma once
 #include "materials.h"
-
 #include "game_sa/CGeneral.h"
 #include "game_sa/RenderWare.h"
 
 enum class eDummyPos { 
-	Forward, 
-	Backward, 
-	Left, 
-	Right,
-	None
+    Forward, 
+    Backward, 
+    Left, 
+    Right,
+    None
 };
 
 class VehicleDummy {
-	public:
-		RwFrame* Frame;
+private:
+    static int ReadHex(char a, char b);
+    bool hasParent = false;
 
-		RwRGBA Color = { 255, 255, 255, 128 };
+public:
+    RwFrame* Frame;
+    RwRGBA Color = { 255, 255, 255, 128 };
+    CVector Position;
+    eDummyPos Type;
+    float Size;
+    float Angle;
+    float CurrentAngle = 0.0f;
 
-		CVector Position;
-		
-		eDummyPos Type;
+    VehicleDummy(RwFrame* frame, std::string name, int start, bool parent, eDummyPos type = eDummyPos::None, RwRGBA color = { 255, 255, 255, 128 });
 
-		float Size;
+    CVector GetPosition();
 
-		float Angle;
+    void ResetAngle() {
+        if (CurrentAngle == 0.0f)
+            return;
+        ReduceAngle(CurrentAngle);
+    }
 
-		float CurrentAngle = 0.0f;
+    void AddAngle(float angle) {
+        if (angle == 0.0f)
+            return;
+        RwFrameRotate(Frame, (RwV3d*)0x008D2E18, angle, rwCOMBINEPRECONCAT);
+        CurrentAngle += angle;
+    }
 
-		VehicleDummy(RwFrame* frame, std::string name, int start, bool parent, eDummyPos type = eDummyPos::None, RwRGBA color = { 255, 255, 255, 128 });
+    void ReduceAngle(float angle) {
+        if (angle == 0.0f)
+            return;
+        RwFrameRotate(Frame, (RwV3d*)0x008D2E18, -angle, rwCOMBINEPRECONCAT);
+        CurrentAngle -= angle;
+    }
 
-		CVector GetPosition();
-
-		void ResetAngle() {
-			if (CurrentAngle == 0.0f)
-				return;
-
-			ReduceAngle(CurrentAngle);
-		};
-
-		void AddAngle(float angle) {
-			if (angle == 0.0f)
-				return;
-
-			RwFrameRotate(Frame, (RwV3d*)0x008D2E18, angle, rwCOMBINEPRECONCAT);
-			
-			CurrentAngle += angle;
-		};
-
-		void ReduceAngle(float angle) {
-			if (angle == 0.0f)
-				return;
-
-			RwFrameRotate(Frame, (RwV3d*)0x008D2E18, -angle, rwCOMBINEPRECONCAT);
-
-			CurrentAngle -= angle;
-		};
-
-		void SetAngle(float angle) {
-			ResetAngle();
-
-			AddAngle(angle);
-		}
-
-	private:
-		static int ReadHex(char a, char b);
-
-		bool hasParent = false;
+    void SetAngle(float angle) {
+        ResetAngle();
+        AddAngle(angle);
+    }
 };

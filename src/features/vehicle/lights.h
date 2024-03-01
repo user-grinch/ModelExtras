@@ -15,7 +15,9 @@ enum class eLightState {
 	Brakelight, 
 	Light, 
 	Daylight, 
-	Nightlight 
+	Nightlight,
+	FogLightLeft, 
+	FogLightRight,
 };
 
 class LightsFeature : public IFeature {
@@ -23,6 +25,14 @@ public:
 	void Initialize();
 
 private:
+	struct VehData {
+        bool m_bFogLightsOn = false;
+
+        VehData(CVehicle *pVeh) {}
+        ~VehData() {}
+    };
+
+    VehicleExtendedData<VehData> vehData;
 	std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> materials;
 	std::map<int, std::map<eLightState, std::vector<VehicleDummy*>>> dummies;
 	std::map<int, bool> states;

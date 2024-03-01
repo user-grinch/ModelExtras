@@ -41,7 +41,7 @@ float GetZAngleForPoint(CVector2D const &point) {
 
 IndicatorFeature Indicator;
 void IndicatorFeature::Initialize() {
-	VehicleMaterials::Register((VehicleMaterialFunction)[](CVehicle* vehicle, RpMaterial* material) {
+	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
 		if (material->color.blue == 0) {
 			if (material->color.red == 255) {
 				if (material->color.green > 55 && material->color.green < 59) {
@@ -70,7 +70,7 @@ void IndicatorFeature::Initialize() {
 		return material;
 	});
 
-	VehicleMaterials::RegisterDummy((VehicleDummyFunction)[](CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent) {
+	VehicleMaterials::RegisterDummy([](CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent) {
 		int start = -1;
 
 		if (name.rfind("turnl_", 0) == 0)
@@ -86,8 +86,8 @@ void IndicatorFeature::Initialize() {
 		eDummyPos type = (position == 'F') ? eDummyPos::Forward : ((position == 'R') ? eDummyPos::Backward : eDummyPos::None);
 		Indicator.dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, start + 3, parent, type, { 255, 98, 0, 128 }));
 	});
-	
-	Events::vehicleRenderEvent += [this](CVehicle *pVeh) {
+
+	VehicleMaterials::RegisterRender([this](CVehicle* pVeh) {
 		VehData &data = vehData.Get(pVeh);
 
 		if (pVeh->m_pDriver == FindPlayerPed()) {
@@ -130,14 +130,11 @@ void IndicatorFeature::Initialize() {
 					data.indicatorState = eIndicatorState::Left;
 			}
 		}
-	};
 
-	VehicleMaterials::RegisterRender((VehicleMaterialRender)[](CVehicle* vehicle, int index) {
 		if (!Indicator.delayState)
 			return;
 
-		int model = vehicle->m_nModelIndex;
-		VehData &data = Indicator.vehData.Get(vehicle);
+		int model = pVeh->m_nModelIndex;
 		eIndicatorState state = data.indicatorState;
 		if (state == eIndicatorState::None) {
 			return;
@@ -146,14 +143,14 @@ void IndicatorFeature::Initialize() {
 		// global turn lights
 		if (Indicator.dummies[model].size() == 0)
 		{
-			if ((vehicle->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || vehicle->m_nVehicleSubClass == VEHICLE_BIKE) &&
-				(vehicle->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE || vehicle->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) &&
-				vehicle->m_nVehicleFlags.bEngineOn && vehicle->m_fHealth > 0 && !vehicle->m_nVehicleFlags.bIsDrowning && !vehicle->m_pAttachedTo )
+			if ((pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) &&
+				(pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE || pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) &&
+				pVeh->m_nVehicleFlags.bEngineOn && pVeh->m_fHealth > 0 && !pVeh->m_nVehicleFlags.bIsDrowning && !pVeh->m_pAttachedTo )
 			{
-				if (DistanceBetweenPoints(TheCamera.m_vecGameCamPos, vehicle->GetPosition()) < 150.0f) {
-					DrawVehicleTurnlights(vehicle, state);
-					if (vehicle->m_pTractor)
-						DrawVehicleTurnlights(vehicle->m_pTractor, state);
+				if (DistanceBetweenPoints(TheCamera.m_vecGameCamPos, pVeh->GetPosition()) < 150.0f) {
+					DrawVehicleTurnlights(pVeh, state);
+					if (pVeh->m_pTractor)
+						DrawVehicleTurnlights(pVeh->m_pTractor, state);
 				}
 			}
 			return;
@@ -170,18 +167,18 @@ void IndicatorFeature::Initialize() {
 			for (std::vector<RpMaterial*>::iterator material = Indicator.materials[model][state].begin(); material != Indicator.materials[model][state].end(); ++material)
 				Indicator.enableMaterial((*material));
 
-			float vehicleAngle = (vehicle->GetHeading() * 180.0f) / 3.14f;
+			float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
 
 			float cameraAngle = (((CCamera*)0xB6F028)->GetHeading() * 180.0f) / 3.14f;
 
 			for (std::vector<VehicleDummy*>::iterator dummy = Indicator.dummies[model][state].begin(); dummy != Indicator.dummies[model][state].end(); ++dummy) {
 				id++;
 
-				Indicator.enableDummy(id, (*dummy), vehicle, vehicleAngle, cameraAngle);
+				Indicator.enableDummy(id, (*dummy), pVeh, vehicleAngle, cameraAngle);
 			}
 		}
 		else {
-			float vehicleAngle = (vehicle->GetHeading() * 180.0f) / 3.14f;
+			float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
 
 			float cameraAngle = (((CCamera*)0xB6F028)->GetHeading() * 180.0f) / 3.14f;
 
@@ -191,7 +188,7 @@ void IndicatorFeature::Initialize() {
 			for (std::vector<VehicleDummy*>::iterator dummy = Indicator.dummies[model][eIndicatorState::Left].begin(); dummy != Indicator.dummies[model][eIndicatorState::Left].end(); ++dummy) {
 				id++;
 
-				Indicator.enableDummy(id, (*dummy), vehicle, vehicleAngle, cameraAngle);
+				Indicator.enableDummy(id, (*dummy), pVeh, vehicleAngle, cameraAngle);
 			}
 
 			for (std::vector<RpMaterial*>::iterator material = Indicator.materials[model][eIndicatorState::Right].begin(); material != Indicator.materials[model][eIndicatorState::Right].end(); ++material)
@@ -200,12 +197,12 @@ void IndicatorFeature::Initialize() {
 			for (std::vector<VehicleDummy*>::iterator dummy = Indicator.dummies[model][eIndicatorState::Right].begin(); dummy != Indicator.dummies[model][eIndicatorState::Right].end(); ++dummy) {
 				id++;
 
-				Indicator.enableDummy(id, (*dummy), vehicle, vehicleAngle, cameraAngle);
+				Indicator.enableDummy(id, (*dummy), pVeh, vehicleAngle, cameraAngle);
 			}
 		}
 	});
 
-	plugin::Events::drawingEvent += []() {
+	Events::drawingEvent += []() {
 		size_t timestamp = CTimer::m_snTimeInMilliseconds;
 		
 		if ((timestamp - Indicator.delay) < 500)
@@ -237,5 +234,5 @@ void IndicatorFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicl
 	// }
 
 	Common::RegisterShadow(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Angle, dummy->CurrentAngle);
-	Common::RegisterCorona(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Color.alpha, id, dummy->Size);
+	Common::RegisterCorona(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 115, id, dummy->Size);
 };

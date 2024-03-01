@@ -655,7 +655,7 @@ void VehicleSirensFeature::Initialize() {
 	readSirenConfigurationIVF();
 	registerSirenConfiguration();
 
-	VehicleMaterials::Register((VehicleMaterialFunction)[](CVehicle* vehicle, RpMaterial* material) {
+	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
 		if (std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0 || material->color.green != 255 || material->color.blue != 255) {
 			if(material->color.red < 240 || material->color.green != 0 || material->color.blue != 0)
 				return material;
@@ -670,7 +670,7 @@ void VehicleSirensFeature::Initialize() {
 		return material;
 	});
 
-	VehicleMaterials::RegisterDummy((VehicleDummyFunction)[](CVehicle* vehicle, RwFrame* frame, std::string name, bool parent) {
+	VehicleMaterials::RegisterDummy([](CVehicle* vehicle, RwFrame* frame, std::string name, bool parent) {
 		if (!VehicleSirens.modelData.contains(vehicle->m_nModelIndex))
 			return;
 
@@ -841,7 +841,7 @@ void VehicleSirensFeature::Initialize() {
 		}
 	};
 
-	VehicleMaterials::RegisterRender((VehicleMaterialRender)[](CVehicle* vehicle, int index) {
+	VehicleMaterials::RegisterRender([](CVehicle* vehicle) {
 		int model = vehicle->m_nModelIndex;
 
 		if (!VehicleSirens.modelData.contains(model))
@@ -854,43 +854,43 @@ void VehicleSirensFeature::Initialize() {
 			VehicleSirens.modelRotators.erase(model);
 		}
 
-		if (!VehicleSirens.vehicleData.contains(index))
-			VehicleSirens.vehicleData[index] = new VehicleSiren(vehicle);
+		if (!VehicleSirens.vehicleData.contains(model))
+			VehicleSirens.vehicleData[model] = new VehicleSiren(vehicle);
 
-		bool sirenState = VehicleSirens.vehicleData[index]->GetSirenState();
+		bool sirenState = VehicleSirens.vehicleData[model]->GetSirenState();
 
-		VehicleSirenState* state = VehicleSirens.modelData[model]->States[VehicleSirens.vehicleData[index]->GetCurrentState()];
+		VehicleSirenState* state = VehicleSirens.modelData[model]->States[VehicleSirens.vehicleData[model]->GetCurrentState()];
 
-		if (VehicleSirens.vehicleData[index]->SirenState == false && sirenState == true) {
-			VehicleSirens.vehicleData[index]->SirenState = true;
+		if (VehicleSirens.vehicleData[model]->SirenState == false && sirenState == true) {
+			VehicleSirens.vehicleData[model]->SirenState = true;
 
 			uint64_t time = CTimer::m_snTimeInMilliseconds;
 
-			if (VehicleSirens.vehicleData[index]->Delay != 0)
-				VehicleSirens.vehicleData[index]->Delay = 0;
+			if (VehicleSirens.vehicleData[model]->Delay != 0)
+				VehicleSirens.vehicleData[model]->Delay = 0;
 
 			for (std::map<int, VehicleSirenMaterial*>::iterator material = state->Materials.begin(); material != state->Materials.end(); ++material) {
 				material->second->ColorTime = time;
 				material->second->PatternTime = time;
 			}
 		}
-		else if (VehicleSirens.vehicleData[index]->SirenState == true && sirenState == false)
-			VehicleSirens.vehicleData[index]->SirenState = false;
+		else if (VehicleSirens.vehicleData[model]->SirenState == true && sirenState == false)
+			VehicleSirens.vehicleData[model]->SirenState = false;
 
-		if (!VehicleSirens.vehicleData[index]->GetSirenState() && !VehicleSirens.vehicleData[index]->Trailer)
+		if (!VehicleSirens.vehicleData[model]->GetSirenState() && !VehicleSirens.vehicleData[model]->Trailer)
 			return;
 
-		std::map<int, std::vector<VehicleDummy*>> dummies = VehicleSirens.vehicleData[index]->Dummies;
+		std::map<int, std::vector<VehicleDummy*>> dummies = VehicleSirens.vehicleData[model]->Dummies;
 		std::map<int, std::vector<VehicleMaterial*>> materials = VehicleSirens.modelData[model]->Materials;
 
 		uint64_t time = CTimer::m_snTimeInMilliseconds;
 
-		if (VehicleSirens.vehicleData[index]->Delay == 0)
-			VehicleSirens.vehicleData[index]->Delay = time;
+		if (VehicleSirens.vehicleData[model]->Delay == 0)
+			VehicleSirens.vehicleData[model]->Delay = time;
 
 		for (std::map<int, VehicleSirenMaterial*>::iterator material = state->Materials.begin(); material != state->Materials.end(); ++material) {
 			if (material->second->Delay != 0) {
-				if (time - VehicleSirens.vehicleData[index]->Delay < material->second->Delay) {
+				if (time - VehicleSirens.vehicleData[model]->Delay < material->second->Delay) {
 					if (material->second->Type == VehicleSirenType::Rotator) {
 						if ((time - material->second->Rotator->TimeElapse) > material->second->Rotator->Time) {
 							material->second->Rotator->TimeElapse = time;
@@ -962,7 +962,7 @@ void VehicleSirensFeature::Initialize() {
 				continue;
 
 			if (material->second->Delay != 0) {
-				if (time - VehicleSirens.vehicleData[index]->Delay < material->second->Delay)
+				if (time - VehicleSirens.vehicleData[model]->Delay < material->second->Delay)
 					continue;
 			}
 
