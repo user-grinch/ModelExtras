@@ -35,7 +35,6 @@ private:
     VehicleExtendedData<VehData> vehData;
 	std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> materials;
 	std::map<int, std::map<eLightState, std::vector<VehicleDummy*>>> dummies;
-	std::map<int, bool> states;
 
 	void registerMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state);
 	void renderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle);

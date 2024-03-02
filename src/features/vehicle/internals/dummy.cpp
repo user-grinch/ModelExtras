@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "dummy.h"
 
-VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, int start, bool parent, eDummyPos type, RwRGBA color) {
+VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, int start, bool parent, eDummyRotation type, RwRGBA color) {
 	CurrentAngle = 0.0f;
 
 	Frame = frame;
@@ -40,7 +40,7 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, int start, bool par
 	Type = type;
 	Size = 0.3f;
 
-	// if (Type == eDummyPos::Backward)
+	// if (Type == eDummyRotation::Backward)
 	// 	Angle -= 180.0f;
 	
 	int size = name.size();
@@ -69,12 +69,12 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, int start, bool par
 	Color.green = VehicleDummy::ReadHex(name[start + 5], name[start + 6]);
 	Color.blue = VehicleDummy::ReadHex(name[start + 7], name[start + 8]);
 
-	Type = static_cast<eDummyPos>(name[start + 9] - '0');
+	Type = static_cast<eDummyRotation>(name[start + 9] - '0');
 	Size = ((float)(name[start + 10] - '0')) / 10.0f;
 
-	if (Type == eDummyPos::Forward && type != eDummyPos::Forward)
+	if (Type == eDummyRotation::Forward && type != eDummyRotation::Forward)
 		Angle -= 180.0f;
-	else if (Type != eDummyPos::Forward && type == eDummyPos::Forward)
+	else if (Type != eDummyRotation::Forward && type == eDummyRotation::Forward)
 		Angle += 180.0f;
 };
 

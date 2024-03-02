@@ -16,11 +16,11 @@ void LightsFeature::Initialize() {
 
 			else if (material->color.green == 3)
 				Lights.registerMaterial(vehicle, material, eLightState::TailLight);
-			else if (material->color.green == 6)
-				Lights.registerMaterial(vehicle, material, eLightState::FogLightLeft);
+			// else if (material->color.green == 6)
+			// 	Lights.registerMaterial(vehicle, material, eLightState::FogLightLeft);
 
 			else if (material->color.green == 7) {
-				Lights.registerMaterial(vehicle, material, eLightState::FogLightRight);
+				// Lights.registerMaterial(vehicle, material, eLightState::FogLightRight);
 				Lights.registerMaterial(vehicle, material, eLightState::Daylight);
 			}
 			else if (material->color.green == 8)
@@ -62,6 +62,7 @@ void LightsFeature::Initialize() {
 		int start = -1;
 
 		eLightState state = eLightState::None;
+		eDummyRotation rotation = eDummyRotation::Backward;
 
 		if (name.rfind("fogl_", 0) == 0) {
 			start = 4;
@@ -72,19 +73,22 @@ void LightsFeature::Initialize() {
 		} else if (name.rfind("revl_", 0) == 0){
 			start = 4;
 			state = eLightState::Reverselight;
+			rotation = eDummyRotation::Forward;
 		}
 		else if (name.rfind("reversingl_", 0) == 0) {
 			start = 10;
 			state = eLightState::Reverselight;
+			rotation = eDummyRotation::Forward;
 		}
 		else if (name.rfind("breakl_", 0) == 0) {
 			start = 6;
 			state = eLightState::Brakelight;
+			rotation = eDummyRotation::Forward;
 		}
 		else if (name.rfind("breaklight_", 0) == 0) {
 			start = 10;
-
 			state = eLightState::Brakelight;
+			rotation = eDummyRotation::Forward;
 		}
 		else if (name.rfind("light_day", 0) == 0) {
 			start = 9;
@@ -116,7 +120,7 @@ void LightsFeature::Initialize() {
 
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-		Lights.dummies[index][state].push_back(new VehicleDummy(frame, name, start, parent, eDummyPos::Backward, { 255, 255, 255, 128 }));
+		Lights.dummies[index][state].push_back(new VehicleDummy(frame, name, start, parent, rotation, { 255, 255, 255, 128 }));
 	});
 
 	
@@ -160,7 +164,7 @@ void LightsFeature::Initialize() {
 		else
 			Lights.renderLights(pVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
 
-		if (pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0)
+		if (pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver)
 			Lights.renderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
 
 		if (pVeh->m_fBreakPedal)

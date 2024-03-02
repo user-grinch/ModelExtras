@@ -10,7 +10,7 @@ CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
     return CVector2D(0.0f, 0.0f);
 }
 
-void DrawTurnlight(CVehicle *vehicle, eDummyPos indicatorPos, bool leftSide) {
+void DrawTurnlight(CVehicle *vehicle, eDummyRotation indicatorPos, bool leftSide) {
     CVector posn =
         reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[static_cast<int>(indicatorPos)];
 	
@@ -18,18 +18,18 @@ void DrawTurnlight(CVehicle *vehicle, eDummyPos indicatorPos, bool leftSide) {
     if (leftSide) posn.x *= -1.0f;
 	int dummyId = static_cast<int>(indicatorPos) + (leftSide ? 0 : 2);
 
-	Common::RegisterShadow(vehicle, posn, 255, 128, 0, (indicatorPos == eDummyPos::Backward) ? 180.0f : 0.0f, 0.0f);
+	Common::RegisterShadow(vehicle, posn, 255, 128, 0, (indicatorPos == eDummyRotation::Backward) ? 180.0f : 0.0f, 0.0f);
     Common::RegisterCorona(vehicle, posn, 255, 128, 0, 255, dummyId, 0.3f);
 }
 
 void DrawVehicleTurnlights(CVehicle *vehicle, eIndicatorState lightsStatus) {
     if (lightsStatus == eIndicatorState::Both || lightsStatus == eIndicatorState::Right) {
-        DrawTurnlight(vehicle, eDummyPos::Forward, false);
-        DrawTurnlight(vehicle, eDummyPos::Backward, false);
+        DrawTurnlight(vehicle, eDummyRotation::Forward, false);
+        DrawTurnlight(vehicle, eDummyRotation::Backward, false);
     }
     if (lightsStatus == eIndicatorState::Both || lightsStatus == eIndicatorState::Left) {
-        DrawTurnlight(vehicle, eDummyPos::Forward, true);
-        DrawTurnlight(vehicle, eDummyPos::Backward, true);
+        DrawTurnlight(vehicle, eDummyRotation::Forward, true);
+        DrawTurnlight(vehicle, eDummyRotation::Backward, true);
     }
 }
 
@@ -82,9 +82,8 @@ void IndicatorFeature::Initialize() {
 			return;
 
 		eIndicatorState state = (toupper(name[start]) == 'L') ? (eIndicatorState::Left) : (eIndicatorState::Right);
-		char position = toupper(name[start + 1]);
-		eDummyPos type = (position == 'F') ? eDummyPos::Forward : ((position == 'R') ? eDummyPos::Backward : eDummyPos::None);
-		Indicator.dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, start + 3, parent, type, { 255, 98, 0, 128 }));
+		eDummyRotation rot = (toupper(name[start + 1]) == 'F') ? eDummyRotation::Forward : eDummyRotation::Backward;
+		Indicator.dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, start + 3, parent, rot, { 255, 98, 0, 128 }));
 	});
 
 	VehicleMaterials::RegisterRender([this](CVehicle* pVeh) {
@@ -141,7 +140,7 @@ void IndicatorFeature::Initialize() {
 		}
 
 		// global turn lights
-		if (Indicator.dummies[model].size() == 0)
+		if (Indicator.dummies[model].size() == 0 && Indicator.materials[model][state].size() == 0)
 		{
 			if ((pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) &&
 				(pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE || pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) &&
