@@ -302,3 +302,5 @@ build/obj/Win32/Release/ModelExtras.tlog/unsuccessfulbuild
 build/obj/Win32/Debug/spotlights.obj
 build/obj/Win32/Release/spotlights.obj
 build/obj/Win32/Release/ModelExtras.tlog/unsuccessfulbuild
+build/obj/Win32/Debug/spotlights.obj
+build/obj/Win32/Release/spotlights.obj

@@ -1,82 +1,53 @@
 #include "pch.h"
 #include "dummy.h"
 
-VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, int start, bool parent, eDummyRotation type, RwRGBA color) {
-	CurrentAngle = 0.0f;
+VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummyRotation type, RwRGBA color) {
+    CurrentAngle = 0.0f;
+    Frame = frame;
+    Position = { frame->modelling.pos.x, frame->modelling.pos.y, frame->modelling.pos.z };
+    hasParent = parent;
 
-	Frame = frame;
+    float angle = (CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f) - 180.0f;
 
-	Position = { frame->modelling.pos.x, frame->modelling.pos.y, frame->modelling.pos.z };
+    while (angle < 0.0)
+        angle += 360.0;
 
-	//Position = ;
+    Angle = angle - 180.0f;
 
-	hasParent = parent;
+    if (frame->modelling.at.z <= 0.0 && Angle == 0.0) {
+        Angle = frame->modelling.at.z * 180.0f;
+        Angle = (Angle > 0.0f) ? (Angle - 180.0f) : (Angle);
+    }
 
-	/*if (hasParent) {
-		if (RwFrame* parent = RwFrameGetParent(frame)) {
-			Position = { parent->modelling.pos.x, parent->modelling.pos.y, parent->modelling.pos.z };
-		}
-	}*/
+    Color = color;
+    Type = type;
+    Size = 0.3f;
 
-	//PluginMultiplayer::AddChatMessage(std::string(name + " is at: " + std::to_string(frame->modelling.pos.x) + ", " + std::to_string(frame->modelling.pos.y) + ", " + std::to_string(frame->modelling.pos.z)).c_str());
+    // if (start > name.size()) {
+    //     gLogger->warn(std::string(name + ", " + std::to_string(start) + " exceeds " + std::to_string(name.size())).c_str());
+    //     return;
+    // }
 
-	Angle = ((CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f) - 180.0f);
+    std::regex prmRegex("prm(\\d{2})(\\d{2})(\\d{2})(\\d)(\\d)(\\d{2})(\\d)(\\d)");
+    std::smatch match;
 
-	// there's probably a better way of doing this (there is)
-	// but I'm not good with maths, this took me way too long
+    if (std::regex_search(name, match, prmRegex)) {
+        Color.red = VehicleDummy::ReadHex(*match[1].str().c_str(), *match[2].str().c_str());
+        Color.green = VehicleDummy::ReadHex(*match[3].str().c_str(), *match[4].str().c_str());
+        Color.blue = VehicleDummy::ReadHex(*match[5].str().c_str(), *match[6].str().c_str());
+        
+        Type = static_cast<eDummyRotation>(match[7].str()[0] - '0');
+        Size = (static_cast<float>(match[8].str()[0] - '0')) / 10.0f;
+    } else {
+        gLogger->warn(std::string(name + ", pattern not matched").c_str());
+        return;
+    }
 
-	while (Angle < 0.0) Angle += 360.0;
-
-	Angle -= 180.0f;
-
-	if (frame->modelling.at.z <= 0.0 && Angle == 0.0) {
-		Angle = frame->modelling.at.z * 180.0f;
-
-		Angle = (Angle > 0.0f) ? (Angle - 180.0f) : (Angle);
-	}
-
-	Color = color;
-
-	Type = type;
-	Size = 0.3f;
-
-	// if (Type == eDummyRotation::Backward)
-	// 	Angle -= 180.0f;
-	
-	int size = name.size();
-
-	if (start > size) {
-		gLogger->warn(std::string(name + ", " + std::to_string(start) + " exceeds " + std::to_string(size)).c_str());
-		return;
-	}
-
-	if (!(name[start] == 'p' && name[start + 1] == 'r' && name[start + 2] == 'm')) {
-		if (size >= start + 5) {
-			Color.red = VehicleDummy::ReadHex(name[start], name[start + 1]);
-			Color.green = VehicleDummy::ReadHex(name[start + 2], name[start + 3]);
-			Color.blue = VehicleDummy::ReadHex(name[start + 4], name[start + 5]);
-		}
-
-		return;
-	}
-
-	if ((size - start) != 12) {
-		gLogger->warn(std::string(name + ", 12 is not " + std::to_string(size - start)).c_str());
-		return;
-	}
-
-	Color.red = VehicleDummy::ReadHex(name[start + 3], name[start + 4]);
-	Color.green = VehicleDummy::ReadHex(name[start + 5], name[start + 6]);
-	Color.blue = VehicleDummy::ReadHex(name[start + 7], name[start + 8]);
-
-	Type = static_cast<eDummyRotation>(name[start + 9] - '0');
-	Size = ((float)(name[start + 10] - '0')) / 10.0f;
-
-	if (Type == eDummyRotation::Forward && type != eDummyRotation::Forward)
-		Angle -= 180.0f;
-	else if (Type != eDummyRotation::Forward && type == eDummyRotation::Forward)
-		Angle += 180.0f;
-};
+    if (Type == eDummyRotation::Forward && type != eDummyRotation::Forward)
+        Angle -= 180.0f;
+    else if (Type != eDummyRotation::Forward && type == eDummyRotation::Forward)
+        Angle += 180.0f;
+}
 
 int VehicleDummy::ReadHex(char a, char b) {
 	a = (a <= '9') ? a - '0' : (a & 0x7) + 9;

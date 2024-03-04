@@ -25,7 +25,7 @@ public:
     float Angle;
     float CurrentAngle = 0.0f;
 
-    VehicleDummy(RwFrame* frame, std::string name, int start, bool parent, eDummyRotation type = eDummyRotation::None, RwRGBA color = { 255, 255, 255, 128 });
+    VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummyRotation type = eDummyRotation::None, RwRGBA color = { 255, 255, 255, 128 });
 
     CVector GetPosition();
 

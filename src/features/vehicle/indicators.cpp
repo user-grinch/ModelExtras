@@ -71,20 +71,15 @@ void IndicatorFeature::Initialize() {
 	});
 
 	VehicleMaterials::RegisterDummy([](CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent) {
-		int start = -1;
-
-		if (name.rfind("turnl_", 0) == 0)
-			start = 6;
-		else if (name.rfind("indicator_", 0) == 0)
-			start = 10;
-
-		if (start == -1)
-			return;
-
-		eIndicatorState state = (toupper(name[start]) == 'L') ? (eIndicatorState::Left) : (eIndicatorState::Right);
-		eDummyRotation rot = (toupper(name[start + 1]) == 'F') ? eDummyRotation::Forward : eDummyRotation::Backward;
-		Indicator.dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, start + 3, parent, rot, { 255, 98, 0, 128 }));
+		std::smatch match;
+		if (std::regex_search(name, match, std::regex("^(turnl_|indicator_)(.{2})"))) {
+			std::string stateStr = match.str(2);
+			eIndicatorState state = (toupper(stateStr[0]) == 'L') ? eIndicatorState::Left : eIndicatorState::Right;
+			eDummyRotation rot = (toupper(stateStr[1]) == 'F') ? eDummyRotation::Forward : eDummyRotation::Backward;
+			Indicator.dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 98, 0, 128 }));
+		}
 	});
+
 
 	VehicleMaterials::RegisterRender([this](CVehicle* pVeh) {
 		VehData &data = vehData.Get(pVeh);

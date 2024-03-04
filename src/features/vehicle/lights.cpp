@@ -59,70 +59,37 @@ void LightsFeature::Initialize() {
 	});
 
 	VehicleMaterials::RegisterDummy([](CVehicle* vehicle, RwFrame* frame, std::string name, bool parent) {
-		int start = -1;
-
 		eLightState state = eLightState::None;
 		eDummyRotation rotation = eDummyRotation::Backward;
 
-		if (name.rfind("fogl_", 0) == 0) {
-			start = 4;
-			state = (toupper(name[start]) == 'L') ? (eLightState::FogLightLeft) : (eLightState::FogLightRight);
-		} else if (name.rfind("foglight_", 0) == 0) {
-			start = 8;
-			state = (toupper(name[start]) == 'L') ? (eLightState::FogLightLeft) : (eLightState::FogLightRight);
-		} else if (name.rfind("revl_", 0) == 0){
-			start = 4;
+		std::smatch match;
+		if (std::regex_search(name, match, std::regex("^fog(light)?_([a-zA-Z])"))) {
+			state = (toupper(match.str(2)[0]) == 'L') ? (eLightState::FogLightLeft) : (eLightState::FogLightRight);
+		} else if (std::regex_search(name, std::regex("^revl_"))) {
 			state = eLightState::Reverselight;
 			rotation = eDummyRotation::Forward;
-		}
-		else if (name.rfind("reversingl_", 0) == 0) {
-			start = 10;
+		} else if (std::regex_search(name, std::regex("^reversingl_"))) {
 			state = eLightState::Reverselight;
 			rotation = eDummyRotation::Forward;
-		}
-		else if (name.rfind("breakl_", 0) == 0) {
-			start = 6;
+		} else if (std::regex_search(name, std::regex("^breakl_"))) {
 			state = eLightState::Brakelight;
 			rotation = eDummyRotation::Forward;
-		}
-		else if (name.rfind("breaklight_", 0) == 0) {
-			start = 10;
+		} else if (std::regex_search(name, std::regex("^breaklight_"))) {
 			state = eLightState::Brakelight;
 			rotation = eDummyRotation::Forward;
-		}
-		else if (name.rfind("light_day", 0) == 0) {
-			start = 9;
-
+		} else if (std::regex_search(name, std::regex("^light_day"))) {
 			state = eLightState::Daylight;
-		}
-		else if (name.rfind("light_night", 0) == 0) {
-			start = 10;
-
+		} else if (std::regex_search(name, std::regex("^light_night"))) {
 			state = eLightState::Nightlight;
-		}
-		else if (name.rfind("light_", 0) == 0 && name.rfind("light_em", 0) != 0) {
-			start = 5;
-
+		} else if (std::regex_search(name, std::regex("^light_(?!em)"))) {
 			state = eLightState::Light;
-		}
-		else {
+		} else {
 			return;
 		}
 
-		for (int _char = start; _char < (int)name.size(); _char++) {
-			if (name[_char] != '_')
-				continue;
-
-			start = _char + 1;
-
-			break;
-		}
-
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-
-		Lights.dummies[index][state].push_back(new VehicleDummy(frame, name, start, parent, rotation, { 255, 255, 255, 128 }));
+		Lights.dummies[index][state].push_back(new VehicleDummy(frame, name, parent, rotation, { 255, 255, 255, 128 }));
 	});
-
 	
 	Events::processScriptsEvent += [this]() {
 		CVehicle *pVeh = FindPlayerVehicle(-1, false);

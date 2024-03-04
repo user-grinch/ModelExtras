@@ -679,43 +679,40 @@ void VehicleSirensFeature::Initialize() {
 		if (!VehicleSirens.vehicleData.contains(index))
 			VehicleSirens.vehicleData[index] = new VehicleSiren(vehicle);
 
-		int start = -1;
+		bool matCalcNeeded = false;
+		std::smatch match;
+		if (std::regex_search(name, match, std::regex("^siren(_)?(.*)"))) {
 
-		if (name.rfind("siren_", 0) == 0)
-			start = 6;
-		else if (name.rfind("siren", 0) == 0)
-			start = 5;
-		else if (name.rfind("light_em", 0) == 0)
-			start = 8;
-
-		if (start == -1)
+		}
+		else if (std::regex_search(name, std::regex("^light_em"))){
+			matCalcNeeded = true;
+		}
+		else 
 			return;
 
 		std::string material;
+		bool foundDigit = false;
 
-		for (int _char = start, size = name.size(); _char < size; _char++) {
-			if (!isdigit(name[_char])) {
-				if (_char == start)
+		for (char c : match[2].str()) {
+			if (!isdigit(c)) {
+				if (!foundDigit)
 					return;
 
 				break;
 			}
 
-			material += name[_char];
+			material += c;
+			foundDigit = true;
 		}
 
 		int mat = std::stoi(material);
-
-		if (start == 8)
+		if (matCalcNeeded) {
 			mat = 256 - mat;
+		}
 
-		// for (std::vector<VehicleDummy*>::iterator dummy = VehicleSirens.vehicleData[index]->Dummies[mat].begin(); dummy != VehicleSirens.vehicleData[index]->Dummies[mat].end(); ++dummy) {
-		// 	//if ((*dummy)->Frame == frame)
-		// 	//	return;
-		// }
-
-		VehicleSirens.vehicleData[index]->Dummies[mat].push_back(new VehicleDummy(frame, name, start, parent));
+		VehicleSirens.vehicleData[index]->Dummies[mat].push_back(new VehicleDummy(frame, name, parent));
 	});
+
 
 	plugin::Events::vehicleCtorEvent += [](CVehicle* vehicle) {
 		int model = vehicle->m_nModelIndex;
@@ -1009,10 +1006,10 @@ void VehicleSirensFeature::Initialize() {
 		injector::MakeNOP((void*)0x6ABA60, 5, true);
 	};*/
 
-	plugin::Events::initGameEvent += [this] {
+	Events::initGameEvent += [this] {
 		injector::MakeCALL((void*)0x6aba60, hkRegisterCorona, true);
 	};
-};
+}
 
 void VehicleSirensFeature::enableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time) {
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
@@ -1041,71 +1038,11 @@ void VehicleSirensFeature::enableMaterial(VehicleMaterial* material, VehicleSire
 };
 
 void VehicleSirensFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
-	CVector position = reinterpret_cast<CVehicleModelInfo*>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
-
-	position.x = dummy->Position.x;
-	position.y = dummy->Position.y;
-	position.z = dummy->Position.z;
-
-	char alpha = material->Color.alpha;
-
-	if (material->PatternTotal != 0 && material->Inertia != 0.0f) {
-		float alphaFloat = static_cast<float>(alpha);
-
-		alphaFloat = (alphaFloat < 0.0f) ? (alphaFloat * -1) : (alphaFloat);
-
-		alpha = static_cast<char>(alphaFloat * material->InertiaMultiplier);
-	}
-
-	if (material->Type != VehicleSirenType::NonDirectional) {
-		float dummyAngle = vehicleAngle + dummy->Angle;
-
-		if (material->Type == VehicleSirenType::Rotator) {
-			uint64_t elapsed = time - material->Rotator->TimeElapse;
-
-			float angle = ((elapsed / ((float)material->Rotator->Time)) * material->Rotator->Radius);
-
-			if (material->Rotator->Direction == 0)
-				angle = 360.0f - angle;
-			else if (material->Rotator->Direction == 2) {
-				angle += material->Rotator->Offset;
-
-				angle = 360.0f - angle;
-			}
-			else if (material->Rotator->Direction == 3) {
-				angle += material->Rotator->Offset;
-			}
-
-			dummyAngle += angle;
-
-			VehicleSirens.modelRotators[vehicle->m_nModelIndex].push_back(dummy);
-
-			dummy->SetAngle(angle);
-
-			while (dummyAngle > 360.0f)
-				dummyAngle -= 360.0f;
-
-			while (dummyAngle < 0.0f)
-				dummyAngle += 360.0f;
-		}
-		else if(material->Type == VehicleSirenType::Inversed)
-			dummyAngle -= 180.0f;
-
-		Common::RegisterCoronaWithAngle(vehicle, position, material->Color.red, material->Color.green, 
-		material->Color.blue, material->Color.alpha, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
-		cameraAngle, dummyAngle, material->Radius, material->Size);
-	}
-	else {
-		Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, 
+	Common::RegisterShadow(vehicle, dummy->Position, material->Color.red, material->Color.green, 
+	material->Color.blue, dummy->Angle, dummy->CurrentAngle);
+	Common::RegisterCorona(vehicle, dummy->Position, material->Color.red, material->Color.green, 
 		material->Color.blue, material->Color.alpha, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
 		 material->Size);
-	}
-	Common::RegisterShadow(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, 
-	dummy->Color.blue, dummy->Angle, dummy->CurrentAngle);
-
-
-	// CCoronas::RegisterCorona((CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + 255 + id, vehicle, material->Color.red, material->Color.green, material->Color.blue, alpha, position,
-	// 	material->Size, 300.0f, eCoronaType::CORONATYPE_HEADLIGHT, type, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, true);
 };
 
 VehicleSiren::VehicleSiren(CVehicle* pVeh) {

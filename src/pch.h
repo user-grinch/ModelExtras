@@ -4,6 +4,7 @@
 #include <CTimer.h>
 #include <NodeName.h>
 #include <CModelInfo.h>
+#include <regex>
 
 #include "bass.h"
 #include "json.hpp"
