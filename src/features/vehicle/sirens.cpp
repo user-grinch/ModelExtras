@@ -986,11 +986,14 @@ void VehicleSirensFeature::Initialize() {
 
 			int id = 0;
 
-			for (std::vector<VehicleDummy*>::iterator dummy = dummies[material->first].begin(); dummy != dummies[material->first].end(); ++dummy) {
-				id++;
+			if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false) || gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+				for (std::vector<VehicleDummy*>::iterator dummy = dummies[material->first].begin(); dummy != dummies[material->first].end(); ++dummy) {
+					id++;
 
-				VehicleSirens.enableDummy((material->first * 16) + id, (*dummy), vehicle, vehicleAngle, cameraAngle, material->second, type, time);
+					VehicleSirens.enableDummy((material->first * 16) + id, (*dummy), vehicle, vehicleAngle, cameraAngle, material->second, type, time);
+				}
 			}
+			
 
 			if (material->second->Frames != 0) {
 				for (std::vector<VehicleMaterial*>::iterator mat = materials[material->first].begin(); mat != materials[material->first].end(); ++mat)
@@ -1038,11 +1041,16 @@ void VehicleSirensFeature::enableMaterial(VehicleMaterial* material, VehicleSire
 };
 
 void VehicleSirensFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
-	Common::RegisterShadow(vehicle, dummy->Position, material->Color.red, material->Color.green, 
-	material->Color.blue, dummy->Angle, dummy->CurrentAngle);
-	Common::RegisterCorona(vehicle, dummy->Position, material->Color.red, material->Color.green, 
+	if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
+		Common::RegisterShadow(vehicle, dummy->Position, material->Color.red, material->Color.green, 
+			material->Color.blue, dummy->Angle, dummy->CurrentAngle);
+	}
+
+	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+		Common::RegisterCorona(vehicle, dummy->Position, material->Color.red, material->Color.green, 
 		material->Color.blue, material->Color.alpha, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
 		 material->Size, dummy->CurrentAngle);
+	}
 };
 
 VehicleSiren::VehicleSiren(CVehicle* pVeh) {

@@ -169,10 +169,12 @@ void LightsFeature::renderLights(CVehicle* vehicle, eLightState state, float veh
 
 	int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-	for (std::vector<VehicleDummy*>::iterator dummy = dummies[index][state].begin(); dummy != dummies[index][state].end(); ++dummy) {
-		id++;
+	if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false) || gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+		for (std::vector<VehicleDummy*>::iterator dummy = dummies[index][state].begin(); dummy != dummies[index][state].end(); ++dummy) {
+			id++;
 
-		enableDummy(id, (*dummy), vehicle, vehicleAngle, cameraAngle);
+			enableDummy(id, (*dummy), vehicle, vehicleAngle, cameraAngle);
+		}
 	}
 };
 
@@ -192,6 +194,14 @@ void LightsFeature::enableMaterial(VehicleMaterial* material) {
 };
 
 void LightsFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
-	Common::RegisterCorona(vehicle, dummy->Frame->modelling.pos, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 115, (CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + id, dummy->Size, dummy->CurrentAngle);
-	Common::RegisterShadow(vehicle, dummy->Frame->modelling.pos, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Angle, dummy->CurrentAngle);
+	if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
+		Common::RegisterShadow(vehicle, dummy->Frame->modelling.pos, dummy->Color.red, dummy->Color.green, 
+			dummy->Color.blue, dummy->Angle, dummy->CurrentAngle);
+	}
+
+	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+		Common::RegisterCorona(vehicle, dummy->Frame->modelling.pos, dummy->Color.red, dummy->Color.green, 
+			dummy->Color.blue, 115, (CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + id, dummy->Size, 
+			dummy->CurrentAngle);
+	}
 };

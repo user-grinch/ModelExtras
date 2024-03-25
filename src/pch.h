@@ -8,6 +8,7 @@
 
 #include "bass.h"
 #include "json.hpp"
+#include "ini.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "util.h"
@@ -36,6 +37,7 @@ enum class eModelEntityType {
 #define NODE_NOT_FOUND(x, y) x.find(y) == std::string::npos
 
 extern std::shared_ptr<spdlog::logger> gLogger;
+extern CIniReader gConfig;
 static inline CdeclEvent <AddressList<0x5E7859, H_CALL>, PRIORITY_BEFORE, ArgPickN<CPed*, 0>, void(CPed*)> weaponRenderEvent;
 static inline ThiscallEvent <AddressList<//0x43D821, H_CALL,
                                //   0x43D939, H_CALL,
