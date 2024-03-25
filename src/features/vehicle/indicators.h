@@ -20,17 +20,17 @@ private:
 
 	struct VehData {
 		eIndicatorState indicatorState;
-
+		bool m_bShadowsDrawn = false;
 		VehData(CVehicle *) : indicatorState(eIndicatorState::None) {}
 	};
 	VehicleExtendedData<VehData> vehData;
 
-	std::map<int, std::map<eIndicatorState, std::vector<RpMaterial*>>> materials;
+	std::map<int, std::map<eIndicatorState, std::vector<VehicleMaterial*>>> materials;
 	std::map<int, std::map<eIndicatorState, std::vector<VehicleDummy*>>> dummies;
 
-	void registerMaterial(CVehicle* vehicle, RpMaterial* &material, eIndicatorState state);
+	void registerMaterial(CVehicle* vehicle, RpMaterial* material, eIndicatorState state);
 	void registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent, eIndicatorState state, eDummyRotation rot);
-	void enableMaterial(RpMaterial* material);
+	void enableMaterial(VehicleMaterial* material);
 	void enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle);
 	
 public:

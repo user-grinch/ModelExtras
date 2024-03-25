@@ -69,9 +69,9 @@ void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red,
 	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
 
 	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-	CShadows::StoreShadowToBeRendered(2, pShadowTex, &center,
+	CShadows::StoreCarLightShadow(pVeh, (int)pVeh+position.x, pShadowTex, &center,
 		up.x, up.y,
 		right.x, right.y,
-		128, red, green, blue,
-		2.0f, false, 1.0f, 0, true);
+		red, green, blue,
+		180.0f);
 };

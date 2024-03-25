@@ -185,11 +185,10 @@ void LightsFeature::registerMaterial(CVehicle* vehicle, RpMaterial* material, eL
 
 void LightsFeature::enableMaterial(VehicleMaterial* material) {
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
-
 	material->Material->surfaceProps.ambient = 4.0;
 
+	material->Color.red = material->Color.green = material->Color.blue = 255;
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
-
 	material->Material->texture = material->TextureActive;
 };
 

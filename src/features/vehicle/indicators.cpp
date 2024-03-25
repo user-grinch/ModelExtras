@@ -83,7 +83,7 @@ void IndicatorFeature::Initialize() {
 
 	VehicleMaterials::RegisterRender([this](CVehicle* pVeh) {
 		VehData &data = vehData.Get(pVeh);
-
+		
 		if (pVeh->m_pDriver == FindPlayerPed()) {
 			if (KeyPressed(VK_SHIFT)) {
 				data.indicatorState = eIndicatorState::None;
@@ -159,10 +159,10 @@ void IndicatorFeature::Initialize() {
 			if (Indicator.materials[model][state].size() == 0)
 				return;
 
-			for (std::vector<RpMaterial*>::iterator material = Indicator.materials[model][state].begin(); material != Indicator.materials[model][state].end(); ++material)
+			for (std::vector<VehicleMaterial*>::iterator material = Indicator.materials[model][state].begin(); material != Indicator.materials[model][state].end(); ++material)
 				Indicator.enableMaterial((*material));
 
-			if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false) || gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+			if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 				float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
 				float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 
@@ -172,18 +172,26 @@ void IndicatorFeature::Initialize() {
 					Indicator.enableDummy(id, (*dummy), pVeh, vehicleAngle, cameraAngle);
 				}
 			}
-		}
-		else {
-			for (std::vector<RpMaterial*>::iterator material = Indicator.materials[model][eIndicatorState::Left].begin(); material != Indicator.materials[model][eIndicatorState::Left].end(); ++material)
+
+			if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
+				if (Indicator.dummies[model][state].size() > 0) {
+					auto& dummy = Indicator.dummies[model][state][0];
+					Common::RegisterShadow(pVeh, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
+						dummy->Angle, dummy->CurrentAngle);
+				}
+			}
+
+		} else {
+			for (std::vector<VehicleMaterial*>::iterator material = Indicator.materials[model][eIndicatorState::Left].begin(); material != Indicator.materials[model][eIndicatorState::Left].end(); ++material)
 				Indicator.enableMaterial((*material));
 
-			for (std::vector<RpMaterial*>::iterator material = Indicator.materials[model][eIndicatorState::Right].begin(); material != Indicator.materials[model][eIndicatorState::Right].end(); ++material)
+			for (std::vector<VehicleMaterial*>::iterator material = Indicator.materials[model][eIndicatorState::Right].begin(); material != Indicator.materials[model][eIndicatorState::Right].end(); ++material)
 				Indicator.enableMaterial((*material));
 
 			float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
 			float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 
-			if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false) || gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+			if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 				for (std::vector<VehicleDummy*>::iterator dummy = Indicator.dummies[model][eIndicatorState::Left].begin(); dummy != Indicator.dummies[model][eIndicatorState::Left].end(); ++dummy) {
 					id++;
 
@@ -194,6 +202,20 @@ void IndicatorFeature::Initialize() {
 					id++;
 
 					Indicator.enableDummy(id, (*dummy), pVeh, vehicleAngle, cameraAngle);
+				}
+			}
+
+			if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
+				if (Indicator.dummies[model][eIndicatorState::Left].size() > 0) {
+					auto& dummy = Indicator.dummies[model][eIndicatorState::Left][0];
+					Common::RegisterShadow(pVeh, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
+						dummy->Angle, dummy->CurrentAngle);
+				}
+
+				if (Indicator.dummies[model][eIndicatorState::Right].size() > 0) {
+					auto& dummy = Indicator.dummies[model][eIndicatorState::Right][0];
+					Common::RegisterShadow(pVeh, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
+						dummy->Angle, dummy->CurrentAngle);
 				}
 			}
 		}
@@ -210,26 +232,35 @@ void IndicatorFeature::Initialize() {
 	};
 };
 
-void IndicatorFeature::registerMaterial(CVehicle* pVeh, RpMaterial* &material, eIndicatorState state) {
+void IndicatorFeature::registerMaterial(CVehicle* pVeh, RpMaterial* material, eIndicatorState state) {
 	material->color.red = material->color.green = material->color.blue = 255;
-	materials[pVeh->m_nModelIndex][state].push_back(material);
+	materials[pVeh->m_nModelIndex][state].push_back(new VehicleMaterial(material));
 };
 
 void IndicatorFeature::registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent, eIndicatorState state, eDummyRotation rot) {
-	dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 98, 0, 128 }));
+	bool exists = false;
+	for (auto e: dummies[pVeh->m_nModelIndex][state]) {
+		if (e->Position.x == pFrame->modelling.pos.x 
+		&& e->Position.y == pFrame->modelling.pos.y
+		&& e->Position.z == pFrame->modelling.pos.z) {
+			exists = false;
+			break;
+		}
+	}
+
+	if (!exists) {
+		dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 255, 255, 128 }));
+	}
 };
 
-void IndicatorFeature::enableMaterial(RpMaterial* material) {
-	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->surfaceProps.ambient)));
-	material->surfaceProps.ambient = 4.0;
+void IndicatorFeature::enableMaterial(VehicleMaterial* material) {
+	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
+	material->Material->surfaceProps.ambient = 4.0;
+	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
+	material->Material->texture = material->TextureActive;
 };
 
 void IndicatorFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
-	if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
-		Common::RegisterShadow(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			dummy->Angle, dummy->CurrentAngle);
-	}
-
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		Common::RegisterCorona(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
 			80, id, dummy->Size, dummy->CurrentAngle);
