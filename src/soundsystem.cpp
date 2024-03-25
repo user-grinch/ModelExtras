@@ -72,7 +72,7 @@ void EnumerateBassDevices(int& total, int& enabled, int& default_device) {
     for (default_device = -1, enabled = 0, total = 0; BASS_GetDeviceInfo(total, &info); ++total) {
         if (info.flags & BASS_DEVICE_ENABLED) ++enabled;
         if (info.flags & BASS_DEVICE_DEFAULT) default_device = total;
-        gLogger->info("Found sound device {}{}: {}\n", total, default_device == total ?" (default)" : "", info.name);
+        gLogger->info("Found sound device {}{}: {}", total, default_device == total ?" (default)" : "", info.name);
     }
 }
 

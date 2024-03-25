@@ -29,6 +29,7 @@ private:
 	std::map<int, std::map<eIndicatorState, std::vector<VehicleDummy*>>> dummies;
 
 	void registerMaterial(CVehicle* vehicle, RpMaterial* &material, eIndicatorState state);
+	void registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent, eIndicatorState state, eDummyRotation rot);
 	void enableMaterial(RpMaterial* material);
 	void enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle);
 	

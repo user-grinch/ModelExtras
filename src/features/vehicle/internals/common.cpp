@@ -14,7 +14,8 @@ void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green,
 	if (differenceAngle < 90.0f || differenceAngle > 270.0f)
 		return;
 
-	return CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(pVeh) + 30 + id, pVeh, red, green, blue, alpha, pos,
+	unsigned int coronaID = reinterpret_cast<unsigned int>(pVeh) + 30 + id;
+	CCoronas::RegisterCorona(coronaID, pVeh, red, green, blue, alpha, pos,
 		size, 75.0f, CORONATYPE_HEADLIGHT, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, false);
 };
 
@@ -58,7 +59,7 @@ void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red,
 	CVector center = pVeh->TransformFromObjectSpace(
 		CVector(
 			position.x + (Offset * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-			position.y + ((1.5f + Offset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+			position.y + ((1.2f + Offset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
 			position.z
 		)
 	);
@@ -68,10 +69,9 @@ void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red,
 	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
 
 	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-	
-	CShadows::StoreCarLightShadow(pVeh, (int)pVeh + 222, pShadowTex, &center,
+	CShadows::StoreShadowToBeRendered(2, pShadowTex, &center,
 		up.x, up.y,
 		right.x, right.y,
-		red, green, blue,
-		7.0f);
+		128, red, green, blue,
+		2.0f, false, 1.0f, 0, true);
 };

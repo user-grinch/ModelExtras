@@ -76,7 +76,7 @@ void IndicatorFeature::Initialize() {
 			std::string stateStr = match.str(2);
 			eIndicatorState state = (toupper(stateStr[0]) == 'L') ? eIndicatorState::Left : eIndicatorState::Right;
 			eDummyRotation rot = (toupper(stateStr[1]) == 'F') ? eDummyRotation::Forward : eDummyRotation::Backward;
-			Indicator.dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 98, 0, 128 }));
+			Indicator.registerDummy(pVeh, pFrame, name, parent, state, rot);
 		}
 	});
 
@@ -174,7 +174,7 @@ void IndicatorFeature::Initialize() {
 		else {
 			float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
 
-			float cameraAngle = (((CCamera*)0xB6F028)->GetHeading() * 180.0f) / 3.14f;
+			float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 
 			for (std::vector<RpMaterial*>::iterator material = Indicator.materials[model][eIndicatorState::Left].begin(); material != Indicator.materials[model][eIndicatorState::Left].end(); ++material)
 				Indicator.enableMaterial((*material));
@@ -207,9 +207,13 @@ void IndicatorFeature::Initialize() {
 	};
 };
 
-void IndicatorFeature::registerMaterial(CVehicle* vehicle, RpMaterial* &material, eIndicatorState state) {
+void IndicatorFeature::registerMaterial(CVehicle* pVeh, RpMaterial* &material, eIndicatorState state) {
 	material->color.red = material->color.green = material->color.blue = 255;
-	materials[vehicle->m_nModelIndex][state].push_back(material);
+	materials[pVeh->m_nModelIndex][state].push_back(material);
+};
+
+void IndicatorFeature::registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent, eIndicatorState state, eDummyRotation rot) {
+	dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 98, 0, 128 }));
 };
 
 void IndicatorFeature::enableMaterial(RpMaterial* material) {

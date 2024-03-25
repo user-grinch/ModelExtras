@@ -192,14 +192,6 @@ void LightsFeature::enableMaterial(VehicleMaterial* material) {
 };
 
 void LightsFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
-	// if (dummy->Type < 2) {
-	// 	float dummyAngle = vehicleAngle + dummy->Angle;
-
-	// 	float differenceAngle = ((cameraAngle > dummyAngle) ? (cameraAngle - dummyAngle) : (dummyAngle - cameraAngle));
-
-	// 	if (differenceAngle < 90.0f || differenceAngle > 270.0f)
-	// 		return;
-	// }
 	Common::RegisterCorona(vehicle, dummy->Frame->modelling.pos, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 115, (CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + id, dummy->Size, dummy->CurrentAngle);
 	Common::RegisterShadow(vehicle, dummy->Frame->modelling.pos, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Angle, dummy->CurrentAngle);
 };

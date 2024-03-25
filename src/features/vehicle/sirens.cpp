@@ -457,10 +457,7 @@ void VehicleSirensFeature::readSirenConfiguration() {
 };
 
 void VehicleSirensFeature::readSirenConfigurationIVF() {
-	gLogger->info("Starting Improved Vehicle Functions (IVF) adaption process...");
-
 	// TODO: go through the IVF EMLs to see if there's duplicates
-
 	if (GetModuleHandleA("ImVehFt.asi"))
 		gLogger->info("ImVehFt.asi is running in your game, make sure you don't have duplicated models!");
 
@@ -616,8 +613,6 @@ void VehicleSirensFeature::readSirenConfigurationIVF() {
 			continue;
 		}
 	}
-
-	gLogger->info("Finished the ImVehFt adaption process!\n");
 };
 
 void VehicleSirensFeature::registerSirenConfiguration() {

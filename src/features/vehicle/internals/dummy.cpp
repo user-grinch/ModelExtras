@@ -28,7 +28,7 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
     //     return;
     // }
 
-    std::regex prmRegex("prm(\\d{2})(\\d{2})(\\d{2})(\\d)(\\d)(\\d{2})(\\d)(\\d)");
+    std::regex prmRegex("prm(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)");
     std::smatch match;
 
     if (std::regex_search(name, match, prmRegex)) {
@@ -37,10 +37,10 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
         Color.blue = VehicleDummy::ReadHex(*match[5].str().c_str(), *match[6].str().c_str());
         
         Type = static_cast<eDummyRotation>(match[7].str()[0] - '0');
-        Size = (static_cast<float>(match[8].str()[0] - '0')) / 10.0f;
-    } else {
+        Size = (static_cast<float>(match[9].str()[0] - '0')) / 10.0f;
+    } else if (std::regex_search(name, match, std::regex("turn"))){
         gLogger->warn(std::string(name + ", pattern not matched").c_str());
-        return;
+        // return;
     }
 
     if (Type == eDummyRotation::Forward && type != eDummyRotation::Forward)
