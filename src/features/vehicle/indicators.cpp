@@ -164,7 +164,7 @@ void IndicatorFeature::Initialize() {
 
 			if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false) || gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 				float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
-				float cameraAngle = (((CCamera*)0xB6F028)->GetHeading() * 180.0f) / 3.14f;
+				float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 
 				for (std::vector<VehicleDummy*>::iterator dummy = Indicator.dummies[model][state].begin(); dummy != Indicator.dummies[model][state].end(); ++dummy) {
 					id++;

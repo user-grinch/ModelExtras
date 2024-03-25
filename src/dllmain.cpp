@@ -5,6 +5,7 @@
 #include "features/vehicle/gear.h"
 #include "features/vehicle/plate.h"
 #include "features/vehicle/handlebar.h"
+#include "features/vehicle/steerwheel.h"
 #include "features/vehicle/lights.h"
 #include "features/vehicle/indicators.h"
 #include "features/vehicle/spotlights.h"
@@ -37,7 +38,12 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityTy
 
         if (type == eModelEntityType::Vehicle) {
             CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
-            HandleBar.Process(frame, pVeh);
+            if (gConfig.ReadBoolean("FEATURES", "RotateHandleBars", false)) {
+                HandleBar.Process(frame, pVeh);
+            }
+            if (gConfig.ReadBoolean("FEATURES", "RotateSteerWheel", false)) {
+                SteerWheel.Process(frame, pVeh);
+            }
         }
 
         if ((name[0] == 'x' && name[1] == '_') || (name[0] == 'f' && name[1] == 'c' && name[2] == '_')
