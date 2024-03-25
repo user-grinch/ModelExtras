@@ -10,16 +10,16 @@ CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
     return CVector2D(0.0f, 0.0f);
 }
 
-void DrawTurnlight(CVehicle *vehicle, eDummyRotation indicatorPos, bool leftSide) {
+void DrawTurnlight(CVehicle *pVeh, eDummyRotation indicatorPos, bool leftSide) {
     CVector posn =
-        reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[static_cast<int>(indicatorPos)];
+        reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[static_cast<int>(indicatorPos)];
 	
     if (posn.x == 0.0f) posn.x = 0.15f;
     if (leftSide) posn.x *= -1.0f;
 	int dummyId = static_cast<int>(indicatorPos) + (leftSide ? 0 : 2);
-
-	Common::RegisterShadow(vehicle, posn, 255, 128, 0, (indicatorPos == eDummyRotation::Backward) ? 180.0f : 0.0f, 0.0f);
-    Common::RegisterCorona(vehicle, posn, 255, 128, 0, 255, dummyId, 0.3f);
+	float dummyAngle = (indicatorPos == eDummyRotation::Backward) ? 180.0f : 0.0f;
+	Common::RegisterShadow(pVeh, posn, 255, 128, 0, dummyAngle, 0.0f);
+    Common::RegisterCorona(pVeh, posn, 255, 128, 0, 255, dummyId, 0.3f, dummyAngle);
 }
 
 void DrawVehicleTurnlights(CVehicle *vehicle, eIndicatorState lightsStatus) {
@@ -218,15 +218,6 @@ void IndicatorFeature::enableMaterial(RpMaterial* material) {
 };
 
 void IndicatorFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
-	// if (dummy->Type < 2) {
-	// 	float dummyAngle = vehicleAngle + dummy->Angle;
-
-	// 	float differenceAngle = ((cameraAngle > dummyAngle) ? (cameraAngle - dummyAngle) : (dummyAngle - cameraAngle));
-
-	// 	// if (differenceAngle < 90.0f || differenceAngle > 270.0f)
-	// 	// 	return;
-	// }
-
 	Common::RegisterShadow(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, dummy->Angle, dummy->CurrentAngle);
-	Common::RegisterCorona(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 115, id, dummy->Size);
+	Common::RegisterCorona(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 80, id, dummy->Size, dummy->CurrentAngle);
 };

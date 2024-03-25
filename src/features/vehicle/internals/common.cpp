@@ -2,10 +2,20 @@
 #include "common.h"
 #include <CCoronas.h>
 #include <CShadows.h>
+#include <CCamera.h>
 
-void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, int id, float size) {
+void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, int id, float size, float dummyAngle) {
+
+	float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
+	float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
+	float relativeAngle = vehicleAngle + dummyAngle;
+	float differenceAngle = ((cameraAngle > relativeAngle) ? (cameraAngle - relativeAngle) : (relativeAngle - cameraAngle));
+
+	if (differenceAngle < 90.0f || differenceAngle > 270.0f)
+		return;
+
 	return CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(pVeh) + 30 + id, pVeh, red, green, blue, alpha, pos,
-		size, 150.0f, CORONATYPE_HEADLIGHT, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, false);
+		size, 75.0f, CORONATYPE_HEADLIGHT, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, false);
 };
 
 void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, int id, float cameraAngle, float angle, float radius, float size) {
@@ -35,7 +45,7 @@ void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uc
 		alpha = static_cast<char>(alphaFloat * multiplier);
 	}
 
-	return RegisterCorona(pVeh, posn, red, green, blue, alpha, id, size);
+	return RegisterCorona(pVeh, posn, red, green, blue, alpha, id, size, 0.0f);
 };
 
 void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, float angle, float currentAngle) {
@@ -45,13 +55,10 @@ void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red,
 	}
 
 	float Offset = 0.0f;
-	float Size = 0.6f;
-	float InertiaMultiplier = 1.0f;
-	
 	CVector center = pVeh->TransformFromObjectSpace(
 		CVector(
 			position.x + (Offset * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-			position.y + ((0.5f + Offset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+			position.y + ((1.5f + Offset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
 			position.z
 		)
 	);
@@ -61,10 +68,10 @@ void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red,
 	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
 
 	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-
-	CShadows::StoreShadowToBeRendered(2, pShadowTex, &center,
+	
+	CShadows::StoreCarLightShadow(pVeh, (int)pVeh + 222, pShadowTex, &center,
 		up.x, up.y,
 		right.x, right.y,
-		1, red, green, blue,
-		2.0f, false, 1.0f, 0, true);
+		red, green, blue,
+		7.0f);
 };

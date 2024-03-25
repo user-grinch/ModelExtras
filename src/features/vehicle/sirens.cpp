@@ -466,6 +466,11 @@ void VehicleSirensFeature::readSirenConfigurationIVF() {
 
 	std::string path { MOD_DATA_PATH("sirens/ImVehFt/") };
 
+	if (!std::filesystem::exists(path)) {
+		gLogger->warn("sirens/ImVehFt folder does not exist!");
+		return;
+	}
+
 	for (auto& p : std::filesystem::recursive_directory_iterator(path)) {
 		if (p.path().extension() != ".eml")
 			continue;
@@ -705,7 +710,7 @@ void VehicleSirensFeature::Initialize() {
 			foundDigit = true;
 		}
 
-		int mat = std::stoi(material);
+		int mat = std::stoi(material == "" ? "0" : material);
 		if (matCalcNeeded) {
 			mat = 256 - mat;
 		}
@@ -1042,7 +1047,7 @@ void VehicleSirensFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* ve
 	material->Color.blue, dummy->Angle, dummy->CurrentAngle);
 	Common::RegisterCorona(vehicle, dummy->Position, material->Color.red, material->Color.green, 
 		material->Color.blue, material->Color.alpha, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
-		 material->Size);
+		 material->Size, dummy->CurrentAngle);
 };
 
 VehicleSiren::VehicleSiren(CVehicle* pVeh) {
