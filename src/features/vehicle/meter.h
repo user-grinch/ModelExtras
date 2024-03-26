@@ -87,3 +87,41 @@ class SpeedMeterFeature : public IFeature {
 };
 
 extern SpeedMeterFeature SpeedMeter;
+
+class TachoMeterFeature : public IFeature {
+  protected:
+    struct VehData {
+        bool m_bInitialized = false;
+        int m_nMaxVal = 0;
+        float m_fCurRotation = 0.0f;
+        float m_fMaxRotation = 0.0f;
+
+        VehData(CVehicle *pVeh) {}
+        ~VehData() {}
+    };
+
+    VehicleExtendedData<VehData> vehData;
+
+  public:
+    void Initialize(RwFrame* frame, CVehicle* pVeh);
+    void Process(RwFrame* frame, CVehicle* pVeh);
+};
+
+extern TachoMeterFeature TachoMeter;
+
+class GasMeterFeature : public IFeature {
+  protected:
+    struct VehData {
+        bool m_bInitialized = false;
+        VehData(CVehicle *pVeh) {}
+        ~VehData() {}
+    };
+
+    VehicleExtendedData<VehData> vehData;
+
+  public:
+    void Initialize(RwFrame* frame, CVehicle* pVeh);
+    void Process(RwFrame* frame, CVehicle* pVeh);
+};
+
+extern GasMeterFeature GasMeter;

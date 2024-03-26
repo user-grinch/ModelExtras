@@ -98,7 +98,7 @@ void RpmMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 void RpmMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     std::string name = GetFrameNodeName(frame);
-    if (NODE_FOUND(name, "x_rpm")|| NODE_FOUND(name, "fc_rpm")) {
+    if (NODE_FOUND(name, "_rpm")) {
         VehData &data = vehData.Get(pVeh);
         if (!data.m_bInitialized) {
             Initialize(frame, pVeh);
@@ -140,8 +140,12 @@ void SpeedMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 void SpeedMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     std::string name = GetFrameNodeName(frame);
-    if (NODE_FOUND(name, "x_sm") || NODE_FOUND(name, "fc_sm")) {
+    if (NODE_FOUND(name, "_sm") || NODE_FOUND(name, "speedook")) {
         VehData &data = vehData.Get(pVeh);
+        if (!data.m_bInitialized) {
+            Initialize(frame, pVeh);
+            data.m_bInitialized = true;
+        }
         float speed = Util::GetVehicleSpeedRealistic(pVeh);
         float delta = CTimer::ms_fTimeScale;
 
@@ -154,5 +158,52 @@ void SpeedMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
         Util::SetFrameRotationY(frame, change);
 
         data.m_fCurRotation += change;
+    }
+}
+
+TachoMeterFeature TachoMeter;
+
+void TachoMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
+    VehData &data = vehData.Get(pVeh);
+    std::string name = GetFrameNodeName(pFrame);
+    data.m_nMaxVal = std::stoi(Util::GetRegexVal(name, ".*m([0-9]+).*", "50"));
+    data.m_fMaxRotation = std::stof(Util::GetRegexVal(name, ".*r([0-9]+).*", "100"));
+}
+
+void TachoMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
+    std::string name = GetFrameNodeName(frame);
+    if (NODE_FOUND(name, "x_tm") || NODE_FOUND(name, "tahook")) {
+        VehData &data = vehData.Get(pVeh);
+        if (!data.m_bInitialized) {
+            Initialize(frame, pVeh);
+            data.m_bInitialized = true;
+        }
+        float reading = Util::GetVehicleSpeedRealistic(pVeh) / 5.0f;
+        float delta = CTimer::ms_fTimeScale;
+
+        float totalRot = (data.m_fMaxRotation / data.m_nMaxVal) * reading * delta;
+        totalRot = totalRot > data.m_fMaxRotation ? data.m_fMaxRotation : totalRot;
+        totalRot = totalRot < 0 ? 0 : totalRot;
+
+        float change = (totalRot - data.m_fCurRotation) * 0.5f * delta;
+
+        Util::SetFrameRotationY(frame, change);
+
+        data.m_fCurRotation += change;
+    }
+}
+
+GasMeterFeature GasMeter;
+
+void GasMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
+    VehData &data = vehData.Get(pVeh);
+    if (data.m_bInitialized) {
+        return;
+    }
+
+    std::string name = GetFrameNodeName(frame);
+    if (NODE_FOUND(name, "x_gm") || NODE_FOUND(name, "petrolok")) {
+        Util::SetFrameRotationY(frame, Random(20.0f, 70.0f));
+        data.m_bInitialized = true;
     }
 }

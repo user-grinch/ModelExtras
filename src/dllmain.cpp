@@ -46,10 +46,9 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityTy
             }
         }
 
-        if ((name[0] == 'x' && name[1] == '_') || (name[0] == 'f' && name[1] == 'c' && name[2] == '_')
-        || name == "spotlight_dummy") {
+        CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
+        if ((name[0] == 'x' && name[1] == '_') || (name[0] == 'f' && name[1] == 'c' && name[2] == '_')){
             if (type == eModelEntityType::Vehicle) {
-                CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
                 Chain.Process(frame, pVeh);
                 FrontBrake.Process(frame, pVeh);
                 RearBrake.Process(frame, pVeh);
@@ -57,11 +56,11 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityTy
                 OdoMeter.Process(frame, pVeh);
                 RpmMeter.Process(frame, pVeh);
                 SpeedMeter.Process(frame, pVeh);
+                TachoMeter.Process(frame, pVeh);
                 Clutch.Process(frame, pVeh);
                 GearLever.Process(frame, pVeh);
                 GearSound.Process(frame, pVeh);
                 Randomizer.Process(frame, static_cast<void*>(pVeh), type);
-                SpotLight.Process(frame, pVeh);
             } else if (type == eModelEntityType::Weapon) {
                 CWeapon *pWep = static_cast<CWeapon*>(pEntity);
                 BodyState.Process(frame, pWep);
@@ -80,6 +79,19 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityTy
                 Randomizer.Process(frame, pEntity, type);
             }
         }
+ 
+
+        // Compatibility with older plugins
+        if (name == "spotlight_dummy") {
+            SpotLight.Process(frame, pVeh);
+        } else if (NODE_FOUND(name, "speedook")) {
+            SpeedMeter.Process(frame, pVeh);
+        } else if (NODE_FOUND(name, "tahook")) {
+            TachoMeter.Process(frame, pVeh);
+        } else if (NODE_FOUND(name, "petrolok")) {
+            GasMeter.Process(frame, pVeh);
+        }
+
         // LicensePlate.Process(frame, pVeh);
 
         if (RwFrame * newFrame = frame->child) {
