@@ -24,10 +24,11 @@ public:
 
 class VehicleMaterials {
 private:
-    static inline std::vector<std::function<RpMaterial*(CVehicle*, RpMaterial*)>> functions;
+    static inline std::vector<std::function<RpMaterial*(CVehicle*, RpMaterial*, bool*)>> functions;
     static inline std::vector<std::function<void(CVehicle*, RwFrame*, std::string, bool)>> dummy;
     static inline std::vector<std::function<void(CVehicle*)>> renders;
     static inline std::map<int, std::map<RpMaterial*, bool>> materials;
+    static inline std::map<int, std::vector<RwTexture*>> registeredMats;
     static inline std::map<int, std::map<RwFrame*, bool>> frames;
     static inline std::map<int, bool> dummies;
     static inline CVehicle* currentVehicle;
@@ -36,7 +37,7 @@ private:
     static void findDummies(CVehicle* vehicle, RwFrame* frame, bool parent = false);
 
 public:
-    static void Register(std::function<RpMaterial*(CVehicle*, RpMaterial*)> function);
+    static void Register(std::function<RpMaterial*(CVehicle*, RpMaterial*, bool*)> function);
     static void RegisterDummy(std::function<void(CVehicle*, RwFrame*, std::string, bool)> function);
     static void RegisterRender(std::function<void(CVehicle*)> render);
     static void OnModelSet(CVehicle* vehicle, int model);

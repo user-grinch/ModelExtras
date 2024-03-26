@@ -19,7 +19,7 @@ void DrawTurnlight(CVehicle *pVeh, eDummyRotation indicatorPos, bool leftSide) {
 	int dummyId = static_cast<int>(indicatorPos) + (leftSide ? 0 : 2);
 	float dummyAngle = (indicatorPos == eDummyRotation::Backward) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, 255, 128, 0, dummyAngle, 0.0f);
-    Common::RegisterCorona(pVeh, posn, 255, 128, 0, 255, dummyId, 0.3f, dummyAngle);
+    Common::RegisterCorona(pVeh, posn, 255, 128, 0, 128, dummyId, 0.5f, dummyAngle);
 }
 
 void DrawVehicleTurnlights(CVehicle *vehicle, eIndicatorState lightsStatus) {
@@ -41,32 +41,29 @@ float GetZAngleForPoint(CVector2D const &point) {
 
 IndicatorFeature Indicator;
 void IndicatorFeature::Initialize() {
-	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
+	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, bool* clearMats) {
 		if (material->color.blue == 0) {
 			if (material->color.red == 255) {
 				if (material->color.green > 55 && material->color.green < 59) {
 					Indicator.registerMaterial(vehicle, material, eIndicatorState::Right);
-				
-					return material;
+					*clearMats = true;
 				}
-				else return material;
 			}
 			else if (material->color.green == 255) {
 				if (material->color.red > 180 && material->color.red < 184) {
 					Indicator.registerMaterial(vehicle, material, eIndicatorState::Left);
-
-					return material;
+					*clearMats = true;
 				}
-				else return material;
 			}
-			else return material;
 		}
 
-		if (material->color.red != 255 || ((material->color.green < 4) || (material->color.green > 5)) || material->color.blue != 128 || std::string(material->texture->name).rfind("light", 0) != 0)
-			return material;
-
-		Indicator.registerMaterial(vehicle, material, (material->color.green == 4) ? eIndicatorState::Left : eIndicatorState::Right);
-	
+		if (material->color.red == 255 
+		&& (material->color.green == 4 ||  material->color.green == 5) 
+		&& material->color.blue == 128 
+		&& std::string(material->texture->name).rfind("light", 0) == 0) {
+			Indicator.registerMaterial(vehicle, material, (material->color.green == 4) ? eIndicatorState::Left : eIndicatorState::Right);
+			*clearMats = true;
+		}
 		return material;
 	});
 
@@ -233,7 +230,6 @@ void IndicatorFeature::Initialize() {
 };
 
 void IndicatorFeature::registerMaterial(CVehicle* pVeh, RpMaterial* material, eIndicatorState state) {
-	material->color.red = material->color.green = material->color.blue = 255;
 	materials[pVeh->m_nModelIndex][state].push_back(new VehicleMaterial(material));
 };
 
@@ -263,6 +259,6 @@ void IndicatorFeature::enableMaterial(VehicleMaterial* material) {
 void IndicatorFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		Common::RegisterCorona(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			80, id, dummy->Size, dummy->CurrentAngle);
+			128, id, 0.5f, dummy->CurrentAngle);
 	}
 };

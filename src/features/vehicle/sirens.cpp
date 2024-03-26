@@ -655,7 +655,7 @@ void VehicleSirensFeature::Initialize() {
 	readSirenConfigurationIVF();
 	registerSirenConfiguration();
 
-	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
+	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, bool* clearMats) {
 		if (std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0 || material->color.green != 255 || material->color.blue != 255) {
 			if(material->color.red < 240 || material->color.green != 0 || material->color.blue != 0)
 				return material;
@@ -666,7 +666,6 @@ void VehicleSirensFeature::Initialize() {
 		}
 
 		VehicleSirens.registerMaterial(vehicle, material);
-
 		return material;
 	});
 

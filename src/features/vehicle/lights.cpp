@@ -6,7 +6,8 @@
 LightsFeature Lights;
 #include <CHud.h>
 void LightsFeature::Initialize() {
-	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
+	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, bool* clearMats) {
+		*clearMats = true;
 		if (material->color.red == 255 && material->color.blue == 128) {
 			if (material->color.green == 1)
 				Lights.registerMaterial(vehicle, material, eLightState::LightLeft);
@@ -28,8 +29,9 @@ void LightsFeature::Initialize() {
 
 			else if (material->color.green == 9)
 				Lights.registerMaterial(vehicle, material, eLightState::Light);
-		}
-		else if (material->color.red == 255 && material->color.green == 173 && material->color.blue == 0)
+			else
+				*clearMats = false;
+		} else if (material->color.red == 255 && material->color.green == 173 && material->color.blue == 0)
 			Lights.registerMaterial(vehicle, material, eLightState::Reverselight);
 
 		else if (material->color.red == 0 && material->color.green == 255 && material->color.blue == 198)
@@ -54,6 +56,8 @@ void LightsFeature::Initialize() {
 
 		else if (material->color.red == 0 && material->color.green == 255 && material->color.blue == 199)
 			Lights.registerMaterial(vehicle, material, eLightState::FogLightRight);
+		else 
+			*clearMats = false;
 
 		return material;
 	});
@@ -121,8 +125,7 @@ void LightsFeature::Initialize() {
 		CAutomobile* automobile = reinterpret_cast<CAutomobile*>(pVeh);
 
 		float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
-
-		float cameraAngle = (((CCamera*)0xB6F028)->GetHeading() * 180.0f) / 3.14f;
+		float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 
 		Lights.renderLights(pVeh, eLightState::Light, vehicleAngle, cameraAngle);
 
@@ -165,11 +168,9 @@ void LightsFeature::renderLights(CVehicle* vehicle, eLightState state, float veh
 	for (std::vector<VehicleMaterial*>::iterator material = materials[vehicle->m_nModelIndex][state].begin(); material != materials[vehicle->m_nModelIndex][state].end(); ++material)
 		enableMaterial((*material));
 
-	int id = (int)state * 100;
-
-	int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-
 	if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false) || gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+		int id = (int)state * 100;
+		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 		for (std::vector<VehicleDummy*>::iterator dummy = dummies[index][state].begin(); dummy != dummies[index][state].end(); ++dummy) {
 			id++;
 

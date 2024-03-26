@@ -15,7 +15,7 @@ VehicleMaterial::VehicleMaterial(RpMaterial* material) {
         TextureActive = newTexture;
 }
 
-void VehicleMaterials::Register(std::function<RpMaterial*(CVehicle*, RpMaterial*)> function) {
+void VehicleMaterials::Register(std::function<RpMaterial*(CVehicle*, RpMaterial*, bool*)> function) {
     functions.push_back(function);
 }
 
@@ -33,7 +33,7 @@ void VehicleMaterials::OnModelSet(CVehicle* vehicle, int model) {
     RpClumpForAllAtomics(vehicle->m_pRwClump, [](RpAtomic* atomic, void* data) {
         if (!atomic->geometry)
             return atomic;
-
+        
         RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial* material, void* data) {
             if (!material || !material->texture)
                 return material;
@@ -41,16 +41,35 @@ void VehicleMaterials::OnModelSet(CVehicle* vehicle, int model) {
             if (materials[currentVehicle->m_nModelIndex].contains(material))
                 return material;
 
-            for (auto& function : functions)
-                function(currentVehicle, material);
+            for (auto& function : functions) {
+                bool clearMat = false;
+                function(currentVehicle, material, &clearMat);
+
+                if (clearMat) {
+                    registeredMats[reinterpret_cast<CVehicle*>(data)->m_nModelIndex].push_back(material->texture);
+                }
+            }
 
             materials[currentVehicle->m_nModelIndex][material] = true;
 
             return material;
-        }, atomic);
+        }, data);
+
+        RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial* material, void* data) {
+            if (!material || !material->texture)
+                return material;
+
+            for (auto e: registeredMats[reinterpret_cast<CVehicle*>(data)->m_nModelIndex]) {
+                if (material->texture == e) {
+                    material->color.red = material->color.green = material->color.blue = 255;
+                }
+            }
+
+            return material;
+        }, data);
 
         return atomic;
-    }, nullptr);
+    }, vehicle);
 
     if (!dummies.contains(currentVehicle->m_nModelIndex) || !dummies[currentVehicle->m_nModelIndex]) {
         dummies[currentVehicle->m_nModelIndex] = true;
