@@ -99,7 +99,7 @@ void IndicatorFeature::Initialize() {
 			if (KeyPressed(VK_X)) {
 				data.indicatorState = eIndicatorState::Both;
 			}
-		} else {
+		} else if (pVeh->m_pDriver) {
 			data.indicatorState = eIndicatorState::None;
 			CVector2D prevPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nPreviousPathNodeInfo);
 			CVector2D currPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nCurrentPathNodeInfo);

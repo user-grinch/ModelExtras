@@ -137,7 +137,7 @@ void LightsFeature::Initialize() {
 		if (pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver)
 			Lights.renderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
 
-		if (pVeh->m_fBreakPedal)
+		if (pVeh->m_fBreakPedal && pVeh->m_pDriver)
 			Lights.renderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
 		
 		if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT)) {
