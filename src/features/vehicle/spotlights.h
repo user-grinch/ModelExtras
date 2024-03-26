@@ -21,8 +21,8 @@ public:
 	void OnVehicleRender(CVehicle *pVeh);
 
 public:
-	void Initialize(RwFrame* frame, CVehicle* pVeh, std::string& name);
-	void Process(RwFrame* frame, CVehicle* pVeh, std::string& name);
+	void Initialize(RwFrame* frame, CVehicle* pVeh);
+	void Process(RwFrame* frame, CVehicle* pVeh);
 };
 
 extern SpotLightFeature SpotLight;

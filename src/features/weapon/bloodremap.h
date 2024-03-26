@@ -23,8 +23,8 @@ struct FrameData {
 class BloodRemapFeature : public IFeature {
   WeaponExtender<FrameData> xData;
   public:
-    void Initialize(RwFrame* frame, CWeapon* pWeapon, std::string &name);
-    void Process(RwFrame* frame, CWeapon *pWeapon, std::string &name);
+    void Initialize(RwFrame* frame, CWeapon* pWeapon);
+    void Process(RwFrame* frame, CWeapon *pWeapon);
 };
 
 extern BloodRemapFeature BloodRemap;

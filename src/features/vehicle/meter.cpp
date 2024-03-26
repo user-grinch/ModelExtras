@@ -2,17 +2,17 @@
 #include "Meter.h"
 
 GearMeterFeature GearMeter;
-void GearMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {
+void GearMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     Util::StoreChilds(pFrame, data.m_FrameList);
 }
 
-void GearMeterFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
+void GearMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
-    
+    std::string name = GetFrameNodeName(frame);
     if (NODE_FOUND(name, "x_gearmeter") || NODE_FOUND(name, "fc_gm")) {
         if (!data.m_bInitialized) {
-            Initialize(frame, pVeh, name);
+            Initialize(frame, pVeh);
             data.m_bInitialized = true;
         }
 
@@ -29,24 +29,24 @@ void GearMeterFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name
 
 OdoMeterFeature OdoMeter;
 
-void OdoMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {
+void OdoMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     Util::StoreChilds(pFrame, data.m_FrameList);
     data.m_nTempVal = 1234 + rand() % (57842 - 1234);
 
-    
+    std::string name = GetFrameNodeName(pFrame);
     if (NODE_FOUND(name, "_kph")) {
         data.m_fMul = 100;
     }
 
 }
 
-void OdoMeterFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
+void OdoMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
-    
+    std::string name = GetFrameNodeName(frame);
     if (NODE_FOUND(name, "x_ometer") || NODE_FOUND(name, "fc_om")) {
         if (!data.m_bInitialized) {
-            Initialize(frame, pVeh, name);
+            Initialize(frame, pVeh);
             data.m_bInitialized = true;
         }
 
@@ -88,20 +88,20 @@ void OdoMeterFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name)
 
 RpmMeterFeature RpmMeter;
 
-void RpmMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {
+void RpmMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
-    
+    std::string name = GetFrameNodeName(pFrame);
     data.m_nMaxRpm = std::stoi(Util::GetRegexVal(name, ".*m([0-9]+).*", "100"));
     data.m_fMaxRotation = std::stof(Util::GetRegexVal(name, ".*r([0-9]+).*", "100"));
 
 }
 
-void RpmMeterFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
-    
+void RpmMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
+    std::string name = GetFrameNodeName(frame);
     if (NODE_FOUND(name, "x_rpm")|| NODE_FOUND(name, "fc_rpm")) {
         VehData &data = vehData.Get(pVeh);
         if (!data.m_bInitialized) {
-            Initialize(frame, pVeh, name);
+            Initialize(frame, pVeh);
             data.m_bInitialized = true;
         }
 
@@ -127,9 +127,9 @@ void RpmMeterFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name)
 
 SpeedMeterFeature SpeedMeter;
 
-void SpeedMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {
+void SpeedMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
-    
+    std::string name = GetFrameNodeName(pFrame);
     if (NODE_FOUND(name, "_kph")) {
         data.m_fMul= 100.0f;
     }
@@ -138,15 +138,10 @@ void SpeedMeterFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string&
     data.m_fMaxRotation = std::stof(Util::GetRegexVal(name, ".*r([0-9]+).*", "100"));
 }
 
-void SpeedMeterFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
-    
-    if (NODE_FOUND(name, "x_sm") || NODE_FOUND(name, "fc_sm") || NODE_FOUND(name, "speedook")) {
+void SpeedMeterFeature::Process(RwFrame* frame, CVehicle* pVeh) {
+    std::string name = GetFrameNodeName(frame);
+    if (NODE_FOUND(name, "x_sm") || NODE_FOUND(name, "fc_sm")) {
         VehData &data = vehData.Get(pVeh);
-        if (!data.m_bInitialized) {
-            Initialize(frame, pVeh, name);
-            data.m_bInitialized = true;
-        }
-
         float speed = Util::GetVehicleSpeedRealistic(pVeh);
         float delta = CTimer::ms_fTimeScale;
 

@@ -24,8 +24,8 @@ class BodyStateFeature : public IFeature {
   WeaponExtender<xData> wepData;
 
   public:
-    void Process(RwFrame* frame, CWeapon *pWeapon, std::string &name);
-    void ProcessZen(RwFrame* frame, CWeapon *pWeapon, std::string &name);
+    void Process(RwFrame* frame, CWeapon *pWeapon);
+    void ProcessZen(RwFrame* frame, CWeapon *pWeapon);
 };
 
 extern BodyStateFeature BodyState;

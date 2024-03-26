@@ -3,18 +3,18 @@
 
 ChainFeature Chain;
 
-void ChainFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {
+void ChainFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     VehData &data = vehData.Get(pVeh);
     Util::StoreChilds(pFrame, data.m_FrameList);
 
 }
 
-void ChainFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
-    
+void ChainFeature::Process(RwFrame* frame, CVehicle* pVeh) {
+    std::string name = GetFrameNodeName(frame);
     if (NODE_FOUND(name, "x_chain") || NODE_FOUND(name, "fc_chain")) {
         VehData &data = vehData.Get(pVeh);
         if (!data.m_bInitialized) {
-            Initialize(frame, pVeh, name);
+            Initialize(frame, pVeh);
             data.m_bInitialized = true;
         }
         uint timer = CTimer::m_snTimeInMilliseconds * CTimer::ms_fTimeScale;;

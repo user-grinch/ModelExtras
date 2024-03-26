@@ -30,16 +30,16 @@ class ClutchFeature : public IFeature {
     VehicleExtendedData<VehData> vehData;
 
   public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh, std::string& name);
-    void Process(RwFrame* frame, CVehicle* pVeh, std::string& name);
+    void Initialize(RwFrame* frame, CVehicle* pVeh);
+    void Process(RwFrame* frame, CVehicle* pVeh);
 };
 
 extern ClutchFeature Clutch;
 
 class GearLeverFeature : public ClutchFeature {
   public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh, std::string& name);
-    void Process(RwFrame* frame, CVehicle* pVeh, std::string& name);
+    void Initialize(RwFrame* frame, CVehicle* pVeh);
+    void Process(RwFrame* frame, CVehicle* pVeh);
 };
 
 extern GearLeverFeature GearLever;
@@ -59,8 +59,8 @@ class GearSoundFeature : public IFeature {
     VehicleExtendedData<VehData> vehData;
 
   public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh, std::string& name);
-    void Process(RwFrame* frame, CVehicle* pVeh, std::string& name);
+    void Initialize(RwFrame* frame, CVehicle* pVeh);
+    void Process(RwFrame* frame, CVehicle* pVeh);
 };
 
 extern GearSoundFeature GearSound;

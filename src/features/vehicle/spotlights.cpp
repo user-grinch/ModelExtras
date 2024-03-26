@@ -4,7 +4,7 @@
 #include <CCoronas.h>
 
 SpotLightFeature SpotLight;
-void SpotLightFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {    
+void SpotLightFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {    
 	if (!bHooksInjected) {
 		Events::vehicleRenderEvent += [this](CVehicle *pVeh) {
 			OnVehicleRender(pVeh);
@@ -20,11 +20,11 @@ void SpotLightFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& 
     data.pFrame = pFrame;
 }
 
-void SpotLightFeature::Process(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {    
+void SpotLightFeature::Process(RwFrame* pFrame, CVehicle* pVeh) {    
     VehData &data = vehData.Get(pVeh);
     
 	if (!data.bInit) {
-		Initialize(pFrame, pVeh, name);
+		Initialize(pFrame, pVeh);
 		data.bInit = true;
 	}
 }
