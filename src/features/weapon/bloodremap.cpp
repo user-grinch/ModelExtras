@@ -8,9 +8,8 @@
 
 BloodRemapFeature BloodRemap;
 
-void BloodRemapFeature::Initialize(RwFrame* pFrame, CWeapon* pWeapon) {
+void BloodRemapFeature::Initialize(RwFrame* pFrame, CWeapon* pWeapon, std::string &name) {
     FrameData &data = xData.Get(pWeapon);
-    std::string name = GetFrameNodeName(pFrame);
     std::string str = Util::GetRegexVal(name, "x_remap_(.*)", "");
 
     CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(pWeapon->m_eWeaponType, FindPlayerPed()->GetWeaponSkill(pWeapon->m_eWeaponType));
@@ -39,14 +38,14 @@ void BloodRemapFeature::Initialize(RwFrame* pFrame, CWeapon* pWeapon) {
     }
 }
 
-void BloodRemapFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
+void BloodRemapFeature::Process(RwFrame* frame, CWeapon *pWeapon, std::string &name) {
     FrameData &data = xData.Get(pWeapon);
-    std::string name = GetFrameNodeName(frame);
+    
     data.m_CurNode = name;
     if (NODE_FOUND(name, "x_remap")) {
 
         if (!data.m_Textures[name].m_bInit) {
-            Initialize(frame, pWeapon);
+            Initialize(frame, pWeapon, name);
             data.m_Textures[name].m_bInit = true;
         }
 

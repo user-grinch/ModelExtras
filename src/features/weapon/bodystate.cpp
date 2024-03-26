@@ -8,9 +8,9 @@ float GetStatValue(unsigned short stat) {
     return plugin::CallAndReturn<float, 0x558E40, unsigned short>(stat);
 }
 
-void BodyStateFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
+void BodyStateFeature::Process(RwFrame* frame, CWeapon *pWeapon, std::string &name) {
     xData &data = wepData.Get(pWeapon);
-    std::string name = GetFrameNodeName(frame);
+    
     if (NODE_FOUND(name, "x_body_state") && name.find("x_body_state_zen") == std::string::npos) {
         bool isMuscle = GetStatValue(23) == 1000.0f;
         bool isFat = GetStatValue(21) == 1000.0f;
@@ -39,9 +39,9 @@ void BodyStateFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
     }
 }
 
-void BodyStateFeature::ProcessZen(RwFrame* frame, CWeapon *pWeapon) {
+void BodyStateFeature::ProcessZen(RwFrame* frame, CWeapon *pWeapon, std::string& name) {
     xData &data = wepData.Get(pWeapon);
-    std::string name = GetFrameNodeName(frame);
+    
     if (NODE_FOUND(name, "x_body_state_zen")) {
         bool isMuscle = GetStatValue(23) == 1000;
         bool isFat = GetStatValue(21) == 1000;

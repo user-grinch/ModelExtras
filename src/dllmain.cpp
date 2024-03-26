@@ -34,53 +34,51 @@ static void InitFeatures() {
 
 static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityType type) {
     if(frame) {
-        const std::string name = GetFrameNodeName(frame);
+        std::string name = GetFrameNodeName(frame);
+        if (type == eModelEntityType::Vehicle) {
+            CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
+            
+        }
 
         if (type == eModelEntityType::Vehicle) {
             CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
+            Chain.Process(frame, pVeh, name);
+            FrontBrake.Process(frame, pVeh, name);
+            RearBrake.Process(frame, pVeh, name);
+            GearMeter.Process(frame, pVeh, name);
+            OdoMeter.Process(frame, pVeh, name);
+            RpmMeter.Process(frame, pVeh, name);
+            SpeedMeter.Process(frame, pVeh, name);
+            Clutch.Process(frame, pVeh, name);
+            GearLever.Process(frame, pVeh, name);
+            GearSound.Process(frame, pVeh, name);
+            Randomizer.Process(frame, static_cast<void*>(pVeh), type, name);
+            SpotLight.Process(frame, pVeh, name);
+
             if (gConfig.ReadBoolean("FEATURES", "RotateHandleBars", false)) {
-                HandleBar.Process(frame, pVeh);
+                HandleBar.Process(frame, pVeh, name);
             }
             if (gConfig.ReadBoolean("FEATURES", "RotateSteerWheel", false)) {
-                SteerWheel.Process(frame, pVeh);
+                SteerWheel.Process(frame, pVeh, name);
             }
-        }
+        } else if (type == eModelEntityType::Weapon) {
+            CWeapon *pWep = static_cast<CWeapon*>(pEntity);
+            BodyState.Process(frame, pWep, name);
+            BodyState.ProcessZen(frame, pWep, name);
+            BloodRemap.Process(frame, pWep, name);
+            Randomizer.Process(frame, static_cast<void*>(pWep), type, name);
+        } else if (type == eModelEntityType::Object) {
 
-        if ((name[0] == 'x' && name[1] == '_') || (name[0] == 'f' && name[1] == 'c' && name[2] == '_')
-        || name == "spotlight_dummy") {
-            if (type == eModelEntityType::Vehicle) {
-                CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
-                Chain.Process(frame, pVeh);
-                FrontBrake.Process(frame, pVeh);
-                RearBrake.Process(frame, pVeh);
-                GearMeter.Process(frame, pVeh);
-                OdoMeter.Process(frame, pVeh);
-                RpmMeter.Process(frame, pVeh);
-                SpeedMeter.Process(frame, pVeh);
-                Clutch.Process(frame, pVeh);
-                GearLever.Process(frame, pVeh);
-                GearSound.Process(frame, pVeh);
-                Randomizer.Process(frame, static_cast<void*>(pVeh), type);
-                SpotLight.Process(frame, pVeh);
-            } else if (type == eModelEntityType::Weapon) {
-                CWeapon *pWep = static_cast<CWeapon*>(pEntity);
-                BodyState.Process(frame, pWep);
-                BodyState.ProcessZen(frame, pWep);
-                BloodRemap.Process(frame, pWep);
-                Randomizer.Process(frame, static_cast<void*>(pWep), type);
-            } else if (type == eModelEntityType::Object) {
-
-                /*
-                    processing weapon & jetpack pickups here
-                */
-                CWeapon *pWep = static_cast<CWeapon*>(pEntity);
-                BodyState.Process(frame, pWep);
-                BodyState.ProcessZen(frame, pWep);
-            } else if (type == eModelEntityType::Ped) {
-                Randomizer.Process(frame, pEntity, type);
-            }
+            /*
+                processing weapon & jetpack pickups here
+            */
+            CWeapon *pWep = static_cast<CWeapon*>(pEntity);
+            BodyState.Process(frame, pWep, name);
+            BodyState.ProcessZen(frame, pWep, name);
+        } else if (type == eModelEntityType::Ped) {
+            Randomizer.Process(frame, pEntity, type, name);
         }
-        // LicensePlate.Process(frame, pVeh);
+        // LicensePlate.Process(frame, pVeh, name);
 
         if (RwFrame * newFrame = frame->child) {
             ProcessNodesRecursive(newFrame, pEntity, type);

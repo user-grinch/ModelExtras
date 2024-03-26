@@ -17,8 +17,8 @@ class GearMeterFeature : public IFeature {
     VehicleExtendedData<VehData> vehData;
 
   public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+    void Initialize(RwFrame* frame, CVehicle* pVeh, std::string& name);
+    void Process(RwFrame* frame, CVehicle* pVeh, std::string& name);
 };
 
 extern GearMeterFeature GearMeter;
@@ -39,8 +39,8 @@ class OdoMeterFeature : public IFeature {
     VehicleExtendedData<VehData> vehData;
 
   public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+    void Initialize(RwFrame* frame, CVehicle* pVeh, std::string& name);
+    void Process(RwFrame* frame, CVehicle* pVeh, std::string& name);
 };
 
 extern OdoMeterFeature OdoMeter;
@@ -60,8 +60,8 @@ class RpmMeterFeature : public IFeature {
     VehicleExtendedData<VehData> vehData;
 
   public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+    void Initialize(RwFrame* frame, CVehicle* pVeh, std::string& name);
+    void Process(RwFrame* frame, CVehicle* pVeh, std::string& name);
 };
 
 extern RpmMeterFeature RpmMeter;
@@ -82,8 +82,8 @@ class SpeedMeterFeature : public IFeature {
     VehicleExtendedData<VehData> vehData;
 
   public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+    void Initialize(RwFrame* frame, CVehicle* pVeh, std::string& name);
+    void Process(RwFrame* frame, CVehicle* pVeh, std::string& name);
 };
 
 extern SpeedMeterFeature SpeedMeter;

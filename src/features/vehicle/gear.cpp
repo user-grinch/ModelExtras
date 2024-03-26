@@ -4,20 +4,20 @@
 #include "../../soundsystem.h"
 
 ClutchFeature Clutch;
-void ClutchFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
+void ClutchFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {
     VehData &data = vehData.Get(pVeh);
-    std::string name = GetFrameNodeName(pFrame);
+    
     data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
     data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nCurOffset / 10));
 
 }
 
-void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh) {
+void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
     VehData &data = vehData.Get(pVeh);
-    std::string name = GetFrameNodeName(frame);
+    
     if (NODE_FOUND(name, "x_clutch") || NODE_FOUND(name, "fc_cl")) {
         if (!data.m_bInitialized) {
-            Initialize(frame, pVeh);
+            Initialize(frame, pVeh, name);
             data.m_bInitialized = true;
         }
         uint timer = CTimer::m_snTimeInMilliseconds;
@@ -67,9 +67,9 @@ void ClutchFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 }
 
 GearLeverFeature GearLever;
-void GearLeverFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
+void GearLeverFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {
     VehData &data = vehData.Get(pVeh);
-    std::string name = GetFrameNodeName(pFrame);
+    
     data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
     if (data.m_nCurOffset == 0) {
         data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_o(-?[0-9]+).*", "0"));
@@ -78,12 +78,12 @@ void GearLeverFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 }
 
-void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh) {
+void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
     VehData &data = vehData.Get(pVeh);
-    std::string name = GetFrameNodeName(frame);
+    
     if (NODE_FOUND(name, "x_gearlever") || NODE_FOUND(name, "fc_gl")) {
         if (!data.m_bInitialized) {
-            Initialize(frame, pVeh);
+            Initialize(frame, pVeh, name);
             data.m_bInitialized = true;
         }
         uint timer = CTimer::m_snTimeInMilliseconds;
@@ -127,9 +127,9 @@ void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh) {
 
 GearSoundFeature GearSound;
 
-void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
+void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {
     VehData &data = vehData.Get(pVeh);
-    std::string name = GetFrameNodeName(pFrame);
+    
     std::string regex = Util::GetRegexVal(name, "x_gs_(.*$)", "");
     std::string upPath = MOD_DATA_PATH_S(std::format("audio/{}.wav", regex));
 
@@ -137,12 +137,12 @@ void GearSoundFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     data.m_pUpAudio->SetVolume(0.5f);
 }
 
-void GearSoundFeature::Process(RwFrame* frame, CVehicle* pVeh) {
-    std::string name = GetFrameNodeName(frame);
+void GearSoundFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
+    
     if (NODE_FOUND(name, "x_gs")) {
         VehData &data = vehData.Get(pVeh);
         if (!data.m_bInitialized) {
-            Initialize(frame, pVeh);
+            Initialize(frame, pVeh, name);
             data.m_bInitialized = true;
         }
         if (data.m_nCurGear != pVeh->m_nCurrentGear) {

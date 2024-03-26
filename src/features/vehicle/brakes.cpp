@@ -4,9 +4,9 @@
 FrontBrakeFeature FrontBrake;
 RearBrakeFeature RearBrake;
 
-void FrontBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
+void FrontBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {
     VehData &data = vehData.Get(pVeh);
-    std::string name = GetFrameNodeName(pFrame);
+    
     data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
     if (data.m_nMaxRotation) {
         data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_az(-?[0-9]+).*", "0"));
@@ -15,9 +15,9 @@ void FrontBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 }
 
-void RearBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
+void RearBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {
     VehData &data = vehData.Get(pVeh);
-    std::string name = GetFrameNodeName(pFrame);
+    
     data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
     if (data.m_nMaxRotation) {
         data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_ax(-?[0-9]+).*", "0"));
@@ -26,13 +26,13 @@ void RearBrakeFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
 
 }
 
-void FrontBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
-    std::string name = GetFrameNodeName(frame);
+void FrontBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
+    
     if (NODE_FOUND(name, "x_fbrake") || NODE_FOUND(name, "fc_fbrake")) {
         VehData &data = vehData.Get(pVeh);
 
         if (!data.m_bInitialized) {
-            Initialize(frame, pVeh);
+            Initialize(frame, pVeh, name);
             data.m_bInitialized = true;
         }
 
@@ -72,13 +72,13 @@ void FrontBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
     IFeature::Process(frame, pVeh);
 }
 
-void RearBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
-    std::string name = GetFrameNodeName(frame);
+void RearBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
+    
     if (NODE_FOUND(name, "x_rbrake") || NODE_FOUND(name, "fc_rbrake")) {
         VehData &data = vehData.Get(pVeh);
 
         if (!data.m_bInitialized) {
-            Initialize(frame, pVeh);
+            Initialize(frame, pVeh, name);
             data.m_bInitialized = true;
         }
 

@@ -5,8 +5,8 @@
 
 HandleBarFeature HandleBar;
 
-void HandleBarFeature::Process(RwFrame* frame, CVehicle* pVeh) {
-    std::string name = GetFrameNodeName(frame);
+void HandleBarFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
+    
     bool src = NODE_FOUND(name, SOURCE_NODE);
     bool target = NODE_FOUND(name, TARGET_NODE);
     if (src || target) {

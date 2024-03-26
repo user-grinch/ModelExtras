@@ -4,8 +4,8 @@
 
 SteerWheelFeature SteerWheel;
 
-void SteerWheelFeature::Process(RwFrame* frame, CVehicle* pVeh) {
-    std::string name = GetFrameNodeName(frame);
+void SteerWheelFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
+    
     if (NODE_FOUND(name, "steer")) {
         VehData &data = xData.Get(pVeh);
         float angle = pVeh->m_fSteerAngle * 180 / 3.1416f;

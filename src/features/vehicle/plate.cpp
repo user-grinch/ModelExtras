@@ -3,7 +3,7 @@
 #include <CCustomCarPlateMgr.h>
 
 LicensePlateFeature LicensePlate;
-void LicensePlateFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
+void LicensePlateFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh, std::string& name) {
     CVehicleModelInfo *pVehModelInfo = static_cast<CVehicleModelInfo*>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));
     pVehModelInfo->m_pPlateMaterial = 0;
     pVehModelInfo->m_szPlateText[0] = 0;
@@ -15,13 +15,13 @@ void LicensePlateFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {
     }
 }
 
-void LicensePlateFeature::Process(RwFrame* frame, CVehicle* pVeh) {
+void LicensePlateFeature::Process(RwFrame* frame, CVehicle* pVeh, std::string& name) {
     VehData &data = vehData.Get(pVeh);
     if (!data.m_bInitialized) {
-        std::string name = GetFrameNodeName(frame);
+        
         // if (NODE_FOUND(name, "x_plate"))
         // {
-        Initialize(frame, pVeh);
+        Initialize(frame, pVeh, name);
         // }
     }
 }

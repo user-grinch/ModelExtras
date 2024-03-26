@@ -15,8 +15,8 @@ class HandleBarFeature : public IFeature {
     VehicleExtendedData<VehData> xData;
 
   public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+    void Initialize(RwFrame* frame, CVehicle* pVeh, std::string& name);
+    void Process(RwFrame* frame, CVehicle* pVeh, std::string& name);
 };
 
 extern HandleBarFeature HandleBar;
