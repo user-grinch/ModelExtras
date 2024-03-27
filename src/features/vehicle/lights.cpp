@@ -43,9 +43,9 @@ void LightsFeature::Initialize() {
 			Lights.registerMaterial(vehicle, material, eLightState::Daylight);
 
 		else if (material->color.red == 255 && material->color.green == 174 && material->color.blue == 0)
-			Lights.registerMaterial(vehicle, material, eLightState::FogLightLeft);
+			Lights.registerMaterial(vehicle, material, eLightState::FogLight);
 		else if (material->color.red == 0 && material->color.green == 255 && material->color.blue == 199)
-			Lights.registerMaterial(vehicle, material, eLightState::FogLightRight);
+			Lights.registerMaterial(vehicle, material, eLightState::FogLight);
 			
 		else if (material->color.red == 255 && material->color.green == 175 && material->color.blue == 0)
 			Lights.registerMaterial(vehicle, material, eLightState::FrontLightLeft);
@@ -68,7 +68,7 @@ void LightsFeature::Initialize() {
 
 		std::smatch match;
 		if (std::regex_search(name, match, std::regex("^fog(light)?_([a-zA-Z])"))) {
-			state = (toupper(match.str(2)[0]) == 'L') ? (eLightState::FogLightLeft) : (eLightState::FogLightRight);
+			state = (toupper(match.str(2)[0]) == 'L') ? (eLightState::FogLight) : (eLightState::FogLight);
 		} else if (std::regex_search(name, std::regex("^revl_")) || std::regex_search(name, std::regex("^reversingl_"))) {
 			state = eLightState::Reverselight;
 		} else if (std::regex_search(name, std::regex("^breakl(?:ight)?_"))) {
@@ -98,7 +98,7 @@ void LightsFeature::Initialize() {
 			size_t now = CTimer::m_snTimeInMilliseconds;
 			if (now - prev > 500.0f) {
 				int model = pVeh->m_nModelIndex;
-				if (materials[model][eLightState::FogLightLeft].size() == 0)
+				if (materials[model][eLightState::FogLight].size() == 0)
 					return;
 
 				VehData& data = vehData.Get(pVeh);
@@ -132,54 +132,51 @@ void LightsFeature::Initialize() {
 		if (pVeh->m_fBreakPedal && pVeh->m_pDriver)
 			Lights.renderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
 		
-		if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT)) {
-			if (pVeh->m_nVehicleFlags.bLightsOn && Lights.materials[model][eLightState::FrontLightLeft].size() != 0) {
+		if (pVeh->m_nVehicleFlags.bLightsOn) {
+			VehData& data = vehData.Get(pVeh);
+
+			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT) && 
+			!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)) {
+				if (data.m_bFogLightsOn && Lights.materials[model][eLightState::FogLight].size() != 0) {
+					Lights.renderLights(pVeh, eLightState::FogLight, vehicleAngle, cameraAngle);
+					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
+					posn.x = 0.0f;
+					posn.y += 3.35f;
+
+					static RwTexture *pLightTex = nullptr;
+					if (!pLightTex) {
+						pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/foglight.png")), 120);
+					}
+
+					CVector center = pVeh->TransformFromObjectSpace(posn);
+					float fAngle = pVeh->GetHeading() + (180.0f * 3.14f / 180.0f);
+					CVector up = CVector(-sin(fAngle) * 3.0f, cos(fAngle) * 3.0f, 0.0f);
+					CVector right = CVector(cos(fAngle) * 2.0f, sin(fAngle) * 2.0f, 0.0f);
+					CShadows::StoreShadowToBeRendered(2, pLightTex, &center, up.x, up.y, right.x, right.y, 128, 225, 225, 225, 4.0f, false, 1.0f, 0, true);
+				}
+			}
+
+			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT) 
+			&& Lights.materials[model][eLightState::FrontLightLeft].size() != 0) {
 				Lights.renderLights(pVeh, eLightState::FrontLightLeft, vehicleAngle, cameraAngle);
 			}
 
-			VehData& data = vehData.Get(pVeh);
-			if (data.m_bFogLightsOn && Lights.materials[model][eLightState::FogLightLeft].size() != 0) {
-				Lights.renderLights(pVeh, eLightState::FogLightLeft, vehicleAngle, cameraAngle);
-				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
-				posn.x = 0.0f;
-				posn.y += 3.35f;
-
-				static RwTexture *pLightTex = nullptr;
-				if (!pLightTex) {
-					pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/foglight.png")), 120);
-				}
-
-				CVector center = pVeh->TransformFromObjectSpace(posn);
-				float fAngle = pVeh->GetHeading() + (180.0f * 3.14f / 180.0f);
-				CVector up = CVector(-sin(fAngle) * 3.0f, cos(fAngle) * 3.0f, 0.0f);
-				CVector right = CVector(cos(fAngle) * 2.0f, sin(fAngle) * 2.0f, 0.0f);
-				CShadows::StoreShadowToBeRendered(2, pLightTex, &center, up.x, up.y, right.x, right.y, 128, 225, 225, 225, 4.0f, false, 1.0f, 0, true);
-			}
-		}
-
-		if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)) {
-			if (pVeh->m_nVehicleFlags.bLightsOn && Lights.materials[model][eLightState::FrontLightRight].size() != 0) {
+			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)
+			&& Lights.materials[model][eLightState::FrontLightRight].size() != 0) {
 				Lights.renderLights(pVeh, eLightState::FrontLightRight, vehicleAngle, cameraAngle);
 			}
 
-			VehData& data = vehData.Get(pVeh);
-			if (data.m_bFogLightsOn && Lights.materials[model][eLightState::FogLightRight].size() != 0) {
-				Lights.renderLights(pVeh, eLightState::FogLightRight, vehicleAngle, cameraAngle);
-			}
-		}
-
-		if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT)) {
-			if (pVeh->m_nVehicleFlags.bLightsOn && Lights.materials[model][eLightState::TailLightLeft].size() != 0) {
+			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT)
+			&& Lights.materials[model][eLightState::TailLightLeft].size() != 0) {
 				Lights.renderLights(pVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 				if (posn.x == 0.0f) posn.x = 0.15f;
 				posn.x *= -1.0f;
 				Common::RegisterShadow(pVeh, posn, 225, 0, 0, 180.0f, 0.0f);
 			}
-		}
 
-		if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)) {
-			if (pVeh->m_nVehicleFlags.bLightsOn && Lights.materials[model][eLightState::TailLightRight].size() != 0) {
+			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)
+			&& Lights.materials[model][eLightState::TailLightRight].size() != 0) {
 				Lights.renderLights(pVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 				if (posn.x == 0.0f) posn.x = 0.15f;

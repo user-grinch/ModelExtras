@@ -17,8 +17,7 @@ enum class eLightState {
 	AllDayLight, 
 	Daylight, 
 	Nightlight,
-	FogLightLeft, 
-	FogLightRight,
+	FogLight, 
 };
 
 class LightsFeature : public IFeature {
