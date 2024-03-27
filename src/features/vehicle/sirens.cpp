@@ -710,7 +710,7 @@ void VehicleSirensFeature::Initialize() {
 			mat = 256 - mat;
 		}
 
-		VehicleSirens.vehicleData[index]->Dummies[mat].push_back(new VehicleDummy(frame, name, parent));
+		VehicleSirens.vehicleData[index]->Dummies[mat].push_back(new VehicleDummy(frame, name, parent, eDummyPos::Front));
 	});
 
 
@@ -987,10 +987,9 @@ void VehicleSirensFeature::Initialize() {
 			int id = 0;
 
 			if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false) || gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-				for (std::vector<VehicleDummy*>::iterator dummy = dummies[material->first].begin(); dummy != dummies[material->first].end(); ++dummy) {
+				for (auto e: dummies[material->first]) {
+					VehicleSirens.enableDummy((material->first * 16) + id, e, vehicle, vehicleAngle, cameraAngle, material->second, type, time);
 					id++;
-
-					VehicleSirens.enableDummy((material->first * 16) + id, (*dummy), vehicle, vehicleAngle, cameraAngle, material->second, type, time);
 				}
 			}
 			

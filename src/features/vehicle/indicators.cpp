@@ -73,8 +73,11 @@ void IndicatorFeature::Initialize() {
 		if (std::regex_search(name, match, std::regex("^(turnl_|indicator_)(.{2})"))) {
 			std::string stateStr = match.str(2);
 			eIndicatorState state = (toupper(stateStr[0]) == 'L') ? eIndicatorState::Left : eIndicatorState::Right;
-			eDummyPos rot = eDummyPos::Front;
-			if (toupper(stateStr[1]) == 'R') {
+			eDummyPos rot = eDummyPos::None;
+			
+			if (toupper(stateStr[1]) == 'F') {
+				rot = eDummyPos::Front;
+			} else if (toupper(stateStr[1]) == 'R') {
 				rot = eDummyPos::Rear;
 			} else if (toupper(stateStr[1]) == 'M') {
 				if (state == eIndicatorState::Left) {
@@ -84,7 +87,9 @@ void IndicatorFeature::Initialize() {
 				}
 			}
 
-			Indicator.registerDummy(pVeh, pFrame, name, parent, state, rot);
+			if (rot != eDummyPos::None) {
+				Indicator.registerDummy(pVeh, pFrame, name, parent, state, rot);
+			}
 		}
 	});
 
@@ -204,10 +209,9 @@ void IndicatorFeature::registerMaterial(CVehicle* pVeh, RpMaterial* material, eI
 void IndicatorFeature::registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent, eIndicatorState state, eDummyPos rot) {
 	bool exists = false;
 	for (auto e: dummies[pVeh->m_nModelIndex][state]) {
-		if (e->Position.x == pFrame->modelling.pos.x 
-		&& e->Position.y == pFrame->modelling.pos.y
+		if (e->Position.y == pFrame->modelling.pos.y
 		&& e->Position.z == pFrame->modelling.pos.z) {
-			exists = false;
+			exists = true;
 			break;
 		}
 	}
