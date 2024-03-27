@@ -108,6 +108,10 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
     if (nReason == DLL_PROCESS_ATTACH) {
         
         Events::initGameEvent += []() {
+            bool ImVehFtInstalled = GetModuleHandle("ImVehFt.asi");
+            bool ImVehFtFixInstalled = GetModuleHandle("ImVehFtFix.asi");
+            bool AVSInstalled = GetModuleHandle("AdvancedVehicleSirens.asi");
+
             gLogger->flush_on(spdlog::level::info);
             gLogger->set_pattern("%v"); 
             gLogger->info("Starting " MOD_TITLE " (" __DATE__ ")\nAuthor: Grinch_\nDiscord: "
@@ -133,6 +137,19 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             SoundSystem.Init(RsGlobal.ps->window);
             InitRandom();
             InitFeatures();
+
+            if (gConfig.ReadBoolean("MISC", "ShowDeprecationMessage", true) 
+            && (ImVehFtInstalled || ImVehFtFixInstalled || AVSInstalled)) {
+                std::string str = "ModelExtras contain the functions of these plugins,\n\n";
+                
+                if (ImVehFtInstalled) str += "- ImVehFt.asi\n";
+                if (ImVehFtFixInstalled) str += "- ImVehFtFix.asi\n";
+                if (AVSInstalled) str += "- AdvancedVehicleSirens.asi\n";
+
+                str += "\nIt is recommanded to remove them to ensure proper gameplay.";
+                MessageBox(RsGlobal.ps->window, str.c_str(), "Deprecated plugins found!", MB_OK);
+                gConfig.WriteBoolean("MISC", "ShowDeprecationMessage", false);
+            }
         };
 
         Events::vehicleRenderEvent += [](CVehicle* pVeh) {

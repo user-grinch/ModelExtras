@@ -90,8 +90,8 @@ void VehicleMaterials::findDummies(CVehicle* vehicle, RwFrame* frame, bool paren
     if (RwFrame* nextFrame = frame->next)
         findDummies(vehicle, nextFrame, parent);
 
-    // if (frames[currentVehicle->m_nModelIndex].contains(frame))
-    //     return;
+    if (frames[currentVehicle->m_nModelIndex].contains(frame))
+        return;
 
     frames[currentVehicle->m_nModelIndex][frame] = true;
 

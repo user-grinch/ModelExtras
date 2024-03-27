@@ -3,6 +3,7 @@
 #include <CClock.h>
 #include "internals/common.h"
 #include "defines.h"
+#include <CShadows.h>
 
 LightsFeature Lights;
 
@@ -14,34 +15,14 @@ void DrawTailLightShadows(CVehicle *pVeh, bool leftSide) {
 }
 
 void LightsFeature::Initialize() {
+
+	// NOP CVehicle::DoHeadLightBeam
+	patch::Nop(0x6A2E9F, 0x58);
+	patch::Nop(0x6BDE73, 0x12);
+
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, bool* clearMats) {
 		*clearMats = true;
-		if (material->color.red == 255 && material->color.blue == 128) {
-			// This section is kinda sus, remove it ltr?
-			// if (material->color.green == 1)
-			// 	Lights.registerMaterial(vehicle, material, eLightState::FrontLightLeft);
-
-			// else if (material->color.green == 2)
-			// 	Lights.registerMaterial(vehicle, material, eLightState::FrontLightRight);
-
-			// else if (material->color.green == 3)
-			// 	Lights.registerMaterial(vehicle, material, eLightState::TailLight);
-			// // else if (material->color.green == 6)
-			// // 	Lights.registerMaterial(vehicle, material, eLightState::FogLightLeft);
-
-			// else if (material->color.green == 7) {
-			// 	// Lights.registerMaterial(vehicle, material, eLightState::FogLightRight);
-			// 	Lights.registerMaterial(vehicle, material, eLightState::Daylight);
-			// }
-			// else if (material->color.green == 8)
-			// 	Lights.registerMaterial(vehicle, material, eLightState::Nightlight);
-
-			// else if (material->color.green == 9)
-			// 	Lights.registerMaterial(vehicle, material, eLightState::AllDayLight);
-			// else
-			// 	*clearMats = false;
-
-		} else if (material->color.red == 255 && material->color.green == 173 && material->color.blue == 0)
+		if (material->color.red == 255 && material->color.green == 173 && material->color.blue == 0)
 			Lights.registerMaterial(vehicle, material, eLightState::Reverselight);
 
 		else if (material->color.red == 0 && material->color.green == 255 && material->color.blue == 198)
@@ -160,10 +141,19 @@ void LightsFeature::Initialize() {
 			if (data.m_bFogLightsOn && Lights.materials[model][eLightState::FogLightLeft].size() != 0) {
 				Lights.renderLights(pVeh, eLightState::FogLightLeft, vehicleAngle, cameraAngle);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
-				if (posn.x == 0.0f) posn.x = 0.15f;
-				Common::RegisterShadow(pVeh, posn, 225, 225, 225, 0.0f, 0.0f);
-				posn.x *= -1.0f;
-				Common::RegisterShadow(pVeh, posn, 225, 225, 225, 0.0f, 0.0f);
+				posn.x = 0.0f;
+				posn.y += 3.35f;
+
+				static RwTexture *pLightTex = nullptr;
+				if (!pLightTex) {
+					pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/foglight.png")), 120);
+				}
+
+				CVector center = pVeh->TransformFromObjectSpace(posn);
+				float fAngle = pVeh->GetHeading() + (180.0f * 3.14f / 180.0f);
+				CVector up = CVector(-sin(fAngle) * 3.0f, cos(fAngle) * 3.0f, 0.0f);
+				CVector right = CVector(cos(fAngle) * 2.0f, sin(fAngle) * 2.0f, 0.0f);
+				CShadows::StoreShadowToBeRendered(2, pLightTex, &center, up.x, up.y, right.x, right.y, 128, 225, 225, 225, 4.0f, false, 1.0f, 0, true);
 			}
 		}
 
