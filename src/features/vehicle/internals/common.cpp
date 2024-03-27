@@ -49,7 +49,7 @@ void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uc
 	return RegisterCorona(pVeh, posn, red, green, blue, alpha, id, size, 0.0f);
 };
 
-void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, float angle, float currentAngle) {
+void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, float angle, float currentAngle) {
 	static RwTexture *pShadowTex = nullptr;
 	if (!pShadowTex) {
 		pShadowTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight256.png")));

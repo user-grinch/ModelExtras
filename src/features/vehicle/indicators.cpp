@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "indicators.h"
 #include "internals/common.h"
+#include "defines.h"
 
 CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
     if (address.m_nAreaId != -1 && address.m_nCarPathLinkId != -1 && ThePaths.m_pPathNodes[address.m_nAreaId]) {
@@ -18,7 +19,7 @@ void DrawTurnlight(CVehicle *pVeh, eDummyRotation indicatorPos, bool leftSide) {
     if (leftSide) posn.x *= -1.0f;
 	int dummyId = static_cast<int>(indicatorPos) + (leftSide ? 0 : 2);
 	float dummyAngle = (indicatorPos == eDummyRotation::Backward) ? 180.0f : 0.0f;
-	Common::RegisterShadow(pVeh, posn, 255, 128, 0, dummyAngle, 0.0f);
+	Common::RegisterShadow(pVeh, posn, SHADOW_RED, SHADOW_GREEN, SHADOW_BLUE, dummyAngle, 0.0f);
     Common::RegisterCorona(pVeh, posn, 255, 128, 0, 128, dummyId, 0.5f, dummyAngle);
 }
 
@@ -245,7 +246,7 @@ void IndicatorFeature::registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::strin
 	}
 
 	if (!exists) {
-		dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 255, 255, 128 }));
+		dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 128, 0, 128 }));
 	}
 };
 
