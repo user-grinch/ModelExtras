@@ -11,14 +11,15 @@ CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
     return CVector2D(0.0f, 0.0f);
 }
 
-void DrawTurnlight(CVehicle *pVeh, eDummyPos indicatorPos, bool leftSide) {
+void DrawTurnlight(CVehicle *pVeh, eDummyPos pos, bool leftSide) {
+	int idx = pos == eDummyPos::Front ? 0 : 1;
     CVector posn =
-        reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[static_cast<int>(indicatorPos)];
+        reinterpret_cast<CVehicleModelInfo*>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[idx];
 	
     if (posn.x == 0.0f) posn.x = 0.15f;
     if (leftSide) posn.x *= -1.0f;
-	int dummyId = static_cast<int>(indicatorPos) + (leftSide ? 0 : 2);
-	float dummyAngle = (indicatorPos == eDummyPos::Rear) ? 180.0f : 0.0f;
+	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
+	float dummyAngle = (pos == eDummyPos::Rear) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, SHADOW_RED, SHADOW_GREEN, SHADOW_BLUE, dummyAngle, 0.0f);
     Common::RegisterCorona(pVeh, posn, 255, 128, 0, CORONA_ALPHA, dummyId, 0.5f, dummyAngle);
 }

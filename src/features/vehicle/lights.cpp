@@ -159,6 +159,11 @@ void LightsFeature::Initialize() {
 			VehData& data = vehData.Get(pVeh);
 			if (data.m_bFogLightsOn && Lights.materials[model][eLightState::FogLightLeft].size() != 0) {
 				Lights.renderLights(pVeh, eLightState::FogLightLeft, vehicleAngle, cameraAngle);
+				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
+				if (posn.x == 0.0f) posn.x = 0.15f;
+				Common::RegisterShadow(pVeh, posn, 225, 225, 225, 0.0f, 0.0f);
+				posn.x *= -1.0f;
+				Common::RegisterShadow(pVeh, posn, 225, 225, 225, 0.0f, 0.0f);
 			}
 		}
 
