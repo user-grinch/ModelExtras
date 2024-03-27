@@ -8,12 +8,13 @@
 
 enum class eLightState { 
 	None, 
-	LightLeft, 
-	LightRight, 
-	TailLight, 
+	FrontLightLeft, 
+	FrontLightRight, 
+	TailLightLeft, 
+	TailLightRight,
 	Reverselight, 
 	Brakelight, 
-	Light, 
+	AllDayLight, 
 	Daylight, 
 	Nightlight,
 	FogLightLeft, 

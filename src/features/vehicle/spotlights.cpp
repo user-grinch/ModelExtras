@@ -2,6 +2,7 @@
 #include "spotlights.h"
 #include <CCamera.h>
 #include <CCoronas.h>
+#include "defines.h"
 
 SpotLightFeature SpotLight;
 void SpotLightFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {    
@@ -102,7 +103,7 @@ void SpotLightFeature::OnVehicleRender(CVehicle *pVeh) {
 	// if (differenceAngle > 90.0f && differenceAngle < 270.0f) {
 		CVector position = CVector(matrix.pos);
 
-		CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(pVeh) + 49, pVeh, 255, 255, 255, 128, position,
+		CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(pVeh) + 49, pVeh, 255, 255, 255, CORONA_ALPHA, position,
 			0.3f, 300.0f, eCoronaType::CORONATYPE_SHINYSTAR, eCoronaFlareType::FLARETYPE_NONE, false, false, 0, 90.0f, false, 1.0f, 0, 50.0f, false, true);
 	// }
 

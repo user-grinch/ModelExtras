@@ -4,16 +4,18 @@
 #include <CShadows.h>
 #include <CCamera.h>
 
-void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, int id, float size, float dummyAngle) {
+void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, int id, float size, float dummyAngle, bool skipChecks) {
 
-	float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
-	float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
-	float relativeAngle = vehicleAngle + dummyAngle;
-	float differenceAngle = ((cameraAngle > relativeAngle) ? (cameraAngle - relativeAngle) : (relativeAngle - cameraAngle));
+	if (!skipChecks) {
+		float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
+		float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
+		float relativeAngle = vehicleAngle + dummyAngle;
+		float differenceAngle = ((cameraAngle > relativeAngle) ? (cameraAngle - relativeAngle) : (relativeAngle - cameraAngle));
 
-	if (differenceAngle < 90.0f || differenceAngle > 270.0f)
-		return;
-
+		if (differenceAngle < 90.0f || differenceAngle > 270.0f)
+			return;
+	}
+	
 	unsigned int coronaID = reinterpret_cast<unsigned int>(pVeh) + 30 + id;
 	CCoronas::RegisterCorona(coronaID, pVeh, red, green, blue, alpha, pos,
 		size, 75.0f, CORONATYPE_HEADLIGHT, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, false);
@@ -49,10 +51,10 @@ void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uc
 	return RegisterCorona(pVeh, posn, red, green, blue, alpha, id, size, 0.0f);
 };
 
-void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, float angle, float currentAngle) {
+void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, float angle, float currentAngle) {
 	static RwTexture *pShadowTex = nullptr;
 	if (!pShadowTex) {
-		pShadowTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight256.png")));
+		pShadowTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/indicator.png")), 50);
 	}
 
 	float Offset = 0.0f;

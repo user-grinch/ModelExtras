@@ -319,54 +319,18 @@ unsigned int Util::GetEntityModel(void *ptr, eModelEntityType type) {
     return model;
 }
 
-void SetAlpha(RwRaster *raster, RwUInt8 alphaValue) {
-    // Ensure raster is valid
-    if (!raster) {
-        return;
-    }
+RwTexture* Util::LoadTextureFromFile(const char* filename, RwUInt8 alphaValue) {
 
-    // Lock raster for writing
-    if (!RwRasterLock(raster, 0, rwRASTERLOCKWRITE)) {
-        return; // Failed to lock raster
-    }
-
-    // Get raster pixel data
-    RwUInt8 *pixels = raster->cpPixels;
-
-    // Get raster width and height
-    RwInt32 width = raster->width;
-    RwInt32 height = raster->height;
-
-    // Set alpha value for each pixel
-    for (RwInt32 y = 0; y < height; y++) {
-        for (RwInt32 x = 0; x < width; x++) {
-            // Assuming 32-bit ARGB format
-            RwUInt8 *pixel = pixels + (y * width + x) * 4;
-            pixel[0] = alphaValue; // Alpha
-        }
-    }
-
-    // Unlock raster
-    RwRasterUnlock(raster);
-}
-
-RwTexture* Util::LoadTextureFromFile(const char* filename) {
-    RwUInt8 alphaValue = 50;
-    // Load the PNG image
     RwImage* image = RtPNGImageRead(filename);
     if (!image) {
-        // Error handling if the image failed to load
         return nullptr;
     }
 
-    // Get image dimensions and format
     RwInt32 width, height, depth, flags;
     RwImageFindRasterFormat(image, 4, &width, &height, &depth, &flags);
 
-    // Create a new raster for the modified image
     RwRaster* raster = RwRasterCreate(width, height, depth, flags);
     if (!raster) {
-        // Error handling if raster creation fails
         RwImageDestroy(image);
         return nullptr;
     }
@@ -383,19 +347,7 @@ RwTexture* Util::LoadTextureFromFile(const char* filename) {
         }
     }
 
-    // Set the modified image to the raster
     RwRasterSetFromImage(raster, image);
-
-    // Destroy the original image
     RwImageDestroy(image);
-
-    // Create RwTexture from the modified raster
-    RwTexture* texture = RwTextureCreate(raster);
-    if (!texture) {
-        // Error handling if texture creation fails
-        RwRasterDestroy(raster);
-        return nullptr;
-    }
-
-    return texture;
+    return RwTextureCreate(raster);
 }

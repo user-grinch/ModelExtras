@@ -20,7 +20,7 @@ void DrawTurnlight(CVehicle *pVeh, eDummyRotation indicatorPos, bool leftSide) {
 	int dummyId = static_cast<int>(indicatorPos) + (leftSide ? 0 : 2);
 	float dummyAngle = (indicatorPos == eDummyRotation::Backward) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, SHADOW_RED, SHADOW_GREEN, SHADOW_BLUE, dummyAngle, 0.0f);
-    Common::RegisterCorona(pVeh, posn, 255, 128, 0, 128, dummyId, 0.5f, dummyAngle);
+    Common::RegisterCorona(pVeh, posn, 255, 128, 0, CORONA_ALPHA, dummyId, 0.5f, dummyAngle);
 }
 
 void DrawVehicleTurnlights(CVehicle *vehicle, eIndicatorState lightsStatus) {
@@ -160,21 +160,21 @@ void IndicatorFeature::Initialize() {
 			for (std::vector<VehicleMaterial*>::iterator material = Indicator.materials[model][state].begin(); material != Indicator.materials[model][state].end(); ++material)
 				Indicator.enableMaterial((*material));
 
-			if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-				float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
-				float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
+			// if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+			// 	float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
+			// 	float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 
-				for (std::vector<VehicleDummy*>::iterator dummy = Indicator.dummies[model][state].begin(); dummy != Indicator.dummies[model][state].end(); ++dummy) {
-					id++;
+			// 	for (std::vector<VehicleDummy*>::iterator dummy = Indicator.dummies[model][state].begin(); dummy != Indicator.dummies[model][state].end(); ++dummy) {
+			// 		id++;
 
-					Indicator.enableDummy(id, (*dummy), pVeh, vehicleAngle, cameraAngle);
-				}
-			}
+			// 		Indicator.enableDummy(id, (*dummy), pVeh, vehicleAngle, cameraAngle);
+			// 	}
+			// }
 
 			if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
 				if (Indicator.dummies[model][state].size() > 0) {
 					auto& dummy = Indicator.dummies[model][state][0];
-					Common::RegisterShadow(pVeh, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
+					Common::RegisterShadow(pVeh, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue,
 						dummy->Angle, dummy->CurrentAngle);
 				}
 			}
@@ -189,30 +189,30 @@ void IndicatorFeature::Initialize() {
 			float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
 			float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 
-			if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-				for (std::vector<VehicleDummy*>::iterator dummy = Indicator.dummies[model][eIndicatorState::Left].begin(); dummy != Indicator.dummies[model][eIndicatorState::Left].end(); ++dummy) {
-					id++;
+			// if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+			// 	for (std::vector<VehicleDummy*>::iterator dummy = Indicator.dummies[model][eIndicatorState::Left].begin(); dummy != Indicator.dummies[model][eIndicatorState::Left].end(); ++dummy) {
+			// 		id++;
 
-					Indicator.enableDummy(id, (*dummy), pVeh, vehicleAngle, cameraAngle);
-				}
+			// 		Indicator.enableDummy(id, (*dummy), pVeh, vehicleAngle, cameraAngle);
+			// 	}
 
-				for (std::vector<VehicleDummy*>::iterator dummy = Indicator.dummies[model][eIndicatorState::Right].begin(); dummy != Indicator.dummies[model][eIndicatorState::Right].end(); ++dummy) {
-					id++;
+			// 	for (std::vector<VehicleDummy*>::iterator dummy = Indicator.dummies[model][eIndicatorState::Right].begin(); dummy != Indicator.dummies[model][eIndicatorState::Right].end(); ++dummy) {
+			// 		id++;
 
-					Indicator.enableDummy(id, (*dummy), pVeh, vehicleAngle, cameraAngle);
-				}
-			}
+			// 		Indicator.enableDummy(id, (*dummy), pVeh, vehicleAngle, cameraAngle);
+			// 	}
+			// }
 
 			if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
 				if (Indicator.dummies[model][eIndicatorState::Left].size() > 0) {
 					auto& dummy = Indicator.dummies[model][eIndicatorState::Left][0];
-					Common::RegisterShadow(pVeh, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
+					Common::RegisterShadow(pVeh, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue,
 						dummy->Angle, dummy->CurrentAngle);
 				}
 
 				if (Indicator.dummies[model][eIndicatorState::Right].size() > 0) {
 					auto& dummy = Indicator.dummies[model][eIndicatorState::Right][0];
-					Common::RegisterShadow(pVeh, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
+					Common::RegisterShadow(pVeh, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue,
 						dummy->Angle, dummy->CurrentAngle);
 				}
 			}
@@ -260,6 +260,6 @@ void IndicatorFeature::enableMaterial(VehicleMaterial* material) {
 void IndicatorFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		Common::RegisterCorona(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			128, id, 0.5f, dummy->CurrentAngle);
+			CORONA_ALPHA, id, 0.5f, dummy->CurrentAngle);
 	}
 };

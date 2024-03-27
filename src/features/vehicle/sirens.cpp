@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "sirens.h"
 #include "internals/common.h"
+#include "defines.h"
 
 int ImVehFt_ReadColor(std::string input) {
     if (input.length() == 3)
@@ -1047,8 +1048,8 @@ void VehicleSirensFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* ve
 
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		Common::RegisterCorona(vehicle, dummy->Position, material->Color.red, material->Color.green, 
-		material->Color.blue, material->Color.alpha, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
-		 material->Size, dummy->CurrentAngle);
+		material->Color.blue, CORONA_ALPHA, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
+		 material->Size, dummy->CurrentAngle, true);
 	}
 };
 
