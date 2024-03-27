@@ -83,17 +83,15 @@ void LightsFeature::Initialize() {
 
 	VehicleMaterials::RegisterDummy([](CVehicle* vehicle, RwFrame* frame, std::string name, bool parent) {
 		eLightState state = eLightState::None;
-		eDummyRotation rotation = eDummyRotation::Backward;
+		eDummyPos rotation = eDummyPos::Rear;
 
 		std::smatch match;
 		if (std::regex_search(name, match, std::regex("^fog(light)?_([a-zA-Z])"))) {
 			state = (toupper(match.str(2)[0]) == 'L') ? (eLightState::FogLightLeft) : (eLightState::FogLightRight);
 		} else if (std::regex_search(name, std::regex("^revl_")) || std::regex_search(name, std::regex("^reversingl_"))) {
 			state = eLightState::Reverselight;
-			rotation = eDummyRotation::Forward;
 		} else if (std::regex_search(name, std::regex("^breakl(?:ight)?_"))) {
 			state = eLightState::Brakelight;
-			rotation = eDummyRotation::Forward;
 		} else if (std::regex_search(name, std::regex("^light_day"))) {
 			state = eLightState::Daylight;
 		} else if (std::regex_search(name, std::regex("^light_night"))) {

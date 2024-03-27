@@ -3,10 +3,10 @@
 #include "game_sa/CGeneral.h"
 #include "game_sa/RenderWare.h"
 
-enum class eDummyRotation { 
-    Forward, 
-    Backward, 
+enum class eDummyPos { 
+    Front, 
     Left, 
+    Rear, 
     Right,
     None
 };
@@ -20,12 +20,12 @@ public:
     RwFrame* Frame;
     RwRGBA Color = { 255, 255, 255, 128 };
     CVector Position;
-    eDummyRotation Type;
+    eDummyPos Type;
     float Size;
     float Angle;
     float CurrentAngle = 0.0f;
 
-    VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummyRotation type = eDummyRotation::None, RwRGBA color = { 255, 255, 255, 128 });
+    VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummyPos type = eDummyPos::None, RwRGBA color = { 255, 255, 255, 128 });
 
     CVector GetPosition();
 
