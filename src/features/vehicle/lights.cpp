@@ -7,13 +7,6 @@
 
 LightsFeature Lights;
 
-void DrawTailLightShadows(CVehicle *pVeh, bool leftSide) {
-    CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
-    if (posn.x == 0.0f) posn.x = 0.15f;
-    if (leftSide) posn.x *= -1.0f;
-	Common::RegisterShadow(pVeh, posn, SHADOW_RED, SHADOW_GREEN, SHADOW_BLUE, 180.0f, 0.0f);
-}
-
 void LightsFeature::Initialize() {
 
 	// NOP CVehicle::DoHeadLightBeam
@@ -53,8 +46,7 @@ void LightsFeature::Initialize() {
 			Lights.registerMaterial(vehicle, material, eLightState::FrontLightRight);
 		else if (material->color.red == 255 && material->color.green == 60 && material->color.blue == 0) 
 			Lights.registerMaterial(vehicle, material, eLightState::TailLightRight);
-		else if ((material->color.red == 255 && material->color.green == 60 && material->color.blue == 0) 
-		|| (material->color.red == 185 && material->color.green == 255 && material->color.blue == 0))
+		else if (material->color.red == 185 && material->color.green == 255 && material->color.blue == 0)
 			Lights.registerMaterial(vehicle, material, eLightState::TailLightLeft);
 		else 
 			*clearMats = false;
@@ -111,7 +103,7 @@ void LightsFeature::Initialize() {
 	VehicleMaterials::RegisterRender([this](CVehicle* pVeh) {
 		int model = pVeh->m_nModelIndex;
 
-		if (Lights.materials[model].size() == 0)
+		if (pVeh->m_fHealth == 0 || Lights.materials[model].size() == 0)
 			return;
 
 		CAutomobile* automobile = reinterpret_cast<CAutomobile*>(pVeh);
@@ -166,37 +158,47 @@ void LightsFeature::Initialize() {
 				Lights.renderLights(pVeh, eLightState::FrontLightRight, vehicleAngle, cameraAngle);
 			}
 
+			bool showTailLights = false;
 			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT)
 			&& Lights.materials[model][eLightState::TailLightLeft].size() != 0) {
 				Lights.renderLights(pVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
-				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
-				if (posn.x == 0.0f) posn.x = 0.15f;
-				posn.x *= -1.0f;
-				Common::RegisterShadow(pVeh, posn, 225, 0, 0, 180.0f, 0.0f);
+				showTailLights = true;
 			}
 
 			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)
 			&& Lights.materials[model][eLightState::TailLightRight].size() != 0) {
 				Lights.renderLights(pVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
-				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
-				if (posn.x == 0.0f) posn.x = 0.15f;
-				Common::RegisterShadow(pVeh, posn, 225, 0, 0, 180.0f, 0.0f);
+				showTailLights = true;
+			}
+
+			if (showTailLights) {
+				if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT)) {
+					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
+					if (posn.x == 0.0f) posn.x = 0.15f;
+					posn.x *= -1.0f;
+					Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 180.0f, 0.0f);
+				}
+
+				if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)) {
+					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
+					if (posn.x == 0.0f) posn.x = 0.15f;
+					Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 180.0f, 0.0f);
+				}
 			}
 		}
 	});
 };
 
-void LightsFeature::renderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle) {
-	for (std::vector<VehicleMaterial*>::iterator material = materials[vehicle->m_nModelIndex][state].begin(); material != materials[vehicle->m_nModelIndex][state].end(); ++material)
-		enableMaterial((*material));
+void LightsFeature::renderLights(CVehicle* pVeh, eLightState state, float vehicleAngle, float cameraAngle) {
+	for (auto e: materials[pVeh->m_nModelIndex][state])
+		enableMaterial(e);
 
-	if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false) || gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-		int id = (int)state * 100;
-		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-		for (std::vector<VehicleDummy*>::iterator dummy = dummies[index][state].begin(); dummy != dummies[index][state].end(); ++dummy) {
+	if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false) 
+	|| gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+		int id = static_cast<int>(state) * 100;
+		for (auto e: dummies[CPools::ms_pVehiclePool->GetIndex(pVeh)][state]) {
+			enableDummy(id, e, pVeh, vehicleAngle, cameraAngle);
 			id++;
-
-			enableDummy(id, (*dummy), vehicle, vehicleAngle, cameraAngle);
 		}
 	}
 };
@@ -220,10 +222,4 @@ void LightsFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, 
 		Common::RegisterShadow(vehicle, dummy->Frame->modelling.pos, dummy->Color.red, dummy->Color.green, 
 			dummy->Color.blue, dummy->Angle, dummy->CurrentAngle);
 	}
-
-	// if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-	// 	Common::RegisterCorona(vehicle, dummy->Frame->modelling.pos, dummy->Color.red, dummy->Color.green, 
-	// 		dummy->Color.blue, CORONA_ALPHA, (CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + id, dummy->Size, 
-	// 		dummy->CurrentAngle);
-	// }
 };

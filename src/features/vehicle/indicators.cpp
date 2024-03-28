@@ -20,8 +20,8 @@ void DrawTurnlight(CVehicle *pVeh, eDummyPos pos, bool leftSide) {
     if (leftSide) posn.x *= -1.0f;
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::Rear) ? 180.0f : 0.0f;
-	Common::RegisterShadow(pVeh, posn, SHADOW_RED, SHADOW_GREEN, SHADOW_BLUE, dummyAngle, 0.0f);
-    Common::RegisterCorona(pVeh, posn, 255, 128, 0, CORONA_ALPHA, dummyId, 0.5f, dummyAngle);
+	Common::RegisterShadow(pVeh, posn, SHADOW_R, SHADOW_G, SHADOW_B, dummyAngle, 0.0f);
+    Common::RegisterCorona(pVeh, posn, 255, 128, 0, CORONA_A, dummyId, 0.5f, dummyAngle);
 }
 
 void DrawVehicleTurnlights(CVehicle *vehicle, eIndicatorState lightsStatus) {
@@ -96,6 +96,10 @@ void IndicatorFeature::Initialize() {
 
 
 	VehicleMaterials::RegisterRender([this](CVehicle* pVeh) {
+		if (pVeh->m_fHealth == 0) {
+			return;
+		}
+		
 		VehData &data = vehData.Get(pVeh);
 		
 		if (pVeh->m_pDriver == FindPlayerPed()) {
@@ -232,6 +236,6 @@ void IndicatorFeature::enableMaterial(VehicleMaterial* material) {
 void IndicatorFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		Common::RegisterCorona(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			CORONA_ALPHA, id, 0.5f, dummy->CurrentAngle);
+			CORONA_A, id, 0.5f, dummy->CurrentAngle);
 	}
 };

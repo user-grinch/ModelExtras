@@ -1,7 +1,12 @@
 #pragma once
-#define SHADOW_RED 255
-#define SHADOW_GREEN 128
-#define SHADOW_BLUE 0
-#define SHADOW_ALPHA 50
+#define SHADOW_R 255
+#define SHADOW_G 128
+#define SHADOW_B 0
+#define SHADOW_A 50
 
-#define CORONA_ALPHA 100
+#define TL_SHADOW_R 255
+#define TL_SHADOW_G 0
+#define TL_SHADOW_B 0
+
+#define CORONA_A 100
+

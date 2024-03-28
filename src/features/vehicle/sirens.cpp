@@ -1047,7 +1047,7 @@ void VehicleSirensFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* ve
 
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		Common::RegisterCorona(vehicle, dummy->Position, material->Color.red, material->Color.green, 
-		material->Color.blue, CORONA_ALPHA, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
+		material->Color.blue, CORONA_A, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
 		 material->Size, dummy->CurrentAngle, true);
 	}
 };
