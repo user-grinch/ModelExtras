@@ -40,7 +40,7 @@ project "ModelExtras"
         "_GTA_",
         "GTASA",
     }
-    
+
     includedirs {
         "../include/",
         "../src/",
@@ -61,6 +61,7 @@ project "ModelExtras"
         links { 
             "plugin_d.lib",
             "bass",
+            "minhook",
         }
 
     filter "configurations:Release"
@@ -68,4 +69,5 @@ project "ModelExtras"
         links { 
             "plugin.lib",
             "bass",
+            "minhook",
         }

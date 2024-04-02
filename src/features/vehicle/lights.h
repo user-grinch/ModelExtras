@@ -38,7 +38,6 @@ private:
 
 	void registerMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state);
 	void renderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle);
-	void enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle);
 	void enableMaterial(VehicleMaterial* material);
 };
 

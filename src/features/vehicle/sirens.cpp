@@ -3,6 +3,19 @@
 #include "internals/common.h"
 #include "defines.h"
 
+using f_UsesSiren = BYTE(*__fastcall)(CVehicle*);
+static f_UsesSiren oUsesSiren;
+
+BYTE __fastcall hkUsesSiren(CVehicle *ptr)
+{
+	if(VehicleSirens.modelData.contains(ptr->m_nModelIndex)){
+		ptr->m_vehicleAudio.m_bModelWithSiren = true;
+		return true;
+	} else {
+		oUsesSiren(ptr);
+	}
+}
+
 int ImVehFt_ReadColor(std::string input) {
     if (input.length() == 3)
         return std::stoi(input);
@@ -648,10 +661,13 @@ static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char r
 	if (vehicle && VehicleSirens.modelData.contains(vehicle->m_nModelIndex))
 		return;
 
-	CCoronas::RegisterCorona(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
+	Common::RegisterCorona(static_cast<CVehicle*>(attachTo), posn, red, green, blue, CORONA_A, id, radius, 0.0f, true);
 };
 
 void VehicleSirensFeature::Initialize() {
+	MH_CreateHook(reinterpret_cast<LPVOID*>(0x6D8470), hkUsesSiren, reinterpret_cast<LPVOID*>(&oUsesSiren));
+	MH_EnableHook(reinterpret_cast<LPVOID*>(0x6D8470));
+	// patch::ReplaceFunction(0x6D8470, DoesVehicleSupportSirens);
 	readSirenConfiguration();
 	readSirenConfigurationIVF();
 	registerSirenConfiguration();
@@ -682,7 +698,7 @@ void VehicleSirensFeature::Initialize() {
 		bool matCalcNeeded = false;
 		std::smatch match;
 		if (std::regex_search(name, match, std::regex("^siren(_)?(.*)"))) {
-
+		
 		}
 		else if (std::regex_search(name, std::regex("^light_em"))){
 			matCalcNeeded = true;
@@ -1040,11 +1056,6 @@ void VehicleSirensFeature::enableMaterial(VehicleMaterial* material, VehicleSire
 };
 
 void VehicleSirensFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
-	if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
-		Common::RegisterShadow(vehicle, dummy->Position, material->Color.red, material->Color.green, 
-			material->Color.blue, dummy->Angle, dummy->CurrentAngle);
-	}
-
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		Common::RegisterCorona(vehicle, dummy->Position, material->Color.red, material->Color.green, 
 		material->Color.blue, CORONA_A, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,

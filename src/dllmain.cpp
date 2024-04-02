@@ -106,6 +106,7 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityTy
 
 BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
     if (nReason == DLL_PROCESS_ATTACH) {
+        MH_Initialize();
         
         Events::initGameEvent += []() {
             bool ImVehFtInstalled = GetModuleHandle("ImVehFt.asi");
