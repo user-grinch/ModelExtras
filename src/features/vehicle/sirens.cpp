@@ -620,8 +620,10 @@ void VehicleSirensFeature::Initialize() {
 	MH_CreateHook(reinterpret_cast<LPVOID*>(0x6D8470), hkUsesSiren, reinterpret_cast<LPVOID*>(&oUsesSiren));
 	MH_EnableHook(reinterpret_cast<LPVOID*>(0x6D8470));
 	
-	readSirenConfiguration();
-	registerSirenConfiguration();
+	Events::initGameEvent += [this] {
+		readSirenConfiguration();
+		registerSirenConfiguration();
+	};
 
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, bool* clearMats) {
 		if (std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0 || material->color.green != 255 || material->color.blue != 255) {
