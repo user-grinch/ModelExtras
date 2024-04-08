@@ -183,7 +183,6 @@ public:
 
 private:
     void readSirenConfiguration();
-    void readSirenConfigurationIVF();
     void registerSirenConfiguration();
     void createSirenConfiguration(int model, nlohmann::json json);
     void registerMaterial(CVehicle* vehicle, RpMaterial* material, bool ImVehFt = false);
