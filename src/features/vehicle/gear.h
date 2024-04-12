@@ -2,13 +2,12 @@
 #include "plugin.h"
 #include "../../interface/ifeature.hpp"
 #include <vector>
-
-extern class CAudioStream;
+extern struct CAudioStream;
 
 enum class eFrameState {
-    AtOrigin,
-    IsMoving,
-    AtOffset,
+  AtOrigin,
+  IsMoving,
+  AtOffset,
 };
 
 class ClutchFeature : public IFeature {

@@ -17,7 +17,7 @@ void ChainFeature::Process(RwFrame* frame, CVehicle* pVeh) {
             Initialize(frame, pVeh);
             data.m_bInitialized = true;
         }
-        uint timer = CTimer::m_snTimeInMilliseconds * CTimer::ms_fTimeScale;;
+        uint timer = static_cast<int>(CTimer::m_snTimeInMilliseconds * CTimer::ms_fTimeScale);
         uint deltaTime = timer - data.m_nLastFrameMS;
 
         float speed = Util::GetVehicleSpeedRealistic(pVeh);

@@ -3,19 +3,7 @@
 #include "internals/common.h"
 #include "defines.h"
 
-using f_UsesSiren = BYTE(*__fastcall)(CVehicle*);
-static f_UsesSiren oUsesSiren;
 static std::vector<int> skipCoronaModels;
-
-BYTE __fastcall hkUsesSiren(CVehicle *ptr)
-{
-	if(VehicleSirens.modelData.contains(ptr->m_nModelIndex)){
-		ptr->m_vehicleAudio.m_bModelWithSiren = true;
-		return true;
-	} else {
-		oUsesSiren(ptr);
-	}
-}
 
 int ImVehFt_ReadColor(std::string input) {
     if (input.length() == 3)
@@ -617,9 +605,6 @@ static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char r
 };
 
 void VehicleSirensFeature::Initialize() {
-	MH_CreateHook(reinterpret_cast<LPVOID*>(0x6D8470), hkUsesSiren, reinterpret_cast<LPVOID*>(&oUsesSiren));
-	MH_EnableHook(reinterpret_cast<LPVOID*>(0x6D8470));
-	
 	Events::initGameEvent += [this] {
 		readSirenConfiguration();
 		registerSirenConfiguration();
@@ -689,6 +674,7 @@ void VehicleSirensFeature::Initialize() {
 		if (!VehicleSirens.modelData.contains(model))
 			return;
 
+		vehicle->m_vehicleAudio.m_bModelWithSiren = true;
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
 		VehicleSirens.vehicleData[index] = new VehicleSiren(vehicle);
@@ -972,13 +958,8 @@ void VehicleSirensFeature::Initialize() {
 		}
 	});
 
-	// Disable default corona
-	/*plugin::Events::initGameEvent += [] {
-		injector::MakeNOP((void*)0x6ABA60, 5, true);
-	};*/
-
 	Events::initGameEvent += [this] {
-		injector::MakeCALL((void*)0x6aba60, hkRegisterCorona, true);
+		injector::MakeCALL((void*)0x6ABA60, hkRegisterCorona, true);
 	};
 }
 

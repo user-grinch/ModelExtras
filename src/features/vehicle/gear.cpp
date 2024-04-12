@@ -92,7 +92,7 @@ void GearLeverFeature::Process(RwFrame* frame, CVehicle* pVeh) {
         if (deltaTime > data.m_nWaitTime) {
             if (data.m_eState == eFrameState::AtOrigin) {
                 if (pVeh->m_nCurrentGear != data.m_nLastGear) {
-                    data.m_fCalVal = (pVeh->m_nCurrentGear > data.m_nLastGear) ? -1 : 1;
+                    data.m_fCalVal = (pVeh->m_nCurrentGear > data.m_nLastGear) ? -1.0f : 1.0f;
                     data.m_nLastGear = pVeh->m_nCurrentGear;
                     data.m_eState = eFrameState::IsMoving;
                 }

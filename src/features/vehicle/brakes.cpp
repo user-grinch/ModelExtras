@@ -36,7 +36,7 @@ void FrontBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
             data.m_bInitialized = true;
         }
 
-        uint timer = CTimer::m_snTimeInMilliseconds * CTimer::ms_fTimeScale;;
+        uint timer = static_cast<int>(CTimer::m_snTimeInMilliseconds * CTimer::ms_fTimeScale);
         uint deltaTime = (timer - data.m_nLastFrameMS);
 
         if (deltaTime > data.m_nWaitTime) {
@@ -82,7 +82,7 @@ void RearBrakeFeature::Process(RwFrame* frame, CVehicle* pVeh) {
             data.m_bInitialized = true;
         }
 
-        uint timer = CTimer::m_snTimeInMilliseconds * CTimer::ms_fTimeScale;;
+        uint timer = static_cast<int>(CTimer::m_snTimeInMilliseconds * CTimer::ms_fTimeScale);
         uint deltaTime = (timer - data.m_nLastFrameMS);
 
         if (deltaTime > data.m_nWaitTime) {

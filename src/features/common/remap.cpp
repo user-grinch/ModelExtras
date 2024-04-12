@@ -166,7 +166,7 @@ void RemapFeature::BeforeRender(void* ptr, eModelEntityType type) {
                 if (pData->m_pTextures[name].empty()) {
                     return mat;
                 }
-                size_t sz = pData->m_pTextures[name].size();
+                int sz = pData->m_pTextures[name].size();
                 if (m_pRandom.find(pData->curPtr) == m_pRandom.end() || m_pRandom[pData->curPtr] >= sz) {
                     m_pRandom[pData->curPtr] = Random(0u, sz-1);
                 }

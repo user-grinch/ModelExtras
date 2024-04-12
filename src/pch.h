@@ -11,7 +11,7 @@
 #include "ini.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
-#include "MinHook.h"
+#include "minhook/MinHook.h"
 #include "util.h"
 #include "vkeys.h"
 
