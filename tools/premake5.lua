@@ -15,18 +15,20 @@ workspace "ModelExtras"
     location "../build"
     targetdir "../build/bin"
 
-    -- linkoptions {
-    --     "/SAFESEH:NO",
-    -- }
+    linkoptions {
+        "/SAFESEH:NO",
+    }
 
 project "ModelExtras"
     kind "SharedLib"
     targetextension ".asi"
 
     files { 
-        "../include/minhook/**",
         "../src/**",
     }
+
+    pchheader "pch.h"
+    pchsource "../src/pch.cpp"
 
     defines { 
         "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING",
@@ -54,20 +56,16 @@ project "ModelExtras"
         "../lib/"
     }
 
-    filter "files:../src/**"
-        pchheader "pch.h"
-        pchsource "../src/pch.cpp"
-        
     filter "configurations:Debug"
         symbols "On"
         links { 
             "plugin_d.lib",
-            "bass"
+            "bass",
         }
 
     filter "configurations:Release"
-        -- optimize "Full"
+        -- optimize "On"
         links { 
             "plugin.lib",
-            "bass"
+            "bass",
         }

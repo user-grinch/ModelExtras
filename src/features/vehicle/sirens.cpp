@@ -3,7 +3,18 @@
 #include "internals/common.h"
 #include "defines.h"
 
+using f_UsesSiren = char(*__fastcall)(CVehicle*);
+static f_UsesSiren oUsesSiren;
 static std::vector<int> skipCoronaModels;
+
+char __fastcall hkUsesSiren(CVehicle *ptr)
+{
+	if(VehicleSirens.modelData.contains(ptr->m_nModelIndex)){
+		ptr->m_vehicleAudio.m_bModelWithSiren = true;
+		return true;
+	}
+	return ptr->IsLawEnforcementVehicle();
+}
 
 int ImVehFt_ReadColor(std::string input) {
     if (input.length() == 3)
@@ -407,11 +418,8 @@ std::map<int, nlohmann::json> jsonData;
 
 void VehicleSirensFeature::registerMaterial(CVehicle* vehicle, RpMaterial* material, bool ImVehFt) {
 	int color = material->color.red;
-
 	material->color.red = material->color.blue = material->color.green = 255;
-
-	if(VehicleSirens.modelData.contains(vehicle->m_nModelIndex))
-		VehicleSirens.modelData[vehicle->m_nModelIndex]->Materials[color].push_back(new VehicleMaterial(material));
+	VehicleSirens.modelData[vehicle->m_nModelIndex]->Materials[color].push_back(new VehicleMaterial(material));
 };
 
 void VehicleSirensFeature::readSirenConfiguration() {
@@ -449,6 +457,7 @@ void VehicleSirensFeature::readSirenConfiguration() {
 				failed = true;
             }
         } else if (ext == ".eml") {
+
 			std::string line;
 			int model;
 			
@@ -557,6 +566,10 @@ void VehicleSirensFeature::readSirenConfiguration() {
 			catch (...) {
 				failed = true;
 			}
+
+			if (!failed) {
+				skipCoronaModels.push_back(model);
+			}
 		}	
 
 		if (failed) {
@@ -605,22 +618,26 @@ static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char r
 };
 
 void VehicleSirensFeature::Initialize() {
+	patch::ReplaceFunctionCall(0x6D8492, hkUsesSiren);
+	
 	Events::initGameEvent += [this] {
 		readSirenConfiguration();
 		registerSirenConfiguration();
 	};
 
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, bool* clearMats) {
-		if (std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0 || material->color.green != 255 || material->color.blue != 255) {
-			if(material->color.red < 240 || material->color.green != 0 || material->color.blue != 0)
+		if(VehicleSirens.modelData.contains(vehicle->m_nModelIndex)) {
+			if (std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0 || material->color.green != 255 || material->color.blue != 255) {
+				if(material->color.red < 240 || material->color.green != 0 || material->color.blue != 0)
+					return material;
+
+				VehicleSirens.registerMaterial(vehicle, material, true);
+
 				return material;
-
-			VehicleSirens.registerMaterial(vehicle, material, true);
-
-			return material;
+			} else {
+				VehicleSirens.registerMaterial(vehicle, material);
+			}
 		}
-
-		VehicleSirens.registerMaterial(vehicle, material);
 		return material;
 	});
 
@@ -901,8 +918,7 @@ void VehicleSirensFeature::Initialize() {
 		}
 
 		float vehicleAngle = (vehicle->GetHeading() * 180.0f) / 3.14f;
-
-		float cameraAngle = (((CCamera*)0xB6F028)->GetHeading() * 180.0f) / 3.14f;
+		float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 
 		eCoronaFlareType type = FLARETYPE_NONE;
 		CVector distance = vehicle->GetPosition() - ((CCamera*)0xB6F028)->GetPosition();
