@@ -182,13 +182,11 @@ public:
     void Initialize();
 
 private:
-    void readSirenConfiguration();
+    void ReadConfigs();
     void registerSirenConfiguration();
-    void createSirenConfiguration(int model, nlohmann::json json);
     void registerMaterial(CVehicle* vehicle, RpMaterial* material, bool ImVehFt = false);
     void enableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time);
     void enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time);
 };
-
 
 extern VehicleSirensFeature VehicleSirens;

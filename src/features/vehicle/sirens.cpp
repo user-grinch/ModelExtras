@@ -7,8 +7,7 @@ using f_UsesSiren = char(*__fastcall)(CVehicle*);
 static f_UsesSiren oUsesSiren;
 static std::vector<int> skipCoronaModels;
 
-char __fastcall hkUsesSiren(CVehicle *ptr)
-{
+char __fastcall hkUsesSiren(CVehicle *ptr) {
 	if(VehicleSirens.modelData.contains(ptr->m_nModelIndex)){
 		ptr->m_vehicleAudio.m_bModelWithSiren = true;
 		return true;
@@ -422,7 +421,7 @@ void VehicleSirensFeature::registerMaterial(CVehicle* vehicle, RpMaterial* mater
 	VehicleSirens.modelData[vehicle->m_nModelIndex]->Materials[color].push_back(new VehicleMaterial(material));
 };
 
-void VehicleSirensFeature::readSirenConfiguration() {
+void VehicleSirensFeature::ReadConfigs() {
     std::string path {MOD_DATA_PATH("sirens/")};
 
 	if (!std::filesystem::exists(path)) {
@@ -614,14 +613,14 @@ static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char r
 	if (vehicle && std::find(skipCoronaModels.begin(), skipCoronaModels.end(), vehicle->m_nModelIndex) != skipCoronaModels.end())
 		return;
 
-	Common::RegisterCorona(static_cast<CVehicle*>(attachTo), posn, red, green, blue, CORONA_A, id, radius, 0.0f, true);
+	Common::RegisterCorona(static_cast<CVehicle*>(attachTo), posn, red, green, blue, alpha, id, radius, 0.0f, true);
 };
 
 void VehicleSirensFeature::Initialize() {
 	patch::ReplaceFunctionCall(0x6D8492, hkUsesSiren);
 	
 	Events::initGameEvent += [this] {
-		readSirenConfiguration();
+		ReadConfigs();
 		registerSirenConfiguration();
 	};
 
@@ -652,10 +651,12 @@ void VehicleSirensFeature::Initialize() {
 
 		bool matCalcNeeded = false;
 		std::smatch match;
+		std::string num;
 		if (std::regex_search(name, match, std::regex("^siren(_)?(.*)"))) {
-		
+			num = match[2].str();
 		}
-		else if (std::regex_search(name, std::regex("^light_em"))){
+		else if (std::regex_search(name, match, std::regex("^light_em(.*)"))){
+			num = match[1].str();
 			matCalcNeeded = true;
 		}
 		else 
@@ -664,7 +665,7 @@ void VehicleSirensFeature::Initialize() {
 		std::string material;
 		bool foundDigit = false;
 
-		for (char c : match[2].str()) {
+		for (char c : num) {
 			if (!isdigit(c)) {
 				if (!foundDigit)
 					return;
@@ -793,7 +794,7 @@ void VehicleSirensFeature::Initialize() {
 				if (VehicleSirens.modelData[model]->States.size() == 0)
 					return;
 
-				int newState = number;//(key - PluginData::DigitKey);
+				int newState = number;
 
 				if ((int)VehicleSirens.modelData[model]->States.size() <= newState)
 					return;
@@ -818,8 +819,8 @@ void VehicleSirensFeature::Initialize() {
 			return;
 
 		if (VehicleSirens.modelRotators.contains(model)) {
-			for (std::vector<VehicleDummy*>::iterator dummy = VehicleSirens.modelRotators[model].begin(); dummy != VehicleSirens.modelRotators[model].end(); ++dummy)
-				(*dummy)->ResetAngle();
+			for (auto e: VehicleSirens.modelRotators[model])
+				e->ResetAngle();
 
 			VehicleSirens.modelRotators.erase(model);
 		}
@@ -966,8 +967,8 @@ void VehicleSirensFeature::Initialize() {
 			
 
 			if (material->second->Frames != 0) {
-				for (std::vector<VehicleMaterial*>::iterator mat = materials[material->first].begin(); mat != materials[material->first].end(); ++mat)
-					VehicleSirens.enableMaterial((*mat), material->second, time);
+				for (auto e : materials[material->first])
+					VehicleSirens.enableMaterial(e, material->second, time);
 			}
 
 			material->second->Frames++;
@@ -1006,19 +1007,15 @@ void VehicleSirensFeature::enableMaterial(VehicleMaterial* material, VehicleSire
 };
 
 void VehicleSirensFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
-	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-		Common::RegisterCorona(vehicle, dummy->Position, material->Color.red, material->Color.green, 
-		material->Color.blue, CORONA_A, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
-		 material->Size, dummy->CurrentAngle, true);
-	}
+	Common::RegisterCorona(vehicle, dummy->Position, material->Color.red, material->Color.green, 
+	material->Color.blue, material->Color.alpha, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
+		material->Size, dummy->CurrentAngle, true);
 };
 
 VehicleSiren::VehicleSiren(CVehicle* pVeh) {
 	vehicle = pVeh;
 
-	int model = vehicle->m_nModelIndex;
-
-	CVehicleModelInfo* modelInfo = reinterpret_cast<CVehicleModelInfo*>(CModelInfo::ms_modelInfoPtrs[model]);
+	CVehicleModelInfo* modelInfo = reinterpret_cast<CVehicleModelInfo*>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
 
 	if (modelInfo->m_nVehicleType == eVehicleType::VEHICLE_HELI || modelInfo->m_nVehicleType == eVehicleType::VEHICLE_PLANE)
 		this->Mute = true;
