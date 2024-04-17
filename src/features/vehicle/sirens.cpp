@@ -977,6 +977,8 @@ void VehicleSirensFeature::Initialize() {
 
 	Events::initGameEvent += [this] {
 		injector::MakeCALL((void*)0x6ABA60, hkRegisterCorona, true);
+		injector::MakeCALL((void*)0x6BD4DD, hkRegisterCorona, true);
+		injector::MakeCALL((void*)0x6BD531, hkRegisterCorona, true);
 	};
 }
 
