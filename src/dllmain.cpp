@@ -105,9 +105,16 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityTy
     }
     return;
 }
+extern void ShowDonationWindow();
 
 BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
     if (nReason == DLL_PROCESS_ATTACH) {
+
+        if (gConfig.ReadBoolean("MISC", "ShowDonationPopup", true)) {
+            ShowDonationWindow();
+            gConfig.WriteBoolean("MISC", "ShowDonationPopup", false);
+        }
+
         Events::initGameEvent += []() {
             bool ImVehFtInstalled = GetModuleHandle("ImVehFt.asi");
             bool ImVehFtFixInstalled = GetModuleHandle("ImVehFtFix.asi");
