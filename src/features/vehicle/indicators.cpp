@@ -99,8 +99,18 @@ void IndicatorFeature::Initialize() {
 		if (pVeh->m_fHealth == 0) {
 			return;
 		}
-		
+
 		VehData &data = vehData.Get(pVeh);
+		int model = pVeh->m_nModelIndex;
+		eIndicatorState state = data.indicatorState;
+		if (state == eIndicatorState::None) {
+			return;
+		}
+
+		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) == false && 
+		Indicator.dummies[model].size() == 0 && Indicator.materials[model][state].size() == 0) {
+			return;
+		}
 		
 		if (pVeh->m_pDriver == FindPlayerPed()) {
 			if (KeyPressed(VK_SHIFT)) {
@@ -146,12 +156,6 @@ void IndicatorFeature::Initialize() {
 		if (!Indicator.delayState)
 			return;
 
-		int model = pVeh->m_nModelIndex;
-		eIndicatorState state = data.indicatorState;
-		if (state == eIndicatorState::None) {
-			return;
-		}
-
 		// global turn lights
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) &&
 			Indicator.dummies[model].size() == 0 && Indicator.materials[model][state].size() == 0)
@@ -166,30 +170,29 @@ void IndicatorFeature::Initialize() {
 						DrawVehicleTurnlights(pVeh->m_pTractor, state);
 				}
 			}
-			return;
-		}
-		
-		if (state != eIndicatorState::Both) {
-			for (auto e: Indicator.materials[model][state]){
-				Indicator.enableMaterial(e);
-			}
-
-			if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
-				for (auto e: Indicator.dummies[model][state]) {
-					Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, e->Angle, e->CurrentAngle);
-				}
-			}
 		} else {
-			for (auto k: Indicator.materials[model]) {
-				for (auto e: k.second) {
+			if (state != eIndicatorState::Both) {
+				for (auto e: Indicator.materials[model][state]){
 					Indicator.enableMaterial(e);
 				}
-			}
 
-			if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
-				for (auto k: Indicator.dummies[model]) {
-					for (auto e: k.second) {
+				if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
+					for (auto e: Indicator.dummies[model][state]) {
 						Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, e->Angle, e->CurrentAngle);
+					}
+				}
+			} else {
+				for (auto k: Indicator.materials[model]) {
+					for (auto e: k.second) {
+						Indicator.enableMaterial(e);
+					}
+				}
+
+				if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
+					for (auto k: Indicator.dummies[model]) {
+						for (auto e: k.second) {
+							Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, e->Angle, e->CurrentAngle);
+						}
 					}
 				}
 			}

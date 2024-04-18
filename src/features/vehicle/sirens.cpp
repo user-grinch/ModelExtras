@@ -401,15 +401,13 @@ VehicleSirenData::VehicleSirenData(nlohmann::json json) {
 	Validate = true;
 };
 
-std::map<int, nlohmann::json> jsonData;
-
 void VehicleSirensFeature::registerMaterial(CVehicle* vehicle, RpMaterial* material, bool ImVehFt) {
 	int color = material->color.red;
 	material->color.red = material->color.blue = material->color.green = 255;
 	VehicleSirens.modelData[vehicle->m_nModelIndex]->Materials[color].push_back(new VehicleMaterial(material));
 }
 
-void VehicleSirensFeature::ReadConfigs() {
+void VehicleSirensFeature::ParseConfigs() {
     std::string path {MOD_DATA_PATH("sirens/")};
 
 	if (!std::filesystem::exists(path)) {
@@ -418,7 +416,6 @@ void VehicleSirensFeature::ReadConfigs() {
 	}
 
     for (const auto& entry : std::filesystem::directory_iterator(path)) {
-		bool failed = false;
         std::string filename = entry.path().filename().stem().string();
 		std::string ext = entry.path().extension().string();
 
@@ -434,40 +431,26 @@ void VehicleSirensFeature::ReadConfigs() {
 
         std::ifstream stream(path + filename + ".json");
 		if (!stream) {
-			gLogger->warn("Failed to read siren configuration from {}, cannot open stream!", filename);
+			gLogger->warn("Failed to open stream!");
 			continue;
 		}
 
 		try {
-			int model = std::stoi(filename.substr(0, filename.find_first_of('.')));
-			jsonData[model] = nlohmann::json::parse(stream);
-			skipCoronaModels.push_back(model);
+			CurrentModel = std::stoi(filename.substr(0, filename.find_first_of('.')));
+			nlohmann::json json = nlohmann::json::parse(stream);
+			skipCoronaModels.push_back(CurrentModel);
+
+			VehicleSirens.modelData[CurrentModel] = new VehicleSirenData(json);
+			if (!VehicleSirens.modelData[CurrentModel]->Validate) {
+				gLogger->warn("Failed to read siren configuration, cannot configure JSON manifest!");
+				VehicleSirens.modelData.erase(CurrentModel);
+			}
 		} catch (...) {
-			failed = true;
+			gLogger->warn("Failed to read siren configuration");
 		}
         stream.close();
     }
 }
-
-void VehicleSirensFeature::registerSirenConfiguration() {
-	for (std::map<int, nlohmann::json>::iterator _json = jsonData.begin(); _json != jsonData.end(); ++_json) {
-		int model = _json->first;
-
-		nlohmann::json json = _json->second;
-
-		CurrentModel = model;
-
-		VehicleSirens.modelData[model] = new VehicleSirenData(json);
-
-		if (!VehicleSirens.modelData[model]->Validate) {
-			gLogger->warn("Failed to read siren configuration, cannot configure JSON manifest!");
-
-			VehicleSirens.modelData.erase(model);
-
-			continue;
-		}
-	}
-};
 
 static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay) {
 	CVehicle* vehicle = NULL;
@@ -488,8 +471,7 @@ void VehicleSirensFeature::Initialize() {
 	patch::ReplaceFunctionCall(0x6D8492, hkUsesSiren);
 	
 	Events::initGameEvent += [this] {
-		ReadConfigs();
-		registerSirenConfiguration();
+		ParseConfigs();
 	};
 
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, bool* clearMats) {
@@ -513,44 +495,18 @@ void VehicleSirensFeature::Initialize() {
 			return;
 
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-		
 		if (!VehicleSirens.vehicleData.contains(index))
 			VehicleSirens.vehicleData[index] = new VehicleSiren(vehicle);
 
-		bool matCalcNeeded = false;
 		std::smatch match;
-		std::string num;
-		if (std::regex_search(name, match, std::regex("^siren(_)?(.*)"))) {
-			num = match[2].str();
-		}
-		else if (std::regex_search(name, match, std::regex("^light_em(.*)"))){
-			num = match[1].str();
-			matCalcNeeded = true;
-		}
-		else 
+		if (!std::regex_search(name, match, std::regex("^(siren_?|light_em)(\\d+)")))
 			return;
 
-		std::string material;
-		bool foundDigit = false;
+		int id = 0;
+		if (match[2].str() != "") 
+			id = std::stoi(match[2].str());
 
-		for (char c : num) {
-			if (!isdigit(c)) {
-				if (!foundDigit)
-					return;
-
-				break;
-			}
-
-			material += c;
-			foundDigit = true;
-		}
-
-		int mat = std::stoi(material == "" ? "0" : material);
-		if (matCalcNeeded) {
-			mat = mat;
-		}
-
-		VehicleSirens.vehicleData[index]->Dummies[mat].push_back(new VehicleDummy(frame, name, parent, eDummyPos::Front));
+		VehicleSirens.vehicleData[index]->Dummies[id].push_back(new VehicleDummy(frame, name, parent, eDummyPos::Front));
 	});
 
 

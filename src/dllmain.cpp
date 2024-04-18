@@ -5,6 +5,7 @@
 #include "features/vehicle/gear.h"
 #include "features/vehicle/plate.h"
 #include "features/vehicle/handlebar.h"
+#include "features/vehicle/wheelhub.h"
 #include "features/vehicle/steerwheel.h"
 #include "features/vehicle/lights.h"
 #include "features/vehicle/indicators.h"
@@ -44,6 +45,7 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityTy
             if (gConfig.ReadBoolean("FEATURES", "RotateSteerWheel", false)) {
                 SteerWheel.Process(frame, pVeh);
             }
+            WheelHub.Process(frame, pVeh);
         }
 
         CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
