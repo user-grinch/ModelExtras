@@ -21,6 +21,7 @@ void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green,
 		size, 75.0f, CORONATYPE_HEADLIGHT, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, false);
 };
 
+
 void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, int id, float cameraAngle, float angle, float radius, float size) {
 	float differenceAngle = ((cameraAngle > angle) ? (cameraAngle - angle) : (angle - cameraAngle));
 
@@ -77,3 +78,27 @@ void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red,
 		128, red, green, blue,
 		2.0f, false, 1.0f, 0, true);
 };
+
+RwTexture* loadTextureFromFile(const char* filename) {
+    RwImage* image = RtPNGImageRead(filename);
+
+    RwInt32 width, height, depth, flags;
+    RwImageFindRasterFormat(image, 4, &width, &height, &depth, &flags);
+
+    RwRaster* raster = RwRasterCreate(width, height, depth, flags);
+
+    RwRasterSetFromImage(raster, image);
+
+    RwImageDestroy(image);
+
+    return RwTextureCreate(raster);
+};
+
+RwTexture* Common::GetTexture(std::string texture) {
+	if (Textures.contains(texture) && Textures[texture])
+		return Textures[texture];
+
+	Textures[texture] = loadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str());
+    return Textures[texture];
+};
+

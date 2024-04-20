@@ -84,9 +84,9 @@ void VehicleMaterials::findDummies(CVehicle* vehicle, RwFrame* frame, bool paren
 
     const std::string name = GetFrameNodeName(frame);
 
-    if (vehicle->m_pTrailer) {
-        findDummies(vehicle->m_pTrailer, reinterpret_cast<RwFrame*>(vehicle->m_pTrailer->m_pRwClump->object.parent));
-    }
+    // if (vehicle->m_pTrailer) {
+    //     findDummies(vehicle->m_pTrailer, reinterpret_cast<RwFrame*>(vehicle->m_pTrailer->m_pRwClump->object.parent));
+    // }
 
     if (RwFrame* nextFrame = frame->child)
         findDummies(vehicle, nextFrame, RwFrameGetParent(frame) ? true : false);

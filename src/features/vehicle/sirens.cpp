@@ -1,20 +1,29 @@
 #include "pch.h"
 #include "sirens.h"
 #include "internals/common.h"
-#include "internals/imvehft.h"
-#include "defines.h"
 
-using f_UsesSiren = char(*__fastcall)(CVehicle*);
-static f_UsesSiren oUsesSiren;
-static std::vector<int> skipCoronaModels;
+int ImVehFt_ReadColor(std::string input) {
+    if (input.length() == 3)
+        return std::stoi(input);
 
-char __fastcall hkUsesSiren(CVehicle *ptr) {
-	if(VehicleSirens.modelData.contains(ptr->m_nModelIndex)){
-		ptr->m_vehicleAudio.m_bModelWithSiren = true;
-		return true;
-	}
-	return ptr->IsLawEnforcementVehicle();
-}
+    std::istringstream stream(input);
+
+    int color;
+
+    stream >> std::hex >> color;
+
+    return color;
+};
+
+std::map<std::string, RwTexture*> Textures;
+
+RwTexture* PluginTextures_GetTexture(std::string texture) {
+	if (Textures.contains(texture) && Textures[texture])
+		return Textures[texture];
+	Textures[texture] = Util::LoadTextureFromFile(std::format("{}textures/{}.png", MOD_DATA_PATH(), texture).c_str());
+
+    return Textures[texture];
+};
 
 bool VehicleSiren::GetSirenState() {
 	return (Mute == false) ? (vehicle->m_nVehicleFlags.bSirenOrAlarm) : (true);
@@ -401,56 +410,230 @@ VehicleSirenData::VehicleSirenData(nlohmann::json json) {
 	Validate = true;
 };
 
+std::map<int, nlohmann::json> jsonData;
+
 void VehicleSirensFeature::registerMaterial(CVehicle* vehicle, RpMaterial* material, bool ImVehFt) {
 	int color = material->color.red;
+
 	material->color.red = material->color.blue = material->color.green = 255;
-	VehicleSirens.modelData[vehicle->m_nModelIndex]->Materials[color].push_back(new VehicleMaterial(material));
-}
 
-void VehicleSirensFeature::ParseConfigs() {
-    std::string path {MOD_DATA_PATH("sirens/")};
+	if(VehicleSirens.modelData.contains(vehicle->m_nModelIndex))
+		VehicleSirens.modelData[vehicle->m_nModelIndex]->Materials[color].push_back(new VehicleMaterial(material));
+};
 
-	if (!std::filesystem::exists(path)) {
-		gLogger->warn("ModelExtras/sirens folder does not exist!");
-		return;
-	}
+void VehicleSirensFeature::readSirenConfiguration() {
+	std::string path {MOD_DATA_PATH("sirens/")};
 
-    for (const auto& entry : std::filesystem::directory_iterator(path)) {
-        std::string filename = entry.path().filename().stem().string();
-		std::string ext = entry.path().extension().string();
-
-		if (ext !=  ".json" && ext != ".eml") {
+	for (int model = 400; model < 612; model++) {
+		if (!std::filesystem::exists(path + std::to_string(model) + ".json"))
 			continue;
-		}
 
-        gLogger->info("Reading siren configuration from sirens\\{}.json", filename);
-		if (ext == ".eml") {
-			filename = ConvertEMLtoJSON(filename);
-			if (filename == "") continue;
-		}
+		gLogger->info("Reading siren configuration from sirens\\{}.json", model);
 
-        std::ifstream stream(path + filename + ".json");
+		std::ifstream stream(path + std::to_string(model) + ".json");
+
+
 		if (!stream) {
-			gLogger->warn("Failed to open stream!");
+			gLogger->warn("Failed to read siren configuration, cannot open stream!\n");
+
 			continue;
 		}
 
 		try {
-			CurrentModel = std::stoi(filename.substr(0, filename.find_first_of('.')));
 			nlohmann::json json = nlohmann::json::parse(stream);
-			skipCoronaModels.push_back(CurrentModel);
 
-			VehicleSirens.modelData[CurrentModel] = new VehicleSirenData(json);
-			if (!VehicleSirens.modelData[CurrentModel]->Validate) {
-				gLogger->warn("Failed to read siren configuration, cannot configure JSON manifest!");
-				VehicleSirens.modelData.erase(CurrentModel);
-			}
-		} catch (...) {
-			gLogger->warn("Failed to read siren configuration");
+			jsonData[model] = json;
 		}
-        stream.close();
-    }
-}
+		catch (...) {
+			gLogger->warn("An exception occurred trying to read sirens\\{}.json!", model);
+
+			continue;
+		}
+
+		stream.close();
+	}
+
+	gLogger->info("Finished reading siren configurations from the sirens folder!");
+};
+
+void VehicleSirensFeature::readSirenConfigurationIVF() {
+	// TODO: go through the IVF EMLs to see if there's duplicates
+	if (GetModuleHandleA("ImVehFt.asi"))
+		gLogger->info("ImVehFt.asi is running in your game, make sure you don't have duplicated models!");
+
+	std::string path { MOD_DATA_PATH("sirens/ImVehFt/") };
+
+	if (!std::filesystem::exists(path)) {
+		gLogger->warn("sirens/ImVehFt folder does not exist!");
+		return;
+	}
+
+	for (auto& p : std::filesystem::recursive_directory_iterator(path)) {
+		if (p.path().extension() != ".eml")
+			continue;
+
+		std::string file = p.path().stem().string();
+
+		gLogger->info("Reading ImVehFt configuration from sirens\\ImVehFt\\{}.eml", file);
+
+		std::string line;
+
+		int currentModel;
+
+		std::ifstream infile(path + file + ".eml");
+
+		if (!std::getline(infile, line)) {
+			gLogger->warn("Failed to read the file's first line? Something's wrong...");
+
+			continue;
+		}
+
+		std::istringstream iss(line);
+
+		if (!(iss >> currentModel)) {
+			gLogger->warn("Failed to read the model ID from the file, something's wrong...");
+
+			continue;
+		}
+
+		infile.close();
+
+		if (!jsonData.count(currentModel))
+			jsonData[currentModel] = {};
+
+		if (!jsonData[currentModel].count("ImVehFt"))
+			jsonData[currentModel]["ImVehFt"] = {};
+
+		gLogger->info("Current ImVehFt model is {}, reading pattern data!", currentModel);
+
+		try {
+			infile.open(path + file + ".eml");
+
+			while (std::getline(infile, line)) {
+				if (line[0] == '#')
+					continue;
+
+				std::istringstream iss(line);
+
+				int id, parent, type, shadow, switches, starting;
+
+				int red, green, blue, alpha;
+
+				float size, flash;
+
+				if (!(iss >> id >> parent))
+					continue;
+
+				std::string tempColor;
+
+				if (!(iss >> tempColor))
+					continue;
+
+				red = ImVehFt_ReadColor(tempColor);
+
+				if (!(iss >> tempColor))
+					continue;
+
+				green = ImVehFt_ReadColor(tempColor);
+
+				if (!(iss >> tempColor))
+					continue;
+
+				blue = ImVehFt_ReadColor(tempColor);
+
+				if (!(iss >> tempColor))
+					continue;
+
+				alpha = ImVehFt_ReadColor(tempColor);
+
+				if (!(iss >> type >> size >> shadow >> flash))
+					continue;
+
+				if (!(iss >> switches >> starting))
+					continue;
+
+				std::vector<uint64_t> pattern;
+
+				uint64_t count = 0;
+
+				for (int index = 0; index < switches; index++) {
+					std::string string;
+
+					if (!(iss >> string))
+						continue;
+
+					uint64_t milliseconds = std::stoi(string) - count;
+
+					count += milliseconds;
+
+					if (milliseconds == 0)
+						continue;
+
+					pattern.push_back(milliseconds);
+				}
+
+				if (count == 0 || count > 64553) {
+					starting = 1;
+
+					pattern.clear();
+				}
+
+				if (!jsonData[currentModel]["ImVehFt"].contains(std::to_string(256 - id)))
+					jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)] = {};
+
+				if (!jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)].contains("size"))
+					jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)]["size"] = size;
+
+				if (!jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)].contains("color"))
+					jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)]["color"] = { { "red", red }, { "green", green }, { "blue", blue }, { "alpha", alpha } };
+
+				if (!jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)].contains("state"))
+					jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)]["state"] = starting;
+
+				if (!jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)].contains("pattern"))
+					jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)]["pattern"] = pattern;
+
+				if (!jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)].contains("shadow"))
+					jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)]["shadow"]["size"] = shadow;
+
+				if (!jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)].contains("inertia"))
+					jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)]["inertia"] = flash / 100.0f;
+
+				if (!jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)].contains("type"))
+					jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)]["type"] = ((type == 0) ? ("directional") : ((type == 1) ? ("inversed-directional") : ((type == 4) ? ("non-directional") : ("directional"))));
+
+				jsonData[currentModel]["ImVehFt"][std::to_string(256 - id)]["ImVehFt"] = true;
+			}
+
+			infile.close();
+		}
+		catch (...) {
+			gLogger->warn("An exception occurred trying to read sirens\\ImVehFt\\{}.eml!", file);
+		
+			continue;
+		}
+	}
+};
+
+void VehicleSirensFeature::registerSirenConfiguration() {
+	for (std::map<int, nlohmann::json>::iterator _json = jsonData.begin(); _json != jsonData.end(); ++_json) {
+		int model = _json->first;
+
+		nlohmann::json json = _json->second;
+
+		CurrentModel = model;
+
+		VehicleSirens.modelData[model] = new VehicleSirenData(json);
+
+		if (!VehicleSirens.modelData[model]->Validate) {
+			gLogger->warn("Failed to read siren configuration, cannot configure JSON manifest!");
+
+			VehicleSirens.modelData.erase(model);
+
+			continue;
+		}
+	}
+};
 
 static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay) {
 	CVehicle* vehicle = NULL;
@@ -461,32 +644,28 @@ static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char r
 		popad
 	}
 
-	if (vehicle && std::find(skipCoronaModels.begin(), skipCoronaModels.end(), vehicle->m_nModelIndex) != skipCoronaModels.end())
+	if (vehicle && VehicleSirens.modelData.contains(vehicle->m_nModelIndex))
 		return;
 
-	Common::RegisterCorona(static_cast<CVehicle*>(attachTo), posn, red, green, blue, alpha, id, radius, 0.0f, true);
+	CCoronas::RegisterCorona(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
 };
 
 void VehicleSirensFeature::Initialize() {
-	patch::ReplaceFunctionCall(0x6D8492, hkUsesSiren);
-	
-	Events::initGameEvent += [this] {
-		ParseConfigs();
-	};
+	readSirenConfiguration();
+	readSirenConfigurationIVF();
+	registerSirenConfiguration();
 
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, bool* clearMats) {
-		if(VehicleSirens.modelData.contains(vehicle->m_nModelIndex)) {
-			if (std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0 || material->color.green != 255 || material->color.blue != 255) {
-				if(material->color.red < 240 || material->color.green != 0 || material->color.blue != 0)
-					return material;
-
-				VehicleSirens.registerMaterial(vehicle, material, true);
-
+		if (std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0 || material->color.green != 255 || material->color.blue != 255) {
+			if(material->color.red < 240 || material->color.green != 0 || material->color.blue != 0)
 				return material;
-			} else {
-				VehicleSirens.registerMaterial(vehicle, material);
-			}
+
+			VehicleSirens.registerMaterial(vehicle, material, true);
+
+			return material;
 		}
+
+		VehicleSirens.registerMaterial(vehicle, material);
 		return material;
 	});
 
@@ -495,18 +674,42 @@ void VehicleSirensFeature::Initialize() {
 			return;
 
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
+		
 		if (!VehicleSirens.vehicleData.contains(index))
 			VehicleSirens.vehicleData[index] = new VehicleSiren(vehicle);
 
+		bool matCalcNeeded = false;
 		std::smatch match;
-		if (!std::regex_search(name, match, std::regex("^(siren_?|light_em)(\\d+)")))
+		if (std::regex_search(name, match, std::regex("^siren(_)?(.*)"))) {
+
+		}
+		else if (std::regex_search(name, std::regex("^light_em"))){
+			matCalcNeeded = true;
+		}
+		else 
 			return;
 
-		int id = 0;
-		if (match[2].str() != "") 
-			id = std::stoi(match[2].str());
+		std::string material;
+		bool foundDigit = false;
 
-		VehicleSirens.vehicleData[index]->Dummies[id].push_back(new VehicleDummy(frame, name, parent, eDummyPos::Front));
+		for (char c : match[2].str()) {
+			if (!isdigit(c)) {
+				if (!foundDigit)
+					return;
+
+				break;
+			}
+
+			material += c;
+			foundDigit = true;
+		}
+
+		int mat = std::stoi(material == "" ? "0" : material);
+		if (matCalcNeeded) {
+			mat = 256 - mat;
+		}
+
+		VehicleSirens.vehicleData[index]->Dummies[mat].push_back(new VehicleDummy(frame, name, parent));
 	});
 
 
@@ -516,7 +719,6 @@ void VehicleSirensFeature::Initialize() {
 		if (!VehicleSirens.modelData.contains(model))
 			return;
 
-		vehicle->m_vehicleAudio.m_bModelWithSiren = true;
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
 		VehicleSirens.vehicleData[index] = new VehicleSiren(vehicle);
@@ -618,7 +820,7 @@ void VehicleSirensFeature::Initialize() {
 				if (VehicleSirens.modelData[model]->States.size() == 0)
 					return;
 
-				int newState = number;
+				int newState = number;//(key - PluginData::DigitKey);
 
 				if ((int)VehicleSirens.modelData[model]->States.size() <= newState)
 					return;
@@ -643,8 +845,8 @@ void VehicleSirensFeature::Initialize() {
 			return;
 
 		if (VehicleSirens.modelRotators.contains(model)) {
-			for (auto e: VehicleSirens.modelRotators[model])
-				e->ResetAngle();
+			for (std::vector<VehicleDummy*>::iterator dummy = VehicleSirens.modelRotators[model].begin(); dummy != VehicleSirens.modelRotators[model].end(); ++dummy)
+				(*dummy)->ResetAngle();
 
 			VehicleSirens.modelRotators.erase(model);
 		}
@@ -743,7 +945,8 @@ void VehicleSirensFeature::Initialize() {
 		}
 
 		float vehicleAngle = (vehicle->GetHeading() * 180.0f) / 3.14f;
-		float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
+
+		float cameraAngle = (((CCamera*)0xB6F028)->GetHeading() * 180.0f) / 3.14f;
 
 		eCoronaFlareType type = FLARETYPE_NONE;
 		CVector distance = vehicle->GetPosition() - ((CCamera*)0xB6F028)->GetPosition();
@@ -782,27 +985,31 @@ void VehicleSirensFeature::Initialize() {
 
 			int id = 0;
 
-			if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-				for (auto e: dummies[material->first]) {
-					VehicleSirens.enableDummy((material->first * 16) + id, e, vehicle, vehicleAngle, cameraAngle, material->second, type, time);
+			if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false) || gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+				for (std::vector<VehicleDummy*>::iterator dummy = dummies[material->first].begin(); dummy != dummies[material->first].end(); ++dummy) {
 					id++;
+
+					VehicleSirens.enableDummy((material->first * 16) + id, (*dummy), vehicle, vehicleAngle, cameraAngle, material->second, type, time);
 				}
 			}
 			
 
 			if (material->second->Frames != 0) {
-				for (auto e : materials[material->first])
-					VehicleSirens.enableMaterial(e, material->second, time);
+				for (std::vector<VehicleMaterial*>::iterator mat = materials[material->first].begin(); mat != materials[material->first].end(); ++mat)
+					VehicleSirens.enableMaterial((*mat), material->second, time);
 			}
 
 			material->second->Frames++;
 		}
 	});
 
+	// Disable default corona
+	/*plugin::Events::initGameEvent += [] {
+		injector::MakeNOP((void*)0x6ABA60, 5, true);
+	};*/
+
 	Events::initGameEvent += [this] {
-		injector::MakeCALL((void*)0x6ABA60, hkRegisterCorona, true);
-		injector::MakeCALL((void*)0x6BD4DD, hkRegisterCorona, true);
-		injector::MakeCALL((void*)0x6BD531, hkRegisterCorona, true);
+		injector::MakeCALL((void*)0x6aba60, hkRegisterCorona, true);
 	};
 }
 
@@ -833,15 +1040,24 @@ void VehicleSirensFeature::enableMaterial(VehicleMaterial* material, VehicleSire
 };
 
 void VehicleSirensFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
-	Common::RegisterCorona(vehicle, dummy->Position, material->Color.red, material->Color.green, 
-	material->Color.blue, material->Color.alpha, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
-		material->Size, dummy->CurrentAngle, true);
+	if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
+		Common::RegisterShadow(vehicle, dummy->Position, material->Color.red, material->Color.green, 
+			material->Color.blue, dummy->Angle, dummy->CurrentAngle);
+	}
+
+	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+		Common::RegisterCorona(vehicle, dummy->Position, material->Color.red, material->Color.green, 
+		material->Color.blue, material->Color.alpha, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
+		 material->Size, dummy->CurrentAngle);
+	}
 };
 
 VehicleSiren::VehicleSiren(CVehicle* pVeh) {
 	vehicle = pVeh;
 
-	CVehicleModelInfo* modelInfo = reinterpret_cast<CVehicleModelInfo*>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex]);
+	int model = vehicle->m_nModelIndex;
+
+	CVehicleModelInfo* modelInfo = reinterpret_cast<CVehicleModelInfo*>(CModelInfo::ms_modelInfoPtrs[model]);
 
 	if (modelInfo->m_nVehicleType == eVehicleType::VEHICLE_HELI || modelInfo->m_nVehicleType == eVehicleType::VEHICLE_PLANE)
 		this->Mute = true;

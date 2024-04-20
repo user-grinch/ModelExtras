@@ -103,9 +103,6 @@ void IndicatorFeature::Initialize() {
 		VehData &data = vehData.Get(pVeh);
 		int model = pVeh->m_nModelIndex;
 		eIndicatorState state = data.indicatorState;
-		if (state == eIndicatorState::None) {
-			return;
-		}
 
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) == false && 
 		Indicator.dummies[model].size() == 0 && Indicator.materials[model][state].size() == 0) {
@@ -151,6 +148,10 @@ void IndicatorFeature::Initialize() {
 				else if (pVeh->m_autoPilot.m_nCurrentLane == 1 && pVeh->m_autoPilot.m_nNextLane == 0)
 					data.indicatorState = eIndicatorState::Left;
 			}
+		}
+
+		if (state == eIndicatorState::None) {
+			return;
 		}
 
 		if (!Indicator.delayState)
