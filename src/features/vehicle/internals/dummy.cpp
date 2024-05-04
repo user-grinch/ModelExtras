@@ -43,14 +43,5 @@ int VehicleDummy::ReadHex(char a, char b) {
 }
 
 CVector VehicleDummy::GetPosition() {
-	/*CVector vector = RwFrameGetMatrix(Frame)->pos;
-
-	if (hasParent) {
-		RwFrame* parent = RwFrameGetParent(Frame);
-
-		if (parent)
-			vector = RwFrameGetMatrix(parent)->pos + vector;
-	}*/
-
 	return { Frame->modelling.pos.x, Frame->modelling.pos.y, Frame->modelling.pos.z };
 };

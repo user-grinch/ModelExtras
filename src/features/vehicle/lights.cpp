@@ -13,8 +13,7 @@ void LightsFeature::Initialize() {
 	patch::Nop(0x6A2E9F, 0x58);
 	patch::Nop(0x6BDE73, 0x12);
 
-	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, bool* clearMats) {
-		*clearMats = true;
+	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
 		if (material->color.red == 255 && material->color.green == 173 && material->color.blue == 0)
 			Lights.registerMaterial(vehicle, material, eLightState::Reverselight);
 
@@ -48,8 +47,6 @@ void LightsFeature::Initialize() {
 			Lights.registerMaterial(vehicle, material, eLightState::TailLightRight);
 		else if (material->color.red == 185 && material->color.green == 255 && material->color.blue == 0)
 			Lights.registerMaterial(vehicle, material, eLightState::TailLightLeft);
-		else 
-			*clearMats = false;
 
 		return material;
 	});

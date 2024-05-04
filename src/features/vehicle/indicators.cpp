@@ -20,8 +20,9 @@ void DrawTurnlight(CVehicle *pVeh, eDummyPos pos, bool leftSide) {
     if (leftSide) posn.x *= -1.0f;
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::Rear) ? 180.0f : 0.0f;
+	float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 	Common::RegisterShadow(pVeh, posn, SHADOW_R, SHADOW_G, SHADOW_B, dummyAngle, 0.0f);
-    Common::RegisterCorona(pVeh, posn, 255, 128, 0, CORONA_A, dummyId, 0.5f, dummyAngle);
+    Common::RegisterCoronaWithAngle(pVeh, posn, 255, 128, 0, CORONA_A, dummyId, cameraAngle, dummyAngle, 2.0f, 0.5f);
 }
 
 void DrawVehicleTurnlights(CVehicle *vehicle, eIndicatorState lightsStatus) {
@@ -43,18 +44,16 @@ float GetZAngleForPoint(CVector2D const &point) {
 
 IndicatorFeature Indicator;
 void IndicatorFeature::Initialize() {
-	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, bool* clearMats) {
+	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
 		if (material->color.blue == 0) {
 			if (material->color.red == 255) {
 				if (material->color.green > 55 && material->color.green < 59) {
 					Indicator.registerMaterial(vehicle, material, eIndicatorState::Right);
-					*clearMats = true;
 				}
 			}
 			else if (material->color.green == 255) {
 				if (material->color.red > 180 && material->color.red < 184) {
 					Indicator.registerMaterial(vehicle, material, eIndicatorState::Left);
-					*clearMats = true;
 				}
 			}
 		}
@@ -64,7 +63,6 @@ void IndicatorFeature::Initialize() {
 		&& material->color.blue == 128 
 		&& std::string(material->texture->name).rfind("light", 0) == 0) {
 			Indicator.registerMaterial(vehicle, material, (material->color.green == 4) ? eIndicatorState::Left : eIndicatorState::Right);
-			*clearMats = true;
 		}
 		return material;
 	});
@@ -239,7 +237,8 @@ void IndicatorFeature::enableMaterial(VehicleMaterial* material) {
 
 void IndicatorFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-		Common::RegisterCorona(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			CORONA_A, id, 0.5f, dummy->CurrentAngle);
+		float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
+		Common::RegisterCoronaWithAngle(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
+			CORONA_A, id, cameraAngle, dummy->CurrentAngle, 2.0f,  0.5f);
 	}
 };

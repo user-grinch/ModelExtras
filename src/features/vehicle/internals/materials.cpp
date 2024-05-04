@@ -2,122 +2,110 @@
 #include "materials.h"
 
 VehicleMaterial::VehicleMaterial(RpMaterial* material) {
-    Material = material;
-    Texture = material->texture;
-    TextureActive = material->texture;
-    Color = { material->color.red, material->color.green, material->color.blue, material->color.alpha };
+	Material = material;
 
-    std::string name = std::string(Texture->name);
+	Texture = material->texture;
+	TextureActive = material->texture;
 
-    if (RwTexture* newTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, std::string(name + "on").c_str()))
-        TextureActive = newTexture;
-    else if (RwTexture* newTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, std::string(name + "_on").c_str()))
-        TextureActive = newTexture;
-}
+	Color = { material->color.red, material->color.green, material->color.blue, material->color.alpha };
 
-void VehicleMaterials::Register(std::function<RpMaterial*(CVehicle*, RpMaterial*, bool*)> function) {
-    functions.push_back(function);
-}
+	std::string name = std::string(Texture->name);
 
-void VehicleMaterials::RegisterDummy(std::function<void(CVehicle*, RwFrame*, std::string, bool)> function) {
-    dummy.push_back(function);
-}
+	if (RwTexture* newTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, std::string(name + "on").c_str()))
+		TextureActive = newTexture;
+	else if (RwTexture* newTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, std::string(name + "_on").c_str()))
+		TextureActive = newTexture;
+};
+
+void VehicleMaterials::Register(std::function<RpMaterial*(CVehicle*, RpMaterial*)> function) {
+	functions.push_back(function);
+};
 
 void VehicleMaterials::RegisterRender(std::function<void(CVehicle*)> render) {
-    renders.push_back(render);
-}
+	renders.push_back(render);
+};
+
+void VehicleMaterials::RegisterDummy(std::function<void(CVehicle*, RwFrame*, std::string, bool)> function) {
+	dummy.push_back(function);
+};
 
 void VehicleMaterials::OnModelSet(CVehicle* vehicle, int model) {
-    currentVehicle = vehicle;
+	currentVehicle = vehicle;
 
-    RpClumpForAllAtomics(vehicle->m_pRwClump, [](RpAtomic* atomic, void* data) {
-        if (!atomic->geometry)
-            return atomic;
-        
-        RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial* material, void* data) {
-            if (!material || !material->texture)
-                return material;
+	RpClumpForAllAtomics(vehicle->m_pRwClump, [](RpAtomic* atomic, void* data) {
+		if (!atomic->geometry)
+			return atomic;
 
-            if (materials[currentVehicle->m_nModelIndex].contains(material))
-                return material;
+		RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial* material, void* data) {
+			if (!material || !material->texture)
+				return material;
 
-            for (auto& function : functions) {
-                bool clearMat = false;
-                function(currentVehicle, material, &clearMat);
+			if (materials[currentVehicle->m_nModelIndex].contains(material))
+				return material;
 
-                if (clearMat) {
-                    registeredMats[reinterpret_cast<CVehicle*>(data)->m_nModelIndex].push_back(material->texture);
-                }
-            }
+			for (auto e: functions)
+				e(currentVehicle, material);
 
-            materials[currentVehicle->m_nModelIndex][material] = true;
+			materials[currentVehicle->m_nModelIndex][material] = true;
 
-            return material;
-        }, data);
+			return material;
+		}, atomic);
 
-        RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial* material, void* data) {
-            if (!material || !material->texture)
-                return material;
+		return atomic;
+	}, (void*)((uint32_t)(0)));
 
-            for (auto e: registeredMats[reinterpret_cast<CVehicle*>(data)->m_nModelIndex]) {
-                if (material->texture == e) {
-                    material->color.red = material->color.green = material->color.blue = 255;
-                }
-            }
+	if (!dummies.contains(currentVehicle->m_nModelIndex) || dummies[currentVehicle->m_nModelIndex] == false) {
+		dummies[currentVehicle->m_nModelIndex] = true;
+	}
 
-            return material;
-        }, data);
 
-        return atomic;
-    }, vehicle);
+	//(RwFrame*)vehicle->m_pRwClump->object.parent
 
-    if (!dummies.contains(currentVehicle->m_nModelIndex) || !dummies[currentVehicle->m_nModelIndex]) {
-        dummies[currentVehicle->m_nModelIndex] = true;
-    }
-
-    findDummies(vehicle, reinterpret_cast<RwFrame*>(vehicle->m_pRwClump->object.parent));
-}
+	VehicleMaterials::findDummies(vehicle, (RwFrame*)vehicle->m_pRwClump->object.parent);
+};
 
 void VehicleMaterials::findDummies(CVehicle* vehicle, RwFrame* frame, bool parent) {
-    if (!frame)
-        return;
+	if (!frame)
+		return;
 
-    const std::string name = GetFrameNodeName(frame);
+	const std::string name = GetFrameNodeName(frame);
 
-    // if (vehicle->m_pTrailer) {
-    //     findDummies(vehicle->m_pTrailer, reinterpret_cast<RwFrame*>(vehicle->m_pTrailer->m_pRwClump->object.parent));
-    // }
+	//PluginMultiplayer::AddChatMessage(std::string(name + ": has child? " + ((frame->child)?("yes"):("no"))).c_str());
 
-    if (RwFrame* nextFrame = frame->child)
-        findDummies(vehicle, nextFrame, RwFrameGetParent(frame) ? true : false);
+	if (RwFrame* nextFrame = frame->child)
+		findDummies(vehicle, nextFrame, (RwFrameGetParent(frame))?(true):(false));
 
-    if (RwFrame* nextFrame = frame->next)
-        findDummies(vehicle, nextFrame, parent);
+	if (RwFrame* nextFrame = frame->next)
+		findDummies(vehicle, nextFrame, parent);
 
-    if (frames[currentVehicle->m_nModelIndex].contains(frame))
-        return;
+	if (frames[currentVehicle->m_nModelIndex].contains(frame))
+		return;
 
-    frames[currentVehicle->m_nModelIndex][frame] = true;
+	frames[currentVehicle->m_nModelIndex][frame] = true;
 
-    for (auto& function : dummy)
-        function(currentVehicle, frame, name, parent);
-}
+	for (auto e: dummy)
+		e(currentVehicle, frame, name, parent);
+
+	return;
+};
 
 void VehicleMaterials::StoreMaterial(std::pair<unsigned int*, unsigned int> pair) {
-    storedMaterials.push_back(pair);
-}
+	storedMaterials.push_back(pair);
+};
 
 void VehicleMaterials::RestoreMaterials() {
-    for (auto& p : storedMaterials)
-        *p.first = p.second;
+	for (auto& p : storedMaterials)
+		*p.first = p.second;
 
-    storedMaterials.clear();
-}
+	storedMaterials.clear();
+};
 
-void VehicleMaterials::OnRender(CVehicle* pVeh) {
-    if (renders.empty())
-        return;
+void VehicleMaterials::OnRender(CVehicle* vehicle) {
+	if (renders.size() == 0)
+		return;
+	
+	int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-    for (auto& render : renders)
-        render(pVeh);
-}
+	for (auto e: renders)
+		e(vehicle);
+};
