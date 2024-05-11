@@ -1,25 +1,21 @@
 #pragma once
 #include "plugin.h"
-#include "../../interface/ifeature.hpp"
 #include <vector>
 
-class ChainFeature : public IFeature {
-  protected:
-    struct VehData {
-        bool m_bInitialized = false;
-        uint m_nCurChain = 0;
-        uint m_nLastFrameMS = 0;
-        std::vector<RwFrame*> m_FrameList;
+class Chain {
+protected:
+  struct VehData {
+    bool m_bInitialized = false;
+    uint m_nCurChain = 0;
+    uint m_nLastFrameMS = 0;
+    std::vector<RwFrame*> m_FrameList;
 
-        VehData(CVehicle *pVeh) {}
-        ~VehData() {}
-    };
+    VehData(CVehicle *pVeh) {}
+    ~VehData() {}
+  };
 
-    VehicleExtendedData<VehData> vehData;
+  static inline VehicleExtendedData<VehData> vehData;
 
-  public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+public:
+  static void Process(RwFrame* frame, CEntity* pVeh);
 };
-
-extern ChainFeature Chain;

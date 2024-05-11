@@ -32,7 +32,7 @@ std::string ConvertEMLtoJSON(std::string filename) {
 
 	gLogger->info("Converting ImVehFt {}.eml -> {}.json", filename, model);
 	tempData["states"] = {};
-	tempData["states"]["1. ModelExtras"] = {};
+	tempData["states"]["ImVehFt"] = {};
 	try {
 		while (std::getline(stream, line)) {
 			if (line[0] == '#')
@@ -88,29 +88,29 @@ std::string ConvertEMLtoJSON(std::string filename) {
 			}
 
 			std::string sid = std::to_string(id);
-			if (!tempData["states"]["1. ModelExtras"].contains(sid))
-				tempData["states"]["1. ModelExtras"][sid] = {};
+			if (!tempData["states"]["ImVehFt"].contains(sid))
+				tempData["states"]["ImVehFt"][sid] = {};
 
-			if (!tempData["states"]["1. ModelExtras"][sid].contains("size"))
-				tempData["states"]["1. ModelExtras"][sid]["size"] = size;
+			if (!tempData["states"]["ImVehFt"][sid].contains("size"))
+				tempData["states"]["ImVehFt"][sid]["size"] = size;
 
-			if (!tempData["states"]["1. ModelExtras"][sid].contains("color"))
-				tempData["states"]["1. ModelExtras"][sid]["color"] = { { "red", red }, { "green", green }, { "blue", blue }, { "alpha", alpha } };
+			if (!tempData["states"]["ImVehFt"][sid].contains("color"))
+				tempData["states"]["ImVehFt"][sid]["color"] = { { "red", red }, { "green", green }, { "blue", blue }, { "alpha", alpha } };
 
-			if (!tempData["states"]["1. ModelExtras"][sid].contains("state"))
-				tempData["states"]["1. ModelExtras"][sid]["state"] = starting;
+			if (!tempData["states"]["ImVehFt"][sid].contains("state"))
+				tempData["states"]["ImVehFt"][sid]["state"] = starting;
 
-			if (!tempData["states"]["1. ModelExtras"][sid].contains("pattern"))
-				tempData["states"]["1. ModelExtras"][sid]["pattern"] = pattern;
+			if (!tempData["states"]["ImVehFt"][sid].contains("pattern"))
+				tempData["states"]["ImVehFt"][sid]["pattern"] = pattern;
 
-			if (!tempData["states"]["1. ModelExtras"][sid].contains("shadow"))
-				tempData["states"]["1. ModelExtras"][sid]["shadow"]["size"] = shadow;
+			if (!tempData["states"]["ImVehFt"][sid].contains("shadow"))
+				tempData["states"]["ImVehFt"][sid]["shadow"]["size"] = shadow;
 
-			if (!tempData["states"]["1. ModelExtras"][sid].contains("inertia"))
-				tempData["states"]["1. ModelExtras"][sid]["inertia"] = flash / 100.0f;
+			if (!tempData["states"]["ImVehFt"][sid].contains("inertia"))
+				tempData["states"]["ImVehFt"][sid]["inertia"] = flash / 100.0f;
 
-			if (!tempData["states"]["1. ModelExtras"][sid].contains("type"))
-				tempData["states"]["1. ModelExtras"][sid]["type"] = ((type == 0) ? ("directional") : ((type == 1) ? ("inversed-directional") : ((type == 4) ? ("non-directional") : ("directional"))));
+			if (!tempData["states"]["ImVehFt"][sid].contains("type"))
+				tempData["states"]["ImVehFt"][sid]["type"] = ((type == 0) ? ("directional") : ((type == 1) ? ("inversed-directional") : ((type == 4) ? ("non-directional") : ("directional"))));
 
 			// tempData["ImVehFt"][sid]["ImVehFt"] = true;
 		}

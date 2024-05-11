@@ -3,125 +3,107 @@
 #include "../../interface/ifeature.hpp"
 #include <vector>
 
-class GearMeterFeature : public IFeature {
-  protected:
-    struct VehData {
-        bool m_bInitialized = false;
-        uint m_nCurrent = 0;
-        std::vector<RwFrame*> m_FrameList;
+class GearMeter {
+protected:
+  struct VehData {
+    bool m_bInitialized = false;
+    uint m_nCurrent = 0;
+    std::vector<RwFrame*> m_FrameList;
 
-        VehData(CVehicle *pVeh) {}
-        ~VehData() {}
-    };
+    VehData(CVehicle *pVeh) {}
+    ~VehData() {}
+  };
 
-    VehicleExtendedData<VehData> vehData;
+  static inline VehicleExtendedData<VehData> vehData;
 
-  public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+public:
+  static void Process(RwFrame* frame, CEntity* ptr);
 };
 
-extern GearMeterFeature GearMeter;
+class OdoMeter {
+protected:
+  struct VehData {
+    bool m_bInitialized = false;
+    int m_nTempVal = 0;
+    std::string m_ScreenText = "000000";
+    std::vector<RwFrame*> m_FrameList;
+    float m_fMul = 160.9f;
 
-class OdoMeterFeature : public IFeature {
-  protected:
-    struct VehData {
-        bool m_bInitialized = false;
-        int m_nTempVal = 0;
-        std::string m_ScreenText = "000000";
-        std::vector<RwFrame*> m_FrameList;
-        float m_fMul = 160.9f;
+    VehData(CVehicle *pVeh) {}
+    ~VehData() {}
+  };
 
-        VehData(CVehicle *pVeh) {}
-        ~VehData() {}
-    };
+  static inline VehicleExtendedData<VehData> vehData;
 
-    VehicleExtendedData<VehData> vehData;
-
-  public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+public:
+  static void Process(RwFrame* frame, CEntity* ptr);
 };
 
-extern OdoMeterFeature OdoMeter;
+class RpmMeter {
+protected:
+  struct VehData {
+    bool m_bInitialized = false;
+    int m_nMaxRpm = 0;
+    float m_fCurRotation = 0.0f;
+    float m_fMaxRotation = 0.0f;
 
-class RpmMeterFeature : public IFeature {
-  protected:
-    struct VehData {
-        bool m_bInitialized = false;
-        int m_nMaxRpm = 0;
-        float m_fCurRotation = 0.0f;
-        float m_fMaxRotation = 0.0f;
+    VehData(CVehicle *pVeh) {}
+    ~VehData() {}
+  };
 
-        VehData(CVehicle *pVeh) {}
-        ~VehData() {}
-    };
+  static inline VehicleExtendedData<VehData> vehData;
 
-    VehicleExtendedData<VehData> vehData;
-
-  public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+public:
+  static void Process(RwFrame* frame, CEntity* ptr);
 };
 
-extern RpmMeterFeature RpmMeter;
+class SpeedMeter {
+protected:
+  struct VehData {
+      bool m_bInitialized = false;
+      int m_nMaxSpeed = 0;
+      float m_fMul = 160.9f;
+      float m_fCurRotation = 0.0f;
+      float m_fMaxRotation = 0.0f;
 
-class SpeedMeterFeature : public IFeature {
-  protected:
-    struct VehData {
-        bool m_bInitialized = false;
-        int m_nMaxSpeed = 0;
-        float m_fMul = 160.9f;
-        float m_fCurRotation = 0.0f;
-        float m_fMaxRotation = 0.0f;
+      VehData(CVehicle *pVeh) {}
+      ~VehData() {}
+  };
 
-        VehData(CVehicle *pVeh) {}
-        ~VehData() {}
-    };
+  static inline VehicleExtendedData<VehData> vehData;
 
-    VehicleExtendedData<VehData> vehData;
-
-  public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+public:
+  static void Process(RwFrame* frame, CEntity* ptr);
 };
 
-extern SpeedMeterFeature SpeedMeter;
+class TachoMeter{
+protected:
+  struct VehData {
+    bool m_bInitialized = false;
+    int m_nMaxVal = 0;
+    float m_fCurRotation = 0.0f;
+    float m_fMaxRotation = 0.0f;
 
-class TachoMeterFeature : public IFeature {
-  protected:
-    struct VehData {
-        bool m_bInitialized = false;
-        int m_nMaxVal = 0;
-        float m_fCurRotation = 0.0f;
-        float m_fMaxRotation = 0.0f;
+    VehData(CVehicle *pVeh) {}
+    ~VehData() {}
+  };
 
-        VehData(CVehicle *pVeh) {}
-        ~VehData() {}
-    };
+  static inline VehicleExtendedData<VehData> vehData;
 
-    VehicleExtendedData<VehData> vehData;
-
-  public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+public:
+  static void Process(RwFrame* frame, CEntity* ptr);
 };
 
-extern TachoMeterFeature TachoMeter;
+class GasMeter {
+protected:
+  struct VehData {
+    bool m_bInitialized = false;
+    VehData(CVehicle *pVeh) {}
+    ~VehData() {}
+  };
 
-class GasMeterFeature : public IFeature {
-  protected:
-    struct VehData {
-        bool m_bInitialized = false;
-        VehData(CVehicle *pVeh) {}
-        ~VehData() {}
-    };
+  static inline VehicleExtendedData<VehData> vehData;
 
-    VehicleExtendedData<VehData> vehData;
-
-  public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+public:
+  static void Process(RwFrame* frame, CEntity* ptr);
 };
-
-extern GasMeterFeature GasMeter;

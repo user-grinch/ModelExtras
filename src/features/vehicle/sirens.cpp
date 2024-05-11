@@ -929,7 +929,7 @@ void VehicleSirensFeature::enableDummy(int id, VehicleSirenDummy* dummy, CVehicl
 		// 	material->Color.red, material->Color.green, material->Color.blue, alpha,
 		// 	position, material->Size, 30.0f, eCoronaType::CORONATYPE_HEADLIGHT, type);
 
-		VehicleSirensFeature::enableShadow(vehicle, dummy, material, position);
+		// VehicleSirensFeature::enableShadow(vehicle, dummy, material, position);
 	}
 	else {
 		Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha, 
@@ -938,7 +938,7 @@ void VehicleSirensFeature::enableDummy(int id, VehicleSirenDummy* dummy, CVehicl
 		// 	material->Color.red, material->Color.green, material->Color.blue, alpha,
 		// 	position, material->Size, 30.0f, eCoronaType::CORONATYPE_HEADLIGHT, type);
 
-		VehicleSirensFeature::enableShadow(vehicle, dummy, material, position);
+		// VehicleSirensFeature::enableShadow(vehicle, dummy, material, position);
 	}
 
 	// (CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + 255 + id

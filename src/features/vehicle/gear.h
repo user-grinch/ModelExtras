@@ -1,6 +1,5 @@
 #pragma once
 #include "plugin.h"
-#include "../../interface/ifeature.hpp"
 #include <vector>
 extern struct CAudioStream;
 
@@ -10,56 +9,63 @@ enum class eFrameState {
   AtOffset,
 };
 
-class ClutchFeature : public IFeature {
-  protected:
-    struct VehData {
-        bool m_bInitialized = false;
-        eFrameState m_eState = eFrameState::AtOrigin;
-        float m_fCalVal = 1.0f;
-        float m_fCurRotation = 0.0f;
-        int m_nCurOffset = 0;
-        uint m_nWaitTime = 0;
-        uint m_nLastFrameMS = 0;
-        short m_nLastGear = 0;
+class Clutch {
+protected:
+  struct VehData {
+    bool m_bInitialized = false;
+    eFrameState m_eState = eFrameState::AtOrigin;
+    float m_fCalVal = 1.0f;
+    float m_fCurRotation = 0.0f;
+    int m_nCurOffset = 0;
+    uint m_nWaitTime = 0;
+    uint m_nLastFrameMS = 0;
+    short m_nLastGear = 0;
 
-        VehData(CVehicle *pVeh) {}
-        ~VehData() {}
-    };
+    VehData(CVehicle *pVeh) {}
+    ~VehData() {}
+  };
 
-    VehicleExtendedData<VehData> vehData;
+  static inline VehicleExtendedData<VehData> vehData;
 
-  public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+public:
+  static void Process(RwFrame* frame, CEntity* ptr);
 };
 
-extern ClutchFeature Clutch;
+class GearLever {
+protected:
+  struct VehData {
+    bool m_bInitialized = false;
+    eFrameState m_eState = eFrameState::AtOrigin;
+    float m_fCalVal = 1.0f;
+    float m_fCurRotation = 0.0f;
+    int m_nCurOffset = 0;
+    uint m_nWaitTime = 0;
+    uint m_nLastFrameMS = 0;
+    short m_nLastGear = 0;
 
-class GearLeverFeature : public ClutchFeature {
-  public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+    VehData(CVehicle *pVeh) {}
+    ~VehData() {}
+  };
+
+  static inline VehicleExtendedData<VehData> vehData;
+
+public:
+  static void Process(RwFrame* frame, CEntity* ptr);
 };
 
-extern GearLeverFeature GearLever;
+class GearSound {
+protected:
+  struct VehData {
+    bool m_bInitialized = false;
+    uint m_nCurGear = 0;
+    CAudioStream *m_pUpAudio, *m_pDownAudio;
 
+    VehData(CVehicle *pVeh) {}
+    ~VehData() {}
+  };
 
-class GearSoundFeature : public IFeature {
-  protected:
-    struct VehData {
-        bool m_bInitialized = false;
-        uint m_nCurGear = 0;
-        CAudioStream *m_pUpAudio, *m_pDownAudio;
+  static inline VehicleExtendedData<VehData> vehData;
 
-        VehData(CVehicle *pVeh) {}
-        ~VehData() {}
-    };
-
-    VehicleExtendedData<VehData> vehData;
-
-  public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+public:
+  static void Process(RwFrame* frame, CEntity* ptr);
 };
-
-extern GearSoundFeature GearSound;
