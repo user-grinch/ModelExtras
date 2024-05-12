@@ -9,20 +9,16 @@ enum class eSteerWheelRotation {
   Right
 };
 
-class SteerWheelFeature : public IFeature {
-  protected:
-    struct VehData {
-        eSteerWheelRotation m_eRotation = eSteerWheelRotation::Default;
+class SteerWheel{
+protected:
+  struct VehData {
+    eSteerWheelRotation m_eRotation = eSteerWheelRotation::Default;
 
-        VehData(CVehicle *pVeh) {}
-        ~VehData() {}
-    };
+    VehData(CVehicle *pVeh) {}
+    ~VehData() {}
+  };
+  static inline VehicleExtendedData<VehData> xData;
 
-    VehicleExtendedData<VehData> xData;
-
-  public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+public:
+  static void Process(RwFrame* frame, CEntity* pVeh);
 };
-
-extern SteerWheelFeature SteerWheel;

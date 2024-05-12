@@ -3,20 +3,20 @@
 #include "../../interface/ifeature.hpp"
 #include <vector>
 
-class WheelHubFeature : public IFeature {
+class WheelHub {
 protected:
   struct VehData {
     RwFrame *wheelrf = nullptr, *wheelrm = nullptr, *wheelrb = nullptr, *wheellf = nullptr, *wheellm = nullptr, *wheellb = nullptr;
     RwFrame *hubrf = nullptr, *hubrm = nullptr, *hubrb = nullptr, *hublf = nullptr, *hublm = nullptr, *hublb = nullptr;
+    bool m_bInit = false;
 
     VehData(CVehicle *pVeh) {}
     ~VehData() {}
-  };
+  }; 
 
-  VehicleExtendedData<VehData> xData;
+  static inline VehicleExtendedData<VehData> xData;
+  static void FindNodes(RwFrame * frame, CEntity* pEntity) ;
 
 public:
-  void Process(RwFrame* frame, CVehicle* pVeh);
+  static void Process(RwFrame* frame, CEntity* ptr);
 };
-
-extern WheelHubFeature WheelHub;

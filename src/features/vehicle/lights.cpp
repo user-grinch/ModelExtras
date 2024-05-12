@@ -5,9 +5,7 @@
 #include "defines.h"
 #include <CShadows.h>
 
-LightsFeature Lights;
-
-void LightsFeature::Initialize() {
+void Lights::Initialize() {
 
 	// NOP CVehicle::DoHeadLightBeam
 	patch::Nop(0x6A2E9F, 0x58);
@@ -15,38 +13,38 @@ void LightsFeature::Initialize() {
 
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
 		if (material->color.red == 255 && material->color.green == 173 && material->color.blue == 0)
-			Lights.registerMaterial(vehicle, material, eLightState::Reverselight);
+			registerMaterial(vehicle, material, eLightState::Reverselight);
 
 		else if (material->color.red == 0 && material->color.green == 255 && material->color.blue == 198)
-			Lights.registerMaterial(vehicle, material, eLightState::Reverselight);
+			registerMaterial(vehicle, material, eLightState::Reverselight);
 
 		else if (material->color.red == 184 && material->color.green == 255 && material->color.blue == 0)
-			Lights.registerMaterial(vehicle, material, eLightState::Brakelight);
+			registerMaterial(vehicle, material, eLightState::Brakelight);
 
 		else if (material->color.red == 255 && material->color.green == 59 && material->color.blue == 0)
-			Lights.registerMaterial(vehicle, material, eLightState::Brakelight);
+			registerMaterial(vehicle, material, eLightState::Brakelight);
 
 		else if (material->color.red == 0 && material->color.green == 16 && material->color.blue == 255)
-			Lights.registerMaterial(vehicle, material, eLightState::Nightlight);
+			registerMaterial(vehicle, material, eLightState::Nightlight);
 
 		else if (material->color.red == 0 && material->color.green == 17 && material->color.blue == 255)
-			Lights.registerMaterial(vehicle, material, eLightState::AllDayLight);
+			registerMaterial(vehicle, material, eLightState::AllDayLight);
 		else if (material->color.red == 0 && material->color.green == 18 && material->color.blue == 255)
-			Lights.registerMaterial(vehicle, material, eLightState::Daylight);
+			registerMaterial(vehicle, material, eLightState::Daylight);
 
 		else if (material->color.red == 255 && material->color.green == 174 && material->color.blue == 0)
-			Lights.registerMaterial(vehicle, material, eLightState::FogLight);
+			registerMaterial(vehicle, material, eLightState::FogLight);
 		else if (material->color.red == 0 && material->color.green == 255 && material->color.blue == 199)
-			Lights.registerMaterial(vehicle, material, eLightState::FogLight);
+			registerMaterial(vehicle, material, eLightState::FogLight);
 			
 		else if (material->color.red == 255 && material->color.green == 175 && material->color.blue == 0)
-			Lights.registerMaterial(vehicle, material, eLightState::FrontLightLeft);
+			registerMaterial(vehicle, material, eLightState::FrontLightLeft);
 		else if (material->color.red == 0 && material->color.green == 255 && material->color.blue == 200) 
-			Lights.registerMaterial(vehicle, material, eLightState::FrontLightRight);
+			registerMaterial(vehicle, material, eLightState::FrontLightRight);
 		else if (material->color.red == 255 && material->color.green == 60 && material->color.blue == 0) 
-			Lights.registerMaterial(vehicle, material, eLightState::TailLightRight);
+			registerMaterial(vehicle, material, eLightState::TailLightRight);
 		else if (material->color.red == 185 && material->color.green == 255 && material->color.blue == 0)
-			Lights.registerMaterial(vehicle, material, eLightState::TailLightLeft);
+			registerMaterial(vehicle, material, eLightState::TailLightLeft);
 
 		return material;
 	});
@@ -75,10 +73,10 @@ void LightsFeature::Initialize() {
 		}
 
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-		Lights.dummies[index][state].push_back(new VehicleDummy(frame, name, parent, rotation, col));
+		dummies[index][state].push_back(new VehicleDummy(frame, name, parent, rotation, col));
 	});
 	
-	Events::processScriptsEvent += [this]() {
+	Events::processScriptsEvent += []() {
 		CVehicle *pVeh = FindPlayerVehicle(-1, false);
 		if (!pVeh) {
 			return;
@@ -99,10 +97,10 @@ void LightsFeature::Initialize() {
 		}
 	};
 
-	VehicleMaterials::RegisterRender([this](CVehicle* pVeh) {
+	VehicleMaterials::RegisterRender([](CVehicle* pVeh) {
 		int model = pVeh->m_nModelIndex;
 
-		if (pVeh->m_fHealth == 0 || Lights.materials[model].size() == 0)
+		if (pVeh->m_fHealth == 0 || materials[model].size() == 0)
 			return;
 
 		CAutomobile* automobile = reinterpret_cast<CAutomobile*>(pVeh);
@@ -110,15 +108,15 @@ void LightsFeature::Initialize() {
 		float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
 		float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 
-		Lights.renderLights(pVeh, eLightState::AllDayLight, vehicleAngle, cameraAngle);
+		renderLights(pVeh, eLightState::AllDayLight, vehicleAngle, cameraAngle);
 
 		if (CClock::GetIsTimeInRange(20, 8))
-			Lights.renderLights(pVeh, eLightState::Nightlight, vehicleAngle, cameraAngle);
+			renderLights(pVeh, eLightState::Nightlight, vehicleAngle, cameraAngle);
 		else
-			Lights.renderLights(pVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
+			renderLights(pVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
 
 		if (pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver)
-			Lights.renderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
+			renderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
 		else {
 			for (auto e: materials[pVeh->m_nModelIndex][eLightState::Reverselight]) {
 				e->Color.red = e->Color.green = e->Color.blue = 10;
@@ -126,14 +124,14 @@ void LightsFeature::Initialize() {
 		}
 
 		if (pVeh->m_fBreakPedal && pVeh->m_pDriver)
-			Lights.renderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
+			renderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
 		
 		VehData& data = vehData.Get(pVeh);
 
 		if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT) && 
 		!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)) {
-			if (data.m_bFogLightsOn && Lights.materials[model][eLightState::FogLight].size() != 0) {
-				Lights.renderLights(pVeh, eLightState::FogLight, vehicleAngle, cameraAngle);
+			if (data.m_bFogLightsOn && materials[model][eLightState::FogLight].size() != 0) {
+				renderLights(pVeh, eLightState::FogLight, vehicleAngle, cameraAngle);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 				posn.x = 0.0f;
 				posn.y += 3.35f;
@@ -153,25 +151,25 @@ void LightsFeature::Initialize() {
 		
 		if (pVeh->m_nVehicleFlags.bLightsOn) {
 			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT) 
-			&& Lights.materials[model][eLightState::FrontLightLeft].size() != 0) {
-				Lights.renderLights(pVeh, eLightState::FrontLightLeft, vehicleAngle, cameraAngle);
+			&& materials[model][eLightState::FrontLightLeft].size() != 0) {
+				renderLights(pVeh, eLightState::FrontLightLeft, vehicleAngle, cameraAngle);
 			}
 
 			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)
-			&& Lights.materials[model][eLightState::FrontLightRight].size() != 0) {
-				Lights.renderLights(pVeh, eLightState::FrontLightRight, vehicleAngle, cameraAngle);
+			&& materials[model][eLightState::FrontLightRight].size() != 0) {
+				renderLights(pVeh, eLightState::FrontLightRight, vehicleAngle, cameraAngle);
 			}
 
 			bool showTailLights = false;
 			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT)
-			&& Lights.materials[model][eLightState::TailLightLeft].size() != 0) {
-				Lights.renderLights(pVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
+			&& materials[model][eLightState::TailLightLeft].size() != 0) {
+				renderLights(pVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
 				showTailLights = true;
 			}
 
 			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)
-			&& Lights.materials[model][eLightState::TailLightRight].size() != 0) {
-				Lights.renderLights(pVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
+			&& materials[model][eLightState::TailLightRight].size() != 0) {
+				renderLights(pVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
 				showTailLights = true;
 			}
 
@@ -193,7 +191,7 @@ void LightsFeature::Initialize() {
 	});
 };
 
-void LightsFeature::renderLights(CVehicle* pVeh, eLightState state, float vehicleAngle, float cameraAngle) {
+void Lights::renderLights(CVehicle* pVeh, eLightState state, float vehicleAngle, float cameraAngle) {
 	for (auto e: materials[pVeh->m_nModelIndex][state]) {
 		enableMaterial(e);
 	}
@@ -205,12 +203,12 @@ void LightsFeature::renderLights(CVehicle* pVeh, eLightState state, float vehicl
 	}
 };
 
-void LightsFeature::registerMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state) {
+void Lights::registerMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state) {
 	material->color.red = material->color.green = material->color.blue = 255;
 	materials[vehicle->m_nModelIndex][state].push_back(new VehicleMaterial(material));
 };
 
-void LightsFeature::enableMaterial(VehicleMaterial* material) {
+void Lights::enableMaterial(VehicleMaterial* material) {
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
 	material->Material->surfaceProps.ambient = 4.0;
 

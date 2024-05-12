@@ -1,12 +1,11 @@
 #pragma once
 #include <plugin.h>
-#include "../../interface/ifeature.hpp"
 #include <vector>
 
-class SpotLightFeature : public IFeature {
+class SpotLight{
 public:
-	RwTexture* pSpotlightTex = nullptr;
-	bool bHooksInjected = false;
+	static inline RwTexture* pSpotlightTex = nullptr;
+	static inline bool bHooksInjected = false;
 
 	struct VehData {
 		RwFrame* pFrame = nullptr;
@@ -14,15 +13,12 @@ public:
 
 		VehData(CVehicle *){}
 	};
-	VehicleExtendedData<VehData> vehData;
+	static inline VehicleExtendedData<VehData> vehData;
 
-	void FindNodesRecursive(RwFrame* frame, CVehicle* vehicle);
-	void OnHudRender();
-	void OnVehicleRender(CVehicle *pVeh);
+	static void FindNodesRecursive(RwFrame* frame, CVehicle* vehicle);
+	static void OnHudRender();
+	static void OnVehicleRender(CVehicle *pVeh);
 
 public:
-	void Initialize(RwFrame* frame, CVehicle* pVeh);
-	void Process(RwFrame* frame, CVehicle* pVeh);
+	static void Process(RwFrame* frame, CEntity* ptr);
 };
-
-extern SpotLightFeature SpotLight;

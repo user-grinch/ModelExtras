@@ -3,25 +3,18 @@
 #define TARGET_NODE "handlebars"
 #define SOURCE_NODE "forks_front"
 
-HandleBarFeature HandleBar;
+void HandleBar::AddSource(RwFrame* frame, CEntity* ptr) {
+    CVehicle *pVeh = static_cast<CVehicle*>(ptr);
+    VehData &data = xData.Get(pVeh);
+    data.m_pSource = frame;
+}
 
-void HandleBarFeature::Process(RwFrame* frame, CVehicle* pVeh) {
-    std::string name = GetFrameNodeName(frame);
-    bool src = NODE_FOUND(name, SOURCE_NODE);
-    bool target = NODE_FOUND(name, TARGET_NODE);
-    if (src || target) {
-        VehData &data = xData.Get(pVeh);
-        if (data.m_pHandleBar && data.m_pForkFront)  {
-            float rot = Util::GetMatrixRotationZ(&data.m_pForkFront->modelling);
-            Util::SetMatrixRotationZ(&data.m_pHandleBar->modelling, rot);
-        } else {
-            if (src) {
-                data.m_pForkFront =  frame;
-            }
+void HandleBar::Process(RwFrame* frame, CEntity* ptr) {
+    CVehicle *pVeh = static_cast<CVehicle*>(ptr);
 
-            if (target) {
-                data.m_pHandleBar = frame;
-            }
-        }
+    VehData &data = xData.Get(pVeh);
+    if (data.m_pSource)  {
+        float rot = Util::GetMatrixRotationZ(&data.m_pSource->modelling);
+        Util::SetMatrixRotationZ(&frame->modelling, rot);
     }
 }

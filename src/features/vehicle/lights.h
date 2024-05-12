@@ -1,8 +1,6 @@
 #pragma once
 #include <map>
 #include <plugin.h>
-
-#include "../../interface/ifeature.hpp"
 #include "internals/dummy.h"
 #include "internals/materials.h"
 
@@ -20,9 +18,9 @@ enum class eLightState {
 	FogLight, 
 };
 
-class LightsFeature : public IFeature {
+class Lights {
 public:
-	void Initialize();
+	static void Initialize();
 
 private:
 	struct VehData {
@@ -32,13 +30,11 @@ private:
         ~VehData() {}
     };
 
-    VehicleExtendedData<VehData> vehData;
-	std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> materials;
-	std::map<int, std::map<eLightState, std::vector<VehicleDummy*>>> dummies;
+    static inline VehicleExtendedData<VehData> vehData;
+	static inline std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> materials;
+	static inline std::map<int, std::map<eLightState, std::vector<VehicleDummy*>>> dummies;
 
-	void registerMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state);
-	void renderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle);
-	void enableMaterial(VehicleMaterial* material);
+	static void registerMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state);
+	static void renderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle);
+	static void enableMaterial(VehicleMaterial* material);
 };
-
-extern LightsFeature Lights;

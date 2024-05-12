@@ -1,11 +1,5 @@
 #include "pch.h"
-#include "features/vehicle/plate.h"
-#include "features/vehicle/handlebar.h"
-#include "features/vehicle/wheelhub.h"
-#include "features/vehicle/steerwheel.h"
-#include "features/vehicle/lights.h"
 #include "features/vehicle/indicators.h"
-#include "features/vehicle/spotlights.h"
 #include "features/vehicle/sirens.h"
 #include "features/weapon/bodystate.h"
 #include "features/weapon/bloodremap.h"
@@ -19,31 +13,11 @@ static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<C
 static void InitFeatures() {
     Remap.Initialize();
     Randomizer.Initialize();
-    Indicator.Initialize();
-    Lights.Initialize();
-    VehicleSirens.Initialize();
-
-    plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {
-        VehicleMaterials::RestoreMaterials();
-        VehicleMaterials::OnRender(vehicle);
-    };
-    plugin::Events::vehicleSetModelEvent += VehicleMaterials::OnModelSet;
 }
 
 static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityType type) {
     if(frame) {
         const std::string name = GetFrameNodeName(frame);
-
-        if (type == eModelEntityType::Vehicle) {
-            CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
-            if (gConfig.ReadBoolean("FEATURES", "RotateHandleBars", false)) {
-                HandleBar.Process(frame, pVeh);
-            }
-            if (gConfig.ReadBoolean("FEATURES", "RotateSteerWheel", false)) {
-                SteerWheel.Process(frame, pVeh);
-            }
-            WheelHub.Process(frame, pVeh);
-        }
 
         CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
         if ((name[0] == 'x' && name[1] == '_') || (name[0] == 'f' && name[1] == 'c' && name[2] == '_')){
@@ -67,12 +41,6 @@ static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityTy
                 Randomizer.Process(frame, pEntity, type);
             }
         }
- 
-
-        // Compatibility with older plugins
-        if (name == "spotlight_dummy") {
-            SpotLight.Process(frame, pVeh);
-        } 
 
         // LicensePlate.Process(frame, pVeh);
 

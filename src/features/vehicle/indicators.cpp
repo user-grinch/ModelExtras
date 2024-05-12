@@ -42,18 +42,17 @@ float GetZAngleForPoint(CVector2D const &point) {
     return angle;
 }
 
-IndicatorFeature Indicator;
-void IndicatorFeature::Initialize() {
+void Indicator::Initialize() {
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
 		if (material->color.blue == 0) {
 			if (material->color.red == 255) {
 				if (material->color.green > 55 && material->color.green < 59) {
-					Indicator.registerMaterial(vehicle, material, eIndicatorState::Right);
+					registerMaterial(vehicle, material, eIndicatorState::Right);
 				}
 			}
 			else if (material->color.green == 255) {
 				if (material->color.red > 180 && material->color.red < 184) {
-					Indicator.registerMaterial(vehicle, material, eIndicatorState::Left);
+					registerMaterial(vehicle, material, eIndicatorState::Left);
 				}
 			}
 		}
@@ -62,7 +61,7 @@ void IndicatorFeature::Initialize() {
 		&& (material->color.green == 4 ||  material->color.green == 5) 
 		&& material->color.blue == 128 
 		&& std::string(material->texture->name).rfind("light", 0) == 0) {
-			Indicator.registerMaterial(vehicle, material, (material->color.green == 4) ? eIndicatorState::Left : eIndicatorState::Right);
+			registerMaterial(vehicle, material, (material->color.green == 4) ? eIndicatorState::Left : eIndicatorState::Right);
 		}
 		return material;
 	});
@@ -87,13 +86,13 @@ void IndicatorFeature::Initialize() {
 			}
 
 			if (rot != eDummyPos::None) {
-				Indicator.registerDummy(pVeh, pFrame, name, parent, state, rot);
+				registerDummy(pVeh, pFrame, name, parent, state, rot);
 			}
 		}
 	});
 
 
-	VehicleMaterials::RegisterRender([this](CVehicle* pVeh) {
+	VehicleMaterials::RegisterRender([](CVehicle* pVeh) {
 		if (pVeh->m_fHealth == 0) {
 			return;
 		}
@@ -103,7 +102,7 @@ void IndicatorFeature::Initialize() {
 		eIndicatorState state = data.indicatorState;
 
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) == false && 
-		Indicator.dummies[model].size() == 0 && Indicator.materials[model][state].size() == 0) {
+		dummies[model].size() == 0 && materials[model][state].size() == 0) {
 			return;
 		}
 		
@@ -152,12 +151,12 @@ void IndicatorFeature::Initialize() {
 			return;
 		}
 
-		if (!Indicator.delayState)
+		if (!delayState)
 			return;
 
 		// global turn lights
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) &&
-			Indicator.dummies[model].size() == 0 && Indicator.materials[model][state].size() == 0)
+			dummies[model].size() == 0 && materials[model][state].size() == 0)
 		{
 			if ((pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) &&
 				(pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE || pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) &&
@@ -171,24 +170,24 @@ void IndicatorFeature::Initialize() {
 			}
 		} else {
 			if (state != eIndicatorState::Both) {
-				for (auto e: Indicator.materials[model][state]){
-					Indicator.enableMaterial(e);
+				for (auto e: materials[model][state]){
+					enableMaterial(e);
 				}
 
 				if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
-					for (auto e: Indicator.dummies[model][state]) {
+					for (auto e: dummies[model][state]) {
 						Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, e->Angle, e->CurrentAngle);
 					}
 				}
 			} else {
-				for (auto k: Indicator.materials[model]) {
+				for (auto k: materials[model]) {
 					for (auto e: k.second) {
-						Indicator.enableMaterial(e);
+						enableMaterial(e);
 					}
 				}
 
 				if (gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
-					for (auto k: Indicator.dummies[model]) {
+					for (auto k: dummies[model]) {
 						for (auto e: k.second) {
 							Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, e->Angle, e->CurrentAngle);
 						}
@@ -201,19 +200,19 @@ void IndicatorFeature::Initialize() {
 	Events::drawingEvent += []() {
 		size_t timestamp = CTimer::m_snTimeInMilliseconds;
 		
-		if ((timestamp - Indicator.delay) < 500)
+		if ((timestamp - delay) < 500)
 			return;
 
-		Indicator.delay = timestamp;
-		Indicator.delayState = !Indicator.delayState;
+		delay = timestamp;
+		delayState = !delayState;
 	};
 };
 
-void IndicatorFeature::registerMaterial(CVehicle* pVeh, RpMaterial* material, eIndicatorState state) {
+void Indicator::registerMaterial(CVehicle* pVeh, RpMaterial* material, eIndicatorState state) {
 	materials[pVeh->m_nModelIndex][state].push_back(new VehicleMaterial(material));
 };
 
-void IndicatorFeature::registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent, eIndicatorState state, eDummyPos rot) {
+void Indicator::registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent, eIndicatorState state, eDummyPos rot) {
 	bool exists = false;
 	for (auto e: dummies[pVeh->m_nModelIndex][state]) {
 		if (e->Position.y == pFrame->modelling.pos.y
@@ -228,14 +227,14 @@ void IndicatorFeature::registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::strin
 	}
 };
 
-void IndicatorFeature::enableMaterial(VehicleMaterial* material) {
+void Indicator::enableMaterial(VehicleMaterial* material) {
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
 	material->Material->surfaceProps.ambient = 4.0;
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
 	material->Material->texture = material->TextureActive;
 };
 
-void IndicatorFeature::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
+void Indicator::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 		Common::RegisterCoronaWithAngle(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 

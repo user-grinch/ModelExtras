@@ -1,8 +1,5 @@
 #include "pch.h"
 #include "wheelhub.h"
-#define ROTATION_VAL 45.0f
-
-WheelHubFeature WheelHub;
 
 void UpdateRotation(RwFrame *ori, RwFrame *tar) {
     if (ori && tar) {
@@ -11,14 +8,15 @@ void UpdateRotation(RwFrame *ori, RwFrame *tar) {
     }
 }
 
-void WheelHubFeature::Process(RwFrame* frame, CVehicle* pVeh) {
-    std::string name = GetFrameNodeName(frame);
+void WheelHub::FindNodes(RwFrame * frame, CEntity* ptr) {
+    if(frame) {
+        const std::string name = GetFrameNodeName(frame);
+        CVehicle *pVeh = static_cast<CVehicle*>(ptr);
+        std::string name = GetFrameNodeName(frame);
 
-    VehData &data = xData.Get(pVeh);
-    if (!(data.wheellf && data.wheellm && data.wheellb && data.wheelrf && data.wheelrm && data.wheelrb)) {
+        VehData &data = xData.Get(pVeh);
         std::smatch match;
-        if (name[0] == 'w' && name[1] == 'h' && name[2] == 'e' && name[3] == 'e' && name[4] == 'l'
-	    && std::regex_search(name, match, std::regex("wheel_([a-zA-Z]{2})_dummy"))) {
+        if (std::regex_search(name, match, std::regex("wheel_([a-zA-Z]{2})_dummy"))) {
             std::string str = match[1].str();
             if (std::toupper(str[0]) == 'R') {
                 if (std::toupper(str[1]) == 'F') {
@@ -37,14 +35,9 @@ void WheelHubFeature::Process(RwFrame* frame, CVehicle* pVeh) {
                     data.wheellb = frame;
                 }
             }
-            return;
         }
-    }
 
-    if (!(data.hublf && data.hublm && data.hublb && data.hubrf && data.hubrm && data.hubrb)) {
-        std::smatch match;
-        if (name[0] == 'h' && name[1] == 'u' && name[2] == 'b'
-	    && std::regex_search(name, match, std::regex("hub_([a-zA-Z]{2})"))) {
+        if (std::regex_search(name, match, std::regex("hub_([a-zA-Z]{2})"))) {
             std::string str = match[1].str();
             if (std::toupper(str[0]) == 'R') {
                 if (std::toupper(str[1]) == 'F') {
@@ -64,6 +57,24 @@ void WheelHubFeature::Process(RwFrame* frame, CVehicle* pVeh) {
                 }
             }
         }
+
+        if (RwFrame * newFrame = frame->child) {
+            FindNodes(newFrame, ptr);
+        }
+        if (RwFrame * newFrame = frame->next) {
+            FindNodes(newFrame, ptr);
+        }
+    }
+    return;
+}
+
+void WheelHub::Process(RwFrame* frame, CEntity* ptr) {
+    CVehicle *pVeh = static_cast<CVehicle*>(ptr);
+
+    VehData &data = xData.Get(pVeh);
+    if (!data.m_bInit) {
+        FindNodes(frame, ptr);
+        data.m_bInit = true;
     }
 
     UpdateRotation(data.wheellf, data.hublf);

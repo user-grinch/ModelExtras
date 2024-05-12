@@ -4,33 +4,29 @@
 #include <CCoronas.h>
 #include "defines.h"
 
-SpotLightFeature SpotLight;
-void SpotLightFeature::Initialize(RwFrame* pFrame, CVehicle* pVeh) {    
-	if (!bHooksInjected) {
-		Events::vehicleRenderEvent += [this](CVehicle *pVeh) {
-			OnVehicleRender(pVeh);
-		};
-
-		Events::drawingEvent += [this]() {
-			OnHudRender();
-		};
-		pSpotlightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("/textures/spotlight256.png")));
-		bHooksInjected = true;
-	}
-    VehData &data = vehData.Get(pVeh);
-    data.pFrame = pFrame;
-}
-
-void SpotLightFeature::Process(RwFrame* pFrame, CVehicle* pVeh) {    
+void SpotLight::Process(RwFrame* pFrame, CEntity* ptr) {    
+	CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = vehData.Get(pVeh);
     
 	if (!data.bInit) {
-		Initialize(pFrame, pVeh);
+		if (!bHooksInjected) {
+			Events::vehicleRenderEvent += [](CVehicle *pVeh) {
+				OnVehicleRender(pVeh);
+			};
+
+			Events::drawingEvent += []() {
+				OnHudRender();
+			};
+			pSpotlightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("/textures/spotlight256.png")));
+			bHooksInjected = true;
+		}
+		VehData &data = vehData.Get(pVeh);
+		data.pFrame = pFrame;
 		data.bInit = true;
 	}
 }
 
-void SpotLightFeature::OnHudRender() {
+void SpotLight::OnHudRender() {
 	CVehicle *pVeh = FindPlayerVehicle(-1, false);
 
 	if (!pVeh) {
@@ -79,7 +75,7 @@ void SpotLightFeature::OnHudRender() {
 	//RwFrameRotate(Frame, (RwV3d*)0x008D2E18, heading, rwCOMBINEREPLACE);
 };
 
-void SpotLightFeature::OnVehicleRender(CVehicle *pVeh) {
+void SpotLight::OnVehicleRender(CVehicle *pVeh) {
 	VehData &data = vehData.Get(pVeh);
 	if (!data.bEnabled || data.pFrame == nullptr)
 		return;

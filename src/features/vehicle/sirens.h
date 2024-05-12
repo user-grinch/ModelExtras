@@ -2,10 +2,8 @@
 #include <map>
 #include <string>
 #include <vector>
-
 #include <plugin.h>
 #include <CCoronas.h>
-#include "../../interface/ifeature.hpp"
 #include "internals/sirendummy.h"
 #include "internals/materials.h"
 
@@ -178,21 +176,19 @@ class VehicleSiren {
 		CVehicle* vehicle;
 };
 
-class VehicleSirensFeature {
-	public:
-		void Initialize();
-		static inline int CurrentModel = -1;
+class VehicleSirens {
+public:
+	static void Initialize();
+	static inline int CurrentModel = -1;
 
-		std::map<int, VehicleSiren*> vehicleData;
-		std::map<int, VehicleSirenData*> modelData;
-		std::map<int, std::vector<VehicleSirenDummy*>> modelRotators;
+	static inline std::map<int, VehicleSiren*> vehicleData;
+	static inline std::map<int, VehicleSirenData*> modelData;
+	static inline std::map<int, std::vector<VehicleSirenDummy*>> modelRotators;
 
-	private:
-		void ParseConfigs();
-		void registerMaterial(CVehicle* vehicle, RpMaterial* material);
-		void enableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time);
-		void enableDummy(int id, VehicleSirenDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time);
-		void enableShadow(CVehicle* vehicle, VehicleSirenDummy* dummy, VehicleSirenMaterial* material, CVector position);
+private:
+	static void ParseConfigs();
+	static void registerMaterial(CVehicle* vehicle, RpMaterial* material);
+	static void enableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time);
+	static void enableDummy(int id, VehicleSirenDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time);
+	static void enableShadow(CVehicle* vehicle, VehicleSirenDummy* dummy, VehicleSirenMaterial* material, CVector position);
 };
-
-extern VehicleSirensFeature VehicleSirens;

@@ -3,20 +3,18 @@
 #include "../../interface/ifeature.hpp"
 #include <vector>
 
-class HandleBarFeature : public IFeature {
+class HandleBar{
   protected:
     struct VehData {
-        RwFrame* m_pHandleBar = nullptr, *m_pForkFront = nullptr;
+      RwFrame* m_pSource = nullptr;
 
-        VehData(CVehicle *pVeh) {}
-        ~VehData() {}
+      VehData(CVehicle *pVeh) {}
+      ~VehData() {}
     };
 
-    VehicleExtendedData<VehData> xData;
+    static inline VehicleExtendedData<VehData> xData;
 
   public:
-    void Initialize(RwFrame* frame, CVehicle* pVeh);
-    void Process(RwFrame* frame, CVehicle* pVeh);
+    static void AddSource(RwFrame* frame, CEntity* ptr);
+    static void Process(RwFrame* frame, CEntity* ptr);
 };
-
-extern HandleBarFeature HandleBar;
