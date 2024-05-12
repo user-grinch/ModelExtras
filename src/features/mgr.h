@@ -4,7 +4,7 @@
 #include <map>
 #include <functional>
 
-class FeatureManager {
+class FeatureMgr {
 private:
     struct FrameExtension {
         RwFrame* m_pFrame;
@@ -12,17 +12,15 @@ private:
     };
 
     // May need to switch to entity based table later
-    std::map<int, std::vector<FrameExtension>> m_ModelTable;
-    std::map <std::string, std::function<void(void*, RwFrame*, eModelEntityType)>> m_FunctionTable;
+    static inline std::map<int, std::vector<FrameExtension>> m_ModelTable;
+    static inline std::map <std::string, std::function<void(void*, RwFrame*, eModelEntityType)>> m_FunctionTable;
 
-    void FindNodes(void* ptr, RwFrame *frame, eModelEntityType type);
+    static void FindNodes(void* ptr, RwFrame *frame, eModelEntityType type);
 
 public:
-    FeatureManager();
+    static void Initialize();
 
-    void Initialize(void *ptr, RwFrame* frame, eModelEntityType type);
-    void Process(void *ptr, eModelEntityType type);
-    void Remove(void *ptr, eModelEntityType type);
+    static void Add(void *ptr, RwFrame* frame, eModelEntityType type);
+    static void Process(void *ptr, eModelEntityType type);
+    static void Remove(void *ptr, eModelEntityType type);
 };
-
-extern FeatureManager FeatureMgr;

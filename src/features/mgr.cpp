@@ -16,15 +16,59 @@
 #include "common/remap.h"
 #include "common/randomizer.h"
 
-FeatureManager FeatureMgr;
+static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
 
-FeatureManager::FeatureManager() {
+void FeatureMgr::Initialize() {
     plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {
         VehicleMaterials::RestoreMaterials();
         VehicleMaterials::OnRender(vehicle);
     };
     plugin::Events::vehicleSetModelEvent += VehicleMaterials::OnModelSet;
 
+    Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model) {
+        Add(static_cast<void*>(pVeh), (RwFrame *)pVeh->m_pRwClump->object.parent, eModelEntityType::Vehicle);
+    };
+
+    Events::vehicleRenderEvent.before += [](CVehicle *pVeh) {
+        Process(static_cast<void*>(pVeh), eModelEntityType::Vehicle);
+    };
+
+    Events::pedRenderEvent += [](CPed* pPed) {
+        Add(static_cast<void*>(pPed), 
+            (RwFrame *)pPed->m_pRwClump->object.parent, eModelEntityType::Ped);
+        Process(static_cast<void*>(pPed), eModelEntityType::Ped);
+
+        // jetpack
+        CTaskSimpleJetPack *pTask = pPed->m_pIntelligence->GetTaskJetPack();
+        if (pTask && pTask->m_pJetPackClump) {
+            Add(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), 
+                (RwFrame *)pTask->m_pJetPackClump->object.parent, eModelEntityType::Weapon);
+            Process(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), eModelEntityType::Weapon);
+        }
+
+        // weapons
+        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
+        if (pWeapon) {
+            eWeaponType weaponType = pWeapon->m_eWeaponType;
+            CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(weaponType, pPed->GetWeaponSkill(weaponType));
+            if (pWeaponInfo) {
+                CWeaponModelInfo* pWeaponModelInfo = static_cast<CWeaponModelInfo*>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
+                if (pWeaponModelInfo && pWeaponModelInfo->m_pRwClump) {
+                    Add(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), 
+                        (RwFrame *)pWeaponModelInfo->m_pRwClump->object.parent, eModelEntityType::Weapon);
+                    Process(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), eModelEntityType::Weapon);
+                }
+            }
+        }
+    };
+
+    objectRenderEvent += [](CObject *pObj) {
+        Add(static_cast<void*>(pObj), 
+            (RwFrame *)pObj->m_pRwClump->object.parent, eModelEntityType::Object);
+        Process(static_cast<void*>(pObj), eModelEntityType::Object);
+    };
+    
+    // Index features
     m_FunctionTable["x_chain"] = m_FunctionTable["fc_chain"] = Chain::Process;
     m_FunctionTable["x_fbrake"] = m_FunctionTable["fc_fbrake"] = FrontBrake::Process;
     m_FunctionTable["x_rbrake"] = m_FunctionTable["fc_rbrake"] = RearBrake::Process;
@@ -79,7 +123,7 @@ static std::string GetNodeName(const std::string& input) {
     return result;
 }
 
-void FeatureManager::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type) {
+void FeatureMgr::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type) {
     if(frame) {
         int model = 0;
         if (type == eModelEntityType::Weapon) {
@@ -109,7 +153,7 @@ void FeatureManager::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type
     return;
 }
 
-void FeatureManager::Initialize(void *ptr, RwFrame* frame, eModelEntityType type) {
+void FeatureMgr::Add(void *ptr, RwFrame* frame, eModelEntityType type) {
     int model = 0;
     if (type == eModelEntityType::Weapon) {
         model = static_cast<CWeapon*>(ptr)->m_eWeaponType;
@@ -122,7 +166,7 @@ void FeatureManager::Initialize(void *ptr, RwFrame* frame, eModelEntityType type
     }
 }
 
-void FeatureManager::Process(void *ptr, eModelEntityType type) {
+void FeatureMgr::Process(void *ptr, eModelEntityType type) {
     int model = 0;
     if (type == eModelEntityType::Weapon) {
         model = static_cast<CWeapon*>(ptr)->m_eWeaponType;
