@@ -14,18 +14,15 @@ enum class eBodyState {
   MuscleFat
 };
 
-class BodyStateFeature : public IFeature {
-  private:
+class BodyState {
+private:
   struct xData {
     xData(CWeapon*){}
     eBodyState prevBodyState;
   };
 
-  WeaponExtender<xData> wepData;
+  static inline WeaponExtender<xData> wepData;
 
-  public:
-    void Process(RwFrame* frame, CWeapon *pWeapon);
-    void ProcessZen(RwFrame* frame, CWeapon *pWeapon);
+public:
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };
-
-extern BodyStateFeature BodyState;

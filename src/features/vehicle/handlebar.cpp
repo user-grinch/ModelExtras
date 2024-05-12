@@ -3,13 +3,13 @@
 #define TARGET_NODE "handlebars"
 #define SOURCE_NODE "forks_front"
 
-void HandleBar::AddSource(RwFrame* frame, CEntity* ptr) {
+void HandleBar::AddSource(void *ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = xData.Get(pVeh);
     data.m_pSource = frame;
 }
 
-void HandleBar::Process(RwFrame* frame, CEntity* ptr) {
+void HandleBar::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
 
     VehData &data = xData.Get(pVeh);

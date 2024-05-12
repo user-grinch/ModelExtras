@@ -11,6 +11,10 @@
 #include "vehicle./lights.h"
 #include "vehicle/indicators.h"
 #include "vehicle/sirens.h"
+#include "weapon/bodystate.h"
+#include "weapon/bloodremap.h"
+#include "common/remap.h"
+#include "common/randomizer.h"
 
 FeatureManager FeatureMgr;
 
@@ -50,6 +54,12 @@ FeatureManager::FeatureManager() {
     Lights::Initialize();
     Indicator::Initialize();
     VehicleSirens::Initialize();
+    Remap::Initialize();
+    Randomizer::Initialize();
+
+    m_FunctionTable["x_body_state"] = BodyState::Process;
+    m_FunctionTable["x_remap"] = BloodRemap::Process;
+    m_FunctionTable["x_randomizer"] = Randomizer::Process;
 }
 
 static std::string GetNodeName(const std::string& input) {
@@ -69,13 +79,19 @@ static std::string GetNodeName(const std::string& input) {
     return result;
 }
 
-void FeatureManager::FindNodes(RwFrame * frame, CEntity* pEntity) {
+void FeatureManager::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type) {
     if(frame) {
+        int model = 0;
+        if (type == eModelEntityType::Weapon) {
+            model = static_cast<CWeapon*>(ptr)->m_eWeaponType;
+        } else {
+            model = static_cast<CEntity*>(ptr)->m_nModelIndex;
+        }
         const std::string name = GetFrameNodeName(frame);
 
         for (auto e : m_FunctionTable) {
             if (NODE_FOUND(name, e.first)) {
-                m_ModelTable[pEntity->m_nModelIndex].emplace_back(frame, name);
+                m_ModelTable[model].emplace_back(frame, name);
             }
         }
 
@@ -84,28 +100,38 @@ void FeatureManager::FindNodes(RwFrame * frame, CEntity* pEntity) {
         // }
 
         if (RwFrame * newFrame = frame->child) {
-            FindNodes(newFrame, pEntity);
+            FindNodes(ptr, newFrame, type);
         }
         if (RwFrame * newFrame = frame->next) {
-            FindNodes(newFrame, pEntity);
+            FindNodes(ptr, newFrame, type);
         }
     }
     return;
 }
 
-void FeatureManager::Initialize(CEntity *pEntity, RwFrame* frame) {
-    int model = pEntity->m_nModelIndex;
+void FeatureManager::Initialize(void *ptr, RwFrame* frame, eModelEntityType type) {
+    int model = 0;
+    if (type == eModelEntityType::Weapon) {
+        model = static_cast<CWeapon*>(ptr)->m_eWeaponType;
+    } else {
+        model = static_cast<CEntity*>(ptr)->m_nModelIndex;
+    }
 
     if (m_ModelTable.find(model) == m_ModelTable.end()) {
-        FindNodes(frame, pEntity);
+        FindNodes(ptr, frame, type);
     }
 }
 
-void FeatureManager::Process(CEntity *pEntity) {
-    int model = pEntity->m_nModelIndex;
+void FeatureManager::Process(void *ptr, eModelEntityType type) {
+    int model = 0;
+    if (type == eModelEntityType::Weapon) {
+        model = static_cast<CWeapon*>(ptr)->m_eWeaponType;
+    } else {
+        model = static_cast<CEntity*>(ptr)->m_nModelIndex;
+    }
 
     for (auto e: m_ModelTable[model]) {
-        m_FunctionTable[e.id](e.ptr, pEntity);
+        m_FunctionTable[e.id](ptr, e.m_pFrame, type);
     }
 }
 

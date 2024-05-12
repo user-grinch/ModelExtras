@@ -1,30 +1,28 @@
 #pragma once
 #include "plugin.h"
-#include "../../interface/ifeature.hpp"
 #include "../../weaponExtender.h"
 #include <map>
 
-struct TextureData {
-  bool m_bInit = false;
-  uint m_nCurRemap = 0;
-  uint m_nTotalRemaps = 0;
-  std::vector<RwTexture*> m_pFrames;
-};
+class BloodRemap {
+  struct TextureData {
+    bool m_bInit = false;
+    uint m_nCurRemap = 0;
+    uint m_nTotalRemaps = 0;
+    std::vector<RwTexture*> m_pFrames;
+  };
 
-struct FrameData {
-  std::string m_CurNode = "";
-  CPed* m_pLastKilledEntity = nullptr;
-  std::map<std::string, TextureData> m_Textures;
+  struct FrameData {
+    std::string m_CurNode = "";
+    CPed* m_pLastKilledEntity = nullptr;
+    std::map<std::string, TextureData> m_Textures;
 
-  FrameData(CWeapon*) {}
-  ~FrameData() {}
-};
+    FrameData(CWeapon*) {}
+    ~FrameData() {}
+  };
 
-class BloodRemapFeature : public IFeature {
-  WeaponExtender<FrameData> xData;
+  static inline WeaponExtender<FrameData> xData;
+  static void Initialize(RwFrame* frame, CWeapon* pWeapon);
+
   public:
-    void Initialize(RwFrame* frame, CWeapon* pWeapon);
-    void Process(RwFrame* frame, CWeapon *pWeapon);
+    static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };
-
-extern BloodRemapFeature BloodRemap;

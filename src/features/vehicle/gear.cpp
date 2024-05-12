@@ -3,7 +3,7 @@
 #include "bass.h"
 #include "../../soundsystem.h"
 
-void Clutch::Process(RwFrame* frame, CEntity* ptr) {
+void Clutch::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
@@ -59,7 +59,7 @@ void Clutch::Process(RwFrame* frame, CEntity* ptr) {
     }
 }
 
-void GearLever::Process(RwFrame* frame, CEntity* ptr) {
+void GearLever::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
@@ -109,7 +109,7 @@ void GearLever::Process(RwFrame* frame, CEntity* ptr) {
     }
 }
 
-void GearSound::Process(RwFrame* frame, CEntity* ptr) {
+void GearSound::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     std::string name = GetFrameNodeName(frame);
     VehData &data = vehData.Get(pVeh);

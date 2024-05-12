@@ -25,7 +25,7 @@ void RearBrake::Initialize(RwFrame* pFrame, CEntity* ptr) {
 
 }
 
-void FrontBrake::Process(RwFrame* frame, CEntity* ptr) {
+void FrontBrake::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = vehData.Get(pVeh);
 
@@ -67,7 +67,7 @@ void FrontBrake::Process(RwFrame* frame, CEntity* ptr) {
     }
 }
 
-void RearBrake::Process(RwFrame* frame, CEntity* ptr) {
+void RearBrake::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = vehData.Get(pVeh);
 

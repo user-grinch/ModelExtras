@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Meter.h"
 
-void GearMeter::Process(RwFrame* frame, CEntity* ptr) {
+void GearMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
@@ -20,7 +20,7 @@ void GearMeter::Process(RwFrame* frame, CEntity* ptr) {
     }
 }
 
-void OdoMeter::Process(RwFrame* frame, CEntity* ptr) {
+void OdoMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
@@ -69,7 +69,7 @@ void OdoMeter::Process(RwFrame* frame, CEntity* ptr) {
     }
 }
 
-void RpmMeter::Process(RwFrame* frame, CEntity* ptr) {
+void RpmMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     std::string name = GetFrameNodeName(frame);
     VehData &data = vehData.Get(pVeh);
@@ -98,7 +98,7 @@ void RpmMeter::Process(RwFrame* frame, CEntity* ptr) {
     data.m_fCurRotation += change;
 }
 
-void SpeedMeter::Process(RwFrame* frame, CEntity* ptr) {
+void SpeedMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     std::string name = GetFrameNodeName(frame);
     VehData &data = vehData.Get(pVeh);
@@ -125,7 +125,7 @@ void SpeedMeter::Process(RwFrame* frame, CEntity* ptr) {
     data.m_fCurRotation += change;
 }
 
-void TachoMeter::Process(RwFrame* frame, CEntity* ptr) {
+void TachoMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     std::string name = GetFrameNodeName(frame);
     VehData &data = vehData.Get(pVeh);
@@ -148,7 +148,7 @@ void TachoMeter::Process(RwFrame* frame, CEntity* ptr) {
     data.m_fCurRotation += change;
 }
 
-void GasMeter::Process(RwFrame* frame, CEntity* ptr) {
+void GasMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = vehData.Get(pVeh);
     if (data.m_bInitialized) {

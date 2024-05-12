@@ -7,22 +7,22 @@
 class FeatureManager {
 private:
     struct FrameExtension {
-        RwFrame* ptr;
+        RwFrame* m_pFrame;
         std::string id;
     };
 
     // May need to switch to entity based table later
     std::map<int, std::vector<FrameExtension>> m_ModelTable;
-    std::map <std::string, std::function<void(RwFrame*, CEntity*)>> m_FunctionTable;
+    std::map <std::string, std::function<void(void*, RwFrame*, eModelEntityType)>> m_FunctionTable;
 
-    void FindNodes(RwFrame * frame, CEntity* pEntity);
+    void FindNodes(void* ptr, RwFrame *frame, eModelEntityType type);
 
 public:
     FeatureManager();
 
-    void Initialize(CEntity *pEntity, RwFrame* frame);
-    void Process(CEntity *pEntity);
-    void Remove(CEntity *pEntity);
+    void Initialize(void *ptr, RwFrame* frame, eModelEntityType type);
+    void Process(void *ptr, eModelEntityType type);
+    void Remove(void *ptr, eModelEntityType type);
 };
 
 extern FeatureManager FeatureMgr;

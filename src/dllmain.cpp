@@ -1,58 +1,10 @@
 #include "pch.h"
-#include "features/vehicle/indicators.h"
-#include "features/vehicle/sirens.h"
-#include "features/weapon/bodystate.h"
-#include "features/weapon/bloodremap.h"
-#include "features/common/randomizer.h"
 #include "features/common/remap.h"
 #include "soundsystem.h"
 #include "features/mgr.h"
 
 static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
 
-static void InitFeatures() {
-    Remap.Initialize();
-    Randomizer.Initialize();
-}
-
-static void ProcessNodesRecursive(RwFrame * frame, void* pEntity, eModelEntityType type) {
-    if(frame) {
-        const std::string name = GetFrameNodeName(frame);
-
-        CVehicle *pVeh = static_cast<CVehicle*>(pEntity);
-        if ((name[0] == 'x' && name[1] == '_') || (name[0] == 'f' && name[1] == 'c' && name[2] == '_')){
-            if (type == eModelEntityType::Vehicle) {
-                Randomizer.Process(frame, static_cast<void*>(pVeh), type);
-            } else if (type == eModelEntityType::Weapon) {
-                CWeapon *pWep = static_cast<CWeapon*>(pEntity);
-                BodyState.Process(frame, pWep);
-                BodyState.ProcessZen(frame, pWep);
-                BloodRemap.Process(frame, pWep);
-                Randomizer.Process(frame, static_cast<void*>(pWep), type);
-            } else if (type == eModelEntityType::Object) {
-
-                /*
-                    processing weapon & jetpack pickups here
-                */
-                CWeapon *pWep = static_cast<CWeapon*>(pEntity);
-                BodyState.Process(frame, pWep);
-                BodyState.ProcessZen(frame, pWep);
-            } else if (type == eModelEntityType::Ped) {
-                Randomizer.Process(frame, pEntity, type);
-            }
-        }
-
-        // LicensePlate.Process(frame, pVeh);
-
-        if (RwFrame * newFrame = frame->child) {
-            ProcessNodesRecursive(newFrame, pEntity, type);
-        }
-        if (RwFrame * newFrame = frame->next) {
-            ProcessNodesRecursive(newFrame, pEntity, type);
-        }
-    }
-    return;
-}
 extern void ShowDonationWindow();
 
 BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
@@ -92,7 +44,6 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             SoundSystem.Inject();
             SoundSystem.Init(RsGlobal.ps->window);
             InitRandom();
-            // InitFeatures();
 
             if (gConfig.ReadBoolean("MISC", "ShowDeprecationMessage", true) 
             && (ImVehFtInstalled || ImVehFtFixInstalled || AVSInstalled)) {
@@ -109,44 +60,47 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
         };
 
         Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model) {
-            FeatureMgr.Initialize(static_cast<CEntity*>(pVeh), (RwFrame *)pVeh->m_pRwClump->object.parent);
+            FeatureMgr.Initialize(static_cast<void*>(pVeh), (RwFrame *)pVeh->m_pRwClump->object.parent, eModelEntityType::Vehicle);
         };
 
         Events::vehicleRenderEvent.before += [](CVehicle *pVeh) {
-            FeatureMgr.Process(static_cast<CEntity*>(pVeh));
+            FeatureMgr.Process(static_cast<void*>(pVeh), eModelEntityType::Vehicle);
         };
 
-        // Events::vehicleRenderEvent += [](CVehicle* pVeh) {
-        //     ProcessNodesRecursive((RwFrame *)pVeh->m_pRwClump->object.parent, pVeh, eModelEntityType::Vehicle);
-        // };
+        Events::pedRenderEvent += [](CPed* pPed) {
+            FeatureMgr.Initialize(static_cast<void*>(pPed), 
+                (RwFrame *)pPed->m_pRwClump->object.parent, eModelEntityType::Ped);
+            FeatureMgr.Process(static_cast<void*>(pPed), eModelEntityType::Ped);
 
-        // objectRenderEvent += [](CObject *pObj) {
-        //     ProcessNodesRecursive((RwFrame *)pObj->m_pRwClump->object.parent, pObj, eModelEntityType::Object);
-        // };
+            // jetpack
+            CTaskSimpleJetPack *pTask = pPed->m_pIntelligence->GetTaskJetPack();
+            if (pTask && pTask->m_pJetPackClump) {
+                FeatureMgr.Initialize(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), 
+                    (RwFrame *)pTask->m_pJetPackClump->object.parent, eModelEntityType::Weapon);
+                FeatureMgr.Process(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), eModelEntityType::Weapon);
+            }
 
-        // Events::pedRenderEvent += [](CPed* pPed) {
-        //     // peds
-        //     ProcessNodesRecursive((RwFrame *)pPed->m_pRwClump->object.parent, pPed, eModelEntityType::Ped);
+            // weapons
+            CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
+            if (pWeapon) {
+                eWeaponType weaponType = pWeapon->m_eWeaponType;
+                CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(weaponType, pPed->GetWeaponSkill(weaponType));
+                if (pWeaponInfo) {
+                    CWeaponModelInfo* pWeaponModelInfo = static_cast<CWeaponModelInfo*>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
+                    if (pWeaponModelInfo && pWeaponModelInfo->m_pRwClump) {
+                        FeatureMgr.Initialize(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), 
+                            (RwFrame *)pWeaponModelInfo->m_pRwClump->object.parent, eModelEntityType::Weapon);
+                        FeatureMgr.Process(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), eModelEntityType::Weapon);
+                    }
+                }
+            }
+        };
 
-        //     // jetpack
-        //     CTaskSimpleJetPack *pTask = pPed->m_pIntelligence->GetTaskJetPack();
-        //     if (pTask && pTask->m_pJetPackClump) {
-        //         ProcessNodesRecursive((RwFrame *)pTask->m_pJetPackClump->object.parent, pPed, eModelEntityType::Weapon);
-        //     }
-
-        //     // weapons
-        //     CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
-        //     if (pWeapon) {
-        //         eWeaponType weaponType = pWeapon->m_eWeaponType;
-        //         CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(weaponType, pPed->GetWeaponSkill(weaponType));
-        //         if (pWeaponInfo) {
-        //             CWeaponModelInfo* pWeaponModelInfo = static_cast<CWeaponModelInfo*>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
-        //             if (pWeaponModelInfo && pWeaponModelInfo->m_pRwClump) {
-        //                 ProcessNodesRecursive((RwFrame *)pWeaponModelInfo->m_pRwClump->object.parent, pWeapon, eModelEntityType::Weapon);
-        //             }
-        //         }
-        //     }
-        // };
+        objectRenderEvent += [](CObject *pObj) {
+            FeatureMgr.Initialize(static_cast<void*>(pObj), 
+                (RwFrame *)pObj->m_pRwClump->object.parent, eModelEntityType::Object);
+            FeatureMgr.Process(static_cast<void*>(pObj), eModelEntityType::Object);
+        };
     }
     return TRUE;
 }

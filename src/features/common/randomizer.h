@@ -1,17 +1,14 @@
 #pragma once
 #include "plugin.h"
-#include "../../interface/ifeature.hpp"
 #include <vector>
 #include <map>
 
-class RandomizerFeature : public IFeature {
+class Randomizer {
 private:
-  std::map<int, std::vector<RwFrame*>> m_pStoredFrames;
-  std::map<void*, std::map<std::string, int>> m_pStoredRandoms;
+  static inline std::map<int, std::vector<RwFrame*>> m_pStoredFrames;
+  static inline std::map<void*, std::map<std::string, int>> m_pStoredRandoms;
   
 public:
-  void Initialize();
-  void Process(RwFrame* frame, void* ptr, eModelEntityType type);
+  static void Initialize();
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };
-
-extern RandomizerFeature Randomizer;

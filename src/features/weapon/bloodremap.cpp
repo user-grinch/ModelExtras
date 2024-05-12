@@ -6,9 +6,7 @@
 #include <CStats.h>
 #define MAX_REMAPS 32
 
-BloodRemapFeature BloodRemap;
-
-void BloodRemapFeature::Initialize(RwFrame* pFrame, CWeapon* pWeapon) {
+void BloodRemap::Initialize(RwFrame* pFrame, CWeapon* pWeapon) {
     FrameData &data = xData.Get(pWeapon);
     std::string name = GetFrameNodeName(pFrame);
     std::string str = Util::GetRegexVal(name, "x_remap_(.*)", "");
@@ -39,50 +37,49 @@ void BloodRemapFeature::Initialize(RwFrame* pFrame, CWeapon* pWeapon) {
     }
 }
 
-void BloodRemapFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
+void BloodRemap::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
+    CWeapon *pWeapon = static_cast<CWeapon*>(ptr);
     FrameData &data = xData.Get(pWeapon);
     std::string name = GetFrameNodeName(frame);
     data.m_CurNode = name;
-    if (NODE_FOUND(name, "x_remap")) {
 
-        if (!data.m_Textures[name].m_bInit) {
-            Initialize(frame, pWeapon);
-            data.m_Textures[name].m_bInit = true;
-        }
-
-        auto player = FindPlayerPed();
-        if (player && player->m_aWeapons[player->m_nActiveWeaponSlot].m_eWeaponType == pWeapon->m_eWeaponType) {
-            CPed *pPed = static_cast<CPed*>(player->m_pDamageEntity);
-            if (!pPed) {
-                pPed = static_cast<CPed*>(player->m_pLastEntityDamage);
-            }
-            if (pPed && pPed->m_nType == ENTITY_TYPE_PED && !pPed->IsAlive() && pPed != data.m_pLastKilledEntity) {
-                for (auto &e: data.m_Textures) {
-                    if (e.second.m_nCurRemap < e.second.m_nTotalRemaps) {
-                        e.second.m_nCurRemap++;
-                    }
-                }
-                data.m_pLastKilledEntity = pPed;
-            }
-        }
-
-        CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(pWeapon->m_eWeaponType, FindPlayerPed()->GetWeaponSkill(pWeapon->m_eWeaponType));
-        if (!pWeaponInfo) return;
-
-        CWeaponModelInfo* pWeaponModelInfo = static_cast<CWeaponModelInfo*>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
-        if (!pWeaponModelInfo) return;
-
-        RpClumpForAllAtomics(pWeaponModelInfo->m_pRwClump, [](RpAtomic *atomic, void *data) {
-            if (atomic->geometry) {
-                RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *material, void *data) {
-                    FrameData *pData = reinterpret_cast<FrameData*>(data);
-                    if (material->texture == pData->m_Textures[pData->m_CurNode].m_pFrames[0]) {
-                        material->texture = pData->m_Textures[pData->m_CurNode].m_pFrames[pData->m_Textures[pData->m_CurNode].m_nCurRemap];
-                    }
-                    return material;
-                }, data);
-            }
-            return atomic;
-        }, &data);
+    if (!data.m_Textures[name].m_bInit) {
+        Initialize(frame, pWeapon);
+        data.m_Textures[name].m_bInit = true;
     }
+
+    auto player = FindPlayerPed();
+    if (player && player->m_aWeapons[player->m_nActiveWeaponSlot].m_eWeaponType == pWeapon->m_eWeaponType) {
+        CPed *pPed = static_cast<CPed*>(player->m_pDamageEntity);
+        if (!pPed) {
+            pPed = static_cast<CPed*>(player->m_pLastEntityDamage);
+        }
+        if (pPed && pPed->m_nType == ENTITY_TYPE_PED && !pPed->IsAlive() && pPed != data.m_pLastKilledEntity) {
+            for (auto &e: data.m_Textures) {
+                if (e.second.m_nCurRemap < e.second.m_nTotalRemaps) {
+                    e.second.m_nCurRemap++;
+                }
+            }
+            data.m_pLastKilledEntity = pPed;
+        }
+    }
+
+    CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(pWeapon->m_eWeaponType, FindPlayerPed()->GetWeaponSkill(pWeapon->m_eWeaponType));
+    if (!pWeaponInfo) return;
+
+    CWeaponModelInfo* pWeaponModelInfo = static_cast<CWeaponModelInfo*>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
+    if (!pWeaponModelInfo) return;
+
+    RpClumpForAllAtomics(pWeaponModelInfo->m_pRwClump, [](RpAtomic *atomic, void *data) {
+        if (atomic->geometry) {
+            RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *material, void *data) {
+                FrameData *pData = reinterpret_cast<FrameData*>(data);
+                if (material->texture == pData->m_Textures[pData->m_CurNode].m_pFrames[0]) {
+                    material->texture = pData->m_Textures[pData->m_CurNode].m_pFrames[pData->m_Textures[pData->m_CurNode].m_nCurRemap];
+                }
+                return material;
+            }, data);
+        }
+        return atomic;
+    }, &data);
 }

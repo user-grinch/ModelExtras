@@ -4,7 +4,7 @@
 #include "../../extender.h"
 #include <map>
 
-class RemapFeature : public IFeature {
+class Remap {
 private: 
   struct TextureVariant {
     RwTexture *m_pNormal, *m_pBlood;
@@ -18,21 +18,17 @@ private:
     RemapData(int) {}
     ~RemapData() {}
   };
-  Extender<int, RemapData> xRemaps;
+  static inline Extender<int, RemapData> xRemaps;
 
 private:
-  bool GetKilledState(CWeapon *pWeapon);
+  static bool GetKilledState(CWeapon *pWeapon);
 
-  void LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType type);
+  static void LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType type);
 
-  void BeforeRender(void* ptr, eModelEntityType type);
-  void AfterRender(void* ptr, eModelEntityType type);
+  static void BeforeRender(void* ptr, eModelEntityType type);
+  static void AfterRender(void* ptr, eModelEntityType type);
 
 public:
-  RemapFeature () {};
-  
-  void Initialize();
+  static void Initialize();
   
 };
-
-extern RemapFeature Remap;

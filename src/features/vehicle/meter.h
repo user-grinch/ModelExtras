@@ -17,7 +17,7 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(RwFrame* frame, CEntity* ptr);
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };
 
 class OdoMeter {
@@ -36,7 +36,7 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(RwFrame* frame, CEntity* ptr);
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };
 
 class RpmMeter {
@@ -54,7 +54,7 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(RwFrame* frame, CEntity* ptr);
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };
 
 class SpeedMeter {
@@ -73,7 +73,7 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(RwFrame* frame, CEntity* ptr);
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };
 
 class TachoMeter{
@@ -91,7 +91,7 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(RwFrame* frame, CEntity* ptr);
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };
 
 class GasMeter {
@@ -105,5 +105,5 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(RwFrame* frame, CEntity* ptr);
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };

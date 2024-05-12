@@ -20,5 +20,5 @@ public:
 	static void OnVehicleRender(CVehicle *pVeh);
 
 public:
-	static void Process(RwFrame* frame, CEntity* ptr);
+	static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };

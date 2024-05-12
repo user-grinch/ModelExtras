@@ -8,9 +8,8 @@ void UpdateRotation(RwFrame *ori, RwFrame *tar) {
     }
 }
 
-void WheelHub::FindNodes(RwFrame * frame, CEntity* ptr) {
+void WheelHub::FindNodes(RwFrame * frame, void* ptr) {
     if(frame) {
-        const std::string name = GetFrameNodeName(frame);
         CVehicle *pVeh = static_cast<CVehicle*>(ptr);
         std::string name = GetFrameNodeName(frame);
 
@@ -68,7 +67,7 @@ void WheelHub::FindNodes(RwFrame * frame, CEntity* ptr) {
     return;
 }
 
-void WheelHub::Process(RwFrame* frame, CEntity* ptr) {
+void WheelHub::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
 
     VehData &data = xData.Get(pVeh);

@@ -15,8 +15,8 @@ protected:
   }; 
 
   static inline VehicleExtendedData<VehData> xData;
-  static void FindNodes(RwFrame * frame, CEntity* pEntity) ;
+  static void FindNodes(RwFrame * frame, void* pEntity) ;
 
 public:
-  static void Process(RwFrame* frame, CEntity* ptr);
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };

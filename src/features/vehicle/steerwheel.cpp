@@ -2,7 +2,7 @@
 #include "steerwheel.h"
 #define ROTATION_VAL 45.0f
 
-void SteerWheel::Process(RwFrame* frame, CEntity* ptr) {
+void SteerWheel::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = xData.Get(pVeh);
     float angle = pVeh->m_fSteerAngle * 180 / 3.1416f;

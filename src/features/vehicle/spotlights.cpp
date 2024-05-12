@@ -4,7 +4,7 @@
 #include <CCoronas.h>
 #include "defines.h"
 
-void SpotLight::Process(RwFrame* pFrame, CEntity* ptr) {    
+void SpotLight::Process(void *ptr, RwFrame* pFrame, eModelEntityType type) {    
 	CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = vehData.Get(pVeh);
     

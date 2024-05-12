@@ -15,6 +15,6 @@ class HandleBar{
     static inline VehicleExtendedData<VehData> xData;
 
   public:
-    static void AddSource(RwFrame* frame, CEntity* ptr);
-    static void Process(RwFrame* frame, CEntity* ptr);
+    static void AddSource(void *ptr, RwFrame* frame, eModelEntityType type);
+    static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };

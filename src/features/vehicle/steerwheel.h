@@ -20,5 +20,5 @@ protected:
   static inline VehicleExtendedData<VehData> xData;
 
 public:
-  static void Process(RwFrame* frame, CEntity* pVeh);
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };

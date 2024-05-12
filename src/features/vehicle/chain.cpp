@@ -2,7 +2,7 @@
 #include "chain.h"
 
 
-void Chain::Process(RwFrame* frame, CEntity* ptr) {
+void Chain::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = (CVehicle*)ptr;
     VehData &data = vehData.Get(pVeh);
 

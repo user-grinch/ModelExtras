@@ -2,47 +2,15 @@
 #include "bodystate.h"
 #define PARACHUTE_MODEL 371
 
-BodyStateFeature BodyState;
-
 float GetStatValue(unsigned short stat) {
     return plugin::CallAndReturn<float, 0x558E40, unsigned short>(stat);
 }
 
-void BodyStateFeature::Process(RwFrame* frame, CWeapon *pWeapon) {
+void BodyState::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
+    CWeapon *pWeapon = static_cast<CWeapon*>(ptr);
     xData &data = wepData.Get(pWeapon);
     std::string name = GetFrameNodeName(frame);
-    if (NODE_FOUND(name, "x_body_state") && name.find("x_body_state_zen") == std::string::npos) {
-        bool isMuscle = GetStatValue(23) == 1000.0f;
-        bool isFat = GetStatValue(21) == 1000.0f;
-        bool isSlim = !(isMuscle && isFat);
-
-        eBodyState bodyState = eBodyState::Slim;
-        if (isMuscle) bodyState = eBodyState::Muscle;
-        else if (isFat) bodyState = eBodyState::Fat;
-
-        if (bodyState != data.prevBodyState) {
-            Util::HideAllChilds(frame);
-            if (isMuscle) { 
-                Util::ShowChildWithName(frame, "muscle");
-            } else if (isMuscle) {
-                Util::ShowChildWithName(frame, "fat");
-            } else { 
-                Util::ShowChildWithName(frame, "slim");
-            }
-            data.prevBodyState = bodyState;
-
-            auto play = FindPlayerPed();
-            if (play && play->m_nWeaponModelId == PARACHUTE_MODEL) {
-                plugin::Call<0x4395B0>();
-            }
-        }
-    }
-}
-
-void BodyStateFeature::ProcessZen(RwFrame* frame, CWeapon *pWeapon) {
-    xData &data = wepData.Get(pWeapon);
-    std::string name = GetFrameNodeName(frame);
-    if (NODE_FOUND(name, "x_body_state_zen")) {
+    if (NODE_FOUND(name, "x_body_state")) {
         bool isMuscle = GetStatValue(23) == 1000;
         bool isFat = GetStatValue(21) == 1000;
         bool isSlim = !(isMuscle && isFat);
@@ -51,9 +19,12 @@ void BodyStateFeature::ProcessZen(RwFrame* frame, CWeapon *pWeapon) {
             return;
         }
 
-        bool isLarge = pPlayer->m_pPlayerData->m_pPedClothesDesc->m_anModelKeys[0] != 3139216588; // hoodyA model
-        bool isUniform = pPlayer->m_pPlayerData->m_pPedClothesDesc->m_anTextureKeys[17] != 0; // default outfit
-        bool isPlus = isLarge && !isUniform;
+        bool isPlus = false;
+        if (NODE_FOUND(name, "_zen")) {
+            bool isLarge = pPlayer->m_pPlayerData->m_pPedClothesDesc->m_anModelKeys[0] != 3139216588; // hoodyA model
+            bool isUniform = pPlayer->m_pPlayerData->m_pPedClothesDesc->m_anTextureKeys[17] != 0; // default outfit
+            isPlus = isLarge && !isUniform;
+        }
 
         eBodyState bodyState = eBodyState::Slim;
         if (isMuscle && isFat) bodyState = eBodyState::MuscleFat;

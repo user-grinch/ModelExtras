@@ -1,7 +1,7 @@
 #pragma once
 #include "plugin.h"
 #include <vector>
-extern struct CAudioStream;
+class CAudioStream;
 
 enum class eFrameState {
   AtOrigin,
@@ -28,7 +28,7 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(RwFrame* frame, CEntity* ptr);
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };
 
 class GearLever {
@@ -50,7 +50,7 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(RwFrame* frame, CEntity* ptr);
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };
 
 class GearSound {
@@ -67,5 +67,5 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(RwFrame* frame, CEntity* ptr);
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };

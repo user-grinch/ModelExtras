@@ -6,9 +6,7 @@
 #define MAX_REMAPS 32
 #define NODE_ID "x_ranmap"
 
-RemapFeature Remap;
-
-void RemapFeature::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType type)
+void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType type)
 {
 	if (pModelInfo)
 	{
@@ -59,38 +57,38 @@ static std::vector<std::pair<unsigned int *, unsigned int>> m_pOriginalTextures;
 static std::map<void*, int> m_pRandom;
 static std::map<void*, bool> m_pBloodState;
 
-void RemapFeature::Initialize() {
-    Events::vehicleRenderEvent.before += [this](CVehicle* ptr) {
+void Remap::Initialize() {
+    Events::vehicleRenderEvent.before += [](CVehicle* ptr) {
         BeforeRender(reinterpret_cast<void*>(ptr), eModelEntityType::Vehicle);
     };
 
-    Events::pedRenderEvent.before += [this](CPed* pPed) {
+    Events::pedRenderEvent.before += [](CPed* pPed) {
         BeforeRender(reinterpret_cast<void*>(pPed), eModelEntityType::Ped);
     };
 
-    weaponRenderEvent.before += [this](CPed* pPed) {
+    weaponRenderEvent.before += [](CPed* pPed) {
         CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
         if (pWeapon) {
             BeforeRender(reinterpret_cast<void*>(pWeapon), eModelEntityType::Weapon);
         }
     };
     
-    Events::vehicleRenderEvent.after += [this](CVehicle* ptr) {
+    Events::vehicleRenderEvent.after += [](CVehicle* ptr) {
         AfterRender(reinterpret_cast<void*>(ptr), eModelEntityType::Vehicle);
     };
 
-    Events::pedRenderEvent.after += [this](CPed* pPed) {
+    Events::pedRenderEvent.after += [](CPed* pPed) {
         AfterRender(reinterpret_cast<void*>(pPed), eModelEntityType::Ped);
     };
 
-    weaponRenderEvent.after += [this](CPed* pPed) {
+    weaponRenderEvent.after += [](CPed* pPed) {
         CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
         if (pWeapon) {
             AfterRender(reinterpret_cast<void*>(pWeapon), eModelEntityType::Weapon);
         }
     };
 
-    weaponRemoveEvent.before += [this](CPed* pPed, int model) {
+    weaponRemoveEvent.before += [](CPed* pPed, int model) {
         CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
         if (pWeapon) {
             if(m_pRandom.contains(pWeapon)) {
@@ -104,14 +102,14 @@ void RemapFeature::Initialize() {
     };
 }
 
-void RemapFeature::AfterRender(void* ptr, eModelEntityType type) {
+void Remap::AfterRender(void* ptr, eModelEntityType type) {
     for (auto &e : m_pOriginalTextures) {
 		*e.first = e.second;
     }
 	m_pOriginalTextures.clear();
 }
 
-bool RemapFeature::GetKilledState(CWeapon *pWeapon) {
+bool Remap::GetKilledState(CWeapon *pWeapon) {
     if (m_pBloodState[pWeapon]) {
         return true;
     }
@@ -134,7 +132,7 @@ bool RemapFeature::GetKilledState(CWeapon *pWeapon) {
     return state;
 }
 
-void RemapFeature::BeforeRender(void* ptr, eModelEntityType type) {
+void Remap::BeforeRender(void* ptr, eModelEntityType type) {
     int model = Util::GetEntityModel(ptr, type);
     CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(model);
 
