@@ -90,6 +90,7 @@ void FeatureMgr::Initialize() {
     if (gConfig.ReadBoolean("FEATURES", "RotateSteerWheel", false)) {
         // TODO: need updated IDs
         m_FunctionTable["steer"] = SteerWheel::Process;
+        m_FunctionTable["steering_dummy"] = SteerWheel::Process;
     }
 
     m_FunctionTable["spotlight_dummy"] = SpotLight::Process;
@@ -175,7 +176,9 @@ void FeatureMgr::Process(void *ptr, eModelEntityType type) {
     }
 
     for (auto e: m_ModelTable[model]) {
-        m_FunctionTable[e.id](ptr, e.m_pFrame, type);
+        if (m_FunctionTable[e.id]) {
+            m_FunctionTable[e.id](ptr, e.m_pFrame, type);
+        }
     }
 }
 
