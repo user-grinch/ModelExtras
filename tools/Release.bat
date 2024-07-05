@@ -4,6 +4,6 @@ echo Building Release
 echo --------------------------------------------------
 echo[
 call "tools\Setup.bat"
-MsBuild ModelExtras.sln /property:Configuration=Release 
-del %OUT_DIR%"\ModelExtras.asi" /Q
-xcopy /s "bin\ModelExtras.asi" %OUT_DIR% /K /D /H /Y 
+MsBuild %PLUGIN_NAME%.sln /property:Configuration=Release 
+del "%GTA_SA_DIR%\%PLUGIN_NAME%.asi" /Q
+xcopy /s "bin\%PLUGIN_NAME%.asi" "%GTA_SA_DIR%" /K /D /H /Y 

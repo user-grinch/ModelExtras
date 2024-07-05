@@ -166,7 +166,7 @@ void Remap::BeforeRender(void* ptr, eModelEntityType type) {
                 }
                 int sz = pData->m_pTextures[name].size();
                 if (m_pRandom.find(pData->curPtr) == m_pRandom.end() || m_pRandom[pData->curPtr] >= sz) {
-                    m_pRandom[pData->curPtr] = Random(0u, sz-1);
+                    m_pRandom[pData->curPtr] = RandomNumberInRange(0, sz-1);
                 }
 
                 m_pOriginalTextures.push_back({reinterpret_cast<unsigned int *>(&mat->texture), *reinterpret_cast<unsigned int *>(&mat->texture)});

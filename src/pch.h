@@ -28,7 +28,7 @@ enum class eModelEntityType {
 
 #define MOD_NAME "ModelExtras"
 #define MOD_VERSION_NUMBER "1.6"
-#define MOD_TITLE MOD_NAME " v" MOD_VERSION_NUMBER"-alpha-test-build"
+#define MOD_TITLE MOD_NAME " v" MOD_VERSION_NUMBER"-beta"
 #define DISCORD_INVITE "https://discord.gg/ZzW7kmf"
 #define GITHUB_LINK "https://github.com/user-grinch/ModelExtras"
 #define PATREON_LINK "https://www.patreon.com/grinch_"
@@ -51,3 +51,8 @@ static inline ThiscallEvent <AddressList<//0x43D821, H_CALL,
                                   0x63072E, H_CALL,
                                 //   0x5E6483, H_CALL,
                                   0x6348FC, H_CALL>, PRIORITY_BEFORE, ArgPick2N<CPed*, 0, int, 1>, void(CPed*, int)> weaponRemoveEvent;
+
+#define PRINT_LINEBREAK \
+    gLogger->set_pattern("%v"); \
+    gLogger->info(""); \
+    gLogger->set_pattern("[%L] %v");

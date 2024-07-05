@@ -156,6 +156,6 @@ void GasMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     }
 
     std::string name = GetFrameNodeName(frame);
-    Util::SetFrameRotationY(frame, Random(20.0f, 70.0f));
+    Util::SetFrameRotationY(frame, RandomNumberInRange(20.0f, 70.0f));
     data.m_bInitialized = true;
 }

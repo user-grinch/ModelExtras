@@ -1,110 +1,58 @@
-/*
-* Credits:
-* This part of the source is taken from the CLEO4 Project
-* https://github.com/cleolibrary/CLEO4
-*/
 #pragma once
-#include "plugin.h"
-#include <set>
 #include "bass.h"
+#include <set>
+
 
 class CAudioStream;
 class C3DAudioStream;
 
-class CSoundSystem {
+enum eStreamType
+{
+    None = 0,
+    SoundEffect,
+    Music,
+};
+
+class CSoundSystem
+{
     friend class CAudioStream;
     friend class C3DAudioStream;
 
-    std::set<CAudioStream *> streams;
-    BASS_INFO SoundDevice;
-    bool initialized;
-    int forceDevice;
-    bool paused;
-    bool bUseFPAudio;
-    HWND hwnd;
+    std::set<CAudioStream*> streams;
+    BASS_INFO SoundDevice = { 0 };
+    bool initialized = false;
+    bool paused = false;
 
-  public:
-    virtual void Inject();
-    bool Init(HWND hwnd);
-    inline bool Initialized() {
-        return initialized;
-    }
+    static bool useFloatAudio;
+    static bool allowNetworkSources;
 
-    CSoundSystem() : initialized(false), forceDevice(-1), paused(false), bUseFPAudio(false) {
-        // TODO: give to user an ability to force a sound device to use (ini-file or cmd-lineflog << "
+    static BASS_3DVECTOR pos;
+    static BASS_3DVECTOR vel;
+    static BASS_3DVECTOR front;
+    static BASS_3DVECTOR top;
+    static eStreamType defaultStreamType;
+    static float masterSpeed; // game simulation speed
+    static float masterVolumeSfx;
+    static float masterVolumeMusic;
 
-    }
+public:
+    CSoundSystem() = default; // TODO: give to user an ability to force a sound device to use (ini-file or cmd-line?)
+    ~CSoundSystem();
 
-    ~CSoundSystem() {
-        UnloadAllStreams();
-        if (initialized) {
-            BASS_Free();
-            initialized = false;
-        }
-    }
+    bool Init();
+    bool Initialized();
 
-    CAudioStream * LoadStream(const char *filename, bool in3d = false);
-    void PauseStreams();
-    void ResumeStreams();
-    void UnloadStream(CAudioStream *stream);
-    void UnloadAllStreams();
-    void Update();
-};
+    CAudioStream* CreateStream(const char *filename, bool in3d = false);
+    void DestroyStream(CAudioStream *stream);
 
-class CAudioStream {
-    friend class CSoundSystem;
+    bool HasStream(CAudioStream* stream);
+    void Clear(); // destroy all created streams
 
-    CAudioStream(const CAudioStream&);
-
-  protected:
-    HSTREAM streamInternal;
-    enum eStreamState {
-        Unknown,
-        Playing,
-        Paused,
-        Stopped,
-    } state;
-    bool OK;
-
-  public:
-    CAudioStream();
-    CAudioStream(const char *src);
-    virtual ~CAudioStream();
-
-    // actions on streams
-    void Play();
-    void Pause(bool change_state = true);
-    void Stop();
+    void Pause();
     void Resume();
-    DWORD GetLength();
-    DWORD GetState();
-    float GetVolume();
-    void SetVolume(float val);
-    void Loop(bool enable);
-    HSTREAM GetInternal();
-
-    // overloadable actions
-    virtual void Set3dPosition(const CVector& pos);
-    virtual void Link(CPlaceable *placable = nullptr);
-    virtual void Process();
+    void Process();
 };
 
-class C3DAudioStream : public CAudioStream {
-    friend class CSoundSystem;
-
-    C3DAudioStream(const C3DAudioStream&);
-
-  protected:
-    CPlaceable	*	link;
-    BASS_3DVECTOR	position;
-  public:
-    C3DAudioStream(const char *src);
-    virtual ~C3DAudioStream();
-
-    // overloaded actions
-    virtual void Set3dPosition(const CVector& pos);
-    virtual void Link(CPlaceable *placable = nullptr);
-    virtual void Process();
-};
+bool isNetworkSource(const char* path);
 
 extern CSoundSystem SoundSystem;

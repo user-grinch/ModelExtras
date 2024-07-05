@@ -11,10 +11,19 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             gConfig.WriteBoolean("MISC", "ShowDonationPopup", false);
         }
 
+        plugin::Events::gameProcessEvent += [](){
+            SoundSystem.Process();
+        };
+
+        plugin::Events::shutdownRwEvent += [](){
+            SoundSystem.Clear();
+        };
+
         Events::initGameEvent += []() {
             bool ImVehFtInstalled = GetModuleHandle("ImVehFt.asi");
             bool ImVehFtFixInstalled = GetModuleHandle("ImVehFtFix.asi");
             bool AVSInstalled = GetModuleHandle("AdvancedVehicleSirens.asi");
+            bool EarShot = GetModuleHandle("EarShot.asi");
 
             gLogger->flush_on(spdlog::level::info);
             gLogger->set_pattern("%v"); 
@@ -27,6 +36,8 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             gLogger->info("Date: {}-{}-{} Time: {}:{}\n", st.wYear, st.wMonth, st.wDay,
                                         st.wHour, st.wMinute);
             gLogger->set_pattern("[%L] %v");
+            SoundSystem.Init();
+
             /*
                 Had to put this in place since some people put the folder in root
                 directory and the asi in modloader. Why??
@@ -37,17 +48,15 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
                 MessageBox(NULL, msg.c_str(), MOD_NAME, MB_ICONERROR);
                 return;
             }
-            SoundSystem.Inject();
-            SoundSystem.Init(RsGlobal.ps->window);
-            InitRandom();
 
             if (gConfig.ReadBoolean("MISC", "ShowDeprecationMessage", true) 
-            && (ImVehFtInstalled || ImVehFtFixInstalled || AVSInstalled)) {
+            && (ImVehFtInstalled || ImVehFtFixInstalled || AVSInstalled || EarShot)) {
                 std::string str = "ModelExtras contain the functions of these plugins,\n\n";
                 
                 if (ImVehFtInstalled) str += "- ImVehFt.asi\n";
                 if (ImVehFtFixInstalled) str += "- ImVehFtFix.asi\n";
                 if (AVSInstalled) str += "- AdvancedVehicleSirens.asi\n";
+                if (EarShot) str += "- EarShot.asi\n";
 
                 str += "\nIt is recommanded to remove them to ensure proper gameplay.";
                 MessageBox(RsGlobal.ps->window, str.c_str(), "Deprecated plugins found!", MB_OK);

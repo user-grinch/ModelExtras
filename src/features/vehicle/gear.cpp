@@ -2,6 +2,7 @@
 #include "Gear.h"
 #include "bass.h"
 #include "../../soundsystem.h"
+#include "../../audiostream.h"
 
 void Clutch::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
@@ -115,7 +116,7 @@ void GearSound::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     VehData &data = vehData.Get(pVeh);
     if (!data.m_bInitialized) {
         std::string upPath = MOD_DATA_PATH_S(std::format("audio/gear/{}.wav", Util::GetRegexVal(name, "x_gs_(.*$)", "")));
-        data.m_pUpAudio = SoundSystem.LoadStream(upPath.c_str(), false);
+        data.m_pUpAudio = SoundSystem.CreateStream(upPath.c_str(), false);
         data.m_pUpAudio->SetVolume(0.5f);
         data.m_bInitialized = true;
     }

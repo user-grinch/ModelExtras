@@ -84,6 +84,9 @@
         "codecvt": "cpp",
         "ranges": "cpp",
         "span": "cpp",
-        "cstdarg": "cpp"
+        "cstdarg": "cpp",
+        "expected": "cpp",
+        "numbers": "cpp",
+        "random": "cpp"
     }
 }

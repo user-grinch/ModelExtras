@@ -13,6 +13,7 @@
 #include "vehicle/sirens.h"
 #include "weapon/bodystate.h"
 #include "weapon/bloodremap.h"
+#include "weapon/sound.h"
 #include "common/remap.h"
 #include "common/randomizer.h"
 
@@ -101,6 +102,7 @@ void FeatureMgr::Initialize() {
     VehicleSirens::Initialize();
     Remap::Initialize();
     Randomizer::Initialize();
+    WeaponSoundSystem::Initialize();
 
     m_FunctionTable["x_body_state"] = BodyState::Process;
     m_FunctionTable["x_remap"] = BloodRemap::Process;
@@ -136,7 +138,7 @@ void FeatureMgr::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type) {
 
         for (auto e : m_FunctionTable) {
             if (NODE_FOUND(name, e.first)) {
-                m_ModelTable[model].emplace_back(frame, name);
+                m_ModelTable[model].emplace_back(frame, e.first);
             }
         }
 
