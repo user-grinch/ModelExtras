@@ -49,6 +49,13 @@ void WeaponSoundSystem::Initialize() {
                 WeaponSoundSystem::Register(e.path());
             }
         }
+
+        for (auto e : std::filesystem::recursive_directory_iterator(GAME_PATH((char*)"EarShot/"))) {
+            std::string ext = e.path().extension().string();
+            if (ext == ".wav" || ext == ".ogg") {
+                WeaponSoundSystem::Register(e.path());
+            }
+        }
     };
 
     plugin::ThiscallEvent<plugin::AddressList<0x4DFAC6, plugin::H_CALL, 0x4E6A3D, plugin::H_CALL>, plugin::PRIORITY_BEFORE, 
