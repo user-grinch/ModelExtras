@@ -43,17 +43,22 @@ void WeaponSoundSystem::Register(const std::filesystem::path& filepath) {
 
 void WeaponSoundSystem::Initialize() {
     plugin::Events::initScriptsEvent.after += [] {
-        for (auto e : std::filesystem::recursive_directory_iterator(MOD_DATA_PATH("audio/weapon/"))) {
-            std::string ext = e.path().extension().string();
-            if (ext == ".wav" || ext == ".ogg") {
-                WeaponSoundSystem::Register(e.path());
+
+        if (std::filesystem::exists(MOD_DATA_PATH("audio/weapon/"))) {
+            for (auto e : std::filesystem::recursive_directory_iterator(MOD_DATA_PATH("audio/weapon/"))) {
+                std::string ext = e.path().extension().string();
+                if (ext == ".wav" || ext == ".ogg") {
+                    WeaponSoundSystem::Register(e.path());
+                }
             }
         }
-
-        for (auto e : std::filesystem::recursive_directory_iterator(GAME_PATH((char*)"EarShot/"))) {
-            std::string ext = e.path().extension().string();
-            if (ext == ".wav" || ext == ".ogg") {
-                WeaponSoundSystem::Register(e.path());
+        
+        if (std::filesystem::exists(GAME_PATH((char*)"EarShot/"))) {
+            for (auto e : std::filesystem::recursive_directory_iterator(GAME_PATH((char*)"EarShot/"))) {
+                std::string ext = e.path().extension().string();
+                if (ext == ".wav" || ext == ".ogg") {
+                    WeaponSoundSystem::Register(e.path());
+                }
             }
         }
     };
