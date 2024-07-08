@@ -115,7 +115,7 @@ void SpotLight::OnVehicleRender(CVehicle *pVeh) {
 		2.0f, 0.0f, 0.0f, 2.0f,
 		128, 128, 128, 0.0f);*/
 
-	/*CVector Pos = CModelInfo::ms_modelInfoPtrs[Vehicle->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin;
+	/*CVector Pos = CModelInfo__ms_modelInfoPtrs[Vehicle->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin;
 
 	CVector center = Vehicle->TransformFromObjectSpace(CVector(0.0f, 0.0f, 0.0f));
 

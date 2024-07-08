@@ -961,7 +961,7 @@ void VehicleSirens::enableMaterial(VehicleMaterial* material, VehicleSirenMateri
 };
 
 void VehicleSirens::enableDummy(int id, VehicleSirenDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
-	CVector position = reinterpret_cast<CVehicleModelInfo*>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
+	CVector position = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 
 	position.x = dummy->Position.x;
 	position.y = dummy->Position.y;
@@ -1051,13 +1051,12 @@ void VehicleSirens::enableShadow(CVehicle* vehicle, VehicleSirenDummy* dummy, Ve
 		alpha, material->Color.red, material->Color.green, material->Color.blue,
 		2.0f, false, 1.0f, 0, true);
 };
-
 VehicleSiren::VehicleSiren(CVehicle* _vehicle) {
 	vehicle = _vehicle;
 
 	int model = vehicle->m_nModelIndex;
 
-	CVehicleModelInfo* modelInfo = reinterpret_cast<CVehicleModelInfo*>(CModelInfo::ms_modelInfoPtrs[model]);
+	CVehicleModelInfo* modelInfo = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[model]);
 
 	if (modelInfo->m_nVehicleType == eVehicleType::VEHICLE_HELI || modelInfo->m_nVehicleType == eVehicleType::VEHICLE_PLANE)
 		this->Mute = true;

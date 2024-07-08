@@ -14,7 +14,7 @@ CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
 void DrawTurnlight(CVehicle *pVeh, eDummyPos pos, bool leftSide) {
 	int idx = pos == eDummyPos::Front ? 0 : 1;
     CVector posn =
-        reinterpret_cast<CVehicleModelInfo*>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[idx];
+        reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[idx];
 	
     if (posn.x == 0.0f) posn.x = 0.15f;
     if (leftSide) posn.x *= -1.0f;

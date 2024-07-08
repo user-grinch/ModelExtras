@@ -49,8 +49,8 @@ void FeatureMgr::Initialize() {
         CTaskSimpleJetPack *pTask = pPed->m_pIntelligence->GetTaskJetPack();
         if (pTask && pTask->m_pJetPackClump) {
             Add(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), 
-                (RwFrame *)pTask->m_pJetPackClump->object.parent, eModelEntityType::Weapon);
-            Process(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), eModelEntityType::Weapon);
+                (RwFrame *)pTask->m_pJetPackClump->object.parent, eModelEntityType::Jetpack);
+            Process(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), eModelEntityType::Jetpack);
         }
 
         // weapons
@@ -58,7 +58,7 @@ void FeatureMgr::Initialize() {
         if (pWeapon) {
             eWeaponType weaponType = pWeapon->m_eWeaponType;
             CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(weaponType, pPed->GetWeaponSkill(weaponType));
-            if (pWeaponInfo) {
+            if (pWeaponInfo && pWeaponInfo->m_nModelId1 > 0) {
                 CWeaponModelInfo* pWeaponModelInfo = static_cast<CWeaponModelInfo*>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
                 if (pWeaponModelInfo && pWeaponModelInfo->m_pRwClump) {
                     Add(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), 
@@ -167,6 +167,8 @@ void FeatureMgr::Add(void *ptr, RwFrame* frame, eModelEntityType type) {
     int model = 0;
     if (type == eModelEntityType::Weapon) {
         model = static_cast<CWeapon*>(ptr)->m_eWeaponType;
+    } else if (type == eModelEntityType::Jetpack) { 
+        model = 370;
     } else {
         model = static_cast<CEntity*>(ptr)->m_nModelIndex;
     }
@@ -180,6 +182,8 @@ void FeatureMgr::Process(void *ptr, eModelEntityType type) {
     int model = 0;
     if (type == eModelEntityType::Weapon) {
         model = static_cast<CWeapon*>(ptr)->m_eWeaponType;
+    } else if (type == eModelEntityType::Jetpack) { 
+        model = 370;
     } else {
         model = static_cast<CEntity*>(ptr)->m_nModelIndex;
     }
@@ -190,4 +194,3 @@ void FeatureMgr::Process(void *ptr, eModelEntityType type) {
         }
     }
 }
-

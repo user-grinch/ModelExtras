@@ -132,7 +132,7 @@ void Lights::Initialize() {
 		!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)) {
 			if (data.m_bFogLightsOn && materials[model][eLightState::FogLight].size() != 0) {
 				renderLights(pVeh, eLightState::FogLight, vehicleAngle, cameraAngle);
-				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
+				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 				posn.x = 0.0f;
 				posn.y += 3.35f;
 
@@ -175,14 +175,14 @@ void Lights::Initialize() {
 
 			if (showTailLights) {
 				if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT)) {
-					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
+					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 					if (posn.x == 0.0f) posn.x = 0.15f;
 					posn.x *= -1.0f;
 					Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 180.0f, 0.0f);
 				}
 
 				if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)) {
-					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
+					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 					if (posn.x == 0.0f) posn.x = 0.15f;
 					Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 180.0f, 0.0f);
 				}
