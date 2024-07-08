@@ -8,14 +8,18 @@
 #include "vehicle/steerwheel.h"
 #include "vehicle/spotlights.h"
 #include "vehicle/wheelhub.h"
-#include "vehicle./lights.h"
-#include "vehicle/indicators.h"
-#include "vehicle/sirens.h"
 #include "weapon/bodystate.h"
 #include "weapon/bloodremap.h"
 #include "weapon/sound.h"
 #include "common/remap.h"
 #include "common/randomizer.h"
+#include "vehicle/avs/common.h"
+#include "vehicle/lights.h"
+#include "vehicle/paintjobs.h"
+#include "vehicle/avs/materials.h"
+#include "vehicle/indicators.h"
+#include "vehicle/foglights.h"
+#include "vehicle/sirens.h"
 
 static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
 
@@ -24,7 +28,10 @@ void FeatureMgr::Initialize() {
         VehicleMaterials::RestoreMaterials();
         VehicleMaterials::OnRender(vehicle);
     };
+
     plugin::Events::vehicleSetModelEvent += VehicleMaterials::OnModelSet;
+    plugin::Events::vehicleCtorEvent += VehiclePaintjobs::OnVehicleSetModel;
+    plugin::Events::vehicleRenderEvent += VehiclePaintjobs::OnVehicleRender;
 
     Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model) {
         Add(static_cast<void*>(pVeh), (RwFrame *)pVeh->m_pRwClump->object.parent, eModelEntityType::Vehicle);
@@ -97,9 +104,11 @@ void FeatureMgr::Initialize() {
     m_FunctionTable["spotlight_dummy"] = SpotLight::Process;
     m_FunctionTable["hub_"] = WheelHub::Process;
 
-    Lights::Initialize();
-    Indicator::Initialize();
+    VehicleIndicators::Initialize();
+    VehicleFoglights::Initialize();
+    VehicleLights::Initialize();
     VehicleSirens::Initialize();
+    VehiclePaintjobs::Initialize();
     Remap::Initialize();
     Randomizer::Initialize();
     WeaponSoundSystem::Initialize();

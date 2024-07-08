@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "plugin.h"
+#include <plugin.h>
 #include "util.h"
 #include <regex>
 #include <CWeaponInfo.h>
@@ -333,18 +333,6 @@ RwTexture* Util::LoadTextureFromFile(const char* filename, RwUInt8 alphaValue) {
     if (!raster) {
         RwImageDestroy(image);
         return nullptr;
-    }
-
-    // Set the alpha value for each pixel
-    RwRGBA* pixels = (RwRGBA*)RwImageGetPixels(image);
-    for (RwInt32 y = 0; y < height; y++) {
-        for (RwInt32 x = 0; x < width; x++) {
-            RwRGBA* pixel = pixels + (y * width + x);
-            pixel->red = (pixel->red * alphaValue) / 255;
-            pixel->green = (pixel->green * alphaValue) / 255;
-            pixel->blue = (pixel->blue * alphaValue) / 255;
-            pixel->alpha = alphaValue;
-        }
     }
 
     RwRasterSetFromImage(raster, image);

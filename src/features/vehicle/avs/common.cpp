@@ -7,7 +7,7 @@
 void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, int id, float size) {
 	unsigned int coronaID = reinterpret_cast<unsigned int>(pVeh) + 30 + id;
 	CCoronas::RegisterCorona(coronaID, pVeh, red, green, blue, alpha, pos,
-		size, 30.0f, CORONATYPE_HEADLIGHT, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, false);
+		size, 260.0f, CORONATYPE_HEADLIGHT, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, false);
 };
 
 void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, int id, float cameraAngle, float angle, float radius, float size) {
@@ -40,33 +40,6 @@ void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uc
 	return RegisterCorona(pVeh, posn, red, green, blue, alpha, id, size);
 };
 
-void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, float angle, float currentAngle) {
-	static RwTexture *pShadowTex = nullptr;
-	if (!pShadowTex) {
-		pShadowTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/indicator.png")), 50);
-	}
-
-	float Offset = 0.0f;
-	CVector center = pVeh->TransformFromObjectSpace(
-		CVector(
-			position.x + (Offset * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-			position.y + ((1.2f + Offset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-			position.z
-		)
-	);
-
-	float fAngle = pVeh->GetHeading() + (((angle + currentAngle) + 180.0f) * 3.14f / 180.0f);
-
-	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
-
-	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-	CShadows::StoreShadowToBeRendered(2, pShadowTex, &center,
-		up.x, up.y,
-		right.x, right.y,
-		128, red, green, blue,
-		2.0f, false, 1.0f, 0, true);
-};
-
 RwTexture* loadTextureFromFile(const char* filename) {
     RwImage* image = RtPNGImageRead(filename);
 
@@ -90,3 +63,8 @@ RwTexture* Common::GetTexture(std::string texture) {
     return Textures[texture];
 };
 
+uint64_t Common::TimeSinceEpochMillisec() {
+    using namespace std::chrono;
+
+    return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+};

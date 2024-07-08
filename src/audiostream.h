@@ -1,6 +1,6 @@
 #pragma once
 #include "soundsystem.h"
-#include "plugin.h"
+#include <plugin.h>
 #include "bass.h"
 
 class CAudioStream

@@ -1,16 +1,15 @@
 #include "pch.h"
 #include "sirens.h"
+#include "avs/imvehft.h"
+#include <common.h>
+#include "avs/common.h"
 #include <CShadows.h>
 
-#include "internals/common.h"
-#include "internals/imvehft.h"
-#include "defines.h"
+bool VehicleSiren::GetSirenState() {
+	return (Mute == false) ? (vehicle->m_nVehicleFlags.bSirenOrAlarm) : (true);
+};
 
-using f_UsesSiren = char(*__fastcall)(CVehicle*);
-static f_UsesSiren oUsesSiren;
-static std::vector<int> skipCoronaModels;
-
-char __fastcall hkUsesSiren(CVehicle *ptr) {
+char __fastcall VehicleSirens::hkUsesSiren(CVehicle *ptr) {
 	if(VehicleSirens::modelData.contains(ptr->m_nModelIndex)){
 		ptr->m_vehicleAudio.m_bModelWithSiren = true;
 		return true;
@@ -18,31 +17,9 @@ char __fastcall hkUsesSiren(CVehicle *ptr) {
 	return ptr->IsLawEnforcementVehicle();
 }
 
-static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay) {
-	CVehicle* vehicle = NULL;
-
-	_asm {
-		pushad
-		mov vehicle, esi
-		popad
-	}
-
-	if (vehicle && std::find(skipCoronaModels.begin(), skipCoronaModels.end(), vehicle->m_nModelIndex) != skipCoronaModels.end())
-		return;
-
-	Common::RegisterCorona(static_cast<CVehicle*>(attachTo), posn, red, green, blue, alpha, id, radius);
-};
-
-bool VehicleSiren::GetSirenState() {
-	return (Mute == false) ? (vehicle->m_nVehicleFlags.bSirenOrAlarm) : (true);
-};
-
 VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nlohmann::json json) {
 	if (json.size() == 0) {
-		gLogger->warn("Failed to set up state " + state + "'s material " + std::to_string(material) + ", could not find any keys in the manifest!\n");
-
-		gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + " is empty!");
-
+		gLogger->error("Model {} siren configuration exception!", VehicleSirens::CurrentModel);
 		return;
 	}
 
@@ -56,11 +33,11 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 				if (reference.value().is_string())
 					references.push_back(reference.value());
 				else
-					gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", reference array property is not an string!");
+					gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", reference array property is not an string!");
 			}
 		}
 		else
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", reference property is not an array or string!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", reference property is not an array or string!");
 
 		if (references.size() != 0) {
 			for (std::vector<std::string>::iterator ref = references.begin(); ref != references.end(); ++ref) {
@@ -85,7 +62,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 					}
 				}
 				else
-					gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", reference array property '" + (*ref) + "' is not an recognized reference!");
+					gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", reference array property '" + (*ref) + "' is not an recognized reference!");
 			}
 		}
 	}
@@ -94,7 +71,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 		if(json["size"].is_number())
 			Size = json["size"];
 		else
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", size property is not an acceptable number!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", size property is not an acceptable number!");
 	}
 
 	if (json.contains("diffuse")) {
@@ -105,25 +82,25 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 				if (json["diffuse"]["color"].is_boolean())
 					Diffuse.Color = json["diffuse"]["color"];
 				else
-					gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", diffuse property color is not an boolean!");
+					gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", diffuse property color is not an boolean!");
 			}
 
 			if (json["diffuse"].contains("transparent")) {
 				if (json["diffuse"]["transparent"].is_boolean())
 					Diffuse.Transparent = json["diffuse"]["transparent"];
 				else
-					gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", diffuse property transparent is not an boolean!");
+					gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", diffuse property transparent is not an boolean!");
 			}
 		}
 		else
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", diffuse property is not an boolean or object!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", diffuse property is not an boolean or object!");
 	}
 
 	if (json.contains("radius")) {
 		if(json["radius"].is_number())
 			Radius = json["radius"];
 		else
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", radius property is not an acceptable number!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", radius property is not an acceptable number!");
 	}
 
 	if (json.contains("color")) {
@@ -146,7 +123,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 			DefaultColor = { Color.red, Color.green, Color.blue, Color.alpha };
 		}
 		else
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", color property is not an object!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", color property is not an object!");
 	}
 
 	if (json.contains("state")) {
@@ -158,7 +135,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 			StateDefault = state;
 		}
 		else
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", state property is not an boolean or number!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", state property is not an boolean or number!");
 	}
 
 	if (json.contains("colors")) {
@@ -167,13 +144,13 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 				nlohmann::json value = pattern.value();
 
 				if (!value.is_array()) {
-					gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", colors array property is not an array!");
+					gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", colors array property is not an array!");
 
 					continue;
 				}
 
 				if (value.size() != 2) {
-					gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", colors array property is not an array with a pair value of delay and color!");
+					gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", colors array property is not an array with a pair value of delay and color!");
 
 					continue;
 				}
@@ -203,11 +180,11 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 					ColorTotal += time;
 				}
 				else
-					gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", colors array property does not contain an array!");
+					gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", colors array property does not contain an array!");
 			}
 		}
 		else
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", colors property is not an array!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", colors property is not an array!");
 	}
 
 	if (json.contains("pattern")) {
@@ -217,7 +194,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 
 				if (value.is_array()) {
 					if (value.size() < 2) {
-						gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", pattern array property is an array but does not contain an iteration and pattern setting!");
+						gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", pattern array property is an array but does not contain an iteration and pattern setting!");
 
 						continue;
 					}
@@ -242,11 +219,11 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 					PatternTotal += time;
 				}
 				else
-					gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", pattern array property is not an array or number!");
+					gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", pattern array property is not an array or number!");
 			}
 		}
 		else
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", pattern property is not an array!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", pattern property is not an array!");
 	}
 
 	if (json.contains("type")) {
@@ -264,14 +241,14 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 					if(json["rotator"].is_object())
 						Rotator = new VehicleSirenRotator(json["rotator"]);
 					else
-						gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", rotator property is not an object!");
+						gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", rotator property is not an object!");
 				}
 			}
 			else
-				gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", type property '" + (std::string)json["type"] + "' is not a recognized type!");
+				gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", type property '" + (std::string)json["type"] + "' is not a recognized type!");
 		}
 		else
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", type property is not a string!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", type property is not a string!");
 	}
 
 	if (json.contains("shadow")) {
@@ -280,7 +257,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 				if(json["shadow"]["size"].is_number())
 					Shadow.Size = json["size"];
 				else
-					gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", shadow object property size is not an acceptable number!");
+					gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", shadow object property size is not an acceptable number!");
 			}
 
 			if (json["shadow"].contains("type")) {
@@ -293,18 +270,18 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 				else if(json["shadow"]["type"].is_string())
 					Shadow.Type = json["shadow"]["type"];
 				else
-					gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", shadow object property type is not an acceptable number or string!");
+					gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", shadow object property type is not an acceptable number or string!");
 			}
 
 			if (json["shadow"].contains("offset")) {
 				if (json["shadow"]["offset"].is_number())
 					Shadow.Offset = json["shadow"]["offset"];
 				else
-					gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", shadow object property offset is not an acceptable number!");
+					gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", shadow object property offset is not an acceptable number!");
 			}
 		}
 		else {
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", shadow property is not an object!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", shadow property is not an object!");
 		}
 	}
 
@@ -312,21 +289,21 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 		if(json["delay"].is_number())
 			Delay = json["delay"];
 		else
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", delay property is not an acceptable number!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", delay property is not an acceptable number!");
 	}
 
 	if (json.contains("inertia")) {
 		if(json["inertia"].is_number())
 			Inertia = json["inertia"];
 		else
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", inertia property is not an acceptable number!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", inertia property is not an acceptable number!");
 	}
 
 	if (json.contains("ImVehFt")) {
 		if(json["ImVehFt"].is_boolean() || json["ImVehFt"].is_number())
 			ImVehFt = json["ImVehFt"];
 		else
-			gLogger->warn("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", ImVehFt property is not a boolean or number!");
+			gLogger->error("Model " + std::to_string(VehicleSirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", ImVehFt property is not a boolean or number!");
 	}
 
 	Validate = true;
@@ -338,7 +315,7 @@ VehicleSirenState::VehicleSirenState(std::string state, nlohmann::json json) {
 	Paintjob = -1;
 	
 	if (json.size() == 0) {
-		gLogger->warn("Failed to set up state " + state + ", could not find any keys in the manifest!\n");
+		gLogger->error("Failed to set up state " + state + ", could not find any keys in the manifest!\n");
 
 		return;
 	}
@@ -357,7 +334,7 @@ VehicleSirenState::VehicleSirenState(std::string state, nlohmann::json json) {
 		if (!Materials[materialIndex]->Validate) {
 			Materials.erase(materialIndex);
 
-			gLogger->warn("Failed to set up state " + state + "'s material " + material.key() + ", could not configure object from manifest!\n");
+			gLogger->error("Failed to set up state " + state + "'s material " + material.key() + ", could not configure object from manifest!\n");
 
 			continue;
 		}
@@ -371,7 +348,7 @@ std::map<std::string, nlohmann::json> VehicleSirenData::ReferenceColors;
 
 VehicleSirenData::VehicleSirenData(nlohmann::json json) {
 	if (json.size() == 0) {
-		gLogger->warn("Failed to set up states, could not find any keys in the manifest!\n");
+		gLogger->error("Failed to set up states, could not find any keys in the manifest!\n");
 
 		return;
 	}
@@ -408,7 +385,7 @@ VehicleSirenData::VehicleSirenData(nlohmann::json json) {
 		VehicleSirenState* state = new VehicleSirenState(stateObject.key(), stateObject.value());
 
 		if (!state->Validate) {
-			gLogger->warn("Failed to set up state " + stateObject.key() + ", could not configure object from manifest!\n");
+			gLogger->error("Failed to set up state " + stateObject.key() + ", could not configure object from manifest!\n");
 
 			continue;
 		}
@@ -419,100 +396,193 @@ VehicleSirenData::VehicleSirenData(nlohmann::json json) {
 	Validate = true;
 };
 
-std::map<int, nlohmann::json> jsonData;
 
-void VehicleSirens::registerMaterial(CVehicle* vehicle, RpMaterial* material) {
+void VehicleSirens::registerMaterial(CVehicle* vehicle, RpMaterial* material, bool ImVehFt) {
 	int color = material->color.red;
+
 	material->color.red = material->color.blue = material->color.green = 255;
-	VehicleSirens::modelData[vehicle->m_nModelIndex]->Materials[color].push_back(new VehicleMaterial(material));
+
+	if(modelData.contains(vehicle->m_nModelIndex))
+		modelData[vehicle->m_nModelIndex]->Materials[color].push_back(new VehicleMaterial(material));
 };
 
-void VehicleSirens::ParseConfigs() {
-    std::string path {MOD_DATA_PATH("sirens/")};
+void VehicleSirens::parseConfig() {
+	std::string path = std::string(MOD_DATA_PATH("sirens\\"));
+	std::map<int, nlohmann::json> tempData;
 
-	if (!std::filesystem::exists(path)) {
-		gLogger->warn("ModelExtras/sirens folder does not exist!");
-		return;
+	for (auto& p : std::filesystem::recursive_directory_iterator(path)) {
+		std::string file = p.path().stem().string();
+		std::string ext = p.path().extension().string();
+
+		if (ext != ".eml" && ext != ".json")
+			continue;
+
+		gLogger->info("Reading siren config {}{}", file, ext);
+		std::ifstream infile(path + file + ext);
+		try {
+			if (ext == ".eml") {
+				int model;
+				std::string line;
+				if (!std::getline(infile, line)) {
+					gLogger->error("Failed parsing first line");
+					continue;
+				}
+				std::istringstream iss(line);
+
+				if (!(iss >> model)) {
+					gLogger->error("Failed parsing modelID");
+
+					continue;
+				}
+
+				tempData[model] = {};
+				tempData[model]["ImVehFt"] = {};
+
+				while (std::getline(infile, line)) {
+					if (line[0] == '#')
+						continue;
+
+					std::istringstream iss(line);
+
+					int id, parent, type, shadow, switches, starting;
+
+					int red, green, blue, alpha;
+
+					float size, flash;
+
+					if (!(iss >> id >> parent))
+						continue;
+
+					std::string tempColor;
+
+					if (!(iss >> tempColor))
+						continue;
+
+					red = ImVehFt_ReadColor(tempColor);
+
+					if (!(iss >> tempColor))
+						continue;
+
+					green = ImVehFt_ReadColor(tempColor);
+
+					if (!(iss >> tempColor))
+						continue;
+
+					blue = ImVehFt_ReadColor(tempColor);
+
+					if (!(iss >> tempColor))
+						continue;
+
+					alpha = ImVehFt_ReadColor(tempColor);
+
+					if (!(iss >> type >> size >> shadow >> flash))
+						continue;
+
+					if (!(iss >> switches >> starting))
+						continue;
+
+					std::vector<uint64_t> pattern;
+
+					uint64_t count = 0;
+
+					for (int index = 0; index < switches; index++) {
+						std::string string;
+
+						if (!(iss >> string))
+							continue;
+
+						uint64_t milliseconds = std::stoi(string) - count;
+
+						count += milliseconds;
+
+						if (milliseconds == 0)
+							continue;
+
+						pattern.push_back(milliseconds);
+					}
+
+					if (count == 0 || count > 64553) {
+						starting = 1;
+
+						pattern.clear();
+					}
+
+					if (!tempData[model]["ImVehFt"].contains(std::to_string(256 - id)))
+						tempData[model]["ImVehFt"][std::to_string(256 - id)] = {};
+
+					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("size"))
+						tempData[model]["ImVehFt"][std::to_string(256 - id)]["size"] = size;
+
+					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("color"))
+						tempData[model]["ImVehFt"][std::to_string(256 - id)]["color"] = { { "red", red }, { "green", green }, { "blue", blue }, { "alpha", alpha } };
+
+					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("state"))
+						tempData[model]["ImVehFt"][std::to_string(256 - id)]["state"] = starting;
+
+					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("pattern"))
+						tempData[model]["ImVehFt"][std::to_string(256 - id)]["pattern"] = pattern;
+
+					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("shadow"))
+						tempData[model]["ImVehFt"][std::to_string(256 - id)]["shadow"]["size"] = shadow;
+
+					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("inertia"))
+						tempData[model]["ImVehFt"][std::to_string(256 - id)]["inertia"] = flash / 100.0f;
+
+					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("type"))
+						tempData[model]["ImVehFt"][std::to_string(256 - id)]["type"] = ((type == 0) ? ("directional") : ((type == 1) ? ("inversed-directional") : ((type == 4) ? ("non-directional") : ("directional"))));
+
+					tempData[model]["ImVehFt"][std::to_string(256 - id)]["ImVehFt"] = true;
+				}
+			} else {
+				tempData[std::stoi(file)] = nlohmann::json::parse(infile);
+			}
+		}
+		catch (...) {
+			gLogger->error("Failed parsing {}{}", file, ext);
+			continue;
+		}
+		infile.close();
 	}
 
-    for (const auto& entry : std::filesystem::directory_iterator(path)) {
-        std::string filename = entry.path().filename().stem().string();
-		std::string ext = entry.path().extension().string();
+	for (std::map<int, nlohmann::json>::iterator _json = tempData.begin(); _json != tempData.end(); ++_json) {
+		CurrentModel = _json->first;
+		nlohmann::json json = _json->second;
+		modelData[CurrentModel] = new VehicleSirenData(json);
 
-		if (ext !=  ".json" && ext != ".eml") {
+		if (!modelData[CurrentModel]->Validate) {
+			gLogger->error("Failed to read siren configuration, cannot configure JSON manifest!\n");
+			modelData.erase(CurrentModel);
 			continue;
 		}
-
-        gLogger->info("Reading siren configuration from sirens\\{}.json", filename);
-		if (ext == ".eml") {
-			filename = ConvertEMLtoJSON(filename);
-			if (filename == "") continue;
-		}
-
-        std::ifstream stream(path + filename + ".json");
-		if (!stream) {
-			gLogger->warn("Failed to open stream!");
-			continue;
-		}
-
-		try {
-			CurrentModel = std::stoi(filename.substr(0, filename.find_first_of('.')));
-			nlohmann::json json = nlohmann::json::parse(stream);
-			skipCoronaModels.push_back(CurrentModel);
-
-			VehicleSirens::modelData[CurrentModel] = new VehicleSirenData(json);
-			if (!VehicleSirens::modelData[CurrentModel]->Validate) {
-				gLogger->warn("Failed to read siren configuration, cannot configure JSON manifest!");
-				VehicleSirens::modelData.erase(CurrentModel);
-			}
-		} catch (...) {
-			gLogger->warn("Failed to read siren configuration");
-		}
-        stream.close();
-    }
-}
+	}
+};
 
 void VehicleSirens::Initialize() {
-	patch::ReplaceFunctionCall(0x6D8492, hkUsesSiren);
-	
-	Events::initGameEvent += [] {
-		ParseConfigs();
-	};
+	parseConfig();
 
-	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
-		if(!VehicleSirens::modelData.contains(vehicle->m_nModelIndex))
+	VehicleMaterials::Register((VehicleMaterialFunction)[](CVehicle* vehicle, RpMaterial* material) {
+		if (std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0 || material->color.green != 255 || material->color.blue != 255) {
+			if(material->color.red < 240 || material->color.green != 0 || material->color.blue != 0)
+				return material;
+
+			registerMaterial(vehicle, material, true);
+
 			return material;
-		
-		if(material->color.red >= 240 && material->color.green == 0 && material->color.blue == 0) {
-			VehicleSirens::registerMaterial(vehicle, material);
 		}
 
-		if (strcmp(material->texture->name, "siren") == 0 || strcmp(material->texture->name, "vehiclelights128") == 0) {
-			VehicleSirens::registerMaterial(vehicle, material);
-		}
-
-		// if (std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0 || material->color.green != 255 || material->color.blue != 255) {
-		// 	if(material->color.red < 240 || material->color.green != 0 || material->color.blue != 0)
-		// 		return material;
-
-		// 	VehicleSirens::registerMaterial(vehicle, material);
-
-		// 	return material;
-		// }
-
-		// VehicleSirens::registerMaterial(vehicle, material);
+		registerMaterial(vehicle, material);
 
 		return material;
 	});
 
-	VehicleMaterials::RegisterDummy([](CVehicle* vehicle, RwFrame* frame, std::string name, bool parent) {
-		if (!VehicleSirens::modelData.contains(vehicle->m_nModelIndex))
+	VehicleMaterials::RegisterDummy((VehicleDummyFunction)[](CVehicle* vehicle, RwFrame* frame, std::string name, bool parent) {
+		if (!modelData.contains(vehicle->m_nModelIndex))
 			return;
 
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-		if (!VehicleSirens::vehicleData.contains(index))
-			VehicleSirens::vehicleData[index] = new VehicleSiren(vehicle);
+		if (!vehicleData.contains(index))
+			vehicleData[index] = new VehicleSiren(vehicle);
 
 		int start = -1;
 
@@ -544,29 +614,29 @@ void VehicleSirens::Initialize() {
 		if (start == 8)
 			mat = 256 - mat;
 
-		VehicleSirens::vehicleData[index]->Dummies[mat].push_back(new VehicleSirenDummy(frame, name, start, parent));
+		vehicleData[index]->Dummies[mat].push_back(new VehicleDummy(frame, name, start, parent));
 	});
 
 	plugin::Events::vehicleCtorEvent += [](CVehicle* vehicle) {
 		int model = vehicle->m_nModelIndex;
 
-		if (!VehicleSirens::modelData.contains(model))
+		if (!modelData.contains(model))
 			return;
 
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-		VehicleSirens::vehicleData[index] = new VehicleSiren(vehicle);
+		vehicleData[index] = new VehicleSiren(vehicle);
 	};
 
 	plugin::Events::vehicleDtorEvent += [](CVehicle* vehicle) {
 		int model = vehicle->m_nModelIndex;
 
-		if (!VehicleSirens::modelData.contains(model))
+		if (!modelData.contains(model))
 			return;
 
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-		VehicleSirens::vehicleData.erase(index);
+		vehicleData.erase(index);
 	};
 
 	Events::processScriptsEvent += []() {
@@ -574,61 +644,60 @@ void VehicleSirens::Initialize() {
 		if (!vehicle) {
 			return;
 		}
-
 		if (KeyPressed(VK_L)) {
 			int model = vehicle->m_nModelIndex;
 
-			if (!VehicleSirens::modelData.contains(model))
+			if (!modelData.contains(model))
 				return;
 
 			int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-			if (!VehicleSirens::vehicleData.contains(index))
+			if (!vehicleData.contains(index))
 				return;
 
-			VehicleSirens::vehicleData[index]->Mute = !VehicleSirens::vehicleData[index]->Mute;
+			vehicleData[index]->Mute = !vehicleData[index]->Mute;
 
-			if (VehicleSirens::vehicleData[index]->Mute)
+			if (vehicleData[index]->Mute)
 				vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
 		}
 
 		if (KeyPressed(VK_R)) {
 			int model = vehicle->m_nModelIndex;
 
-			if (!VehicleSirens::modelData.contains(model))
+			if (!modelData.contains(model))
 				return;
 
 			int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-			if (!VehicleSirens::vehicleData.contains(index))
+			if (!vehicleData.contains(index))
 				return;
 
-			if (!VehicleSirens::vehicleData[index]->GetSirenState())
+			if (!vehicleData[index]->GetSirenState())
 				return;
 
-			if (VehicleSirens::modelData[model]->States.size() == 0)
+			if (modelData[model]->States.size() == 0)
 				return;
 
-			int addition = (plugin::KeyPressed(VK_SHIFT)) ? (-1) : (1);
+			int addition = (plugin::KeyPressed(0x10)) ? (-1) : (1);
 
-			VehicleSirens::vehicleData[index]->State += addition;
+			vehicleData[index]->State += addition;
 
-			if (VehicleSirens::vehicleData[index]->State == VehicleSirens::modelData[model]->States.size())
-				VehicleSirens::vehicleData[index]->State = 0;
+			if (vehicleData[index]->State == modelData[model]->States.size())
+				vehicleData[index]->State = 0;
 
-			if (VehicleSirens::vehicleData[index]->State == -1)
-				VehicleSirens::vehicleData[index]->State = VehicleSirens::modelData[model]->States.size() - 1;
+			if (vehicleData[index]->State == -1)
+				vehicleData[index]->State = modelData[model]->States.size() - 1;
 
-			while (VehicleSirens::modelData[model]->States[VehicleSirens::vehicleData[index]->State]->Paintjob != -1 && VehicleSirens::modelData[model]->States[VehicleSirens::vehicleData[index]->State]->Paintjob != vehicle->GetRemapIndex()) {
-				VehicleSirens::vehicleData[index]->State += (plugin::KeyPressed(VK_SHIFT)) ? (-1) : (1);
+			while (modelData[model]->States[vehicleData[index]->State]->Paintjob != -1 && modelData[model]->States[vehicleData[index]->State]->Paintjob != vehicle->GetRemapIndex()) {
+				vehicleData[index]->State += (plugin::KeyPressed(0x10)) ? (-1) : (1);
 
-				if (VehicleSirens::vehicleData[index]->State == VehicleSirens::modelData[model]->States.size()) {
-					VehicleSirens::vehicleData[index]->State = 0;
+				if (vehicleData[index]->State == modelData[model]->States.size()) {
+					vehicleData[index]->State = 0;
 
 					break;
 				}
-				else if (VehicleSirens::vehicleData[index]->State == -1) {
-					VehicleSirens::vehicleData[index]->State = VehicleSirens::modelData[model]->States.size() - 1;
+				else if (vehicleData[index]->State == -1) {
+					vehicleData[index]->State = modelData[model]->States.size() - 1;
 
 					break;
 				}
@@ -637,91 +706,88 @@ void VehicleSirens::Initialize() {
 
 		for (int number = 0; number < 10; number++) {
 			if (KeyPressed(VK_0 + number)) { // 0 -> 9
-				CVehicle *vehicle = FindPlayerVehicle(-1, false);
 				int model = vehicle->m_nModelIndex;
 
-				if (!VehicleSirens::modelData.contains(model))
+				if (!modelData.contains(model))
 					return;
 
 				int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-				if (!VehicleSirens::vehicleData.contains(index))
+				if (!vehicleData.contains(index))
 					return;
 
-				if (!VehicleSirens::vehicleData[index]->GetSirenState())
+				if (!vehicleData[index]->GetSirenState())
 					return;
 
-				if (VehicleSirens::modelData[model]->States.size() == 0)
+				if (modelData[model]->States.size() == 0)
 					return;
 
-				int newState = number;//(key - PluginData::DigitKey);
+				int newState = number;
 
-				if ((int)VehicleSirens::modelData[model]->States.size() <= newState)
+				if ((int)modelData[model]->States.size() <= newState)
 					return;
 
-				if (VehicleSirens::vehicleData[index]->State == newState)
+				if (vehicleData[index]->State == newState)
 					return;
 
-				if (VehicleSirens::modelData[model]->States[newState]->Paintjob != -1 && VehicleSirens::modelData[model]->States[newState]->Paintjob != vehicle->GetRemapIndex())
+				if (modelData[model]->States[newState]->Paintjob != -1 && modelData[model]->States[newState]->Paintjob != vehicle->GetRemapIndex())
 					return;
 
-				VehicleSirens::vehicleData[index]->State = newState;
-
+				vehicleData[index]->State = newState;
 			}
 		}
 	};
 
-	VehicleMaterials::RegisterRender([](CVehicle* vehicle) {
+	VehicleMaterials::RegisterRender((VehicleMaterialRender)[](CVehicle* vehicle, int index) {
 		int model = vehicle->m_nModelIndex;
-		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-		if (!VehicleSirens::modelData.contains(model))
+		if (!modelData.contains(model))
 			return;
 
-		if (VehicleSirens::modelRotators.contains(model)) {
-			for (std::vector<VehicleSirenDummy*>::iterator dummy = VehicleSirens::modelRotators[model].begin(); dummy != VehicleSirens::modelRotators[model].end(); ++dummy)
+		if (modelRotators.contains(model)) {
+			for (std::vector<VehicleDummy*>::iterator dummy = modelRotators[model].begin(); dummy != modelRotators[model].end(); ++dummy)
 				(*dummy)->ResetAngle();
 
-			VehicleSirens::modelRotators.erase(model);
+			modelRotators.erase(model);
 		}
 
-		if (!VehicleSirens::vehicleData.contains(index))
-			VehicleSirens::vehicleData[index] = new VehicleSiren(vehicle);
+		if (!vehicleData.contains(index))
+			vehicleData[index] = new VehicleSiren(vehicle);
 
-		bool sirenState = VehicleSirens::vehicleData[index]->GetSirenState();
+		bool sirenState = vehicleData[index]->GetSirenState();
 
-		VehicleSirenState* state = VehicleSirens::modelData[model]->States[VehicleSirens::vehicleData[index]->GetCurrentState()];
+		VehicleSirenState* state = modelData[model]->States[vehicleData[index]->GetCurrentState()];
 
-		if (VehicleSirens::vehicleData[index]->SirenState == false && sirenState == true) {
-			VehicleSirens::vehicleData[index]->SirenState = true;
+		if (vehicleData[index]->SirenState == false && sirenState == true) {
+			vehicleData[index]->SirenState = true;
 
-			uint64_t time = CTimer::m_snTimeInMilliseconds;
+			uint64_t time = Common::TimeSinceEpochMillisec();
 
-			if (VehicleSirens::vehicleData[index]->Delay != 0)
-				VehicleSirens::vehicleData[index]->Delay = 0;
+			if (vehicleData[index]->Delay != 0)
+				vehicleData[index]->Delay = 0;
 
 			for (std::map<int, VehicleSirenMaterial*>::iterator material = state->Materials.begin(); material != state->Materials.end(); ++material) {
 				material->second->ColorTime = time;
 				material->second->PatternTime = time;
 			}
 		}
-		else if (VehicleSirens::vehicleData[index]->SirenState == true && sirenState == false)
-			VehicleSirens::vehicleData[index]->SirenState = false;
+		else if (vehicleData[index]->SirenState == true && sirenState == false)
+			vehicleData[index]->SirenState = false;
 
-		if (!VehicleSirens::vehicleData[index]->GetSirenState() && !VehicleSirens::vehicleData[index]->Trailer)
+		if (!vehicleData[index]->GetSirenState() && !vehicleData[index]->Trailer)
 			return;
 
-		std::map<int, std::vector<VehicleSirenDummy*>> dummies = VehicleSirens::vehicleData[index]->Dummies;
-		std::map<int, std::vector<VehicleMaterial*>> materials = VehicleSirens::modelData[model]->Materials;
+		std::map<int, std::vector<VehicleDummy*>> dummies = vehicleData[index]->Dummies;
+		std::map<int, std::vector<VehicleMaterial*>> materials = modelData[model]->Materials;
 
-		uint64_t time = CTimer::m_snTimeInMilliseconds;
+		uint64_t time = Common::TimeSinceEpochMillisec();
 
-		if (VehicleSirens::vehicleData[index]->Delay == 0)
-			VehicleSirens::vehicleData[index]->Delay = time;
+		if (vehicleData[index]->Delay == 0)
+			vehicleData[index]->Delay = time;
 
 		for (std::map<int, VehicleSirenMaterial*>::iterator material = state->Materials.begin(); material != state->Materials.end(); ++material) {
 			if (material->second->Delay != 0) {
-				if (time - VehicleSirens::vehicleData[index]->Delay < material->second->Delay) {
+				if (time - vehicleData[index]->Delay < material->second->Delay) {
 					if (material->second->Type == VehicleSirenType::Rotator) {
 						if ((time - material->second->Rotator->TimeElapse) > material->second->Rotator->Time) {
 							material->second->Rotator->TimeElapse = time;
@@ -780,13 +846,13 @@ void VehicleSirens::Initialize() {
 
 		float vehicleAngle = (vehicle->GetHeading() * 180.0f) / 3.14f;
 
-		float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
+		float cameraAngle = (((CCamera*)0xB6F028)->GetHeading() * 180.0f) / 3.14f;
 
 		eCoronaFlareType type = FLARETYPE_NONE;
 
-		CVector distance = vehicle->GetPosition() - TheCamera.GetPosition();
+		CVector distance = vehicle->GetPosition() - ((CCamera*)0xB6F028)->GetPosition();
 
-		if (distance.Magnitude() > 30.0f) // PluginConfig::Siren->Flare->Distance
+		if (distance.Magnitude() > 30.0f)
 			type = FLARETYPE_HEADLIGHTS;
 
 		for (std::map<int, VehicleSirenMaterial*>::iterator material = state->Materials.begin(); material != state->Materials.end(); ++material) {
@@ -794,11 +860,10 @@ void VehicleSirens::Initialize() {
 				continue;
 
 			if (material->second->Delay != 0) {
-				if (time - VehicleSirens::vehicleData[index]->Delay < material->second->Delay)
+				if (time - vehicleData[index]->Delay < material->second->Delay)
 					continue;
 			}
 
-			// PluginConfig::Siren->InertiaEnabled 
 			if (material->second->PatternTotal != 0 && material->second->Inertia != 0.0f) {
 				float currentTime = (float)(time - material->second->PatternTime);
 
@@ -820,26 +885,43 @@ void VehicleSirens::Initialize() {
 
 			int id = 0;
 
-			for (std::vector<VehicleSirenDummy*>::iterator dummy = dummies[material->first].begin(); dummy != dummies[material->first].end(); ++dummy) {
+			for (std::vector<VehicleDummy*>::iterator dummy = dummies[material->first].begin(); dummy != dummies[material->first].end(); ++dummy) {
 				id++;
 
-				VehicleSirens::enableDummy((material->first * 16) + id, (*dummy), vehicle, vehicleAngle, cameraAngle, material->second, type, time);
+				enableDummy((material->first * 16) + id, (*dummy), vehicle, vehicleAngle, cameraAngle, material->second, type, time);
 			}
 
 			if (material->second->Frames != 0) {
 				for (std::vector<VehicleMaterial*>::iterator mat = materials[material->first].begin(); mat != materials[material->first].end(); ++mat)
-					VehicleSirens::enableMaterial((*mat), material->second, time);
+					enableMaterial((*mat), material->second, time);
 			}
 
 			material->second->Frames++;
 		}
 	});
 
+	patch::ReplaceFunctionCall(0x6D8492, hkUsesSiren);
+
 	Events::initGameEvent += [] {
 		injector::MakeCALL((void*)0x6ABA60, hkRegisterCorona, true);
 		injector::MakeCALL((void*)0x6BD4DD, hkRegisterCorona, true);
 		injector::MakeCALL((void*)0x6BD531, hkRegisterCorona, true);
 	};
+};
+
+void VehicleSirens::hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay) {
+	CVehicle* vehicle = NULL;
+
+	_asm {
+		pushad
+		mov vehicle, esi
+		popad
+	}
+
+	if (vehicle && modelData.contains(vehicle->m_nModelIndex))
+		return;
+
+	CCoronas::RegisterCorona(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
 };
 
 void VehicleSirens::enableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time) {
@@ -868,7 +950,7 @@ void VehicleSirens::enableMaterial(VehicleMaterial* material, VehicleSirenMateri
 	}
 };
 
-void VehicleSirens::enableDummy(int id, VehicleSirenDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
+void VehicleSirens::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
 	CVector position = reinterpret_cast<CVehicleModelInfo*>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 
 	position.x = dummy->Position.x;
@@ -877,7 +959,6 @@ void VehicleSirens::enableDummy(int id, VehicleSirenDummy* dummy, CVehicle* vehi
 
 	char alpha = material->Color.alpha;
 
-	// PluginConfig::Siren->InertiaEnabled 
 	if (material->PatternTotal != 0 && material->Inertia != 0.0f) {
 		float alphaFloat = static_cast<float>(alpha);
 
@@ -921,31 +1002,17 @@ void VehicleSirens::enableDummy(int id, VehicleSirenDummy* dummy, CVehicle* vehi
 			dummyAngle -= 180.0f;
 
 		Common::RegisterCoronaWithAngle(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha, 
-		(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, cameraAngle, dummyAngle, material->Radius, material->Size);
-
-		// PluginCoronas_AddWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, cameraAngle, dummyAngle, material->Radius,
-		// 	material->Color.red, material->Color.green, material->Color.blue, alpha,
-		// 	position, material->Size, 30.0f, eCoronaType::CORONATYPE_HEADLIGHT, type);
-
+			(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, cameraAngle, dummyAngle, material->Radius, material->Size);
 		// VehicleSirens::enableShadow(vehicle, dummy, material, position);
 	}
 	else {
-		Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha, 
-		(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, material->Size);
-		// PluginCoronas_Add(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id,
-		// 	material->Color.red, material->Color.green, material->Color.blue, alpha,
-		// 	position, material->Size, 30.0f, eCoronaType::CORONATYPE_HEADLIGHT, type);
-
+		Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha,
+			(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, material->Size);
 		// VehicleSirens::enableShadow(vehicle, dummy, material, position);
 	}
-
-	// (CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + 255 + id
-
-	//CCoronas::RegisterCorona((CPools::ms_pVehiclePool->GetIndex(vehicle) * 255) + 255 + id, vehicle, material->Color.red, material->Color.green, material->Color.blue, alpha, position,
-	//	material->Size, 30.0f, eCoronaType::CORONATYPE_HEADLIGHT, type, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, true);
 };
 
-void VehicleSirens::enableShadow(CVehicle* vehicle, VehicleSirenDummy* dummy, VehicleSirenMaterial* material, CVector position) {
+void VehicleSirens::enableShadow(CVehicle* vehicle, VehicleDummy* dummy, VehicleSirenMaterial* material, CVector position) {
 	if (material->Shadow.Size == 0.0f) {
 		material->Shadow.Size = material->Size * 3.0f;
 	}
@@ -966,7 +1033,6 @@ void VehicleSirens::enableShadow(CVehicle* vehicle, VehicleSirenDummy* dummy, Ve
 
 	char alpha = material->Color.alpha;
 
-	// if (PluginConfig::Siren->InertiaEnabled)
 	alpha = static_cast<char>((static_cast<float>(alpha) * -1) * material->InertiaMultiplier);
 
 	CShadows::StoreShadowToBeRendered(2, Common::GetTexture(material->Shadow.Type), &center,

@@ -38,7 +38,6 @@ class Util {
     static void ShowChildWithName(RwFrame *parent_frame, const char* name);
     static void HideAllChilds(RwFrame *parent_frame);
     static void ShowAllChilds(RwFrame *parent_frame);
-
     static RwTexture* LoadTextureFromFile(const char* filename, RwUInt8 alphaValue = 255);
 };
 
