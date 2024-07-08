@@ -335,6 +335,18 @@ RwTexture* Util::LoadTextureFromFile(const char* filename, RwUInt8 alphaValue) {
         return nullptr;
     }
 
+    // Set the alpha value for each pixel
+    RwRGBA* pixels = (RwRGBA*)RwImageGetPixels(image);
+    for (RwInt32 y = 0; y < height; y++) {
+        for (RwInt32 x = 0; x < width; x++) {
+            RwRGBA* pixel = pixels + (y * width + x);
+            pixel->red = (pixel->red * alphaValue) / 255;
+            pixel->green = (pixel->green * alphaValue) / 255;
+            pixel->blue = (pixel->blue * alphaValue) / 255;
+            pixel->alpha = alphaValue;
+        }
+    }
+
     RwRasterSetFromImage(raster, image);
     RwImageDestroy(image);
     return RwTextureCreate(raster);

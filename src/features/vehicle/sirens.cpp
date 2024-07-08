@@ -1,9 +1,18 @@
 #include "pch.h"
 #include "sirens.h"
-#include "avs/imvehft.h"
 #include <common.h>
 #include "avs/common.h"
 #include <CShadows.h>
+
+int ImVehFt_ReadColor(std::string input) {
+    if (input.length() == 3)
+        return std::stoi(input);
+
+    std::istringstream stream(input);
+    int color;
+    stream >> std::hex >> color;
+    return color;
+};
 
 bool VehicleSiren::GetSirenState() {
 	return (Mute == false) ? (vehicle->m_nVehicleFlags.bSirenOrAlarm) : (true);
@@ -560,7 +569,7 @@ void VehicleSirens::parseConfig() {
 void VehicleSirens::Initialize() {
 	parseConfig();
 
-	VehicleMaterials::Register((VehicleMaterialFunction)[](CVehicle* vehicle, RpMaterial* material) {
+	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
 		if (std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0 || material->color.green != 255 || material->color.blue != 255) {
 			if(material->color.red < 240 || material->color.green != 0 || material->color.blue != 0)
 				return material;
@@ -575,7 +584,7 @@ void VehicleSirens::Initialize() {
 		return material;
 	});
 
-	VehicleMaterials::RegisterDummy((VehicleDummyFunction)[](CVehicle* vehicle, RwFrame* frame, std::string name, bool parent) {
+	VehicleMaterials::RegisterDummy([](CVehicle* vehicle, RwFrame* frame, std::string name, bool parent) {
 		if (!modelData.contains(vehicle->m_nModelIndex))
 			return;
 
@@ -614,7 +623,7 @@ void VehicleSirens::Initialize() {
 		if (start == 8)
 			mat = 256 - mat;
 
-		vehicleData[index]->Dummies[mat].push_back(new VehicleDummy(frame, name, start, parent));
+		vehicleData[index]->Dummies[mat].push_back(new VehicleSirenDummy(frame, name, start, parent));
 	});
 
 	plugin::Events::vehicleCtorEvent += [](CVehicle* vehicle) {
@@ -738,14 +747,15 @@ void VehicleSirens::Initialize() {
 		}
 	};
 
-	VehicleMaterials::RegisterRender((VehicleMaterialRender)[](CVehicle* vehicle, int index) {
+	VehicleMaterials::RegisterRender([](CVehicle* vehicle) {
 		int model = vehicle->m_nModelIndex;
+		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
 		if (!modelData.contains(model))
 			return;
 
 		if (modelRotators.contains(model)) {
-			for (std::vector<VehicleDummy*>::iterator dummy = modelRotators[model].begin(); dummy != modelRotators[model].end(); ++dummy)
+			for (std::vector<VehicleSirenDummy*>::iterator dummy = modelRotators[model].begin(); dummy != modelRotators[model].end(); ++dummy)
 				(*dummy)->ResetAngle();
 
 			modelRotators.erase(model);
@@ -777,7 +787,7 @@ void VehicleSirens::Initialize() {
 		if (!vehicleData[index]->GetSirenState() && !vehicleData[index]->Trailer)
 			return;
 
-		std::map<int, std::vector<VehicleDummy*>> dummies = vehicleData[index]->Dummies;
+		std::map<int, std::vector<VehicleSirenDummy*>> dummies = vehicleData[index]->Dummies;
 		std::map<int, std::vector<VehicleMaterial*>> materials = modelData[model]->Materials;
 
 		uint64_t time = Common::TimeSinceEpochMillisec();
@@ -885,7 +895,7 @@ void VehicleSirens::Initialize() {
 
 			int id = 0;
 
-			for (std::vector<VehicleDummy*>::iterator dummy = dummies[material->first].begin(); dummy != dummies[material->first].end(); ++dummy) {
+			for (std::vector<VehicleSirenDummy*>::iterator dummy = dummies[material->first].begin(); dummy != dummies[material->first].end(); ++dummy) {
 				id++;
 
 				enableDummy((material->first * 16) + id, (*dummy), vehicle, vehicleAngle, cameraAngle, material->second, type, time);
@@ -950,7 +960,7 @@ void VehicleSirens::enableMaterial(VehicleMaterial* material, VehicleSirenMateri
 	}
 };
 
-void VehicleSirens::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
+void VehicleSirens::enableDummy(int id, VehicleSirenDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
 	CVector position = reinterpret_cast<CVehicleModelInfo*>(CModelInfo::ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 
 	position.x = dummy->Position.x;
@@ -1012,7 +1022,7 @@ void VehicleSirens::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, 
 	}
 };
 
-void VehicleSirens::enableShadow(CVehicle* vehicle, VehicleDummy* dummy, VehicleSirenMaterial* material, CVector position) {
+void VehicleSirens::enableShadow(CVehicle* vehicle, VehicleSirenDummy* dummy, VehicleSirenMaterial* material, CVector position) {
 	if (material->Shadow.Size == 0.0f) {
 		material->Shadow.Size = material->Size * 3.0f;
 	}

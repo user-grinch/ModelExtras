@@ -1,27 +1,35 @@
 #pragma once
 #include <map>
-#include "plugin.h"
+#include <plugin.h>
 #include "avs/dummy.h"
 #include "avs/materials.h"
 
-enum VehicleIndicatorState {
-    Left = 0,
-    Right,
-    Both
+enum class eIndicatorState { 
+	Left, 
+	Right, 
+	Both,
+	None, 
 };
 
-class VehicleIndicators {
+class Indicator {
 private:
-    static inline std::map<int, std::map<VehicleIndicatorState, std::vector<RpMaterial*>>> materials;
-    static inline std::map<int, std::map<VehicleIndicatorState, std::vector<VehicleDummy*>>> dummies;
-    static inline std::map<int, VehicleIndicatorState> states;
-    static inline uint64_t delay;
-    static inline bool delayState;
+	static inline uint64_t delay;
+	static inline bool delayState;
 
-    static void registerMaterial(CVehicle* vehicle, RpMaterial*& material, VehicleIndicatorState state);
-    static void enableMaterial(RpMaterial* material);
-    static void enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle);
+	struct VehData {
+		eIndicatorState indicatorState;
+		VehData(CVehicle *) : indicatorState(eIndicatorState::None) {}
+	};
+	static inline VehicleExtendedData<VehData> vehData;
 
+	static inline std::map<int, std::map<eIndicatorState, std::vector<VehicleMaterial*>>> materials;
+	static inline std::map<int, std::map<eIndicatorState, std::vector<VehicleDummy*>>> dummies;
+
+	static void registerMaterial(CVehicle* vehicle, RpMaterial* material, eIndicatorState state);
+	static void registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent, eIndicatorState state, eDummyPos rot);
+	static void enableMaterial(VehicleMaterial* material);
+	static void enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle);
+	
 public:
-    static void Initialize();
+	static void Initialize();
 };

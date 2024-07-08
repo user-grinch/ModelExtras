@@ -17,15 +17,15 @@ VehicleMaterial::VehicleMaterial(RpMaterial* material) {
 		TextureActive = newTexture;
 };
 
-void VehicleMaterials::Register(VehicleMaterialFunction function) {
+void VehicleMaterials::Register(std::function<RpMaterial*(CVehicle*, RpMaterial*)> function) {
 	functions.push_back(function);
 };
 
-void VehicleMaterials::RegisterRender(VehicleMaterialRender render) {
+void VehicleMaterials::RegisterRender(std::function<void(CVehicle*)> render) {
 	renders.push_back(render);
 };
 
-void VehicleMaterials::RegisterDummy(VehicleDummyFunction function) {
+void VehicleMaterials::RegisterDummy(std::function<void(CVehicle*, RwFrame*, std::string, bool)> function) {
 	dummy.push_back(function);
 };
 
@@ -43,8 +43,8 @@ void VehicleMaterials::OnModelSet(CVehicle* vehicle, int model) {
 			if (materials[currentVehicle->m_nModelIndex].contains(material))
 				return material;
 
-			for (std::vector<VehicleMaterialFunction>::iterator function = functions.begin(); function != functions.end(); ++function)
-				(*function)(currentVehicle, material);
+			for (auto e: functions)
+				e(currentVehicle, material);
 
 			materials[currentVehicle->m_nModelIndex][material] = true;
 
@@ -83,8 +83,8 @@ void VehicleMaterials::findDummies(CVehicle* vehicle, RwFrame* frame, bool paren
 
 	frames[currentVehicle->m_nModelIndex][frame] = true;
 
-	for (std::vector<VehicleDummyFunction>::iterator function = dummy.begin(); function != dummy.end(); ++function)
-		(*function)(currentVehicle, frame, name, parent);
+	for (auto e: dummy)
+		e(currentVehicle, frame, name, parent);
 
 	return;
 };
@@ -106,6 +106,6 @@ void VehicleMaterials::OnRender(CVehicle* vehicle) {
 	
 	int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-	for (std::vector<VehicleMaterialRender>::iterator render = renders.begin(); render != renders.end(); ++render)
-		(*render)(vehicle, index);
+	for (auto e: renders)
+		e(vehicle);
 };
