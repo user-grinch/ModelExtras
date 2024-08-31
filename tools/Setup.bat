@@ -17,8 +17,20 @@ goto :eof
 :check_game_path
 if "%GTA_SA_DIR%"=="" (
     echo Error: GTA_SA_DIR environment variable is not set.
-    exit /b 1
 )
+
+if "%GTA_VC_DIR%"=="" (
+    echo Error: GTA_VC_DIR environment variable is not set.
+)
+
+if "%GTA_III_DIR%"=="" (
+    echo Error: GTA_III_DIR environment variable is not set.
+)
+
+if "%GTA_SS_DIR%"=="" (
+    echo Error: GTA_SS_DIR environment variable is not set.
+)
+echo[
 
 :vs_install_found
 if not defined vs_path (
