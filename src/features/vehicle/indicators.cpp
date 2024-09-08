@@ -11,15 +11,17 @@ CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
     return CVector2D(0.0f, 0.0f);
 }
 
-void DrawTurnlight(CVehicle *pVeh, eDummyPos pos, bool leftSide) {
-	int idx = pos == eDummyPos::Front ? 0 : 1;
+void DrawTurnlight(CVehicle *pVeh, eDummyPos pos) {
+	int idx = (pos == eDummyPos::RearLeft) || (pos == eDummyPos::RearRight);
+	bool leftSide = (pos == eDummyPos::RearLeft) || (pos == eDummyPos::FrontLeft);
+
     CVector posn =
         reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[idx];
 	
     if (posn.x == 0.0f) posn.x = 0.15f;
     if (leftSide) posn.x *= -1.0f;
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
-	float dummyAngle = (pos == eDummyPos::Rear) ? 180.0f : 0.0f;
+	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 	Common::RegisterShadow(pVeh, posn, SHADOW_R, SHADOW_G, SHADOW_B, dummyAngle, 0.0f);
     Common::RegisterCoronaWithAngle(pVeh, posn, 255, 128, 0, CORONA_A, dummyId, cameraAngle, dummyAngle, 2.0f, 0.5f);
@@ -27,12 +29,12 @@ void DrawTurnlight(CVehicle *pVeh, eDummyPos pos, bool leftSide) {
 
 void DrawVehicleTurnlights(CVehicle *vehicle, eIndicatorState lightsStatus) {
     if (lightsStatus == eIndicatorState::Both || lightsStatus == eIndicatorState::Right) {
-        DrawTurnlight(vehicle, eDummyPos::Front, false);
-        DrawTurnlight(vehicle, eDummyPos::Rear, false);
+        DrawTurnlight(vehicle, eDummyPos::FrontRight);
+        DrawTurnlight(vehicle, eDummyPos::RearRight);
     }
     if (lightsStatus == eIndicatorState::Both || lightsStatus == eIndicatorState::Left) {
-        DrawTurnlight(vehicle, eDummyPos::Front, true);
-        DrawTurnlight(vehicle, eDummyPos::Rear, true);
+        DrawTurnlight(vehicle, eDummyPos::FrontLeft);
+        DrawTurnlight(vehicle, eDummyPos::RearLeft);
     }
 }
 
@@ -74,15 +76,11 @@ void Indicator::Initialize() {
 			eDummyPos rot = eDummyPos::None;
 			
 			if (toupper(stateStr[1]) == 'F') {
-				rot = eDummyPos::Front;
+				rot = state == eIndicatorState::Right ? eDummyPos::FrontRight : eDummyPos::FrontLeft;
 			} else if (toupper(stateStr[1]) == 'R') {
-				rot = eDummyPos::Rear;
+				rot = state == eIndicatorState::Right ? eDummyPos::RearRight : eDummyPos::RearLeft;
 			} else if (toupper(stateStr[1]) == 'M') {
-				if (state == eIndicatorState::Left) {
-					rot = eDummyPos::Left;
-				} else if (state == eIndicatorState::Right) {
-					rot = eDummyPos::Right;
-				}
+				rot = state == eIndicatorState::Right ? eDummyPos::MiddleRight : eDummyPos::MiddleLeft;
 			}
 
 			if (rot != eDummyPos::None) {
@@ -204,6 +202,7 @@ void Indicator::Initialize() {
 };
 
 void Indicator::registerMaterial(CVehicle* pVeh, RpMaterial* material, eIndicatorState state) {
+	material->color.red = material->color.green = material->color.blue = 255;
 	materials[pVeh->m_nModelIndex][state].push_back(new VehicleMaterial(material));
 };
 
@@ -225,8 +224,6 @@ void Indicator::registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::string name,
 void Indicator::enableMaterial(VehicleMaterial* material) {
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
 	material->Material->surfaceProps.ambient = 4.0;
-	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
-	material->Material->texture = material->TextureActive;
 };
 
 void Indicator::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {

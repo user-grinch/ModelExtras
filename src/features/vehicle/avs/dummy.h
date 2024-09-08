@@ -4,10 +4,18 @@
 #include "game_sa/RenderWare.h"
 
 enum class eDummyPos { 
-    Front, 
-    Left, 
-    Rear, 
+    // remove later
+    Front,
+    Rear,
+    Left,
     Right,
+    
+    MiddleLeft, 
+    MiddleRight, 
+    FrontLeft, 
+    RearLeft, 
+    FrontRight, 
+    RearRight, 
     None
 };
 

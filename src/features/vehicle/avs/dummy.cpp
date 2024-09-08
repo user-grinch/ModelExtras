@@ -9,29 +9,46 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
     Color = color;
     Type = type;
     Size = 0.3f;
-    Angle = 90.0f * static_cast<int>(Type);
+
+    // Calculate the angle based on the frame's orientation
+    Angle = CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f;
+    
+    // Normalize angle
+    if (Angle < 0.0f) Angle += 360.0f;
+    // Angle -= 270.0f; // Adjust to match the proper orientation
+
+    // // Adjust for special cases based on frame's Z-axis orientation
+    // if (frame->modelling.at.z <= 0.0f && Angle == 0.0f) {
+    //     Angle = frame->modelling.at.z * 180.0f;
+    //     if (Angle > 0.0f) {
+    //         Angle -= 180.0f;
+    //     }
+    // }
 
     // Tweaked offsets
-    if (type == eDummyPos::Left) {
-        Position.x -= 1.0f;
+    float xOffset = 0.7f;
+    if (type == eDummyPos::MiddleLeft || type == eDummyPos::FrontLeft || type == eDummyPos::RearLeft) {
+        Position.x -= xOffset;
+    } else if (type == eDummyPos::MiddleRight || type == eDummyPos::FrontRight || type == eDummyPos::RearRight) {
+        Position.x += xOffset;
     }
 
-    if (type == eDummyPos::Right) {
-        Position.x += 1.0f;
-    }
+    // if (type == eDummyPos::FrontLeft || type == eDummyPos::FrontRight) {
+    //     Angle -= 180.0f;
+    // }
 
-    // Read params
+    // Parse params using regex
     std::regex prmRegex("prm(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)");
     std::smatch match;
     if (std::regex_search(name, match, prmRegex)) {
         Color.red = VehicleDummy::ReadHex(*match[1].str().c_str(), *match[2].str().c_str());
         Color.green = VehicleDummy::ReadHex(*match[3].str().c_str(), *match[4].str().c_str());
         Color.blue = VehicleDummy::ReadHex(*match[5].str().c_str(), *match[6].str().c_str());
-        
+
         Type = static_cast<eDummyPos>(match[7].str()[0] - '0');
-        Size = (static_cast<float>(match[9].str()[0] - '0')) / 10.0f;
-    } else if (std::regex_search(name, match, std::regex("turn"))){
-        gLogger->warn(std::string(name + ", pattern not matched").c_str());
+        Size = static_cast<float>(match[9].str()[0] - '0') / 10.0f;
+    } else if (std::regex_search(name, match, std::regex("turn"))) {
+        gLogger->warn((name + ", pattern not matched").c_str());
     }
 }
 
