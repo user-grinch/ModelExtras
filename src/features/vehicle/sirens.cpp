@@ -406,13 +406,13 @@ VehicleSirenData::VehicleSirenData(nlohmann::json json) {
 };
 
 
-void VehicleSirens::registerMaterial(CVehicle* vehicle, RpMaterial* material, bool ImVehFt) {
+void VehicleSirens::registerMaterial(CVehicle* vehicle, RpMaterial* material) {
 	int color = material->color.red;
 
-	material->color.red = material->color.blue = material->color.green = 255;
-
-	if(modelData.contains(vehicle->m_nModelIndex))
+	if(modelData.contains(vehicle->m_nModelIndex)) {
+		material->color.red = material->color.blue = material->color.green = 255;
 		modelData[vehicle->m_nModelIndex]->Materials[color].push_back(new VehicleMaterial(material));
+	}
 };
 
 void VehicleSirens::parseConfig() {
@@ -571,10 +571,10 @@ void VehicleSirens::Initialize() {
 
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
 		if (std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0 || material->color.green != 255 || material->color.blue != 255) {
-			if(material->color.red < 240 || material->color.green != 0 || material->color.blue != 0)
-				return material;
+			// if(material->color.red < 240 || material->color.green != 0 || material->color.blue != 0)
+			// 	return material;
 
-			registerMaterial(vehicle, material, true);
+			registerMaterial(vehicle, material);
 
 			return material;
 		}
@@ -623,7 +623,7 @@ void VehicleSirens::Initialize() {
 		if (start == 8)
 			mat = 256 - mat;
 
-		vehicleData[index]->Dummies[mat].push_back(new VehicleSirenDummy(frame, name, start, parent));
+		vehicleData[index]->Dummies[mat].push_back(new VehicleDummy(frame, name, parent, eDummyPos::None));
 	});
 
 	plugin::Events::vehicleCtorEvent += [](CVehicle* vehicle) {
@@ -751,13 +751,14 @@ void VehicleSirens::Initialize() {
 		int model = vehicle->m_nModelIndex;
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-		if (!modelData.contains(model))
+		if (!modelData.contains(model)) {
 			return;
+		}
 
 		if (modelRotators.contains(model)) {
-			for (std::vector<VehicleSirenDummy*>::iterator dummy = modelRotators[model].begin(); dummy != modelRotators[model].end(); ++dummy)
-				(*dummy)->ResetAngle();
-
+			for (auto& dummy: modelRotators[model]) {
+				dummy->ResetAngle();
+			}
 			modelRotators.erase(model);
 		}
 
@@ -767,146 +768,138 @@ void VehicleSirens::Initialize() {
 		bool sirenState = vehicleData[index]->GetSirenState();
 
 		VehicleSirenState* state = modelData[model]->States[vehicleData[index]->GetCurrentState()];
-
 		if (vehicleData[index]->SirenState == false && sirenState == true) {
 			vehicleData[index]->SirenState = true;
 
 			uint64_t time = Common::TimeSinceEpochMillisec();
-
-			if (vehicleData[index]->Delay != 0)
+			if (vehicleData[index]->Delay != 0) {
 				vehicleData[index]->Delay = 0;
+			}
 
-			for (std::map<int, VehicleSirenMaterial*>::iterator material = state->Materials.begin(); material != state->Materials.end(); ++material) {
-				material->second->ColorTime = time;
-				material->second->PatternTime = time;
+			for (auto &mat: state->Materials) {
+				mat.second->ColorTime = time;
+				mat.second->PatternTime = time;
 			}
 		}
-		else if (vehicleData[index]->SirenState == true && sirenState == false)
+		else if (vehicleData[index]->SirenState == true && sirenState == false) {
 			vehicleData[index]->SirenState = false;
+		}
 
-		if (!vehicleData[index]->GetSirenState() && !vehicleData[index]->Trailer)
+		if (!vehicleData[index]->GetSirenState() && !vehicleData[index]->Trailer) {
 			return;
-
-		std::map<int, std::vector<VehicleSirenDummy*>> dummies = vehicleData[index]->Dummies;
-		std::map<int, std::vector<VehicleMaterial*>> materials = modelData[model]->Materials;
+		}
 
 		uint64_t time = Common::TimeSinceEpochMillisec();
-
-		if (vehicleData[index]->Delay == 0)
+		if (vehicleData[index]->Delay == 0) {
 			vehicleData[index]->Delay = time;
+		}
 
-		for (std::map<int, VehicleSirenMaterial*>::iterator material = state->Materials.begin(); material != state->Materials.end(); ++material) {
-			if (material->second->Delay != 0) {
-				if (time - vehicleData[index]->Delay < material->second->Delay) {
-					if (material->second->Type == VehicleSirenType::Rotator) {
-						if ((time - material->second->Rotator->TimeElapse) > material->second->Rotator->Time) {
-							material->second->Rotator->TimeElapse = time;
+		for (auto& mat: state->Materials) {
+			if (mat.second->Delay != 0) {
+				if (time - vehicleData[index]->Delay < mat.second->Delay) {
+					if (mat.second->Type == VehicleSirenType::Rotator) {
+						if ((time - mat.second->Rotator->TimeElapse) > mat.second->Rotator->Time) {
+							mat.second->Rotator->TimeElapse = time;
 
-							material->second->ResetColor(time);
+							mat.second->ResetColor(time);
 
-							if (material->second->Rotator->Direction == 2)
-								material->second->Rotator->Direction = 3;
-							else if (material->second->Rotator->Direction == 3)
-								material->second->Rotator->Direction = 2;
+							if (mat.second->Rotator->Direction == 2) {
+								mat.second->Rotator->Direction = 3;
+							}
+							else if (mat.second->Rotator->Direction == 3) {
+								mat.second->Rotator->Direction = 2;
+							}
 						}
 					}
-
 					continue;
 				}
 			}
 
-			if (material->second->ColorTotal != 0) {
-				if ((time - material->second->ColorTime) >= material->second->Colors[material->second->ColorCount].first) {
-					material->second->ColorTime = time;
+			if (mat.second->ColorTotal != 0) {
+				if ((time - mat.second->ColorTime) >= mat.second->Colors[mat.second->ColorCount].first) {
+					mat.second->ColorTime = time;
+					RwRGBA color = mat.second->Colors[mat.second->ColorCount].second;
+					mat.second->Color = { color.red, color.green, color.blue, color.alpha };
+					mat.second->ColorCount++;
 
-					RwRGBA color = material->second->Colors[material->second->ColorCount].second;
-
-					material->second->Color = { color.red, color.green, color.blue, color.alpha };
-
-					material->second->ColorCount++;
-
-					if ((size_t)material->second->ColorCount >= material->second->Colors.size())
-						material->second->ColorCount = 0;
-				}
-			}
-
-			if (material->second->UpdateMaterial(time)) {
-				if (material->second->PatternCount >= (int)material->second->Pattern.size()) {
-					for (std::map<int, VehicleSirenMaterial*>::iterator materialReset = state->Materials.begin(); materialReset != state->Materials.end(); ++materialReset) {
-						if (material->second->PatternTotal == materialReset->second->PatternTotal)
-							materialReset->second->ResetMaterial(time);
+					if ((size_t)mat.second->ColorCount >= mat.second->Colors.size()) {
+						mat.second->ColorCount = 0;
 					}
 				}
 			}
-			else if(material->second->Type == VehicleSirenType::Rotator) {
-				uint64_t elapsed = time - material->second->Rotator->TimeElapse;
 
-				if (elapsed > material->second->Rotator->Time) {
-					material->second->Rotator->TimeElapse = time;
+			if (mat.second->UpdateMaterial(time)) {
+				if (mat.second->PatternCount >= (int)mat.second->Pattern.size()) {
+					for (std::map<int, VehicleSirenMaterial*>::iterator materialReset = state->Materials.begin(); materialReset != state->Materials.end(); ++materialReset) {
+						if (mat.second->PatternTotal == materialReset->second->PatternTotal) {
+							materialReset->second->ResetMaterial(time);
+						}
+					}
+				}
+			}
+			else if(mat.second->Type == VehicleSirenType::Rotator) {
+				uint64_t elapsed = time - mat.second->Rotator->TimeElapse;
+				if (elapsed > mat.second->Rotator->Time) {
+					mat.second->Rotator->TimeElapse = time;
+					mat.second->ResetColor(time);
 
-					material->second->ResetColor(time);
-
-					if (material->second->Rotator->Direction == 2)
-						material->second->Rotator->Direction = 3;
-					else if (material->second->Rotator->Direction == 3)
-						material->second->Rotator->Direction = 2;
+					if (mat.second->Rotator->Direction == 2) {
+						mat.second->Rotator->Direction = 3;
+					}
+					else if (mat.second->Rotator->Direction == 3) {
+						mat.second->Rotator->Direction = 2;
+					}
 				}
 			}
 		}
 
-		float vehicleAngle = (vehicle->GetHeading() * 180.0f) / 3.14f;
-
-		float cameraAngle = (((CCamera*)0xB6F028)->GetHeading() * 180.0f) / 3.14f;
-
+		float vehAngle = (vehicle->GetHeading() * 180.0f) / 3.14f;
+		float camAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
+		CVector distance = vehicle->GetPosition() - TheCamera.GetPosition();
 		eCoronaFlareType type = FLARETYPE_NONE;
 
-		CVector distance = vehicle->GetPosition() - ((CCamera*)0xB6F028)->GetPosition();
 
-		if (distance.Magnitude() > 30.0f)
+		if (distance.Magnitude() > 30.0f) {
 			type = FLARETYPE_HEADLIGHTS;
+		}
 
-		for (std::map<int, VehicleSirenMaterial*>::iterator material = state->Materials.begin(); material != state->Materials.end(); ++material) {
-			if (!material->second->State)
+		for (auto& mat: state->Materials) {
+			if (!mat.second->State) {
 				continue;
-
-			if (material->second->Delay != 0) {
-				if (time - vehicleData[index]->Delay < material->second->Delay)
-					continue;
 			}
 
-			if (material->second->PatternTotal != 0 && material->second->Inertia != 0.0f) {
-				float currentTime = (float)(time - material->second->PatternTime);
+			if (mat.second->Delay != 0 && time - vehicleData[index]->Delay < mat.second->Delay) {
+				continue;
+			}
 
-				float changeTime = (((float)material->second->Pattern[material->second->PatternCount]) / 2.0f) * material->second->Inertia;
-
-				float patternTotalTime = (float)material->second->Pattern[material->second->PatternCount];
-
-				material->second->InertiaMultiplier = 1.0f;
+			if (mat.second->PatternTotal != 0 && mat.second->Inertia != 0.0f) {
+				float currentTime = (float)(time - mat.second->PatternTime);
+				float changeTime = (((float)mat.second->Pattern[mat.second->PatternCount]) / 2.0f) * mat.second->Inertia;
+				float patternTotalTime = (float)mat.second->Pattern[mat.second->PatternCount];
+				mat.second->InertiaMultiplier = 1.0f;
 
 				if (currentTime < changeTime) {
-					material->second->InertiaMultiplier = (currentTime / changeTime);
+					mat.second->InertiaMultiplier = (currentTime / changeTime);
 				}
 				else if (currentTime > (patternTotalTime - changeTime)) {
 					currentTime = patternTotalTime - currentTime;
-
-					material->second->InertiaMultiplier = (currentTime / changeTime);
+					mat.second->InertiaMultiplier = (currentTime / changeTime);
 				}
 			}
 
 			int id = 0;
-
-			for (std::vector<VehicleSirenDummy*>::iterator dummy = dummies[material->first].begin(); dummy != dummies[material->first].end(); ++dummy) {
+			for (auto &e: vehicleData[index]->Dummies[mat.first]) {
 				id++;
-
-				enableDummy((material->first * 16) + id, (*dummy), vehicle, vehicleAngle, cameraAngle, material->second, type, time);
+				EnableDummy((mat.first * 16) + id, e, vehicle, vehAngle, camAngle, mat.second, type, time);
 			}
 
-			if (material->second->Frames != 0) {
-				for (std::vector<VehicleMaterial*>::iterator mat = materials[material->first].begin(); mat != materials[material->first].end(); ++mat)
-					enableMaterial((*mat), material->second, time);
+			if (mat.second->Frames != 0) {
+				for (auto& e: modelData[model]->Materials[mat.first]) {
+					EnableMaterial(e, mat.second, time);
+				}
 			}
 
-			material->second->Frames++;
+			mat.second->Frames++;
 		}
 	});
 
@@ -928,13 +921,14 @@ void VehicleSirens::hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigne
 		popad
 	}
 
-	if (vehicle && modelData.contains(vehicle->m_nModelIndex))
+	if (vehicle && modelData.contains(vehicle->m_nModelIndex)) {
 		return;
+	}
 
 	CCoronas::RegisterCorona(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
 };
 
-void VehicleSirens::enableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time) {
+void VehicleSirens::EnableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time) {
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
 
 	material->Material->texture = material->TextureActive;
@@ -960,7 +954,7 @@ void VehicleSirens::enableMaterial(VehicleMaterial* material, VehicleSirenMateri
 	}
 };
 
-void VehicleSirens::enableDummy(int id, VehicleSirenDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
+void VehicleSirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
 	CVector position = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 
 	position.x = dummy->Position.x;
@@ -1013,16 +1007,16 @@ void VehicleSirens::enableDummy(int id, VehicleSirenDummy* dummy, CVehicle* vehi
 
 		Common::RegisterCoronaWithAngle(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha, 
 			(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, cameraAngle, dummyAngle, material->Radius, material->Size);
-		// VehicleSirens::enableShadow(vehicle, dummy, material, position);
+		VehicleSirens::EnableShadow(vehicle, dummy, material, position);
 	}
 	else {
 		Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha,
 			(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, material->Size);
-		// VehicleSirens::enableShadow(vehicle, dummy, material, position);
+		VehicleSirens::EnableShadow(vehicle, dummy, material, position);
 	}
 };
 
-void VehicleSirens::enableShadow(CVehicle* vehicle, VehicleSirenDummy* dummy, VehicleSirenMaterial* material, CVector position) {
+void VehicleSirens::EnableShadow(CVehicle* vehicle, VehicleDummy* dummy, VehicleSirenMaterial* material, CVector position) {
 	if (material->Shadow.Size == 0.0f) {
 		material->Shadow.Size = material->Size * 3.0f;
 	}
@@ -1050,7 +1044,9 @@ void VehicleSirens::enableShadow(CVehicle* vehicle, VehicleSirenDummy* dummy, Ve
 		right.x, right.y,
 		alpha, material->Color.red, material->Color.green, material->Color.blue,
 		2.0f, false, 1.0f, 0, true);
-};
+}
+
+
 VehicleSiren::VehicleSiren(CVehicle* _vehicle) {
 	vehicle = _vehicle;
 

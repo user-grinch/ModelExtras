@@ -5,7 +5,7 @@
 #include <vector>
 #include <plugin.h>
 #include <CCoronas.h>
-#include "avs/sirendummy.h"
+#include "avs/dummy.h"
 #include "avs/materials.h"
 
 enum class VehicleSirenType {
@@ -155,7 +155,7 @@ public:
     int State = 0;
     bool Mute = false;
     uint64_t Delay = 0;
-    std::map<int, std::vector<VehicleSirenDummy*>> Dummies;
+    std::map<int, std::vector<VehicleDummy*>> Dummies;
     bool SirenState = false;
     bool Trailer = false;
 
@@ -179,14 +179,14 @@ public:
 private:
     static inline std::map<int, VehicleSiren*> vehicleData;
     static inline std::map<int, VehicleSirenData*> modelData;
-    static inline std::map<int, std::vector<VehicleSirenDummy*>> modelRotators;
+    static inline std::map<int, std::vector<VehicleDummy*>> modelRotators;
 
     static char __fastcall hkUsesSiren(CVehicle *ptr);
     static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay);
 
     static void parseConfig();
-    static void registerMaterial(CVehicle* vehicle, RpMaterial* material, bool ImVehFt = false);
-    static void enableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time);
-    static void enableDummy(int id, VehicleSirenDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time);
-    static void enableShadow(CVehicle* vehicle, VehicleSirenDummy* dummy, VehicleSirenMaterial* material, CVector position);
+    static void registerMaterial(CVehicle* vehicle, RpMaterial* material);
+    static void EnableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time);
+    static void EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time);
+    static void EnableShadow(CVehicle* vehicle, VehicleDummy* dummy, VehicleSirenMaterial* material, CVector position);
 };

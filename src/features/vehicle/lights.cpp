@@ -61,7 +61,7 @@ void Lights::Initialize() {
 			state = eLightState::Reverselight;
 		} else if (std::regex_search(name, std::regex("^breakl(?:ight)?_"))) {
 			state = eLightState::Brakelight;
-			col = {250, 0, 0, 128};
+			col = {250, 0, 0, 240};
 		} else if (std::regex_search(name, std::regex("^light_day"))) {
 			state = eLightState::Daylight;
 		} else if (std::regex_search(name, std::regex("^light_night"))) {
@@ -123,8 +123,9 @@ void Lights::Initialize() {
 			}
 		}
 
-		if (pVeh->m_fBreakPedal && pVeh->m_pDriver)
+		if (pVeh->m_fBreakPedal && pVeh->m_pDriver) {
 			renderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
+		}
 		
 		VehData& data = vehData.Get(pVeh);
 
@@ -209,8 +210,4 @@ void Lights::registerMaterial(CVehicle* vehicle, RpMaterial* material, eLightSta
 void Lights::enableMaterial(VehicleMaterial* material) {
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
 	material->Material->surfaceProps.ambient = 4.0;
-
-	material->Color.red = material->Color.green = material->Color.blue = 255;
-	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
-	material->Material->texture = material->TextureActive;
 };
