@@ -43,7 +43,7 @@ void VehicleMaterials::OnModelSet(CVehicle* vehicle, int model) {
 			if (materials[currentVehicle->m_nModelIndex].contains(material))
 				return material;
 
-			for (auto e: functions)
+			for (auto& e: functions)
 				e(currentVehicle, material);
 
 			materials[currentVehicle->m_nModelIndex][material] = true;
@@ -52,14 +52,11 @@ void VehicleMaterials::OnModelSet(CVehicle* vehicle, int model) {
 		}, atomic);
 
 		return atomic;
-	}, (void*)((uint32_t)(0)));
+	}, nullptr);
 
 	if (!dummies.contains(currentVehicle->m_nModelIndex) || dummies[currentVehicle->m_nModelIndex] == false) {
 		dummies[currentVehicle->m_nModelIndex] = true;
 	}
-
-
-	//(RwFrame*)vehicle->m_pRwClump->object.parent
 
 	VehicleMaterials::findDummies(vehicle, (RwFrame*)vehicle->m_pRwClump->object.parent);
 };
@@ -69,8 +66,6 @@ void VehicleMaterials::findDummies(CVehicle* vehicle, RwFrame* frame, bool paren
 		return;
 
 	const std::string name = GetFrameNodeName(frame);
-
-	//PluginMultiplayer::AddChatMessage(std::string(name + ": has child? " + ((frame->child)?("yes"):("no"))).c_str());
 
 	if (RwFrame* nextFrame = frame->child)
 		findDummies(vehicle, nextFrame, (RwFrameGetParent(frame))?(true):(false));

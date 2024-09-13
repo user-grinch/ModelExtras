@@ -406,7 +406,7 @@ VehicleSirenData::VehicleSirenData(nlohmann::json json) {
 };
 
 
-void VehicleSirens::registerMaterial(CVehicle* vehicle, RpMaterial* material) {
+void VehicleSirens::RegisterMaterial(CVehicle* vehicle, RpMaterial* material) {
 	int color = material->color.red;
 
 	if(modelData.contains(vehicle->m_nModelIndex)) {
@@ -415,7 +415,7 @@ void VehicleSirens::registerMaterial(CVehicle* vehicle, RpMaterial* material) {
 	}
 };
 
-void VehicleSirens::parseConfig() {
+void VehicleSirens::ParseConfig() {
 	std::string path = std::string(MOD_DATA_PATH("sirens\\"));
 	std::map<int, nlohmann::json> tempData;
 
@@ -428,9 +428,10 @@ void VehicleSirens::parseConfig() {
 
 		gLogger->info("Reading siren config {}{}", file, ext);
 		std::ifstream infile(path + file + ext);
+		bool isImVehFt = false;
 		try {
+			int model = -1;
 			if (ext == ".eml") {
-				int model;
 				std::string line;
 				if (!std::getline(infile, line)) {
 					gLogger->error("Failed parsing first line");
@@ -542,8 +543,18 @@ void VehicleSirens::parseConfig() {
 
 					tempData[model]["ImVehFt"][std::to_string(256 - id)]["ImVehFt"] = true;
 				}
+				isImVehFt = true;
 			} else {
-				tempData[std::stoi(file)] = nlohmann::json::parse(infile);
+				model = std::stoi(file);
+				tempData[model] = nlohmann::json::parse(infile);
+			}
+
+			CurrentModel = model;
+			modelData[CurrentModel] = new VehicleSirenData(tempData[model]);
+			modelData[CurrentModel]->isImVehFtSiren = isImVehFt;
+			if (!modelData[CurrentModel]->Validate) {
+				gLogger->error("Failed to read siren configuration, cannot configure JSON manifest!\n");
+				modelData.erase(CurrentModel);
 			}
 		}
 		catch (...) {
@@ -552,34 +563,20 @@ void VehicleSirens::parseConfig() {
 		}
 		infile.close();
 	}
-
-	for (std::map<int, nlohmann::json>::iterator _json = tempData.begin(); _json != tempData.end(); ++_json) {
-		CurrentModel = _json->first;
-		nlohmann::json json = _json->second;
-		modelData[CurrentModel] = new VehicleSirenData(json);
-
-		if (!modelData[CurrentModel]->Validate) {
-			gLogger->error("Failed to read siren configuration, cannot configure JSON manifest!\n");
-			modelData.erase(CurrentModel);
-			continue;
-		}
-	}
 };
 
 void VehicleSirens::Initialize() {
-	parseConfig();
+	ParseConfig();
 
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
-		if (std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0 || material->color.green != 255 || material->color.blue != 255) {
-			// if(material->color.red < 240 || material->color.green != 0 || material->color.blue != 0)
-			// 	return material;
-
-			registerMaterial(vehicle, material);
-
-			return material;
+		if (modelData.contains(vehicle->m_nModelIndex) && modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
+			if ((std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0)
+			&& (material->color.red >= 240 && material->color.green == 0 && material->color.blue == 0) ) {
+				RegisterMaterial(vehicle, material);
+			}
+		} else {
+			RegisterMaterial(vehicle, material);
 		}
-
-		registerMaterial(vehicle, material);
 
 		return material;
 	});
@@ -1018,7 +1015,7 @@ void VehicleSirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, 
 
 void VehicleSirens::EnableShadow(CVehicle* vehicle, VehicleDummy* dummy, VehicleSirenMaterial* material, CVector position) {
 	if (material->Shadow.Size == 0.0f) {
-		material->Shadow.Size = material->Size * 3.0f;
+		return;
 	}
 
 	CVector center = vehicle->TransformFromObjectSpace(

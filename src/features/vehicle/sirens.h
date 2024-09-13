@@ -143,7 +143,8 @@ public:
     bool Validate = false;
     std::map<int, std::vector<VehicleMaterial*>> Materials;
     std::vector<VehicleSirenState*> States;
-
+    bool isImVehFtSiren = false;
+    
     VehicleSirenData(nlohmann::json json);
 
     static std::map<std::string, nlohmann::json> References;
@@ -184,8 +185,8 @@ private:
     static char __fastcall hkUsesSiren(CVehicle *ptr);
     static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay);
 
-    static void parseConfig();
-    static void registerMaterial(CVehicle* vehicle, RpMaterial* material);
+    static void ParseConfig();
+    static void RegisterMaterial(CVehicle* vehicle, RpMaterial* material);
     static void EnableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time);
     static void EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time);
     static void EnableShadow(CVehicle* vehicle, VehicleDummy* dummy, VehicleSirenMaterial* material, CVector position);
