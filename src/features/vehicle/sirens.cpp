@@ -4,16 +4,6 @@
 #include "avs/common.h"
 #include <CShadows.h>
 
-int ImVehFt_ReadColor(std::string input) {
-    if (input.length() == 3)
-        return std::stoi(input);
-
-    std::istringstream stream(input);
-    int color;
-    stream >> std::hex >> color;
-    return color;
-};
-
 bool VehicleSiren::GetSirenState() {
 	return (Mute == false) ? (vehicle->m_nVehicleFlags.bSirenOrAlarm) : (true);
 };
@@ -415,158 +405,59 @@ void VehicleSirens::RegisterMaterial(CVehicle* vehicle, RpMaterial* material) {
 	}
 };
 
+
+extern int ImVehFt_EmlToJson(const std::string& emlPath);
+
 void VehicleSirens::ParseConfig() {
-	std::string path = std::string(MOD_DATA_PATH("sirens\\"));
-	std::map<int, nlohmann::json> tempData;
+    std::string path = std::string(MOD_DATA_PATH("sirens\\"));
+    std::map<int, nlohmann::json> tempData;
 
-	for (auto& p : std::filesystem::recursive_directory_iterator(path)) {
-		std::string file = p.path().stem().string();
-		std::string ext = p.path().extension().string();
+    for (auto& p : std::filesystem::directory_iterator(path)) {
+        std::string file = p.path().stem().string();
+        std::string ext = p.path().extension().string();
 
-		if (ext != ".eml" && ext != ".json")
-			continue;
+        if (ext != ".eml" && ext != ".json")
+            continue;
 
-		gLogger->info("Reading siren config {}{}", file, ext);
-		std::ifstream infile(path + file + ext);
-		bool isImVehFt = false;
-		try {
-			int model = -1;
-			if (ext == ".eml") {
-				std::string line;
-				if (!std::getline(infile, line)) {
-					gLogger->error("Failed parsing first line");
-					continue;
-				}
-				std::istringstream iss(line);
-
-				if (!(iss >> model)) {
-					gLogger->error("Failed parsing modelID");
-
-					continue;
-				}
-
-				tempData[model] = {};
-				tempData[model]["ImVehFt"] = {};
-
-				while (std::getline(infile, line)) {
-					if (line[0] == '#')
-						continue;
-
-					std::istringstream iss(line);
-
-					int id, parent, type, shadow, switches, starting;
-
-					int red, green, blue, alpha;
-
-					float size, flash;
-
-					if (!(iss >> id >> parent))
-						continue;
-
-					std::string tempColor;
-
-					if (!(iss >> tempColor))
-						continue;
-
-					red = ImVehFt_ReadColor(tempColor);
-
-					if (!(iss >> tempColor))
-						continue;
-
-					green = ImVehFt_ReadColor(tempColor);
-
-					if (!(iss >> tempColor))
-						continue;
-
-					blue = ImVehFt_ReadColor(tempColor);
-
-					if (!(iss >> tempColor))
-						continue;
-
-					alpha = ImVehFt_ReadColor(tempColor);
-
-					if (!(iss >> type >> size >> shadow >> flash))
-						continue;
-
-					if (!(iss >> switches >> starting))
-						continue;
-
-					std::vector<uint64_t> pattern;
-
-					uint64_t count = 0;
-
-					for (int index = 0; index < switches; index++) {
-						std::string string;
-
-						if (!(iss >> string))
-							continue;
-
-						uint64_t milliseconds = std::stoi(string) - count;
-
-						count += milliseconds;
-
-						if (milliseconds == 0)
-							continue;
-
-						pattern.push_back(milliseconds);
-					}
-
-					if (count == 0 || count > 64553) {
-						starting = 1;
-
-						pattern.clear();
-					}
-
-					if (!tempData[model]["ImVehFt"].contains(std::to_string(id)))
-						tempData[model]["ImVehFt"][std::to_string(id)] = {};
-
-					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("size"))
-						tempData[model]["ImVehFt"][std::to_string(id)]["size"] = size;
-
-					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("color"))
-						tempData[model]["ImVehFt"][std::to_string(id)]["color"] = { { "red", red }, { "green", green }, { "blue", blue }, { "alpha", alpha } };
-
-					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("state"))
-						tempData[model]["ImVehFt"][std::to_string(id)]["state"] = starting;
-
-					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("pattern"))
-						tempData[model]["ImVehFt"][std::to_string(id)]["pattern"] = pattern;
-
-					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("shadow"))
-						tempData[model]["ImVehFt"][std::to_string(id)]["shadow"]["size"] = shadow;
-
-					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("inertia"))
-						tempData[model]["ImVehFt"][std::to_string(id)]["inertia"] = flash / 100.0f;
-
-					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("type"))
-						tempData[model]["ImVehFt"][std::to_string(id)]["type"] = ((type == 0) ? ("directional") : ((type == 1) ? ("inversed-directional") : ((type == 4) ? ("non-directional") : ("directional"))));
-
-					tempData[model]["ImVehFt"][std::to_string(id)]["ImVehFt"] = true;
-				}
-				isImVehFt = true;
-			} else {
-				model = std::stoi(file);
-				tempData[model] = nlohmann::json::parse(infile);
+        if (ext == ".eml") {
+            std::string emlFile = p.path().string();
+            int model = ImVehFt_EmlToJson(emlFile);
+			if (model == -1) {
+				continue;
 			}
+			file = std::to_string(model);
+            ext = ".json";
+        }
 
-			CurrentModel = model;
-			modelData[CurrentModel] = new VehicleSirenData(tempData[model]);
-			modelData[CurrentModel]->isImVehFtSiren = isImVehFt;
-			if (!modelData[CurrentModel]->Validate) {
-				gLogger->error("Failed to read siren configuration, cannot configure JSON manifest!\n");
-				modelData.erase(CurrentModel);
-			}
-		}
-		catch (...) {
-			gLogger->error("Failed parsing {}{}", file, ext);
-			continue;
-		}
-		infile.close();
-	}
-};
+        gLogger->info("Reading siren config {}{}", file, ext);
+        std::ifstream infile(path + file + ext);
+        bool isImVehFt = (ext == ".json");
+
+        try {
+            int model = std::stoi(file);
+            nlohmann::json _json = nlohmann::json::parse(infile);
+            CurrentModel = model;
+
+            modelData[CurrentModel] = new VehicleSirenData(_json);
+            modelData[CurrentModel]->isImVehFtSiren = _json.contains("ImVehFt") && _json["ImVehFt"];
+
+            if (!modelData[CurrentModel]->Validate) {
+                gLogger->error("Failed to read siren configuration, cannot configure JSON manifest!");
+                modelData.erase(CurrentModel);
+            }
+        }
+        catch (...) {
+            gLogger->error("Failed parsing {}{}", file, ext);
+            continue;
+        }
+        infile.close();
+    }
+}
 
 void VehicleSirens::Initialize() {
-	ParseConfig();
+	Events::initGameEvent += []() {
+		ParseConfig();
+	};
 
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
 		if (modelData.contains(vehicle->m_nModelIndex) && modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
@@ -981,12 +872,17 @@ void VehicleSirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, 
 
 		Common::RegisterCoronaWithAngle(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha, 
 			(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, cameraAngle, dummyAngle, material->Radius, material->Size);
-		VehicleSirens::EnableShadow(vehicle, dummy, material, position);
+
+		if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
+			VehicleSirens::EnableShadow(vehicle, dummy, material, position);
+		}
 	}
 	else {
 		Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha,
 			(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, material->Size);
-		VehicleSirens::EnableShadow(vehicle, dummy, material, position);
+		if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
+			VehicleSirens::EnableShadow(vehicle, dummy, material, position);
+		}
 	}
 };
 
