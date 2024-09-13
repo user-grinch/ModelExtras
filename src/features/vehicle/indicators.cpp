@@ -172,7 +172,7 @@ void Indicator::Initialize() {
 				}
 
 				for (auto e: dummies[model][state]) {
-					Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, e->Color.alpha, e->Angle, e->CurrentAngle, "indicator");
+					Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, 128, e->Angle, e->CurrentAngle, "indicator");
 				}
 			} else {
 				for (auto k: materials[model]) {
@@ -183,7 +183,7 @@ void Indicator::Initialize() {
 
 				for (auto k: dummies[model]) {
 					for (auto e: k.second) {
-						Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, e->Color.alpha, e->Angle, e->CurrentAngle, "indicator");
+						Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, 128, e->Angle, e->CurrentAngle, "indicator");
 					}
 				}
 			}

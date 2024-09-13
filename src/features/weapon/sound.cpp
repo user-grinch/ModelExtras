@@ -42,8 +42,7 @@ void WeaponSoundSystem::Register(const std::filesystem::path& filepath) {
 }
 
 void WeaponSoundSystem::Initialize() {
-    plugin::Events::initScriptsEvent.after += [] {
-
+    plugin::Events::initGameEvent += [] {
         if (std::filesystem::exists(MOD_DATA_PATH("audio/weapon/"))) {
             for (auto e : std::filesystem::recursive_directory_iterator(MOD_DATA_PATH("audio/weapon/"))) {
                 std::string ext = e.path().extension().string();

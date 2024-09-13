@@ -198,7 +198,7 @@ void Lights::renderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 	}
 
 	for (auto e: dummies[CPools::ms_pVehiclePool->GetIndex(pVeh)][state]) {
-		Common::RegisterShadow(pVeh, e->Frame->modelling.pos, e->Color.red, e->Color.green, e->Color.blue, e->Color.alpha,  e->Angle, e->CurrentAngle, "indicator");
+		Common::RegisterShadow(pVeh, e->Frame->modelling.pos, e->Color.red, e->Color.green, e->Color.blue, 128,  e->Angle, e->CurrentAngle, "indicator");
 	}
 };
 
