@@ -627,12 +627,11 @@ void Sirens::Initialize() {
 			vehicleData[index] = new VehicleSiren(vehicle);
 
 		bool sirenState = vehicleData[index]->GetSirenState();
-
+		uint64_t time = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		VehicleSirenState* state = modelData[model]->States[vehicleData[index]->GetCurrentState()];
 		if (vehicleData[index]->SirenState == false && sirenState == true) {
 			vehicleData[index]->SirenState = true;
 
-			uint64_t time = Common::TimeSinceEpochMillisec();
 			if (vehicleData[index]->Delay != 0) {
 				vehicleData[index]->Delay = 0;
 			}
@@ -650,7 +649,6 @@ void Sirens::Initialize() {
 			return;
 		}
 
-		uint64_t time = Common::TimeSinceEpochMillisec();
 		if (vehicleData[index]->Delay == 0) {
 			vehicleData[index]->Delay = time;
 		}
@@ -874,7 +872,7 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float v
 		(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, material->Size);
 	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
 		CVector pos = position;
-		pos.x += (pos.x > 0 ? 1.0f : -1.0f); // FIX ME!!!
+		pos.x += (pos.x > 0 ? 1.2f : -1.2f); // FIX ME!!!
 		unsigned char alpha = static_cast<char>((static_cast<float>(material->Color.alpha) * -1) * material->InertiaMultiplier);
 		Common::RegisterShadow(vehicle, pos, material->Color.red, material->Color.green, material->Color.blue,
 			material->Color.alpha, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, material->Shadow.Size,

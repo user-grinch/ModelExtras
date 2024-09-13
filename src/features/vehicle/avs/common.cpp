@@ -48,33 +48,13 @@ void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uc
 	return RegisterCorona(pVeh, posn, red, green, blue, alpha, id, size);
 };
 
-RwTexture* loadTextureFromFile(const char* filename) {
-    RwImage* image = RtPNGImageRead(filename);
-
-    RwInt32 width, height, depth, flags;
-    RwImageFindRasterFormat(image, 4, &width, &height, &depth, &flags);
-
-    RwRaster* raster = RwRasterCreate(width, height, depth, flags);
-
-    RwRasterSetFromImage(raster, image);
-
-    RwImageDestroy(image);
-
-    return RwTextureCreate(raster);
-};
-
 RwTexture* Common::GetTexture(std::string texture) {
 	if (Textures.contains(texture) && Textures[texture])
 		return Textures[texture];
 
-	Textures[texture] = loadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str());
+	Textures[texture] = Util::LoadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str(), 80.0f);
     return Textures[texture];
 };
-
-uint64_t Common::TimeSinceEpochMillisec() {
-    return static_cast<uint64_t>(CTimer::GetCurrentTimeInCycles() * (1000.0f / CTimer::GetCyclesPerFrame()));
-};
-
 
 void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, unsigned int alpha, float angle, float currentAngle, const std::string& shadwTexName, float shdwSz, float shdwOffset) {
 	if (shdwSz == 0.0f) {
@@ -83,11 +63,6 @@ void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red,
 
 	if (!gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
 		return;
-	}
-
-	static RwTexture *pShadowTex = nullptr;
-	if (!pShadowTex) {
-		pShadowTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/indicator.png")), 50);
 	}
 
 	CVector center = pVeh->TransformFromObjectSpace(
