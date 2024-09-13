@@ -32,7 +32,7 @@ enum class eModelEntityType {
 #define MOD_NAME "ModelExtras"
 #define MOD_VERSION_NUMBER "1.6"
 #define MOD_TITLE MOD_NAME " v" MOD_VERSION_NUMBER"-beta"
-#define DISCORD_INVITE "https://discord.gg/ZzW7kmf"
+#define DISCORD_INVITE "https://discord.gg/AduJVdyqCD"
 #define GITHUB_LINK "https://github.com/user-grinch/ModelExtras"
 #define PATREON_LINK "https://www.patreon.com/grinch_"
 

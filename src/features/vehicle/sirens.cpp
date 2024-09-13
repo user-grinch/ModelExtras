@@ -517,31 +517,31 @@ void VehicleSirens::ParseConfig() {
 						pattern.clear();
 					}
 
-					if (!tempData[model]["ImVehFt"].contains(std::to_string(256 - id)))
-						tempData[model]["ImVehFt"][std::to_string(256 - id)] = {};
+					if (!tempData[model]["ImVehFt"].contains(std::to_string(id)))
+						tempData[model]["ImVehFt"][std::to_string(id)] = {};
 
-					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("size"))
-						tempData[model]["ImVehFt"][std::to_string(256 - id)]["size"] = size;
+					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("size"))
+						tempData[model]["ImVehFt"][std::to_string(id)]["size"] = size;
 
-					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("color"))
-						tempData[model]["ImVehFt"][std::to_string(256 - id)]["color"] = { { "red", red }, { "green", green }, { "blue", blue }, { "alpha", alpha } };
+					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("color"))
+						tempData[model]["ImVehFt"][std::to_string(id)]["color"] = { { "red", red }, { "green", green }, { "blue", blue }, { "alpha", alpha } };
 
-					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("state"))
-						tempData[model]["ImVehFt"][std::to_string(256 - id)]["state"] = starting;
+					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("state"))
+						tempData[model]["ImVehFt"][std::to_string(id)]["state"] = starting;
 
-					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("pattern"))
-						tempData[model]["ImVehFt"][std::to_string(256 - id)]["pattern"] = pattern;
+					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("pattern"))
+						tempData[model]["ImVehFt"][std::to_string(id)]["pattern"] = pattern;
 
-					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("shadow"))
-						tempData[model]["ImVehFt"][std::to_string(256 - id)]["shadow"]["size"] = shadow;
+					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("shadow"))
+						tempData[model]["ImVehFt"][std::to_string(id)]["shadow"]["size"] = shadow;
 
-					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("inertia"))
-						tempData[model]["ImVehFt"][std::to_string(256 - id)]["inertia"] = flash / 100.0f;
+					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("inertia"))
+						tempData[model]["ImVehFt"][std::to_string(id)]["inertia"] = flash / 100.0f;
 
-					if (!tempData[model]["ImVehFt"][std::to_string(256 - id)].contains("type"))
-						tempData[model]["ImVehFt"][std::to_string(256 - id)]["type"] = ((type == 0) ? ("directional") : ((type == 1) ? ("inversed-directional") : ((type == 4) ? ("non-directional") : ("directional"))));
+					if (!tempData[model]["ImVehFt"][std::to_string(id)].contains("type"))
+						tempData[model]["ImVehFt"][std::to_string(id)]["type"] = ((type == 0) ? ("directional") : ((type == 1) ? ("inversed-directional") : ((type == 4) ? ("non-directional") : ("directional"))));
 
-					tempData[model]["ImVehFt"][std::to_string(256 - id)]["ImVehFt"] = true;
+					tempData[model]["ImVehFt"][std::to_string(id)]["ImVehFt"] = true;
 				}
 				isImVehFt = true;
 			} else {
@@ -590,38 +590,15 @@ void VehicleSirens::Initialize() {
 		if (!vehicleData.contains(index))
 			vehicleData[index] = new VehicleSiren(vehicle);
 
-		int start = -1;
+		std::regex pattern(R"(^(siren_|siren|light_em)(\d+))");
+		std::smatch match;
 
-		if (name.rfind("siren_", 0) == 0)
-			start = 6;
-		else if (name.rfind("siren", 0) == 0)
-			start = 5;
-		else if (name.rfind("light_em", 0) == 0)
-			start = 8;
-
-		if (start == -1)
-			return;
-
-		std::string material;
-
-		for (int _char = start, size = name.size(); _char < size; _char++) {
-			if (!isdigit(name[_char])) {
-				if (_char == start)
-					return;
-
-				break;
-			}
-
-			material += name[_char];
+		if (std::regex_search(name, match, pattern)) {
+			std::string material = match[2];
+			vehicleData[index]->Dummies[std::stoi(material)].push_back(new VehicleDummy(frame, name, parent, eDummyPos::None));
 		}
-
-		int mat = std::stoi(material);
-
-		if (start == 8)
-			mat = 256 - mat;
-
-		vehicleData[index]->Dummies[mat].push_back(new VehicleDummy(frame, name, parent, eDummyPos::None));
 	});
+
 
 	plugin::Events::vehicleCtorEvent += [](CVehicle* vehicle) {
 		int model = vehicle->m_nModelIndex;
