@@ -23,7 +23,7 @@ void DrawTurnlight(CVehicle *pVeh, eDummyPos pos) {
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
-	Common::RegisterShadow(pVeh, posn, SHADOW_R, SHADOW_G, SHADOW_B, dummyAngle, 0.0f);
+	Common::RegisterShadow(pVeh, posn, SHADOW_R, SHADOW_G, SHADOW_B, 128, dummyAngle, 0.0f, "indicator");
     Common::RegisterCoronaWithAngle(pVeh, posn, 255, 128, 0, CORONA_A, dummyId, cameraAngle, dummyAngle, 2.0f, 0.5f);
 }
 
@@ -172,7 +172,7 @@ void Indicator::Initialize() {
 				}
 
 				for (auto e: dummies[model][state]) {
-					Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, e->Angle, e->CurrentAngle);
+					Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, e->Color.alpha, e->Angle, e->CurrentAngle, "indicator");
 				}
 			} else {
 				for (auto k: materials[model]) {
@@ -183,7 +183,7 @@ void Indicator::Initialize() {
 
 				for (auto k: dummies[model]) {
 					for (auto e: k.second) {
-						Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, e->Angle, e->CurrentAngle);
+						Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, e->Color.alpha, e->Angle, e->CurrentAngle, "indicator");
 					}
 				}
 			}

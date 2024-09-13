@@ -147,8 +147,8 @@ public:
     
     VehicleSirenData(nlohmann::json json);
 
-    static std::map<std::string, nlohmann::json> References;
-    static std::map<std::string, nlohmann::json> ReferenceColors;
+    static inline std::map<std::string, nlohmann::json> References;
+    static inline std::map<std::string, nlohmann::json> ReferenceColors;
 };
 
 class VehicleSiren {
@@ -189,5 +189,4 @@ private:
     static void RegisterMaterial(CVehicle* vehicle, RpMaterial* material);
     static void EnableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time);
     static void EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time);
-    static void EnableShadow(CVehicle* vehicle, VehicleDummy* dummy, VehicleSirenMaterial* material, CVector position);
 };

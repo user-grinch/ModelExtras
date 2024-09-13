@@ -5,12 +5,20 @@
 #include <CCamera.h>
 
 void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, int id, float size) {
+	if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+		return;
+	}
+
 	unsigned int coronaID = reinterpret_cast<unsigned int>(pVeh) + 30 + id;
 	CCoronas::RegisterCorona(coronaID, pVeh, red, green, blue, alpha, pos,
 		size, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, false);
 };
 
 void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, int id, float cameraAngle, float angle, float radius, float size) {
+	if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+		return;
+	}
+
 	float differenceAngle = ((cameraAngle > angle) ? (cameraAngle - angle) : (angle - cameraAngle));
 
 	float diameter = (radius / 2.0f);
@@ -69,17 +77,54 @@ uint64_t Common::TimeSinceEpochMillisec() {
     return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 };
 
-void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, float angle, float currentAngle) {
+// void VehicleSirens::EnableShadow(CVehicle* vehicle,  VehicleSirenMaterial* material, CVector position) {
+// 	if (material->Shadow.Size == 0.0f) {
+// 		return;
+// 	}
+
+// 	CVector center = vehicle->TransformFromObjectSpace(
+// 		CVector(
+// 			position.x + (material->Shadow.Offset * cos((90.0f - dummy->Angle + dummy->CurrentAngle) * 3.14f / 180.0f)),
+// 			position.y + ((0.5f + material->Shadow.Offset) * sin((90.0f - dummy->Angle + dummy->CurrentAngle) * 3.14f / 180.0f)),
+// 			position.z
+// 		)
+// 	);
+
+// 	float fAngle = vehicle->GetHeading() + (((dummy->Angle + dummy->CurrentAngle) + 180.0f) * 3.14f / 180.0f);
+
+// 	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
+
+// 	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
+
+// 	char alpha = material->Color.alpha;
+
+// 	// alpha = static_cast<char>((static_cast<float>(alpha) * -1) * material->InertiaMultiplier);
+
+// 	CShadows::StoreShadowToBeRendered(2, Common::GetTexture(material->Shadow.Type), &center,
+// 		up.x, up.y,
+// 		right.x, right.y,
+// 		alpha, material->Color.red, material->Color.green, material->Color.blue,
+// 		2.0f, false, 1.0f, 0, true);
+// }
+
+void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, unsigned int alpha, float angle, float currentAngle, const std::string& shadwTexName, float shdwSz, float shdwOffset) {
+	if (shdwSz == 0.0f) {
+		return;
+	}
+
+	if (!gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
+		return;
+	}
+
 	static RwTexture *pShadowTex = nullptr;
 	if (!pShadowTex) {
 		pShadowTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/indicator.png")), 50);
 	}
 
-	float Offset = 0.0f;
 	CVector center = pVeh->TransformFromObjectSpace(
 		CVector(
-			position.x + (Offset * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-			position.y + ((1.2f + Offset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+			position.x + (shdwOffset * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+			position.y + ((1.2f + shdwOffset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
 			position.z
 		)
 	);
@@ -89,9 +134,9 @@ void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red,
 	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
 
 	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-	CShadows::StoreShadowToBeRendered(2, pShadowTex, &center,
+	CShadows::StoreShadowToBeRendered(2, Common::GetTexture(shadwTexName), &center,
 		up.x, up.y,
 		right.x, right.y,
-		128, red, green, blue,
+		alpha, red, green, blue,
 		2.0f, false, 1.0f, 0, true);
 };

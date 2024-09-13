@@ -48,13 +48,11 @@ void SpotLight::OnHudRender() {
 	if (!plugin::KeyPressed(0x02))
 		return;
 
-	CCamera* camera = (CCamera*)0xB6F028;
-
-	float heading = camera->GetHeading();
+	float heading = TheCamera.GetHeading();
 
 	CMatrix matrix;
 
-	matrix = camera->m_mCameraMatrix;
+	matrix = TheCamera.m_mCameraMatrix;
 
 	data.pFrame->modelling.at.x = matrix.at.x;
 	data.pFrame->modelling.at.y = matrix.at.y;
@@ -80,9 +78,7 @@ void SpotLight::OnVehicleRender(CVehicle *pVeh) {
 	if (!data.bEnabled || data.pFrame == nullptr)
 		return;
 
-	CCamera* camera = (CCamera*)0xB6F028;
-
-	float cameraHeading = camera->GetHeading();
+	float cameraHeading = TheCamera.GetHeading();
 
 	float vehicleHeading = pVeh->GetHeading();
 

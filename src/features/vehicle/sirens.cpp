@@ -342,13 +342,9 @@ VehicleSirenState::VehicleSirenState(std::string state, nlohmann::json json) {
 	Validate = true;
 };
 
-std::map<std::string, nlohmann::json> VehicleSirenData::References;
-std::map<std::string, nlohmann::json> VehicleSirenData::ReferenceColors;
-
 VehicleSirenData::VehicleSirenData(nlohmann::json json) {
 	if (json.size() == 0) {
 		gLogger->error("Failed to set up states, could not find any keys in the manifest!\n");
-
 		return;
 	}
 
@@ -872,50 +868,18 @@ void VehicleSirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, 
 
 		Common::RegisterCoronaWithAngle(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha, 
 			(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, cameraAngle, dummyAngle, material->Radius, material->Size);
-
-		if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
-			VehicleSirens::EnableShadow(vehicle, dummy, material, position);
-		}
 	}
-	else {
-		Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha,
-			(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, material->Size);
-		if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
-			VehicleSirens::EnableShadow(vehicle, dummy, material, position);
-		}
+
+	Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha,
+		(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, material->Size);
+	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
+		CVector pos = position;
+		pos.x += (pos.x > 0 ? 0.8f : -0.8f); // FIX ME!!!
+		Common::RegisterShadow(vehicle, pos, material->Color.red, material->Color.green, material->Color.blue,
+			material->Color.alpha, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, material->Shadow.Size,
+			material->Shadow.Offset);
 	}
 };
-
-void VehicleSirens::EnableShadow(CVehicle* vehicle, VehicleDummy* dummy, VehicleSirenMaterial* material, CVector position) {
-	if (material->Shadow.Size == 0.0f) {
-		return;
-	}
-
-	CVector center = vehicle->TransformFromObjectSpace(
-		CVector(
-			position.x + (material->Shadow.Offset * cos((90.0f - dummy->Angle + dummy->CurrentAngle) * 3.14f / 180.0f)),
-			position.y + ((0.5f + material->Shadow.Offset) * sin((90.0f - dummy->Angle + dummy->CurrentAngle) * 3.14f / 180.0f)),
-			position.z
-		)
-	);
-
-	float fAngle = vehicle->GetHeading() + (((dummy->Angle + dummy->CurrentAngle) + 180.0f) * 3.14f / 180.0f);
-
-	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
-
-	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-
-	char alpha = material->Color.alpha;
-
-	alpha = static_cast<char>((static_cast<float>(alpha) * -1) * material->InertiaMultiplier);
-
-	CShadows::StoreShadowToBeRendered(2, Common::GetTexture(material->Shadow.Type), &center,
-		up.x, up.y,
-		right.x, right.y,
-		alpha, material->Color.red, material->Color.green, material->Color.blue,
-		2.0f, false, 1.0f, 0, true);
-}
-
 
 VehicleSiren::VehicleSiren(CVehicle* _vehicle) {
 	vehicle = _vehicle;

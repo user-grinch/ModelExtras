@@ -179,13 +179,13 @@ void Lights::Initialize() {
 					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 					if (posn.x == 0.0f) posn.x = 0.15f;
 					posn.x *= -1.0f;
-					Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 180.0f, 0.0f);
+					Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "indicator");
 				}
 
 				if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)) {
 					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 					if (posn.x == 0.0f) posn.x = 0.15f;
-					Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 180.0f, 0.0f);
+					Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "indicator");
 				}
 			}
 		}
@@ -198,7 +198,7 @@ void Lights::renderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 	}
 
 	for (auto e: dummies[CPools::ms_pVehiclePool->GetIndex(pVeh)][state]) {
-		Common::RegisterShadow(pVeh, e->Frame->modelling.pos, e->Color.red, e->Color.green, e->Color.blue, e->Angle, e->CurrentAngle);
+		Common::RegisterShadow(pVeh, e->Frame->modelling.pos, e->Color.red, e->Color.green, e->Color.blue, e->Color.alpha,  e->Angle, e->CurrentAngle, "indicator");
 	}
 };
 
