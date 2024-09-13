@@ -72,40 +72,9 @@ RwTexture* Common::GetTexture(std::string texture) {
 };
 
 uint64_t Common::TimeSinceEpochMillisec() {
-    using namespace std::chrono;
-
-    return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    return static_cast<uint64_t>(CTimer::GetCurrentTimeInCycles() * (1000.0f / CTimer::GetCyclesPerFrame()));
 };
 
-// void VehicleSirens::EnableShadow(CVehicle* vehicle,  VehicleSirenMaterial* material, CVector position) {
-// 	if (material->Shadow.Size == 0.0f) {
-// 		return;
-// 	}
-
-// 	CVector center = vehicle->TransformFromObjectSpace(
-// 		CVector(
-// 			position.x + (material->Shadow.Offset * cos((90.0f - dummy->Angle + dummy->CurrentAngle) * 3.14f / 180.0f)),
-// 			position.y + ((0.5f + material->Shadow.Offset) * sin((90.0f - dummy->Angle + dummy->CurrentAngle) * 3.14f / 180.0f)),
-// 			position.z
-// 		)
-// 	);
-
-// 	float fAngle = vehicle->GetHeading() + (((dummy->Angle + dummy->CurrentAngle) + 180.0f) * 3.14f / 180.0f);
-
-// 	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
-
-// 	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-
-// 	char alpha = material->Color.alpha;
-
-// 	// alpha = static_cast<char>((static_cast<float>(alpha) * -1) * material->InertiaMultiplier);
-
-// 	CShadows::StoreShadowToBeRendered(2, Common::GetTexture(material->Shadow.Type), &center,
-// 		up.x, up.y,
-// 		right.x, right.y,
-// 		alpha, material->Color.red, material->Color.green, material->Color.blue,
-// 		2.0f, false, 1.0f, 0, true);
-// }
 
 void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, unsigned int alpha, float angle, float currentAngle, const std::string& shadwTexName, float shdwSz, float shdwOffset) {
 	if (shdwSz == 0.0f) {

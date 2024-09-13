@@ -874,7 +874,7 @@ void VehicleSirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, 
 		(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, material->Size);
 	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
 		CVector pos = position;
-		pos.x += (pos.x > 0 ? 0.8f : -0.8f); // FIX ME!!!
+		pos.x += (pos.x > 0 ? 1.0f : -1.0f); // FIX ME!!!
 		unsigned char alpha = static_cast<char>((static_cast<float>(material->Color.alpha) * -1) * material->InertiaMultiplier);
 		Common::RegisterShadow(vehicle, pos, material->Color.red, material->Color.green, material->Color.blue,
 			material->Color.alpha, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, material->Shadow.Size,
