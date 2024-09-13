@@ -29,8 +29,6 @@ void FeatureMgr::Initialize() {
     };
 
     plugin::Events::vehicleSetModelEvent += VehicleMaterials::OnModelSet;
-    plugin::Events::vehicleCtorEvent += VehiclePaintjobs::OnVehicleSetModel;
-    plugin::Events::vehicleRenderEvent += VehiclePaintjobs::OnVehicleRender;
 
     Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model) {
         Add(static_cast<void*>(pVeh), (RwFrame *)pVeh->m_pRwClump->object.parent, eModelEntityType::Vehicle);
@@ -105,8 +103,8 @@ void FeatureMgr::Initialize() {
 
     Indicator::Initialize();
     Lights::Initialize();
-    VehicleSirens::Initialize();
-    VehiclePaintjobs::Initialize();
+    Sirens::Initialize();
+    PaintJobs::Initialize();
     Remap::Initialize();
     Randomizer::Initialize();
     WeaponSoundSystem::Initialize();

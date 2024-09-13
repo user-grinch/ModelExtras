@@ -3,14 +3,20 @@
 #include <string>
 #include <map>
 
-class VehiclePaintjobs {
+/*  AVS Paintjobs Feature
+    This is mostly here for backwards compatibility
+    Better to use the Random Remap function instead
+*/
+class PaintJobs {
 private:
-    static inline std::map<int, std::map<int, int>> modelPaintjobs;
-    static inline std::map<int, bool> vehiclePaintjob;
+    // Stores model specific paintjob data
+    static inline std::unordered_map<int, std::map<int, int>> m_PaintjobStore;
+
+    // Stores whether a vehicle has been painted or not
+    static inline std::unordered_map<int, bool> m_PaintedFlag;
+
+    static void Load();
 
 public:
     static void Initialize();
-    static void Read(int model, nlohmann::json json);
-    static void OnVehicleSetModel(CVehicle* vehicle);
-    static void OnVehicleRender(CVehicle* vehicle);
 };

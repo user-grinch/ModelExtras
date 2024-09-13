@@ -172,7 +172,7 @@ private:
     CVehicle* vehicle;
 };
 
-class VehicleSirens {
+class Sirens {
 public:
     static void Initialize();
     static inline int CurrentModel = -1;
