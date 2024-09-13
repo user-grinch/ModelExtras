@@ -166,25 +166,33 @@ void Indicator::Initialize() {
 				}
 			}
 		} else {
-			if (state != eIndicatorState::Both) {
-				for (auto e: materials[model][state]){
+			if (state == eIndicatorState::Both || state == eIndicatorState::Left) {
+				for (auto e: materials[model][eIndicatorState::Left]){
 					enableMaterial(e);
 				}
 
-				for (auto e: dummies[model][state]) {
-					Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, 128, e->Angle, e->CurrentAngle, "indicator");
+				for (auto e: dummies[model][eIndicatorState::Left]) {
+					RwRGBA color = e->Color;
+					// TODO: Use RwTexture color instead
+					// if (materials[model][eIndicatorState::Left].size() > 0) {
+					// 	color = materials[model][eIndicatorState::Left][0]->Texture->raster->palette;
+					// }
+					Common::RegisterShadow(pVeh, e->Position, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
 				}
-			} else {
-				for (auto k: materials[model]) {
-					for (auto e: k.second) {
-						enableMaterial(e);
-					}
+			}
+
+			if (state == eIndicatorState::Both || state == eIndicatorState::Right) {
+				for (auto e: materials[model][eIndicatorState::Right]){
+					enableMaterial(e);
 				}
 
-				for (auto k: dummies[model]) {
-					for (auto e: k.second) {
-						Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, 128, e->Angle, e->CurrentAngle, "indicator");
-					}
+				for (auto e: dummies[model][eIndicatorState::Right]) {
+					RwRGBA color = e->Color;
+					// TODO: Use RwTexture color instead
+					// if (materials[model][eIndicatorState::Right].size() > 0) {
+					// 	color = GetCenterPixelColor(materials[model][eIndicatorState::Left][0]->TextureActive);
+					// }
+					Common::RegisterShadow(pVeh, e->Position, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
 				}
 			}
 		}
@@ -202,8 +210,8 @@ void Indicator::Initialize() {
 };
 
 void Indicator::registerMaterial(CVehicle* pVeh, RpMaterial* material, eIndicatorState state) {
-	material->color.red = material->color.green = material->color.blue = 255;
 	materials[pVeh->m_nModelIndex][state].push_back(new VehicleMaterial(material));
+	material->color.red = material->color.green = material->color.blue = 255;
 };
 
 void Indicator::registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent, eIndicatorState state, eDummyPos rot) {

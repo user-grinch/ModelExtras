@@ -13,29 +13,51 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
     // Calculate the angle based on the frame's orientation
     Angle = CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f;
     
+    
     // Normalize angle
     if (Angle < 0.0f) Angle += 360.0f;
-    // Angle -= 270.0f; // Adjust to match the proper orientation
 
     // // Adjust for special cases based on frame's Z-axis orientation
-    // if (frame->modelling.at.z <= 0.0f && Angle == 0.0f) {
-    //     Angle = frame->modelling.at.z * 180.0f;
-    //     if (Angle > 0.0f) {
-    //         Angle -= 180.0f;
-    //     }
-    // }
+    if (frame->modelling.at.z <= 0.0f && Angle == 0.0f) {
+        Angle = frame->modelling.at.z * 180.0f;
+        if (Angle > 0.0f) {
+            Angle -= 180.0f;
+        }
+    }
 
     // Tweaked offsets
     float xOffset = 0.7f;
-    if (type == eDummyPos::MiddleLeft || type == eDummyPos::FrontLeft || type == eDummyPos::RearLeft) {
+    if (type == eDummyPos::FrontLeft) {
         Position.x -= xOffset;
-    } else if (type == eDummyPos::MiddleRight || type == eDummyPos::FrontRight || type == eDummyPos::RearRight) {
+        if (Angle > 90.0f || Angle < -90.0f) {
+            Angle += 180.0f;
+        }
+    }
+
+    if (type == eDummyPos::MiddleLeft) {
+        Position.x -= 2 * xOffset;
+        Angle = 90.0f;
+    }
+
+    if (type == eDummyPos::RearLeft) {
+        Position.x -= xOffset;
+        if (Angle < 90.0f || Angle > -90.0f) {
+            Angle += 180.0f;
+        }
+    }
+
+    if (type == eDummyPos::FrontRight) {
         Position.x += xOffset;
     }
 
-    // if (type == eDummyPos::FrontLeft || type == eDummyPos::FrontRight) {
-    //     Angle -= 180.0f;
-    // }
+     if (type == eDummyPos::MiddleRight) {
+        Position.x += 2 * xOffset;
+        Angle = -90.0f;
+    }
+
+    if (type == eDummyPos::RearRight) {
+        Position.x += xOffset;
+    }
 
     // Parse params using regex
     std::regex prmRegex("prm(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)");
