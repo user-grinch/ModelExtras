@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "materials.h"
+#include <CTxdStore.h>
 
 VehicleMaterial::VehicleMaterial(RpMaterial* material) {
 	Material = material;
@@ -11,10 +12,29 @@ VehicleMaterial::VehicleMaterial(RpMaterial* material) {
 
 	std::string name = std::string(Texture->name);
 
-	if (RwTexture* newTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, std::string(name + "on").c_str()))
-		TextureActive = newTexture;
-	else if (RwTexture* newTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, std::string(name + "_on").c_str()))
-		TextureActive = newTexture;
+	RwTexture *pTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, std::string(name + "on").c_str());
+	if (!pTexture) {
+		pTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, std::string(name + "_on").c_str());
+	}
+
+	if (!pTexture) {
+		pTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, "vehiclelightson128");
+	}
+
+	if (!pTexture) {
+		int slot = CTxdStore::FindTxdSlot("vehicle");
+		if (slot < 0) {
+		    slot = CTxdStore::AddTxdSlot("vehicle");
+			CTxdStore::LoadTxd(slot, "vehicle");
+		}
+		CTxdStore::SetCurrentTxd(slot);
+		pTexture = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), "vehiclelightson128");
+		CTxdStore::PopCurrentTxd();
+	}
+
+	if (pTexture) {
+		TextureActive = pTexture;
+	}
 };
 
 void VehicleMaterials::Register(std::function<RpMaterial*(CVehicle*, RpMaterial*)> function) {
