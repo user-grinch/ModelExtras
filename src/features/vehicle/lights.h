@@ -34,7 +34,7 @@ private:
 	static inline std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> materials;
 	static inline std::map<int, std::map<eLightState, std::vector<VehicleDummy*>>> dummies;
 
-	static void registerMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state);
-	static void renderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle);
-	static void enableMaterial(VehicleMaterial* material);
+	static void RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state);
+	static void RenderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle);
+	static void EnableMaterial(VehicleMaterial* material);
 };

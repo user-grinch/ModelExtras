@@ -52,11 +52,11 @@ RwTexture* Common::GetTexture(std::string texture) {
 	if (Textures.contains(texture) && Textures[texture])
 		return Textures[texture];
 
-	Textures[texture] = Util::LoadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str(), 80.0f);
+	Textures[texture] = Util::LoadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str(), 60.0f);
     return Textures[texture];
 };
 
-void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, unsigned int alpha, float angle, float currentAngle, const std::string& shadwTexName, float shdwSz, float shdwOffset) {
+void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, unsigned int alpha, float angle, float currentAngle, const std::string& shadwTexName, float shdwSz, float shdwOffset, RwTexture *pTexture) {
 	if (shdwSz == 0.0f) {
 		return;
 	}
@@ -76,9 +76,11 @@ void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red,
 	float fAngle = pVeh->GetHeading() + (((angle + currentAngle) + 180.0f) * 3.14f / 180.0f);
 
 	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
-
 	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-	CShadows::StoreShadowToBeRendered(2, Common::GetTexture(shadwTexName), &center,
+	up *= shdwSz;
+    right *= shdwSz;
+
+	CShadows::StoreShadowToBeRendered(2, pTexture ? pTexture: Common::GetTexture(shadwTexName), &center,
 		up.x, up.y,
 		right.x, right.y,
 		alpha, red, green, blue,

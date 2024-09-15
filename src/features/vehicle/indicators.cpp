@@ -175,14 +175,14 @@ void Indicator::Initialize() {
 					RwRGBA color = e->Color;
 					// TODO: Use RwTexture color instead
 					// if (materials[model][eIndicatorState::Left].size() > 0) {
-					// 	color = materials[model][eIndicatorState::Left][0]->Texture->raster->palette;
+					// 	color = GetColorFromTexture(materials[model][eIndicatorState::Left][0]->TextureActive, 50, 50);
 					// }
 					Common::RegisterShadow(pVeh, e->Position, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
 				}
 			}
 
 			if (state == eIndicatorState::Both || state == eIndicatorState::Right) {
-				for (auto e: materials[model][eIndicatorState::Right]){
+				for (auto &e: materials[model][eIndicatorState::Right]){
 					enableMaterial(e);
 				}
 
@@ -190,7 +190,7 @@ void Indicator::Initialize() {
 					RwRGBA color = e->Color;
 					// TODO: Use RwTexture color instead
 					// if (materials[model][eIndicatorState::Right].size() > 0) {
-					// 	color = GetCenterPixelColor(materials[model][eIndicatorState::Left][0]->TextureActive);
+					// 	color = GetColorFromTexture(materials[model][eIndicatorState::Left][0]->TextureActive, 50, 50);
 					// }
 					Common::RegisterShadow(pVeh, e->Position, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
 				}
@@ -232,6 +232,8 @@ void Indicator::registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::string name,
 void Indicator::enableMaterial(VehicleMaterial* material) {
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
 	material->Material->surfaceProps.ambient = 4.0;
+	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
+	material->Material->texture = material->TextureActive;
 };
 
 void Indicator::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
