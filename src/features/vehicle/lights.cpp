@@ -69,8 +69,8 @@ void Lights::Initialize() {
 		} else {
 			return;
 		}
-
-		dummies[vehicle->m_nModelIndex][state].push_back(new VehicleDummy(frame, name, parent, rotation, col));
+		VehData& data = m_VehData.Get(vehicle);
+		data.m_Dummies[state].push_back(new VehicleDummy(frame, name, parent, rotation, col));
 	});
 	
 	Events::processScriptsEvent += []() {
@@ -85,7 +85,7 @@ void Lights::Initialize() {
 			if (now - prev > 500.0f) {
 				int model = pVeh->m_nModelIndex;
 
-				VehData& data = vehData.Get(pVeh);
+				VehData& data = m_VehData.Get(pVeh);
 				data.m_bFogLightsOn = !data.m_bFogLightsOn;
 				prev = now;
 			}
@@ -94,8 +94,9 @@ void Lights::Initialize() {
 
 	VehicleMaterials::RegisterRender([](CVehicle* pVeh) {
 		int model = pVeh->m_nModelIndex;
+		VehData& data = m_VehData.Get(pVeh);
 
-		if (pVeh->m_fHealth == 0 || materials[model].size() == 0)
+		if (pVeh->m_fHealth == 0 || data.m_Materials.size() == 0)
 			return;
 
 		CAutomobile* automobile = reinterpret_cast<CAutomobile*>(pVeh);
@@ -116,7 +117,6 @@ void Lights::Initialize() {
 			RenderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
 		}
 		
-		VehData& data = vehData.Get(pVeh);
 		if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT) && 
 		!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)) {
 			if (data.m_bFogLightsOn) {
@@ -130,13 +130,14 @@ void Lights::Initialize() {
 		}
 		
 		if (pVeh->m_nVehicleFlags.bLightsOn) {
+			VehData& data = m_VehData.Get(pVeh);
 			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT) 
-			&& materials[model][eLightState::FrontLightLeft].size() != 0) {
+			&& data.m_Materials[eLightState::FrontLightLeft].size() != 0) {
 				RenderLights(pVeh, eLightState::FrontLightLeft, vehicleAngle, cameraAngle);
 			}
 
 			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)
-			&& materials[model][eLightState::FrontLightRight].size() != 0) {
+			&& data.m_Materials[eLightState::FrontLightRight].size() != 0) {
 				RenderLights(pVeh, eLightState::FrontLightRight, vehicleAngle, cameraAngle);
 			}
 
@@ -172,27 +173,28 @@ void Lights::Initialize() {
 };
 
 void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle, float cameraAngle) {
-	for (auto &e: materials[pVeh->m_nModelIndex][state]) {
+	VehData& data = m_VehData.Get(pVeh);
+	for (auto &e: data.m_Materials[state]) {
 		EnableMaterial(e);
 	}
 
 	int id = 0;
-	for (auto e: dummies[pVeh->m_nModelIndex][state]) {
+	for (auto e: data.m_Dummies[state]) {
 		EnableDummy((int)pVeh + (int)state + id++, e, pVeh);
 		Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, 128,  e->Angle, e->CurrentAngle, "indicator");
 	}
 };
 
 void Lights::RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state) {
+	VehData& data = m_VehData.Get(vehicle);
 	material->color.red = material->color.green = material->color.blue = 255;
-	materials[vehicle->m_nModelIndex][state].push_back(new VehicleMaterial(material));
+	data.m_Materials[state].push_back(new VehicleMaterial(material));
 };
 
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-		float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 		Common::RegisterCoronaWithAngle(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			CORONA_A, id, cameraAngle, dummy->CurrentAngle, 1.0f,  0.5f);
+			CORONA_A, id, dummy->CurrentAngle, 0.5f,  0.5f);
 	}
 };
 
@@ -203,6 +205,8 @@ void Lights::EnableMaterial(VehicleMaterial* material) {
 	material->Material->texture = material->TextureActive;
 };
 
+
+// Indicator lights
 static uint64_t delay;
 static bool delayState;
 
@@ -225,9 +229,8 @@ void DrawTurnlight(CVehicle *pVeh, eDummyPos pos) {
     if (leftSide) posn.x *= -1.0f;
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
-	float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 	Common::RegisterShadow(pVeh, posn, SHADOW_R, SHADOW_G, SHADOW_B, 128, dummyAngle, 0.0f, "indicator");
-    Common::RegisterCoronaWithAngle(pVeh, posn, 255, 128, 0, CORONA_A, dummyId, cameraAngle, dummyAngle, 2.0f, 0.5f);
+    Common::RegisterCoronaWithAngle(pVeh, posn, 255, 128, 0, CORONA_A, dummyId, dummyAngle, 2.0f, 0.5f);
 }
 
 void DrawVehicleTurnlights(CVehicle *vehicle, eLightState lightsStatus) {
@@ -287,8 +290,9 @@ void Lights::InitIndicators() {
 			}
 
 			if (rot != eDummyPos::None) {
+				VehData& data = m_VehData.Get(pVeh);
 				bool exists = false;
-				for (auto e: Lights::dummies[pVeh->m_nModelIndex][state]) {
+				for (auto e: data.m_Dummies[state]) {
 					if (e->Position.y == pFrame->modelling.pos.y
 					&& e->Position.z == pFrame->modelling.pos.z) {
 						exists = true;
@@ -297,7 +301,7 @@ void Lights::InitIndicators() {
 				}
 
 				if (!exists) {
-					Lights::dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 128, 0, 128 }));
+					data.m_Dummies[state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 128, 0, 128 }));
 				}
 			}
 		}
@@ -308,35 +312,34 @@ void Lights::InitIndicators() {
 			return;
 		}
 
-		Lights::VehData &data = Lights::vehData.Get(pVeh);
+		Lights::VehData &data = Lights::m_VehData.Get(pVeh);
 		int model = pVeh->m_nModelIndex;
-		eLightState state = data.indicatorState;
-
+		eLightState state = data.m_nIndicatorState;
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) == false && 
-		Lights::dummies[model].size() == 0 && Lights::materials[model][state].size() == 0) {
+		data.m_Dummies.size() == 0 && data.m_Materials[state].size() == 0) {
 			return;
 		}
 		
 		if (pVeh->m_pDriver == FindPlayerPed()) {
 			if (KeyPressed(VK_SHIFT)) {
-				data.indicatorState = eLightState::IndicatorNone;
+				data.m_nIndicatorState = eLightState::IndicatorNone;
 				delay = 0;
 				delayState = false;
 			}
 
 			if (KeyPressed(VK_Z)) {
-				data.indicatorState = eLightState::IndicatorLeft;
+				data.m_nIndicatorState = eLightState::IndicatorLeft;
 			}
 
 			if (KeyPressed(VK_C)) { 
-				data.indicatorState = eLightState::IndicatorRight;
+				data.m_nIndicatorState = eLightState::IndicatorRight;
 			}
 
 			if (KeyPressed(VK_X)) {
-				data.indicatorState = eLightState::IndicatorBoth;
+				data.m_nIndicatorState = eLightState::IndicatorBoth;
 			}
 		} else if (pVeh->m_pDriver) {
-			data.indicatorState = eLightState::IndicatorNone;
+			data.m_nIndicatorState = eLightState::IndicatorNone;
 			CVector2D prevPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nPreviousPathNodeInfo);
 			CVector2D currPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nCurrentPathNodeInfo);
 			CVector2D nextPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nNextPathNodeInfo);
@@ -346,15 +349,15 @@ void Lights::InitIndicators() {
 			while (angle > 360.0f) angle -= 360.0f;
 
 			if (angle >= 30.0f && angle < 180.0f)
-				data.indicatorState = eLightState::IndicatorLeft;
+				data.m_nIndicatorState = eLightState::IndicatorLeft;
 			else if (angle <= 330.0f && angle > 180.0f)
-				data.indicatorState = eLightState::IndicatorRight;
+				data.m_nIndicatorState = eLightState::IndicatorRight;
 
-			if (data.indicatorState == eLightState::IndicatorNone) {
+			if (data.m_nIndicatorState == eLightState::IndicatorNone) {
 				if (pVeh->m_autoPilot.m_nCurrentLane == 0 && pVeh->m_autoPilot.m_nNextLane == 1)
-					data.indicatorState = eLightState::IndicatorRight;
+					data.m_nIndicatorState = eLightState::IndicatorRight;
 				else if (pVeh->m_autoPilot.m_nCurrentLane == 1 && pVeh->m_autoPilot.m_nNextLane == 0)
-					data.indicatorState = eLightState::IndicatorLeft;
+					data.m_nIndicatorState = eLightState::IndicatorLeft;
 			}
 		}
 
@@ -367,7 +370,7 @@ void Lights::InitIndicators() {
 
 		// global turn lights
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) &&
-			Lights::dummies[model].size() == 0 && Lights::materials[model][state].size() == 0)
+			data.m_Dummies.size() == 0 && data.m_Materials[state].size() == 0)
 		{
 			if ((pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) &&
 				(pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE || pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) &&
@@ -382,15 +385,15 @@ void Lights::InitIndicators() {
 		} else {
 			int id = 0;
 			if (state == eLightState::IndicatorBoth || state == eLightState::IndicatorLeft) {
-				for (auto e: Lights::materials[model][eLightState::IndicatorLeft]){
+				for (auto e: data.m_Materials[eLightState::IndicatorLeft]){
 					EnableMaterial(e);
 				}
 
-				for (auto e: Lights::dummies[model][eLightState::IndicatorLeft]) {
+				for (auto e: data.m_Dummies[eLightState::IndicatorLeft]) {
 					RwRGBA color = e->Color;
 					// TODO: Use RwTexture color instead
-					// if (Lights::materials[model][eLightState::IndicatorLeft].size() > 0) {
-					// 	color = GetColorFromTexture(Lights::materials[model][eLightState::IndicatorLeft][0]->TextureActive, 50, 50);
+					// if (Lights::data.m_Materials[eLightState::IndicatorLeft].size() > 0) {
+					// 	color = GetColorFromTexture(Lights::data.m_Materials[eLightState::IndicatorLeft][0]->TextureActive, 50, 50);
 					// }
 					EnableDummy((int)pVeh + id++, e, pVeh);
 					Common::RegisterShadow(pVeh, e->ShdwPosition, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
@@ -398,15 +401,15 @@ void Lights::InitIndicators() {
 			}
 
 			if (state == eLightState::IndicatorBoth || state == eLightState::IndicatorRight) {
-				for (auto &e: Lights::materials[model][eLightState::IndicatorRight]){
+				for (auto &e: data.m_Materials[eLightState::IndicatorRight]){
 					EnableMaterial(e);
 				}
 
-				for (auto e: Lights::dummies[model][eLightState::IndicatorRight]) {
+				for (auto e: data.m_Dummies[eLightState::IndicatorRight]) {
 					RwRGBA color = e->Color;
 					// TODO: Use RwTexture color instead
-					// if (Lights::materials[model][eLightState::IndicatorRight].size() > 0) {
-					// 	color = GetColorFromTexture(Lights::materials[model][eLightState::IndicatorLeft][0]->TextureActive, 50, 50);
+					// if (Lights::data.m_Materials[eLightState::IndicatorRight].size() > 0) {
+					// 	color = GetColorFromTexture(Lights::data.m_Materials[eLightState::IndicatorLeft][0]->TextureActive, 50, 50);
 					// }
 					EnableDummy((int)pVeh + id++, e, pVeh);
 					Common::RegisterShadow(pVeh, e->ShdwPosition, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");

@@ -30,15 +30,14 @@ private:
 
 	struct VehData {
         bool m_bFogLightsOn = false;
-		eLightState indicatorState = eLightState::IndicatorNone;
+		eLightState m_nIndicatorState = eLightState::IndicatorNone;
+		std::map<eLightState, std::vector<VehicleMaterial*>> m_Materials;
+		std::map<eLightState, std::vector<VehicleDummy*>> m_Dummies;
 
         VehData(CVehicle *pVeh) {}
         ~VehData() {}
     };
-
-    static inline VehicleExtendedData<VehData> vehData;
-	static inline std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> materials;
-	static inline std::map<int, std::map<eLightState, std::vector<VehicleDummy*>>> dummies;
+    static inline VehicleExtendedData<VehData> m_VehData;
 
 	static void RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state);
 	static void RenderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle);

@@ -188,5 +188,5 @@ private:
     static void ParseConfig();
     static void RegisterMaterial(CVehicle* vehicle, RpMaterial* material);
     static void EnableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time);
-    static void EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time);
+    static void EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time);
 };

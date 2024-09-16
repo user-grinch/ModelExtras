@@ -712,8 +712,6 @@ void Sirens::Initialize() {
 			}
 		}
 
-		float vehAngle = (vehicle->GetHeading() * 180.0f) / 3.14f;
-		float camAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 		CVector distance = vehicle->GetPosition() - TheCamera.GetPosition();
 		eCoronaFlareType type = FLARETYPE_NONE;
 
@@ -749,7 +747,7 @@ void Sirens::Initialize() {
 			int id = 0;
 			for (auto &e: vehicleData[index]->Dummies[mat.first]) {
 				id++;
-				EnableDummy((mat.first * 16) + id, e, vehicle, vehAngle, camAngle, mat.second, type, time);
+				EnableDummy((mat.first * 16) + id, e, vehicle, mat.second, type, time);
 			}
 
 			if (mat.second->Frames != 0) {
@@ -813,7 +811,7 @@ void Sirens::EnableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat
 	}
 };
 
-void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
+void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
 	CVector position = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 
 	position.x = dummy->Position.x;
@@ -831,6 +829,7 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float v
 	}
 
 	if (material->Type != VehicleSirenType::NonDirectional) {
+		float vehicleAngle = (vehicle->GetHeading() * 180.0f) / 3.14f;
 		float dummyAngle = vehicleAngle + dummy->Angle;
 
 		if (material->Type == VehicleSirenType::Rotator) {
@@ -865,7 +864,7 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float v
 			dummyAngle -= 180.0f;
 
 		Common::RegisterCoronaWithAngle(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha, 
-			(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, cameraAngle, dummyAngle, material->Radius, material->Size);
+			(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, dummyAngle, material->Radius, material->Size);
 	}
 
 	Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha,

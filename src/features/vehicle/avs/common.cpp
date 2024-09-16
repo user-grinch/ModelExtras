@@ -14,11 +14,11 @@ void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green,
 		size, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, false);
 };
 
-void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, int id, float cameraAngle, float angle, float radius, float size) {
+void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, int id, float angle, float radius, float size) {
 	if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		return;
 	}
-
+	float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 	float differenceAngle = ((cameraAngle > angle) ? (cameraAngle - angle) : (angle - cameraAngle));
 
 	float diameter = (radius / 2.0f);
