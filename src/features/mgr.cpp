@@ -17,7 +17,6 @@
 #include "vehicle/lights.h"
 #include "vehicle/paintjobs.h"
 #include "vehicle/avs/materials.h"
-#include "vehicle/indicators.h"
 #include "vehicle/sirens.h"
 
 static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
@@ -101,7 +100,6 @@ void FeatureMgr::Initialize() {
     m_FunctionTable["spotlight_dummy"] = SpotLight::Process;
     m_FunctionTable["hub_"] = WheelHub::Process;
 
-    Indicator::Initialize();
     Lights::Initialize();
     Sirens::Initialize();
     PaintJobs::Initialize();

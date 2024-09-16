@@ -25,12 +25,12 @@ enum class eLightState {
 };
 
 class Lights {
-public:
-	static void Initialize();
+private: 
+	static void InitIndicators();
 
-private:
 	struct VehData {
         bool m_bFogLightsOn = false;
+		eLightState indicatorState = eLightState::IndicatorNone;
 
         VehData(CVehicle *pVeh) {}
         ~VehData() {}
@@ -40,9 +40,11 @@ private:
 	static inline std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> materials;
 	static inline std::map<int, std::map<eLightState, std::vector<VehicleDummy*>>> dummies;
 
-public:
 	static void RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state);
 	static void RenderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle);
 	static void EnableMaterial(VehicleMaterial* material);
 	static void EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle);
+
+public:
+	static void Initialize();
 };
