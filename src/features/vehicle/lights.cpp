@@ -60,9 +60,6 @@ void Lights::Initialize() {
 		} else if (std::regex_search(name, std::regex("^(revl_|reversingl_|revr_|reversingr_|reversinglight_l|reversinglight_r)"))) {
 			state = eLightState::Reverselight;
 			col = {255, 255, 255, 240};
-		} else if (std::regex_search(name, std::regex("^breakl(?:ight)?_"))) {
-			state = eLightState::Brakelight;
-			col = {250, 0, 0, 240};
 		} else if (std::regex_search(name, std::regex("^light_day"))) {
 			state = eLightState::Daylight;
 		} else if (std::regex_search(name, std::regex("^light_night"))) {
@@ -73,8 +70,7 @@ void Lights::Initialize() {
 			return;
 		}
 
-		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-		dummies[index][state].push_back(new VehicleDummy(frame, name, parent, rotation, col));
+		dummies[vehicle->m_nModelIndex][state].push_back(new VehicleDummy(frame, name, parent, rotation, col));
 	});
 	
 	Events::processScriptsEvent += []() {
@@ -109,43 +105,27 @@ void Lights::Initialize() {
 
 		RenderLights(pVeh, eLightState::AllDayLight, vehicleAngle, cameraAngle);
 
-		if (CClock::GetIsTimeInRange(20, 8))
+		if (CClock::GetIsTimeInRange(20, 8)) {
 			RenderLights(pVeh, eLightState::Nightlight, vehicleAngle, cameraAngle);
-		else
-			RenderLights(pVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
-
-		if (pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver)
-			RenderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
+		}
 		else {
-			for (auto e: materials[pVeh->m_nModelIndex][eLightState::Reverselight]) {
-				e->Color.red = e->Color.green = e->Color.blue = 10;
-			}
+			RenderLights(pVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
 		}
 
-		if (pVeh->m_fBreakPedal && pVeh->m_pDriver) {
-			RenderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
+		if (pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver) {
+			RenderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
 		}
 		
 		VehData& data = vehData.Get(pVeh);
-
 		if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT) && 
 		!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)) {
 			if (data.m_bFogLightsOn) {
 				RenderLights(pVeh, eLightState::FogLight, vehicleAngle, cameraAngle);
+				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/foglight.png")), 120);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 				posn.x = 0.0f;
-				posn.y += 3.35f;
-
-				static RwTexture *pLightTex = nullptr;
-				if (!pLightTex) {
-					pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/foglight.png")), 120);
-				}
-
-				CVector center = pVeh->TransformFromObjectSpace(posn);
-				float fAngle = pVeh->GetHeading() + (180.0f * 3.14f / 180.0f);
-				CVector up = CVector(-sin(fAngle) * 3.0f, cos(fAngle) * 3.0f, 0.0f);
-				CVector right = CVector(cos(fAngle) * 2.0f, sin(fAngle) * 2.0f, 0.0f);
-				CShadows::StoreShadowToBeRendered(2, pLightTex, &center, up.x, up.y, right.x, right.y, 128, 225, 225, 225, 4.0f, false, 1.0f, 0, true);
+				posn.y += 2.0f;
+				Common::RegisterShadow(pVeh, posn, 225, 225, 225, 128, 0.0f, 0.0f, "", 2.5f, 0.0f, pLightTex);
 			}
 		}
 		
@@ -171,24 +151,19 @@ void Lights::Initialize() {
 				showTailLights = true;
 			}
 
+			if (pVeh->m_fBreakPedal && pVeh->m_pDriver) {
+				RenderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
+				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 80);
+				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
+				posn.x = 0.0f;
+				Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "", 2.0f, 0.0f, pLightTex);
+			}
+
 			if (showTailLights) {
 				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 40);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 				posn.x = 0.0f;
 				Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "", 2.0f, 0.0f, pLightTex);
-
-				// if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT)) {
-				// 	CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
-				// 	if (posn.x == 0.0f).x = 0.15f;
-				// 	posn.x *= -1.0f;
-				// 	Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "indicator");
-				// }
-
-				// if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)) {
-				// 	CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
-				// 	if (posn.x == 0.0f) posn.x = 0.15f;
-				// 	Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "indicator");
-				// }
 			}
 		}
 	});
@@ -199,14 +174,24 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 		EnableMaterial(e);
 	}
 
-	for (auto e: dummies[CPools::ms_pVehiclePool->GetIndex(pVeh)][state]) {
-		Common::RegisterShadow(pVeh, e->Position, e->Color.red, e->Color.green, e->Color.blue, 128,  e->Angle, e->CurrentAngle, "indicator");
+	int id = 0;
+	for (auto e: dummies[pVeh->m_nModelIndex][state]) {
+		EnableDummy((int)pVeh + (int)state + id++, e, pVeh);
+		Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, 128,  e->Angle, e->CurrentAngle, "indicator");
 	}
 };
 
 void Lights::RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state) {
 	material->color.red = material->color.green = material->color.blue = 255;
 	materials[vehicle->m_nModelIndex][state].push_back(new VehicleMaterial(material));
+};
+
+void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle) {
+	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+		float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
+		Common::RegisterCoronaWithAngle(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
+			CORONA_A, id, cameraAngle, dummy->CurrentAngle, 1.0f,  0.5f);
+	}
 };
 
 void Lights::EnableMaterial(VehicleMaterial* material) {

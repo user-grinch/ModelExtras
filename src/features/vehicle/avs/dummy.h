@@ -27,7 +27,7 @@ private:
 public:
     RwFrame* Frame;
     RwRGBA Color = { 255, 255, 255, 128 };
-    CVector Position;
+    CVector Position, ShdwPosition;
     eDummyPos Type;
     float Size;
     float Angle;

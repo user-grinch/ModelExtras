@@ -27,12 +27,12 @@ void DrawTurnlight(CVehicle *pVeh, eDummyPos pos) {
     Common::RegisterCoronaWithAngle(pVeh, posn, 255, 128, 0, CORONA_A, dummyId, cameraAngle, dummyAngle, 2.0f, 0.5f);
 }
 
-void DrawVehicleTurnlights(CVehicle *vehicle, eIndicatorState lightsStatus) {
-    if (lightsStatus == eIndicatorState::Both || lightsStatus == eIndicatorState::Right) {
+void DrawVehicleTurnlights(CVehicle *vehicle, eLightState lightsStatus) {
+    if (lightsStatus == eLightState::IndicatorBoth || lightsStatus == eLightState::IndicatorRight) {
         DrawTurnlight(vehicle, eDummyPos::FrontRight);
         DrawTurnlight(vehicle, eDummyPos::RearRight);
     }
-    if (lightsStatus == eIndicatorState::Both || lightsStatus == eIndicatorState::Left) {
+    if (lightsStatus == eLightState::IndicatorBoth || lightsStatus == eLightState::IndicatorLeft) {
         DrawTurnlight(vehicle, eDummyPos::FrontLeft);
         DrawTurnlight(vehicle, eDummyPos::RearLeft);
     }
@@ -49,12 +49,12 @@ void Indicator::Initialize() {
 		if (material->color.blue == 0) {
 			if (material->color.red == 255) {
 				if (material->color.green > 55 && material->color.green < 59) {
-					registerMaterial(vehicle, material, eIndicatorState::Right);
+					Lights::RegisterMaterial(vehicle, material, eLightState::IndicatorRight);
 				}
 			}
 			else if (material->color.green == 255) {
 				if (material->color.red > 180 && material->color.red < 184) {
-					registerMaterial(vehicle, material, eIndicatorState::Left);
+					Lights::RegisterMaterial(vehicle, material, eLightState::IndicatorLeft);
 				}
 			}
 		}
@@ -63,7 +63,7 @@ void Indicator::Initialize() {
 		&& (material->color.green == 4 ||  material->color.green == 5) 
 		&& material->color.blue == 128 
 		&& std::string(material->texture->name).rfind("light", 0) == 0) {
-			registerMaterial(vehicle, material, (material->color.green == 4) ? eIndicatorState::Left : eIndicatorState::Right);
+			Lights::RegisterMaterial(vehicle, material, (material->color.green == 4) ? eLightState::IndicatorLeft : eLightState::IndicatorRight);
 		}
 		return material;
 	});
@@ -72,19 +72,30 @@ void Indicator::Initialize() {
 		std::smatch match;
 		if (std::regex_search(name, match, std::regex("^(turnl_|indicator_)(.{2})"))) {
 			std::string stateStr = match.str(2);
-			eIndicatorState state = (toupper(stateStr[0]) == 'L') ? eIndicatorState::Left : eIndicatorState::Right;
+			eLightState state = (toupper(stateStr[0]) == 'L') ? eLightState::IndicatorLeft : eLightState::IndicatorRight;
 			eDummyPos rot = eDummyPos::None;
 			
 			if (toupper(stateStr[1]) == 'F') {
-				rot = state == eIndicatorState::Right ? eDummyPos::FrontRight : eDummyPos::FrontLeft;
+				rot = state == eLightState::IndicatorRight ? eDummyPos::FrontRight : eDummyPos::FrontLeft;
 			} else if (toupper(stateStr[1]) == 'R') {
-				rot = state == eIndicatorState::Right ? eDummyPos::RearRight : eDummyPos::RearLeft;
+				rot = state == eLightState::IndicatorRight ? eDummyPos::RearRight : eDummyPos::RearLeft;
 			} else if (toupper(stateStr[1]) == 'M') {
-				rot = state == eIndicatorState::Right ? eDummyPos::MiddleRight : eDummyPos::MiddleLeft;
+				rot = state == eLightState::IndicatorRight ? eDummyPos::MiddleRight : eDummyPos::MiddleLeft;
 			}
 
 			if (rot != eDummyPos::None) {
-				registerDummy(pVeh, pFrame, name, parent, state, rot);
+				bool exists = false;
+				for (auto e: dummies[pVeh->m_nModelIndex][state]) {
+					if (e->Position.y == pFrame->modelling.pos.y
+					&& e->Position.z == pFrame->modelling.pos.z) {
+						exists = true;
+						break;
+					}
+				}
+
+				if (!exists) {
+					dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 128, 0, 128 }));
+				}
 			}
 		}
 	});
@@ -96,7 +107,7 @@ void Indicator::Initialize() {
 
 		VehData &data = vehData.Get(pVeh);
 		int model = pVeh->m_nModelIndex;
-		eIndicatorState state = data.indicatorState;
+		eLightState state = data.indicatorState;
 
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) == false && 
 		dummies[model].size() == 0 && materials[model][state].size() == 0) {
@@ -105,24 +116,24 @@ void Indicator::Initialize() {
 		
 		if (pVeh->m_pDriver == FindPlayerPed()) {
 			if (KeyPressed(VK_SHIFT)) {
-				data.indicatorState = eIndicatorState::None;
+				data.indicatorState = eLightState::IndicatorNone;
 				delay = 0;
 				delayState = false;
 			}
 
 			if (KeyPressed(VK_Z)) {
-				data.indicatorState = eIndicatorState::Left;
+				data.indicatorState = eLightState::IndicatorLeft;
 			}
 
 			if (KeyPressed(VK_C)) { 
-				data.indicatorState = eIndicatorState::Right;
+				data.indicatorState = eLightState::IndicatorRight;
 			}
 
 			if (KeyPressed(VK_X)) {
-				data.indicatorState = eIndicatorState::Both;
+				data.indicatorState = eLightState::IndicatorBoth;
 			}
 		} else if (pVeh->m_pDriver) {
-			data.indicatorState = eIndicatorState::None;
+			data.indicatorState = eLightState::IndicatorNone;
 			CVector2D prevPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nPreviousPathNodeInfo);
 			CVector2D currPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nCurrentPathNodeInfo);
 			CVector2D nextPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nNextPathNodeInfo);
@@ -132,19 +143,19 @@ void Indicator::Initialize() {
 			while (angle > 360.0f) angle -= 360.0f;
 
 			if (angle >= 30.0f && angle < 180.0f)
-				data.indicatorState = eIndicatorState::Left;
+				data.indicatorState = eLightState::IndicatorLeft;
 			else if (angle <= 330.0f && angle > 180.0f)
-				data.indicatorState = eIndicatorState::Right;
+				data.indicatorState = eLightState::IndicatorRight;
 
-			if (data.indicatorState == eIndicatorState::None) {
+			if (data.indicatorState == eLightState::IndicatorNone) {
 				if (pVeh->m_autoPilot.m_nCurrentLane == 0 && pVeh->m_autoPilot.m_nNextLane == 1)
-					data.indicatorState = eIndicatorState::Right;
+					data.indicatorState = eLightState::IndicatorRight;
 				else if (pVeh->m_autoPilot.m_nCurrentLane == 1 && pVeh->m_autoPilot.m_nNextLane == 0)
-					data.indicatorState = eIndicatorState::Left;
+					data.indicatorState = eLightState::IndicatorLeft;
 			}
 		}
 
-		if (state == eIndicatorState::None) {
+		if (state == eLightState::IndicatorNone) {
 			return;
 		}
 
@@ -166,33 +177,36 @@ void Indicator::Initialize() {
 				}
 			}
 		} else {
-			if (state == eIndicatorState::Both || state == eIndicatorState::Left) {
-				for (auto e: materials[model][eIndicatorState::Left]){
-					enableMaterial(e);
+			int id = 0;
+			if (state == eLightState::IndicatorBoth || state == eLightState::IndicatorLeft) {
+				for (auto e: materials[model][eLightState::IndicatorLeft]){
+					Lights::EnableMaterial(e);
 				}
 
-				for (auto e: dummies[model][eIndicatorState::Left]) {
+				for (auto e: dummies[model][eLightState::IndicatorLeft]) {
 					RwRGBA color = e->Color;
 					// TODO: Use RwTexture color instead
-					// if (materials[model][eIndicatorState::Left].size() > 0) {
-					// 	color = GetColorFromTexture(materials[model][eIndicatorState::Left][0]->TextureActive, 50, 50);
+					// if (materials[model][eLightState::IndicatorLeft].size() > 0) {
+					// 	color = GetColorFromTexture(materials[model][eLightState::IndicatorLeft][0]->TextureActive, 50, 50);
 					// }
-					Common::RegisterShadow(pVeh, e->Position, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
+					Lights::EnableDummy((int)pVeh + id++, e, pVeh);
+					Common::RegisterShadow(pVeh, e->ShdwPosition, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
 				}
 			}
 
-			if (state == eIndicatorState::Both || state == eIndicatorState::Right) {
-				for (auto &e: materials[model][eIndicatorState::Right]){
-					enableMaterial(e);
+			if (state == eLightState::IndicatorBoth || state == eLightState::IndicatorRight) {
+				for (auto &e: materials[model][eLightState::IndicatorRight]){
+					Lights::EnableMaterial(e);
 				}
 
-				for (auto e: dummies[model][eIndicatorState::Right]) {
+				for (auto e: dummies[model][eLightState::IndicatorRight]) {
 					RwRGBA color = e->Color;
 					// TODO: Use RwTexture color instead
-					// if (materials[model][eIndicatorState::Right].size() > 0) {
-					// 	color = GetColorFromTexture(materials[model][eIndicatorState::Left][0]->TextureActive, 50, 50);
+					// if (materials[model][eLightState::IndicatorRight].size() > 0) {
+					// 	color = GetColorFromTexture(materials[model][eLightState::IndicatorLeft][0]->TextureActive, 50, 50);
 					// }
-					Common::RegisterShadow(pVeh, e->Position, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
+					Lights::EnableDummy((int)pVeh + id++, e, pVeh);
+					Common::RegisterShadow(pVeh, e->ShdwPosition, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
 				}
 			}
 		}
@@ -207,39 +221,4 @@ void Indicator::Initialize() {
 		delay = timestamp;
 		delayState = !delayState;
 	};
-};
-
-void Indicator::registerMaterial(CVehicle* pVeh, RpMaterial* material, eIndicatorState state) {
-	materials[pVeh->m_nModelIndex][state].push_back(new VehicleMaterial(material));
-	material->color.red = material->color.green = material->color.blue = 255;
-};
-
-void Indicator::registerDummy(CVehicle* pVeh, RwFrame* pFrame, std::string name, bool parent, eIndicatorState state, eDummyPos rot) {
-	bool exists = false;
-	for (auto e: dummies[pVeh->m_nModelIndex][state]) {
-		if (e->Position.y == pFrame->modelling.pos.y
-		&& e->Position.z == pFrame->modelling.pos.z) {
-			exists = true;
-			break;
-		}
-	}
-
-	if (!exists) {
-		dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 128, 0, 128 }));
-	}
-};
-
-void Indicator::enableMaterial(VehicleMaterial* material) {
-	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
-	material->Material->surfaceProps.ambient = 4.0;
-	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
-	material->Material->texture = material->TextureActive;
-};
-
-void Indicator::enableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, float vehicleAngle, float cameraAngle) {
-	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-		float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
-		Common::RegisterCoronaWithAngle(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			CORONA_A, id, cameraAngle, dummy->CurrentAngle, 2.0f,  0.5f);
-	}
 };

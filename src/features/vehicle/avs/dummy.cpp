@@ -5,6 +5,7 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
     CurrentAngle = 0.0f;
     Frame = frame;
     Position = { frame->modelling.pos.x, frame->modelling.pos.y, frame->modelling.pos.z };
+    ShdwPosition = Position;
     hasParent = parent;
     Color = color;
     Type = type;
@@ -34,7 +35,7 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
     float xOffset = 0.7f;
     float errorPadding = 2.0f;
     if (type == eDummyPos::FrontLeft ) {
-        Position.x -= xOffset; 
+        ShdwPosition.x -= xOffset; 
         if (Angle > 0.0f+errorPadding && Angle < 270.0f-errorPadding) {
             Angle += 180.0f;
         }
@@ -42,7 +43,7 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
     }
 
     if (type == eDummyPos::FrontRight) {
-        Position.x += xOffset; 
+        ShdwPosition.x += xOffset; 
         if (Angle > 90.0f+errorPadding) {
             Angle += 180.0f;
         }
@@ -50,35 +51,35 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
     }
 
     if (type == eDummyPos::MiddleLeft) {
-        Position.x -= 2 * xOffset;
+        ShdwPosition.x -= 2 * xOffset;
         if (Angle > 0.0f+errorPadding && Angle < 180.0f-errorPadding) {
             Angle += 180.0f;
         }
     }
 
     if (type == eDummyPos::MiddleRight) {
-        Position.x += 2 * xOffset;
+        ShdwPosition.x += 2 * xOffset;
         if (Angle > 180.0f+errorPadding) { 
             Angle += 180.0f;
         }
     }
 
     if (type == eDummyPos::RearLeft) {
-        Position.x += -xOffset; 
+        ShdwPosition.x += -xOffset; 
         if (Angle < 90.0f-errorPadding || Angle > 180.0f+errorPadding) {
             Angle += 180.0f;
         }
     }
 
     if (type == eDummyPos::RearRight) {
-        Position.x += xOffset; 
+        ShdwPosition.x += xOffset; 
         if (Angle < 180.0f+errorPadding || Angle > 270.0f-errorPadding) {
             Angle += 180.0f;
         }
     }
 
     if (type == eDummyPos::Rear) {
-        Angle += 180.0f;
+        Angle = 180.0f;
     }
 
 

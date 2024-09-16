@@ -15,7 +15,13 @@ enum class eLightState {
 	AllDayLight, 
 	Daylight, 
 	Nightlight,
-	FogLight, 
+	FogLight,
+
+	// Indicator state 
+	IndicatorLeft, 
+	IndicatorRight, 
+	IndicatorBoth,
+	IndicatorNone, 
 };
 
 class Lights {
@@ -34,7 +40,9 @@ private:
 	static inline std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> materials;
 	static inline std::map<int, std::map<eLightState, std::vector<VehicleDummy*>>> dummies;
 
+public:
 	static void RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state);
 	static void RenderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle);
 	static void EnableMaterial(VehicleMaterial* material);
+	static void EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle);
 };
