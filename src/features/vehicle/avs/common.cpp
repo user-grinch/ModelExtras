@@ -18,18 +18,19 @@ void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uc
 	if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		return;
 	}
+	float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
 	float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
-	float differenceAngle = ((cameraAngle > angle) ? (cameraAngle - angle) : (angle - cameraAngle));
+	float dummyAngle = vehicleAngle + angle;
 
-	float diameter = (radius / 2.0f);
+	float differenceAngle = ((cameraAngle > dummyAngle) ? (cameraAngle - dummyAngle) : (dummyAngle - cameraAngle));
 
-	if (differenceAngle < diameter || differenceAngle > (360.0f - diameter))
+	if (differenceAngle < 90.0f || differenceAngle > 270.0f)
 		return;
 
 	float alphaFloat = static_cast<float>(alpha);
 
 	alphaFloat = (alphaFloat < 0.0f) ? (alphaFloat * -1) : (alphaFloat);
-
+	float diameter = (radius / 2.0f);
 	if (differenceAngle < diameter + 15.0f) { // 15.0f
 		float angle = diameter - differenceAngle;
 

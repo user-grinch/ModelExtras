@@ -8,8 +8,8 @@
 void Lights::Initialize() {
 
 	// NOP CVehicle::DoHeadLightBeam
-	patch::Nop(0x6A2E9F, 0x58);
-	patch::Nop(0x6BDE73, 0x12);
+	// patch::Nop(0x6A2E9F, 0x58);
+	// patch::Nop(0x6BDE73, 0x12);
 
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
 		if (material->color.red == 255 && material->color.green == 173 && material->color.blue == 0)
@@ -69,8 +69,7 @@ void Lights::Initialize() {
 		} else {
 			return;
 		}
-		VehData& data = m_VehData.Get(vehicle);
-		data.m_Dummies[state].push_back(new VehicleDummy(frame, name, parent, rotation, col));
+		m_Dummies[vehicle->m_nModelIndex][state].push_back(new VehicleDummy(frame, name, parent, rotation, col));
 	});
 	
 	Events::processScriptsEvent += []() {
@@ -96,7 +95,7 @@ void Lights::Initialize() {
 		int model = pVeh->m_nModelIndex;
 		VehData& data = m_VehData.Get(pVeh);
 
-		if (pVeh->m_fHealth == 0 || data.m_Materials.size() == 0)
+		if (pVeh->m_fHealth == 0 || m_Materials[pVeh->m_nModelIndex].size() == 0)
 			return;
 
 		CAutomobile* automobile = reinterpret_cast<CAutomobile*>(pVeh);
@@ -132,12 +131,12 @@ void Lights::Initialize() {
 		if (pVeh->m_nVehicleFlags.bLightsOn) {
 			VehData& data = m_VehData.Get(pVeh);
 			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT) 
-			&& data.m_Materials[eLightState::FrontLightLeft].size() != 0) {
+			&& m_Materials[pVeh->m_nModelIndex][eLightState::FrontLightLeft].size() != 0) {
 				RenderLights(pVeh, eLightState::FrontLightLeft, vehicleAngle, cameraAngle);
 			}
 
 			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)
-			&& data.m_Materials[eLightState::FrontLightRight].size() != 0) {
+			&& m_Materials[pVeh->m_nModelIndex][eLightState::FrontLightRight].size() != 0) {
 				RenderLights(pVeh, eLightState::FrontLightRight, vehicleAngle, cameraAngle);
 			}
 
@@ -154,14 +153,14 @@ void Lights::Initialize() {
 
 			if (pVeh->m_fBreakPedal && pVeh->m_pDriver) {
 				RenderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
-				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 80);
+				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 90);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 				posn.x = 0.0f;
 				Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "", 2.0f, 0.0f, pLightTex);
 			}
 
 			if (showTailLights) {
-				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 40);
+				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 70);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 				posn.x = 0.0f;
 				Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "", 2.0f, 0.0f, pLightTex);
@@ -174,12 +173,12 @@ void Lights::Initialize() {
 
 void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle, float cameraAngle) {
 	VehData& data = m_VehData.Get(pVeh);
-	for (auto &e: data.m_Materials[state]) {
+	for (auto &e: m_Materials[pVeh->m_nModelIndex][state]) {
 		EnableMaterial(e);
 	}
 
 	int id = 0;
-	for (auto e: data.m_Dummies[state]) {
+	for (auto e: m_Dummies[pVeh->m_nModelIndex][state]) {
 		EnableDummy((int)pVeh + (int)state + id++, e, pVeh);
 		Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, 128,  e->Angle, e->CurrentAngle, "indicator");
 	}
@@ -188,13 +187,14 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 void Lights::RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state) {
 	VehData& data = m_VehData.Get(vehicle);
 	material->color.red = material->color.green = material->color.blue = 255;
-	data.m_Materials[state].push_back(new VehicleMaterial(material));
+	m_Materials[vehicle->m_nModelIndex][state].push_back(new VehicleMaterial(material));
 };
 
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+		
 		Common::RegisterCoronaWithAngle(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			CORONA_A, id, dummy->CurrentAngle, 0.5f,  0.5f);
+			CORONA_A, id, dummy->Angle, 0.3f,  0.3f);
 	}
 };
 
@@ -230,7 +230,7 @@ void DrawTurnlight(CVehicle *pVeh, eDummyPos pos) {
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, SHADOW_R, SHADOW_G, SHADOW_B, 128, dummyAngle, 0.0f, "indicator");
-    Common::RegisterCoronaWithAngle(pVeh, posn, 255, 128, 0, CORONA_A, dummyId, dummyAngle, 2.0f, 0.5f);
+    Common::RegisterCoronaWithAngle(pVeh, posn, 255, 128, 0, CORONA_A, dummyId, dummyAngle, 0.3f, 0.3f);
 }
 
 void DrawVehicleTurnlights(CVehicle *vehicle, eLightState lightsStatus) {
@@ -290,9 +290,8 @@ void Lights::InitIndicators() {
 			}
 
 			if (rot != eDummyPos::None) {
-				VehData& data = m_VehData.Get(pVeh);
 				bool exists = false;
-				for (auto e: data.m_Dummies[state]) {
+				for (auto e: m_Dummies[pVeh->m_nModelIndex][state]) {
 					if (e->Position.y == pFrame->modelling.pos.y
 					&& e->Position.z == pFrame->modelling.pos.z) {
 						exists = true;
@@ -301,7 +300,7 @@ void Lights::InitIndicators() {
 				}
 
 				if (!exists) {
-					data.m_Dummies[state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 128, 0, 128 }));
+					m_Dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 128, 0, 128 }));
 				}
 			}
 		}
@@ -316,7 +315,7 @@ void Lights::InitIndicators() {
 		int model = pVeh->m_nModelIndex;
 		eLightState state = data.m_nIndicatorState;
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) == false && 
-		data.m_Dummies.size() == 0 && data.m_Materials[state].size() == 0) {
+		m_Dummies[pVeh->m_nModelIndex].size() == 0 && m_Materials[pVeh->m_nModelIndex][state].size() == 0) {
 			return;
 		}
 		
@@ -370,7 +369,7 @@ void Lights::InitIndicators() {
 
 		// global turn lights
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) &&
-			data.m_Dummies.size() == 0 && data.m_Materials[state].size() == 0)
+			m_Dummies[pVeh->m_nModelIndex].size() == 0 && m_Materials[pVeh->m_nModelIndex][state].size() == 0)
 		{
 			if ((pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) &&
 				(pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE || pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) &&
@@ -385,15 +384,15 @@ void Lights::InitIndicators() {
 		} else {
 			int id = 0;
 			if (state == eLightState::IndicatorBoth || state == eLightState::IndicatorLeft) {
-				for (auto e: data.m_Materials[eLightState::IndicatorLeft]){
+				for (auto e: m_Materials[pVeh->m_nModelIndex][eLightState::IndicatorLeft]){
 					EnableMaterial(e);
 				}
 
-				for (auto e: data.m_Dummies[eLightState::IndicatorLeft]) {
+				for (auto e: m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorLeft]) {
 					RwRGBA color = e->Color;
 					// TODO: Use RwTexture color instead
-					// if (Lights::data.m_Materials[eLightState::IndicatorLeft].size() > 0) {
-					// 	color = GetColorFromTexture(Lights::data.m_Materials[eLightState::IndicatorLeft][0]->TextureActive, 50, 50);
+					// if (Lights::m_Materials[vehicle->m_nModelIndex][eLightState::IndicatorLeft].size() > 0) {
+					// 	color = GetColorFromTexture(Lights::m_Materials[vehicle->m_nModelIndex][eLightState::IndicatorLeft][0]->TextureActive, 50, 50);
 					// }
 					EnableDummy((int)pVeh + id++, e, pVeh);
 					Common::RegisterShadow(pVeh, e->ShdwPosition, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
@@ -401,15 +400,15 @@ void Lights::InitIndicators() {
 			}
 
 			if (state == eLightState::IndicatorBoth || state == eLightState::IndicatorRight) {
-				for (auto &e: data.m_Materials[eLightState::IndicatorRight]){
+				for (auto &e: m_Materials[pVeh->m_nModelIndex][eLightState::IndicatorRight]){
 					EnableMaterial(e);
 				}
 
-				for (auto e: data.m_Dummies[eLightState::IndicatorRight]) {
+				for (auto e: m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorRight]) {
 					RwRGBA color = e->Color;
 					// TODO: Use RwTexture color instead
-					// if (Lights::data.m_Materials[eLightState::IndicatorRight].size() > 0) {
-					// 	color = GetColorFromTexture(Lights::data.m_Materials[eLightState::IndicatorLeft][0]->TextureActive, 50, 50);
+					// if (Lights::m_Materials[vehicle->m_nModelIndex][eLightState::IndicatorRight].size() > 0) {
+					// 	color = GetColorFromTexture(Lights::m_Materials[vehicle->m_nModelIndex][eLightState::IndicatorLeft][0]->TextureActive, 50, 50);
 					// }
 					EnableDummy((int)pVeh + id++, e, pVeh);
 					Common::RegisterShadow(pVeh, e->ShdwPosition, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
