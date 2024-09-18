@@ -58,11 +58,7 @@ RwTexture* Common::GetTexture(std::string texture) {
 };
 
 void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, unsigned int alpha, float angle, float currentAngle, const std::string& shadwTexName, float shdwSz, float shdwOffset, RwTexture *pTexture) {
-	if (shdwSz == 0.0f) {
-		return;
-	}
-
-	if (!gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
+	if (shdwSz == 0.0f || !gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
 		return;
 	}
 
@@ -81,7 +77,7 @@ void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red,
 	up *= shdwSz;
     right *= shdwSz;
 
-	CShadows::StoreShadowToBeRendered(2, pTexture ? pTexture: Common::GetTexture(shadwTexName), &center,
+	CShadows::StoreShadowToBeRendered(2, (pTexture != NULL ? pTexture: Common::GetTexture(shadwTexName)), &center,
 		up.x, up.y,
 		right.x, right.y,
 		alpha, red, green, blue,

@@ -873,9 +873,8 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 		CVector pos = position;
 		pos.x += (pos.x > 0 ? 1.2f : -1.2f); // FIX ME!!!
 		unsigned char alpha = static_cast<char>((static_cast<float>(material->Color.alpha) * -1) * material->InertiaMultiplier);
-		Common::RegisterShadow(vehicle, pos, material->Color.red, material->Color.green, material->Color.blue,
-			material->Color.alpha, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, material->Shadow.Size,
-			material->Shadow.Offset);
+		Common::RegisterShadow(vehicle, pos, material->Color.red, material->Color.green, material->Color.blue, 
+			material->Color.alpha, dummy->Angle, dummy->CurrentAngle, "indicator", material->Shadow.Size*5.0f, material->Shadow.Offset, nullptr);
 	}
 };
 

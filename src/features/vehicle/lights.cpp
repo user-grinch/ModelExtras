@@ -369,7 +369,8 @@ void Lights::InitIndicators() {
 
 		// global turn lights
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) &&
-			m_Dummies[pVeh->m_nModelIndex].size() == 0 && m_Materials[pVeh->m_nModelIndex][state].size() == 0)
+			(m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorLeft].size() == 0 || m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorRight].size() == 0)
+			 && m_Materials[pVeh->m_nModelIndex][state].size() == 0)
 		{
 			if ((pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) &&
 				(pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE || pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) &&
