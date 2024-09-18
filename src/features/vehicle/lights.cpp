@@ -192,9 +192,8 @@ void Lights::RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightSta
 
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-		
 		Common::RegisterCoronaWithAngle(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			CORONA_A, id, dummy->Angle, 0.3f,  0.3f);
+			90, id, dummy->Angle, 0.3f,  0.3f);
 	}
 };
 
@@ -390,13 +389,8 @@ void Lights::InitIndicators() {
 				}
 
 				for (auto e: m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorLeft]) {
-					RwRGBA color = e->Color;
-					// TODO: Use RwTexture color instead
-					// if (Lights::m_Materials[vehicle->m_nModelIndex][eLightState::IndicatorLeft].size() > 0) {
-					// 	color = GetColorFromTexture(Lights::m_Materials[vehicle->m_nModelIndex][eLightState::IndicatorLeft][0]->TextureActive, 50, 50);
-					// }
 					EnableDummy((int)pVeh + id++, e, pVeh);
-					Common::RegisterShadow(pVeh, e->ShdwPosition, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
+					Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, e->Color.alpha, e->Angle, e->CurrentAngle, "indicator");
 				}
 			}
 
@@ -406,13 +400,8 @@ void Lights::InitIndicators() {
 				}
 
 				for (auto e: m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorRight]) {
-					RwRGBA color = e->Color;
-					// TODO: Use RwTexture color instead
-					// if (Lights::m_Materials[vehicle->m_nModelIndex][eLightState::IndicatorRight].size() > 0) {
-					// 	color = GetColorFromTexture(Lights::m_Materials[vehicle->m_nModelIndex][eLightState::IndicatorLeft][0]->TextureActive, 50, 50);
-					// }
 					EnableDummy((int)pVeh + id++, e, pVeh);
-					Common::RegisterShadow(pVeh, e->ShdwPosition, color.red, color.green, color.blue, color.alpha, e->Angle, e->CurrentAngle, "indicator");
+					Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, e->Color.alpha, e->Angle, e->CurrentAngle, "indicator");
 				}
 			}
 		}

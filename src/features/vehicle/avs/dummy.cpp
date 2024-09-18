@@ -82,19 +82,14 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
         Angle = 180.0f;
     }
 
+    size_t prmPos = name.find("_prm");
+    if (prmPos != std::string::npos && prmPos + 11 <= name.size()) {
+        Color.red = VehicleDummy::ReadHex(name[prmPos + 4], name[prmPos + 5]);
+        Color.green = VehicleDummy::ReadHex(name[prmPos + 6], name[prmPos + 7]);
+        Color.blue = VehicleDummy::ReadHex(name[prmPos + 8], name[prmPos + 9]);
 
-    // Parse params using regex
-    std::regex prmRegex("prm(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)(\\w)");
-    std::smatch match;
-    if (std::regex_search(name, match, prmRegex)) {
-        Color.red = VehicleDummy::ReadHex(*match[1].str().c_str(), *match[2].str().c_str());
-        Color.green = VehicleDummy::ReadHex(*match[3].str().c_str(), *match[4].str().c_str());
-        Color.blue = VehicleDummy::ReadHex(*match[5].str().c_str(), *match[6].str().c_str());
-
-        Type = static_cast<eDummyPos>(match[7].str()[0] - '0');
-        Size = static_cast<float>(match[9].str()[0] - '0') / 10.0f;
-    } else if (std::regex_search(name, match, std::regex("turn"))) {
-        gLogger->warn((name + ", pattern not matched").c_str());
+        Type = static_cast<eDummyPos>(name[prmPos + 10] - '0');
+        Size = static_cast<float>(name[prmPos + 11] - '0') / 10.0f;
     }
 }
 
