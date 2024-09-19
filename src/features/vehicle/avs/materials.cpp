@@ -78,20 +78,20 @@ void VehicleMaterials::OnModelSet(CVehicle* vehicle, int model) {
 		dummies[currentVehicle->m_nModelIndex] = true;
 	}
 
-	VehicleMaterials::findDummies(vehicle, (RwFrame*)vehicle->m_pRwClump->object.parent);
+	VehicleMaterials::FindDummies(vehicle, (RwFrame*)vehicle->m_pRwClump->object.parent);
 };
 
-void VehicleMaterials::findDummies(CVehicle* vehicle, RwFrame* frame, bool parent) {
+void VehicleMaterials::FindDummies(CVehicle* vehicle, RwFrame* frame, bool parent) {
 	if (!frame)
 		return;
 
 	const std::string name = GetFrameNodeName(frame);
 
 	if (RwFrame* nextFrame = frame->child)
-		findDummies(vehicle, nextFrame, (RwFrameGetParent(frame))?(true):(false));
+		FindDummies(vehicle, nextFrame, (RwFrameGetParent(frame))?(true):(false));
 
 	if (RwFrame* nextFrame = frame->next)
-		findDummies(vehicle, nextFrame, parent);
+		FindDummies(vehicle, nextFrame, parent);
 
 	if (frames[currentVehicle->m_nModelIndex].contains(frame))
 		return;

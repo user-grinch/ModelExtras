@@ -4,6 +4,7 @@
 #include "avs/common.h"
 #include "defines.h"
 #include <CShadows.h>
+#include <eVehicleClass.h>
 
 void Lights::Initialize() {
 
@@ -141,12 +142,13 @@ void Lights::Initialize() {
 			}
 
 			bool showTailLights = false;
-			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT)) {
+			bool isBikeModel = CModelInfo::IsBikeModel(pVeh->m_nModelIndex);
+			if (isBikeModel || !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT)) {
 				RenderLights(pVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
 				showTailLights = true;
 			}
 
-			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)) {
+			if (isBikeModel || !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)) {
 				RenderLights(pVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
 				showTailLights = true;
 			}
@@ -154,16 +156,21 @@ void Lights::Initialize() {
 			if (pVeh->m_fBreakPedal && pVeh->m_pDriver) {
 				RenderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
 				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 90);
+				static RwTexture *pLightTexBike = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight_bike.png")), 90);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 				posn.x = 0.0f;
-				Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "", 2.0f, 0.0f, pLightTex);
+				Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "", 2.0f, 0.0f, 
+					(isBikeModel ? pLightTexBike : pLightTex));
 			}
 
 			if (showTailLights) {
 				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 70);
+				static RwTexture *pLightTexBike = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight_bike.png")), 70);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 				posn.x = 0.0f;
-				Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "", 2.0f, 0.0f, pLightTex);
+				
+				Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "", 2.0f, 0.0f, 
+					(isBikeModel ? pLightTexBike : pLightTex));
 			}
 		}
 	});

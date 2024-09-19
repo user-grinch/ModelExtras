@@ -365,8 +365,9 @@ VehicleSirenData::VehicleSirenData(nlohmann::json json) {
 				nlohmann::json value = reference.value();
 
 				if (key == "colors") {
-					for (nlohmann::json::iterator color = value.begin(); color != value.end(); ++color)
+					for (nlohmann::json::iterator color = value.begin(); color != value.end(); ++color) {
 						VehicleSirenData::ReferenceColors[color.key()] = color.value();
+					}
 
 					continue;
 				}

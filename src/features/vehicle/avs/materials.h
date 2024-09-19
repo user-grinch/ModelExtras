@@ -37,5 +37,5 @@ class VehicleMaterials {
 		static inline CVehicle* currentVehicle;
 		static inline std::list<std::pair<unsigned int*, unsigned int>> storedMaterials;
 
-		static void findDummies(CVehicle* vehicle, RwFrame* frame, bool parent = false);
+		static void FindDummies(CVehicle* vehicle, RwFrame* frame, bool parent = false);
 };
