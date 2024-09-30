@@ -4,6 +4,18 @@
 
 extern void ShowDonationWindow();
 
+std::vector<std::string> donators = {
+    "berrymuffin",
+    "Dustin Eastwood",
+    "Dwolf98",
+    "KaiQ",
+    "MC Silver",
+    "Osama aj",
+    "Pol3 Million",
+    "Seemann",
+    "spdfnpe"
+};
+
 BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
     if (nReason == DLL_PROCESS_ATTACH) {
         if (gConfig.ReadBoolean("MISC", "ShowDonationPopup", true)) {
@@ -35,6 +47,11 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             GetSystemTime(&st);
             gLogger->info("Date: {}-{}-{} Time: {}:{}\n", st.wYear, st.wMonth, st.wDay,
                                         st.wHour, st.wMinute);
+            gLogger->info("\nDonators:");
+            for (const auto& name : donators) {
+                gLogger->info("- {}", name);
+            }
+            
             gLogger->set_pattern("[%L] %v");
             SoundSystem.Init();
 

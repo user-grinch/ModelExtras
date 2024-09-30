@@ -23,14 +23,6 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
         Angle -= 360.0f;
     }
 
-    // // Adjust for special cases based on frame's Z-axis orientation
-    // if (frame->modelling.at.z <= 0.0f && Angle == 0.0f) {
-    //     Angle = frame->modelling.at.z * 180.0f;
-    //     if (Angle > 0.0f) {
-    //         Angle -= 180.0f;
-    //     }
-    // }
-
     // Tweaked offsets
     float xOffset = 0.7f;
     float errorPadding = 2.0f;

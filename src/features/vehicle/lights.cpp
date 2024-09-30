@@ -155,8 +155,8 @@ void Lights::Initialize() {
 
 			if (pVeh->m_fBreakPedal && pVeh->m_pDriver) {
 				RenderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
-				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 90);
-				static RwTexture *pLightTexBike = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight_bike.png")), 90);
+				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 60);
+				static RwTexture *pLightTexBike = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight_bike.png")), 60);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 				posn.x = 0.0f;
 				Common::RegisterShadow(pVeh, posn, TL_SHADOW_R, TL_SHADOW_G, TL_SHADOW_B, 128, 180.0f, 0.0f, "", 2.0f, 0.0f, 
@@ -164,8 +164,8 @@ void Lights::Initialize() {
 			}
 
 			if (showTailLights) {
-				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 70);
-				static RwTexture *pLightTexBike = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight_bike.png")), 70);
+				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 40);
+				static RwTexture *pLightTexBike = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight_bike.png")), 40);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 				posn.x = 0.0f;
 				
@@ -200,7 +200,7 @@ void Lights::RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightSta
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		Common::RegisterCoronaWithAngle(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			90, id, dummy->Angle, 0.3f,  0.3f);
+			60, id, dummy->Angle, 0.3f,  0.3f);
 	}
 };
 
