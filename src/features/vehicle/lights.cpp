@@ -225,6 +225,16 @@ CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
 }
 
 void DrawTurnlight(CVehicle *pVeh, eDummyPos pos) {
+	if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE) {
+		CAutomobile *ptr = reinterpret_cast<CAutomobile*>(pVeh);
+		if ((pos == eDummyPos::FrontLeft && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT))
+			|| (pos == eDummyPos::FrontRight && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT))
+			|| (pos == eDummyPos::RearLeft && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT))
+			|| (pos == eDummyPos::RearRight && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT))) {
+			return;
+		}
+	}
+
 	int idx = (pos == eDummyPos::RearLeft) || (pos == eDummyPos::RearRight);
 	bool leftSide = (pos == eDummyPos::RearLeft) || (pos == eDummyPos::FrontLeft);
 
@@ -384,8 +394,9 @@ void Lights::InitIndicators() {
 			{
 				if (DistanceBetweenPoints(TheCamera.m_vecGameCamPos, pVeh->GetPosition()) < 150.0f) {
 					DrawVehicleTurnlights(pVeh, state);
-					if (pVeh->m_pTractor)
+					if (pVeh->m_pTractor) {
 						DrawVehicleTurnlights(pVeh->m_pTractor, state);
+					}
 				}
 			}
 		} else {
