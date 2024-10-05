@@ -4,6 +4,7 @@
 #include "game_sa/RenderWare.h"
 
 enum class eDummyPos { 
+    None,
     // remove later
     Front,
     Rear,
@@ -16,7 +17,18 @@ enum class eDummyPos {
     RearLeft, 
     FrontRight, 
     RearRight, 
-    None
+};
+
+// This enum order needs to be same as ePanels
+enum class eDetachPart {
+    FrontLeftWing,
+    FrontRightWing,
+    RearLeftWing,
+    RearRightWing,
+    WindScreen,
+    FrontBumper,
+    RearBumper,
+    Unknown,
 };
 
 class VehicleDummy {
@@ -29,6 +41,7 @@ public:
     RwRGBA Color = { 255, 255, 255, 128 };
     CVector Position, ShdwPosition;
     eDummyPos Type;
+    eDetachPart PartType;
     float Size;
     float Angle;
     float CurrentAngle = 0.0f;

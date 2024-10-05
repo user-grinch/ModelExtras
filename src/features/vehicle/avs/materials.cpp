@@ -2,12 +2,12 @@
 #include "materials.h"
 #include <CTxdStore.h>
 
-VehicleMaterial::VehicleMaterial(RpMaterial* material) {
+VehicleMaterial::VehicleMaterial(RpMaterial* material, eDummyPos pos) {
 	Material = material;
 
 	Texture = material->texture;
 	TextureActive = material->texture;
-
+	Pos = pos;
 	Color = { material->color.red, material->color.green, material->color.blue, material->color.alpha };
 
 	std::string name = std::string(Texture->name);

@@ -83,6 +83,13 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
         Type = static_cast<eDummyPos>(name[prmPos + 10] - '0');
         Size = static_cast<float>(name[prmPos + 11] - '0') / 10.0f;
     }
+
+    if (name.find("_fb") != std::string::npos) PartType = eDetachPart::FrontBumper;
+    if (name.find("_rb") != std::string::npos) PartType = eDetachPart::RearBumper;
+    if (name.find("_wl") != std::string::npos) PartType = eDetachPart::FrontLeftWing;
+    if (name.find("_wr") != std::string::npos) PartType = eDetachPart::FrontRightWing;
+    if (name.find("_yl") != std::string::npos) PartType = eDetachPart::FrontLeftWing;
+    if (name.find("_yr") != std::string::npos) PartType = eDetachPart::FrontRightWing;
 }
 
 int VehicleDummy::ReadHex(char a, char b) {

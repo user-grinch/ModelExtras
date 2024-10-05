@@ -191,10 +191,10 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 	}
 };
 
-void Lights::RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state) {
+void Lights::RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state, eDummyPos pos) {
 	VehData& data = m_VehData.Get(vehicle);
 	material->color.red = material->color.green = material->color.blue = 255;
-	m_Materials[vehicle->m_nModelIndex][state].push_back(new VehicleMaterial(material));
+	m_Materials[vehicle->m_nModelIndex][state].push_back(new VehicleMaterial(material, pos));
 };
 
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle) {
@@ -266,17 +266,40 @@ float GetZAngleForPoint(CVector2D const &point) {
     return angle;
 }
 
+inline bool IsBumperOrWingDamaged(CVehicle* pVeh, eDetachPart part) {
+    if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE) {
+        CAutomobile* ptr = reinterpret_cast<CAutomobile*>(pVeh);
+        return ptr->m_damageManager.GetPanelStatus((int)part);
+    }
+    return false;
+}
+
 void Lights::InitIndicators() {
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
+		eDummyPos pos = eDummyPos::None;
 		if (material->color.blue == 0) {
-			if (material->color.red == 255) {
-				if (material->color.green > 55 && material->color.green < 59) {
-					RegisterMaterial(vehicle, material, eLightState::IndicatorRight);
+			if (material->color.red == 255) { // Right
+				if (material->color.green >= 56 && material->color.green <= 59) {
+					if (material->color.green == 58) {
+						pos = eDummyPos::FrontRight;
+					} else if (material->color.green == 57) {
+						pos = eDummyPos::MiddleRight;
+					} else if (material->color.green == 56) {
+						pos = eDummyPos::RearRight;
+					} 
+					RegisterMaterial(vehicle, material, eLightState::IndicatorRight, pos);
 				}
 			}
-			else if (material->color.green == 255) {
-				if (material->color.red > 180 && material->color.red < 184) {
-					RegisterMaterial(vehicle, material, eLightState::IndicatorLeft);
+			else if (material->color.green == 255) { // Left
+				if (material->color.red >= 181 && material->color.red <= 184) {
+					if (material->color.red == 183) {
+						pos = eDummyPos::FrontLeft;
+					} else if (material->color.red == 182) {
+						pos = eDummyPos::MiddleLeft;
+					} else if (material->color.red == 181) {
+						pos = eDummyPos::RearLeft;
+					}
+					RegisterMaterial(vehicle, material, eLightState::IndicatorLeft, pos);
 				}
 			}
 		}
@@ -402,24 +425,58 @@ void Lights::InitIndicators() {
 		} else {
 			int id = 0;
 			if (state == eLightState::IndicatorBoth || state == eLightState::IndicatorLeft) {
-				for (auto e: m_Materials[pVeh->m_nModelIndex][eLightState::IndicatorLeft]){
-					EnableMaterial(e);
-				}
+				bool FrontDisabled = false;
+				bool RearDisabled = false;
 
 				for (auto e: m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorLeft]) {
+					if (IsBumperOrWingDamaged(pVeh, e->PartType)) {
+						if (e->Type == eDummyPos::FrontLeft) {
+							FrontDisabled = true;
+						}
+						if (e->Type == eDummyPos::RearLeft) {
+							RearDisabled = true;
+						}
+						continue;
+					}
 					EnableDummy((int)pVeh + id++, e, pVeh);
 					Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, e->Color.alpha, e->Angle, e->CurrentAngle, "indicator");
 				}
+
+				for (auto e: m_Materials[pVeh->m_nModelIndex][eLightState::IndicatorLeft]){
+					if ((FrontDisabled && e->Pos == eDummyPos::FrontLeft)
+					|| RearDisabled && e->Pos == eDummyPos::RearLeft) {
+						continue;
+					}
+					EnableMaterial(e);
+				}
+
+				
 			}
 
 			if (state == eLightState::IndicatorBoth || state == eLightState::IndicatorRight) {
-				for (auto &e: m_Materials[pVeh->m_nModelIndex][eLightState::IndicatorRight]){
-					EnableMaterial(e);
-				}
+				bool FrontDisabled = false;
+				bool RearDisabled = false;
 
 				for (auto e: m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorRight]) {
+					if (IsBumperOrWingDamaged(pVeh, e->PartType)) {
+						if (e->Type == eDummyPos::FrontRight) {
+							FrontDisabled = true;
+						}
+						if (e->Type == eDummyPos::RearRight) {
+							RearDisabled = true;
+						}
+						continue;
+					}
 					EnableDummy((int)pVeh + id++, e, pVeh);
 					Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, e->Color.alpha, e->Angle, e->CurrentAngle, "indicator");
+				}
+
+				for (auto &e: m_Materials[pVeh->m_nModelIndex][eLightState::IndicatorRight]) {
+					if ((FrontDisabled && e->Pos == eDummyPos::FrontRight)
+					|| RearDisabled && e->Pos == eDummyPos::RearRight) {
+						continue;
+					}
+					EnableMaterial(e);
 				}
 			}
 		}

@@ -7,14 +7,17 @@
 #include "game_sa/NodeName.h"
 #include "game_sa/RenderWare.h"
 
+enum class eDummyPos;
+
 class VehicleMaterial {
 public:
 	RpMaterial* Material;
 	RwTexture* Texture;
 	RwTexture* TextureActive;
 	RwRGBA Color;
+	eDummyPos Pos;
 
-	VehicleMaterial(RpMaterial* material);
+	VehicleMaterial(RpMaterial* material, eDummyPos pos = (eDummyPos)0);
 };
 
 class VehicleMaterials {
