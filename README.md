@@ -1,19 +1,29 @@
 # ModelExtras
-Adds functions to vehicle components. Similar to [VehFuncs](https://gtaforums.com/topic/904475-vehfuncs/) & [ImVehFt](https://gtaforums.com/topic/528175-improved-vehicle-features/).
+Adds functions to peds, weapons & vehicles components. Similar to [VehFuncs](https://gtaforums.com/topic/904475-vehfuncs/) & [ImVehFt](https://gtaforums.com/topic/528175-improved-vehicle-features/).
 
 
 ## Functions:
-- Chain
+- Random Remap
+- Randomizer
+- Brakes
+- Chains
 - Clutch
-- Front brake
-- Gear meter
-- Gear shifter
-- Gear sound
+- Gear Change Sound
+- Gear Meter
+- Gear Switcher
+- Handlebar
 - Odometer
-- Rear brake
-- RPM meter
+- RPM Meter
 - Speedometer
-- Body state
+- Sirens
+- Turn Lights
+- Fog Lights
+- Brake Lights
+- Reverse Lights
+- Wheel Hubs
+- BloodRemap
+- BodyState
+- Custom Sounds
 
 ## Installation
 1. Install [Visual C++ Redistributable 2019 x86](https://aka.ms/vs/16/release/vc_redist.x86.exe) &  [Asi Loader](https://www.gtagarage.com/mods/show.php?id=21709).
