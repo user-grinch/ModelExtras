@@ -427,11 +427,15 @@ void Lights::InitIndicators() {
 			if (state == eLightState::IndicatorBoth || state == eLightState::IndicatorLeft) {
 				bool FrontDisabled = false;
 				bool RearDisabled = false;
+				bool MidDisabled = false;
 
 				for (auto e: m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorLeft]) {
 					if (IsBumperOrWingDamaged(pVeh, e->PartType)) {
 						if (e->Type == eDummyPos::FrontLeft) {
 							FrontDisabled = true;
+						}
+						if (e->Type == eDummyPos::MiddleLeft) {
+							MidDisabled = true;
 						}
 						if (e->Type == eDummyPos::RearLeft) {
 							RearDisabled = true;
@@ -444,7 +448,8 @@ void Lights::InitIndicators() {
 
 				for (auto e: m_Materials[pVeh->m_nModelIndex][eLightState::IndicatorLeft]){
 					if ((FrontDisabled && e->Pos == eDummyPos::FrontLeft)
-					|| RearDisabled && e->Pos == eDummyPos::RearLeft) {
+					|| RearDisabled && e->Pos == eDummyPos::RearLeft
+					|| MidDisabled && e->Pos == eDummyPos::MiddleLeft) {
 						continue;
 					}
 					EnableMaterial(e);
@@ -456,11 +461,15 @@ void Lights::InitIndicators() {
 			if (state == eLightState::IndicatorBoth || state == eLightState::IndicatorRight) {
 				bool FrontDisabled = false;
 				bool RearDisabled = false;
+				bool MidDisabled = false;
 
 				for (auto e: m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorRight]) {
 					if (IsBumperOrWingDamaged(pVeh, e->PartType)) {
 						if (e->Type == eDummyPos::FrontRight) {
 							FrontDisabled = true;
+						}
+						if (e->Type == eDummyPos::MiddleRight) {
+							MidDisabled = true;
 						}
 						if (e->Type == eDummyPos::RearRight) {
 							RearDisabled = true;
@@ -473,7 +482,8 @@ void Lights::InitIndicators() {
 
 				for (auto &e: m_Materials[pVeh->m_nModelIndex][eLightState::IndicatorRight]) {
 					if ((FrontDisabled && e->Pos == eDummyPos::FrontRight)
-					|| RearDisabled && e->Pos == eDummyPos::RearRight) {
+					|| RearDisabled && e->Pos == eDummyPos::RearRight
+					|| MidDisabled && e->Pos == eDummyPos::MiddleRight) {
 						continue;
 					}
 					EnableMaterial(e);
