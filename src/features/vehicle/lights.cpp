@@ -6,6 +6,15 @@
 #include <CShadows.h>
 #include <eVehicleClass.h>
 
+
+inline bool IsBumperOrWingDamaged(CVehicle* pVeh, eDetachPart part) {
+    if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE) {
+        CAutomobile* ptr = reinterpret_cast<CAutomobile*>(pVeh);
+        return ptr->m_damageManager.GetPanelStatus((int)part);
+    }
+    return false;
+}
+
 void Lights::Initialize() {
 
 	// NOP CVehicle::DoHeadLightBeam
@@ -56,9 +65,9 @@ void Lights::Initialize() {
 		RwRGBA col{ 255, 255, 255, 128 };
 
 		std::smatch match;
-		if (std::regex_search(name, match, std::regex("^fog(light)?_([a-zA-Z])"))) {
+		if (std::regex_search(name, match, std::regex("^fogl(ight)?_[lr].*$"))) {
 			state = (toupper(match.str(2)[0]) == 'L') ? (eLightState::FogLight) : (eLightState::FogLight);
-		} else if (std::regex_search(name, std::regex("^rev.*_[lr]$"))) {
+		} else if (std::regex_search(name, std::regex("^rev.*\s*_[lr].*$"))) {
 			state = eLightState::Reverselight;
 			col = {255, 255, 255, 240};
 		} else if (std::regex_search(name, std::regex("^light_day"))) {
@@ -179,15 +188,25 @@ void Lights::Initialize() {
 };
 
 void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle, float cameraAngle) {
-	VehData& data = m_VehData.Get(pVeh);
-	for (auto &e: m_Materials[pVeh->m_nModelIndex][state]) {
-		EnableMaterial(e);
-	}
-
+	bool flag = true;
 	int id = 0;
 	for (auto e: m_Dummies[pVeh->m_nModelIndex][state]) {
+		if (IsBumperOrWingDamaged(pVeh, e->PartType)) {
+			flag = false;
+			if (state == eLightState::FogLight) {
+				m_VehData.Get(pVeh).m_bFogLightsOn = false;
+			}
+			continue;
+		}
 		EnableDummy((int)pVeh + (int)state + id++, e, pVeh);
 		Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, 128,  e->Angle, e->CurrentAngle, "indicator");
+	}
+
+	VehData& data = m_VehData.Get(pVeh);
+	for (auto &e: m_Materials[pVeh->m_nModelIndex][state]) {
+		if (flag) {
+			EnableMaterial(e);
+		}
 	}
 };
 
@@ -264,14 +283,6 @@ float GetZAngleForPoint(CVector2D const &point) {
     float angle = CGeneral::GetATanOfXY(point.x, point.y) * 57.295776f - 90.0f;
     while (angle < 0.0f) angle += 360.0f;
     return angle;
-}
-
-inline bool IsBumperOrWingDamaged(CVehicle* pVeh, eDetachPart part) {
-    if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE) {
-        CAutomobile* ptr = reinterpret_cast<CAutomobile*>(pVeh);
-        return ptr->m_damageManager.GetPanelStatus((int)part);
-    }
-    return false;
 }
 
 void Lights::InitIndicators() {
@@ -454,8 +465,6 @@ void Lights::InitIndicators() {
 					}
 					EnableMaterial(e);
 				}
-
-				
 			}
 
 			if (state == eLightState::IndicatorBoth || state == eLightState::IndicatorRight) {

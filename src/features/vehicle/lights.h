@@ -21,6 +21,7 @@ enum class eLightState {
 	IndicatorRight, 
 	IndicatorBoth,
 	IndicatorNone, 
+	Total,
 };
 
 class Lights {
