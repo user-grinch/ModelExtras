@@ -5,39 +5,28 @@
 void SteerWheel::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = xData.Get(pVeh);
-    float angle = pVeh->m_fSteerAngle * 180 / 3.1416f;
-        
-    if (angle > 0.1f) { // Right
-        float rot = 0.0f;
+    float angle = pVeh->m_fSteerAngle * (-1.666666f);
+    float maxAngle = ROTATION_VAL;
+    const std::string name = GetFrameNodeName(frame);
 
-        if (data.m_eRotation == eSteerWheelRotation::Left) {
-            rot = -ROTATION_VAL * 2.0f;
-        }else if (data.m_eRotation == eSteerWheelRotation::Default) {
-            rot = -ROTATION_VAL;
+    if (name[0] == 'f') { // vehfuncs 
+        if (isdigit(name[7])) {
+            angle *= (float)std::stoi(&name[7]) / 2;
+        } else {
+            angle *= ROTATION_VAL;
         }
-
-        if (rot != 0.0f) {
-            Util::SetFrameRotationY(frame, rot);
-        }
-        data.m_eRotation = eSteerWheelRotation::Right;
-
-    } else if (angle < -0.1f) { // Left
-        float rot = 0.0f;
-
-        if (data.m_eRotation == eSteerWheelRotation::Right) {
-            rot = ROTATION_VAL * 2.0f;
-        }else if (data.m_eRotation == eSteerWheelRotation::Default) {
-            rot = ROTATION_VAL;
-        }
-
-        if (rot != 0.0f) {
-            Util::SetFrameRotationY(frame, rot);
-        }
-        data.m_eRotation = eSteerWheelRotation::Left;
-
-    } else if (data.m_eRotation != eSteerWheelRotation::Default) {
-        float rot = data.m_eRotation == eSteerWheelRotation::Right ? ROTATION_VAL: -ROTATION_VAL;
-        Util::SetFrameRotationY(frame, rot);
-        data.m_eRotation = eSteerWheelRotation::Default;
     }
+    else {
+        float maxAngle = 1.0f;
+        if (name.length() > 8 && name[8] == '_') {
+            if (isdigit(name[9])) {
+                maxAngle = std::stof(&name[9]);
+            }
+        }
+        angle *= ROTATION_VAL;
+        angle *= maxAngle;
+    }
+    angle /= 2;
+    Util::SetFrameRotationY(frame, angle);
+    data.prevAngle = angle;
 }

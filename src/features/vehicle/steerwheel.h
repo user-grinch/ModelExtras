@@ -13,7 +13,8 @@ class SteerWheel{
 protected:
   struct VehData {
     eSteerWheelRotation m_eRotation = eSteerWheelRotation::Default;
-
+    float prevAngle = 0.0f;
+    
     VehData(CVehicle *pVeh) {}
     ~VehData() {}
   };
