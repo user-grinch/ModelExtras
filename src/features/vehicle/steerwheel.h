@@ -3,16 +3,9 @@
 #include "../../interface/ifeature.hpp"
 #include <vector>
 
-enum class eSteerWheelRotation {
-  Default,
-  Left,
-  Right
-};
-
 class SteerWheel{
 protected:
   struct VehData {
-    eSteerWheelRotation m_eRotation = eSteerWheelRotation::Default;
     float prevAngle = 0.0f;
     
     VehData(CVehicle *pVeh) {}
