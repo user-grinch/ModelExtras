@@ -27,6 +27,6 @@ void SteerWheel::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
         angle *= maxAngle;
     }
     angle /= 2;
-    Util::SetFrameRotationY(frame, angle);
+    Util::SetFrameRotationY(frame, (angle-data.prevAngle)*3);
     data.prevAngle = angle;
 }
