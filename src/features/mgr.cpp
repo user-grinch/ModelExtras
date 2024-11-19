@@ -73,18 +73,41 @@ void FeatureMgr::Initialize() {
     };
     
     // Index features
-    m_FunctionTable["x_chain"] = m_FunctionTable["fc_chain"] = Chain::Process;
-    m_FunctionTable["x_fbrake"] = m_FunctionTable["fc_fbrake"] = FrontBrake::Process;
-    m_FunctionTable["x_rbrake"] = m_FunctionTable["fc_rbrake"] = RearBrake::Process;
-    m_FunctionTable["x_clutch"] = m_FunctionTable["fc_cl"] = Clutch::Process;
-    m_FunctionTable["x_gearlever"] = m_FunctionTable["fc_gl"] = GearLever::Process;
-    m_FunctionTable["x_gs"] = GearSound::Process;
-    m_FunctionTable["x_gearmeter"] = m_FunctionTable["fc_gm"] = GearMeter::Process;
-    m_FunctionTable["x_ometer"] = m_FunctionTable["fc_om"] = OdoMeter::Process;
-    m_FunctionTable["x_rpm"] = m_FunctionTable["fc_rpm"] = RpmMeter::Process;
-    m_FunctionTable["x_sm"] = m_FunctionTable["fc_sm"] = m_FunctionTable["speedook"] = SpeedMeter::Process;
-    m_FunctionTable["x_tm"] = m_FunctionTable["tahook"] = TachoMeter::Process;
-    m_FunctionTable["x_gm"] = m_FunctionTable["petrolok"] = GasMeter::Process;
+    if (gConfig.ReadBoolean("FEATURES", "Chains", false)) {
+        m_FunctionTable["x_chain"] = m_FunctionTable["fc_chain"] = Chain::Process;
+    }
+
+    if (gConfig.ReadBoolean("FEATURES", "Brakes", false)) {
+        m_FunctionTable["x_fbrake"] = m_FunctionTable["fc_fbrake"] = FrontBrake::Process;
+        m_FunctionTable["x_rbrake"] = m_FunctionTable["fc_rbrake"] = RearBrake::Process;
+        m_FunctionTable["x_clutch"] = m_FunctionTable["fc_cl"] = Clutch::Process;
+        m_FunctionTable["x_gearlever"] = m_FunctionTable["fc_gl"] = GearLever::Process;
+    }
+
+    if (gConfig.ReadBoolean("FEATURES", "GearSounds", false)) {
+        m_FunctionTable["x_gs"] = GearSound::Process;
+    }
+
+    if (gConfig.ReadBoolean("FEATURES", "GearMeter", false)) {
+        m_FunctionTable["x_gearmeter"] = m_FunctionTable["fc_gm"] = GearMeter::Process;
+    }
+
+    if (gConfig.ReadBoolean("FEATURES", "OdoMeter", false)) {
+        m_FunctionTable["x_ometer"] = m_FunctionTable["fc_om"] = OdoMeter::Process;
+    }
+    
+    if (gConfig.ReadBoolean("FEATURES", "RpmMeter", false)) {
+        m_FunctionTable["x_rpm"] = m_FunctionTable["fc_rpm"] = RpmMeter::Process;
+    }
+    if (gConfig.ReadBoolean("FEATURES", "SpeedMeter", false)) {
+        m_FunctionTable["x_sm"] = m_FunctionTable["fc_sm"] = m_FunctionTable["speedook"] = SpeedMeter::Process;
+    }
+    if (gConfig.ReadBoolean("FEATURES", "TachoMeter", false)) {
+        m_FunctionTable["x_tm"] = m_FunctionTable["tahook"] = TachoMeter::Process;
+    }
+    if (gConfig.ReadBoolean("FEATURES", "GasMeter", false)) {
+        m_FunctionTable["x_gm"] = m_FunctionTable["petrolok"] = GasMeter::Process;
+    }
 
     if (gConfig.ReadBoolean("FEATURES", "RotateHandleBars", false)) {
         m_FunctionTable["forks_front"] = HandleBar::AddSource;
@@ -97,19 +120,42 @@ void FeatureMgr::Initialize() {
         m_FunctionTable["steering_dummy"] = SteerWheel::Process;
     }
 
-    m_FunctionTable["spotlight_dummy"] = SpotLight::Process;
-    m_FunctionTable["hub_"] = WheelHub::Process;
+    if (gConfig.ReadBoolean("FEATURES", "SpotLights", false)) {
+        m_FunctionTable["spotlight_dummy"] = SpotLight::Process;
+    }
 
-    Lights::Initialize();
-    Sirens::Initialize();
-    PaintJobs::Initialize();
-    Remap::Initialize();
-    Randomizer::Initialize();
-    WeaponSoundSystem::Initialize();
+    if (gConfig.ReadBoolean("FEATURES", "Wheelhubs", false)) {
+        m_FunctionTable["hub_"] = WheelHub::Process;
+    }
 
-    m_FunctionTable["x_body_state"] = BodyState::Process;
-    m_FunctionTable["x_remap"] = BloodRemap::Process;
-    m_FunctionTable["x_randomizer"] = Randomizer::Process;
+    if (gConfig.ReadBoolean("FEATURES", "Sirens", false)) {
+        Sirens::Initialize();
+    }
+    if (gConfig.ReadBoolean("FEATURES", "Lights", false)) {
+        Lights::Initialize();
+    }
+
+    if (gConfig.ReadBoolean("FEATURES", "WeaponSoundSystem", false)) {
+        WeaponSoundSystem::Initialize();
+    }
+
+    if (gConfig.ReadBoolean("FEATURES", "PaintJobs", false)) {
+        PaintJobs::Initialize();
+    }
+
+    if (gConfig.ReadBoolean("FEATURES", "BodyStates", false)) {
+        m_FunctionTable["x_body_state"] = BodyState::Process;
+    }
+
+    if (gConfig.ReadBoolean("FEATURES", "Remap", false)) {
+        Remap::Initialize();
+        m_FunctionTable["x_remap"] = BloodRemap::Process;
+    }
+
+    if (gConfig.ReadBoolean("FEATURES", "Randomizer", false)) {
+        Randomizer::Initialize();
+        m_FunctionTable["x_randomizer"] = Randomizer::Process;
+    }
 }
 
 static std::string GetNodeName(const std::string& input) {
