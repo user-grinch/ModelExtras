@@ -26,48 +26,50 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
     // Tweaked offsets
     float xOffset = 0.7f;
     float errorPadding = 2.0f;
-    if (type == eDummyPos::FrontLeft ) {
+    if (type == eDummyPos::FrontLeft) {
         ShdwPosition.x -= xOffset; 
-        if (Angle > 0.0f+errorPadding && Angle < 270.0f-errorPadding) {
-            Angle += 180.0f;
-        }
-        Angle -= 180.0f;
+        // if (Angle > 0.0f+errorPadding && Angle < 270.0f-errorPadding) {
+        //     Angle += 180.0f;
+        // }
+        // Angle -= 180.0f;
+        plugin::Clamp(Angle, 270.0f+errorPadding, 360.0f-errorPadding);
     }
 
     if (type == eDummyPos::FrontRight) {
         ShdwPosition.x += xOffset; 
-        if (Angle > 90.0f+errorPadding) {
-            Angle += 180.0f;
-        }
-        Angle -= 180.0f;
+        // if (Angle > 90.0f+errorPadding) {
+        //     Angle += 180.0f;
+        // }
+        // Angle -= 180.0f;
+        plugin::Clamp(Angle, 0.0f+errorPadding, 90.0f-errorPadding);
     }
 
     if (type == eDummyPos::MiddleLeft) {
         ShdwPosition.x -= 2 * xOffset;
-        if (Angle > 0.0f+errorPadding && Angle < 180.0f-errorPadding) {
-            Angle += 180.0f;
-        }
+        plugin::Clamp(Angle, 180.0f+errorPadding, 360.0f-errorPadding);
     }
 
     if (type == eDummyPos::MiddleRight) {
         ShdwPosition.x += 2 * xOffset;
-        if (Angle > 180.0f+errorPadding) { 
-            Angle += 180.0f;
-        }
+        plugin::Clamp(Angle, 0.0f+errorPadding, 180.0f-errorPadding);
     }
 
     if (type == eDummyPos::RearLeft) {
         ShdwPosition.x += -xOffset; 
-        if (Angle < 90.0f-errorPadding || Angle > 180.0f+errorPadding) {
-            Angle += 180.0f;
-        }
+        // if (Angle < 90.0f-errorPadding || Angle > 180.0f+errorPadding) {
+        //     Angle += 180.0f;
+        // }
+        Angle += 180.0f;
+        plugin::Clamp(Angle, 180.0f+errorPadding, 270.0f-errorPadding);
     }
 
     if (type == eDummyPos::RearRight) {
         ShdwPosition.x += xOffset; 
-        if (Angle < 180.0f+errorPadding || Angle > 270.0f-errorPadding) {
-            Angle += 180.0f;
-        }
+        // if (Angle < 180.0f+errorPadding || Angle > 270.0f-errorPadding) {
+        //     Angle += 180.0f;
+        // }
+        Angle += 180.0f;
+        plugin::Clamp(Angle, 90.0f+errorPadding, 180.0f-errorPadding);
     }
 
     if (type == eDummyPos::Rear) {
