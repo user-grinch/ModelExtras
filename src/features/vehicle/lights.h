@@ -30,6 +30,7 @@ private:
 
 	struct VehData {
         bool m_bFogLightsOn = false;
+		bool m_bLongLightsOn = false;
 		eLightState m_nIndicatorState = eLightState::IndicatorNone;
 
         VehData(CVehicle *pVeh) {}
@@ -41,7 +42,7 @@ private:
     static inline VehicleExtendedData<VehData> m_VehData;
 
 	static void RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state, eDummyPos pos = eDummyPos::None);
-	static void RenderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle, bool skipShadows = true);
+	static void RenderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle, bool shadows = true);
 	static void EnableMaterial(VehicleMaterial* material);
 	static void EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle);
 

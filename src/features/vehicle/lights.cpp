@@ -16,10 +16,36 @@ inline bool IsBumperOrWingDamaged(CVehicle* pVeh, eDetachPart part) {
 }
 
 void Lights::Initialize() {
-
 	// NOP CVehicle::DoHeadLightBeam
-	// patch::Nop(0x6A2E9F, 0x58);
-	// patch::Nop(0x6BDE73, 0x12);
+	patch::Nop(0x6A2E9F, 0x58);
+	patch::Nop(0x6BDE73, 0x12);
+
+	static RwTexture* hss = nullptr;
+	static RwTexture* hsl = nullptr;
+	static RwTexture* hts = nullptr;
+	static RwTexture* htl = nullptr;
+
+	plugin::Events::initGameEvent += []() {
+		hss = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_single_short.png")), 128);
+		hsl = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_single_long.png")), 128);
+		hts = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_twin_short.png")), 128);
+		htl = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_twin_long.png")), 128);
+	};
+
+	static ThiscallEvent <AddressList<0x6E2730, H_CALL>, PRIORITY_BEFORE, 
+		ArgPick5N<CVehicle*, 0, int, 1, bool, 2, bool, 3, bool, 4>, void(CVehicle*, int, bool, bool, bool)> DoHeadLightReflectionEvent;
+
+	DoHeadLightReflectionEvent += [](CVehicle* pVeh, int b, bool c, bool d, bool e) {
+		VehData& data = m_VehData.Get(pVeh); 
+
+		if (data.m_bLongLightsOn) {
+			plugin::patch::SetPointer(0x6E1693, htl); // Twin
+			plugin::patch::SetPointer(0x6E151D, hsl); // Single
+		} else {
+			plugin::patch::SetPointer(0x6E1693, hts); // Twin
+			plugin::patch::SetPointer(0x6E151D, hss); // Single
+		}
+	};
 
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
 		if (material->color.red == 255 && material->color.green == 173 && material->color.blue == 0)
@@ -96,6 +122,17 @@ void Lights::Initialize() {
 
 				VehData& data = m_VehData.Get(pVeh);
 				data.m_bFogLightsOn = !data.m_bFogLightsOn;
+				prev = now;
+			}
+		}
+
+		if (KeyPressed(VK_G)) {
+			size_t now = CTimer::m_snTimeInMilliseconds;
+			if (now - prev > 500.0f) {
+				int model = pVeh->m_nModelIndex;
+
+				VehData& data = m_VehData.Get(pVeh);
+				data.m_bLongLightsOn = !data.m_bLongLightsOn;
 				prev = now;
 			}
 		}
@@ -181,7 +218,7 @@ void Lights::Initialize() {
 					r = 250;
 				}
 
-				Common::RegisterShadow(pVeh, posn, r, g, b, 128, 180.0f, 0.0f, "", 1.75f, 0.0f, 
+				Common::RegisterShadow(pVeh, posn, r, g, b, 100, 180.0f, 0.0f, "", 1.75f, 0.0f, 
 					(isBikeModel ? pLightTexBike : pLightTex));
 			}
 		}
@@ -190,7 +227,7 @@ void Lights::Initialize() {
 	InitIndicators();
 };
 
-void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle, float cameraAngle, bool skipShadows) {
+void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle, float cameraAngle, bool shadows) {
 	bool flag = true;
 	int id = 0;
 	for (auto e: m_Dummies[pVeh->m_nModelIndex][state]) {
@@ -203,7 +240,7 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 		}
 		EnableDummy((int)pVeh + (int)state + id++, e, pVeh);
 
-		if (!skipShadows) {
+		if (shadows) {
 			Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, 128,  e->Angle, e->CurrentAngle, "indicator");
 		}
 	}
