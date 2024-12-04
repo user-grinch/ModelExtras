@@ -95,6 +95,23 @@ void WeaponSoundSystem::Initialize() {
         }
     };
 
+    plugin::ThiscallEvent<plugin::AddressList<0x4DFAE6, plugin::H_CALL>, plugin::PRIORITY_BEFORE, 
+        plugin::ArgPick4N<CAEWeaponAudioEntity*, 0, eWeaponType, 1, CPed*, 2, int, 3>, 
+        void(CAEWeaponAudioEntity*, eWeaponType, CPed*, int)> CAEWeaponAudioEntity_WeaponProjectile;
+
+    CAEWeaponAudioEntity_WeaponProjectile += [](CAEWeaponAudioEntity* pAudioEnt, eWeaponType weaponType, CPed* pPed, int unk) {
+        if (pAudioEnt) {
+            C3DAudioStream *pStream = WeaponSoundSystem::FindAudio(weaponType, "projectile");
+            if (pStream) {
+                pStream->SetProgress(0.0f);
+                pStream->SetType(eStreamType::SoundEffect);
+                pStream->Set3dPosition(pAudioEnt->m_pPed->GetPosition());
+                pStream->Play();
+            } 
+            plugin::patch::SetRaw(0x4DF060, pStream ? (char*)"\xC2\x0C\x00" : (char*)"\x8B\x44\x24", 3);
+        }
+    };
+
     plugin::ThiscallEvent<plugin::AddressList<0x4E2CA9, plugin::H_CALL>, plugin::PRIORITY_BEFORE, 
         plugin::ArgPick6N<CAEPedAudioEntity*, 0, int, 1, CPhysical*, 2, char, 3, float, 4, unsigned int, 5>, 
         void(CAEPedAudioEntity*, int, CPhysical*, char, float, unsigned int)> CAEPedAudioEntity_HitEvent;
