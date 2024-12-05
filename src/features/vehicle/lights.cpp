@@ -202,32 +202,22 @@ void Lights::Initialize() {
 			}
 		}
 
-		bool showTailLights = false;
-		bool isValidModel = CModelInfo::IsBikeModel(pVeh->m_nModelIndex) || CModelInfo::IsCarModel(pVeh->m_nModelIndex);
-		if (isValidModel) {
+		if (CModelInfo::IsBikeModel(pVeh->m_nModelIndex) || CModelInfo::IsCarModel(pVeh->m_nModelIndex)) {
 			RenderLights(pVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
-			showTailLights = true;
-		}
-
-		if (isValidModel) {
 			RenderLights(pVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
-			showTailLights = true;
-		}
 
-		if (isValidModel && pVeh->m_fBreakPedal && pVeh->m_pDriver) {
-			RenderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
-		}
+			if (pVeh->m_fBreakPedal && pVeh->m_pDriver) {
+				RenderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
+			}
 
-		if (isValidModel && pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver) {
-			RenderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
-			showTailLights = false;
-		}
-
-		if (showTailLights) {
-			CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
-			posn.y += 0.2f;
-			Common::RegisterShadow(pVeh, posn, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "indicator");
-			Common::RegisterShadow(pVeh, {posn.x*-1, posn.y, posn.z}, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "indicator");
+			if (pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver) {
+				RenderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
+			} else { // taillights
+				CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
+				posn.y += 0.2f;
+				Common::RegisterShadow(pVeh, posn, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "indicator");
+				Common::RegisterShadow(pVeh, {posn.x*-1, posn.y, posn.z}, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "indicator");
+			}
 		}
 	});
 
