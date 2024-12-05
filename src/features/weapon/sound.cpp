@@ -6,6 +6,10 @@
 #include <CAEAudioHardware.h>
 #include <CAEPedAudioEntity.h>
 
+inline float GetGameVolume() {
+    return *(BYTE*)0xBA6797 / 64.0f;
+}
+
 C3DAudioStream* WeaponSoundSystem::FindAudio(eWeaponType weaponType, std::string audioType) {
     auto e = m_vecRegisteredWeapons.find(weaponType);
     if (e != m_vecRegisteredWeapons.end()) {
@@ -72,6 +76,7 @@ void WeaponSoundSystem::Initialize() {
             if (pStream) {
                 pStream->SetProgress(0.0f);
                 pStream->Set3dPosition(pAudioEnt->m_pPed->GetPosition());
+                pStream->SetVolume(GetGameVolume());
                 pStream->Play();
             }
             plugin::patch::SetRaw(0x504F80, pStream ? (char*)"\xC2\x0C\x00" : (char*)"\x8B\x44\x24", 3);
@@ -89,6 +94,7 @@ void WeaponSoundSystem::Initialize() {
                 pStream->SetProgress(0.0f);
                 pStream->SetType(eStreamType::SoundEffect);
                 pStream->Set3dPosition(pAudioEnt->m_pPed->GetPosition());
+                pStream->SetVolume(GetGameVolume());
                 pStream->Play();
             } 
             plugin::patch::SetRaw(0x503690, pStream ? (char*)"\xC2\x0C\x00" : (char*)"\x51\x53\x55", 3);
@@ -106,6 +112,7 @@ void WeaponSoundSystem::Initialize() {
                 pStream->SetProgress(0.0f);
                 pStream->SetType(eStreamType::SoundEffect);
                 pStream->Set3dPosition(pAudioEnt->m_pPed->GetPosition());
+                pStream->SetVolume(GetGameVolume());
                 pStream->Play();
             } 
             plugin::patch::SetRaw(0x4DF060, pStream ? (char*)"\xC2\x0C\x00" : (char*)"\x8B\x44\x24", 3);
@@ -124,6 +131,7 @@ void WeaponSoundSystem::Initialize() {
                 pStream->SetProgress(0.0f);
                 pStream->SetType(eStreamType::SoundEffect);
                 pStream->Set3dPosition(pAudioEnt->m_pPed->GetPosition());
+                pStream->SetVolume(GetGameVolume());
                 pStream->Play();
             }
             plugin::patch::SetRaw(0x4E1CC0, pStream ? (char*)"\xC2\x14\x00" : (char*)"\x83\xEC\x14", 3);
@@ -141,6 +149,7 @@ void WeaponSoundSystem::Initialize() {
                 pStream->SetProgress(0.0f);
                 pStream->SetType(eStreamType::SoundEffect);
                 pStream->Set3dPosition(pAudioEnt->m_pPed->GetPosition());
+                pStream->SetVolume(GetGameVolume());
                 pStream->Play();
             }
             plugin::patch::SetRaw(0x4E1A40, pStream ? (char*)"\xC2\x0C\x00" : (char*)"\x83\xEC\x08", 3);

@@ -203,42 +203,31 @@ void Lights::Initialize() {
 		}
 
 		bool showTailLights = false;
-		bool isBikeModel = CModelInfo::IsBikeModel(pVeh->m_nModelIndex);
-		if (isBikeModel || !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT)) {
+		bool isValidModel = CModelInfo::IsBikeModel(pVeh->m_nModelIndex) || CModelInfo::IsCarModel(pVeh->m_nModelIndex);
+		if (isValidModel) {
 			RenderLights(pVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
 			showTailLights = true;
 		}
 
-		if (isBikeModel || !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)) {
+		if (isValidModel) {
 			RenderLights(pVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
 			showTailLights = true;
 		}
 
-		bool brakePaddle = pVeh->m_fBreakPedal && pVeh->m_pDriver;
-		bool reverseLights = pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver;
-		if (showTailLights | brakePaddle | reverseLights) {
-			if (brakePaddle) {
-				RenderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
-			} else if (reverseLights) {
-				RenderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle, false);
-			}
-			static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight.png")), 60);
-			static RwTexture *pLightTexBike = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/taillight_bike.png")), 60);
-			CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
-			posn.x = 0.0f;
+		if (isValidModel && pVeh->m_fBreakPedal && pVeh->m_pDriver) {
+			RenderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
+		}
 
-			unsigned char r = 240;
-			unsigned char g = 0;
-			unsigned char b = 0;
+		if (isValidModel && pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver) {
+			RenderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
+			showTailLights = false;
+		}
 
-			if (reverseLights) {
-				r = g = b = 240;
-			} else if (brakePaddle) {
-				r = 250;
-			}
-
-			Common::RegisterShadow(pVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "", 1.75f, 0.0f, 
-				(isBikeModel ? pLightTexBike : pLightTex));
+		if (showTailLights) {
+			CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
+			posn.y += 0.2f;
+			Common::RegisterShadow(pVeh, posn, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "indicator");
+			Common::RegisterShadow(pVeh, {posn.x*-1, posn.y, posn.z}, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "indicator");
 		}
 	});
 

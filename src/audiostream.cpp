@@ -32,7 +32,7 @@ CAudioStream::~CAudioStream()
 }
 
 void CAudioStream::Play()
-{
+{    
     if (state == Stopped) BASS_ChannelSetPosition(streamInternal, 0, BASS_POS_BYTE); // rewind
     state = PlayingInactive; // needs to be processed
 }
