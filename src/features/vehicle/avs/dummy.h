@@ -41,7 +41,7 @@ public:
     RwRGBA Color = { 255, 255, 255, 128 };
     CVector Position, ShdwPosition;
     eDummyPos Type;
-    eDetachPart PartType;
+    eDetachPart PartType = eDetachPart::Unknown;
     float Size;
     float Angle;
     float CurrentAngle = 0.0f;

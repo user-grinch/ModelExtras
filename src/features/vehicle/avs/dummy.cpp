@@ -41,41 +41,41 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
         Angle -= 360.0f;
     }
 
+    if (type == eDummyPos::FrontLeft) {
+        ShdwPosition.x -= std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f; 
+        Angle = 0 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
+    }
+
+    if (type == eDummyPos::FrontRight) {
+        ShdwPosition.x += std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f; 
+        Angle = 0 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
+    }
+
+    if (type == eDummyPos::MiddleLeft) {
+        ShdwPosition.x -= 2 * std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f;
+        Angle = 90 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
+    }
+
+    if (type == eDummyPos::MiddleRight) {
+        ShdwPosition.x += 2 * std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f;
+        Angle = 270 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
+    }
+
+    if (type == eDummyPos::RearLeft) {
+        ShdwPosition.x += -std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f; 
+        Angle = 180 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
+    }
+
+    if (type == eDummyPos::RearRight) {
+        ShdwPosition.x += std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f; 
+        Angle = 180 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
+    }
+
+    if (type == eDummyPos::Rear) {
+        Angle = 180 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
+    }
+    
     if (name.find("indicator_") != std::string::npos || name.find("turnl_") != std::string::npos) {
-        if (type == eDummyPos::FrontLeft) {
-            ShdwPosition.x -= std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f; 
-            Angle = 0 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
-        }
-
-        if (type == eDummyPos::FrontRight) {
-            ShdwPosition.x += std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f; 
-            Angle = 0 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
-        }
-
-        if (type == eDummyPos::MiddleLeft) {
-            ShdwPosition.x -= 2 * std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f;
-            Angle = 90 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
-        }
-
-        if (type == eDummyPos::MiddleRight) {
-            ShdwPosition.x += 2 * std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f;
-            Angle = 270 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
-        }
-
-        if (type == eDummyPos::RearLeft) {
-            ShdwPosition.x += -std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f; 
-            Angle = 180 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
-        }
-
-        if (type == eDummyPos::RearRight) {
-            ShdwPosition.x += std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f; 
-            Angle = 180 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
-        }
-
-        if (type == eDummyPos::Rear) {
-            Angle = std::stoi(GetInfo(frame, "rot:(-?\\d+)", "180"));
-        }
-
         std::string part = GetInfo(frame, "part:(\\D{2})", "");
         if (!part.empty()) {
             if (part == "fb") PartType = eDetachPart::FrontBumper;
@@ -84,6 +84,7 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
             else if (part == "wr") PartType = eDetachPart::FrontRightWing;
             else if (part == "yl") PartType = eDetachPart::FrontLeftWing;
             else if (part == "yr") PartType = eDetachPart::FrontRightWing;
+            else PartType = eDetachPart::Unknown;
         }
 
         std::string col = GetInfo(frame, "col:([0-9A-Fa-f]{6})", "");

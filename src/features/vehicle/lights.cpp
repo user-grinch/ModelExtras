@@ -114,7 +114,7 @@ void Lights::Initialize() {
 			state = (toupper(match.str(2)[0]) == 'L') ? (eLightState::FogLight) : (eLightState::FogLight);
 		} else if (std::regex_search(name, std::regex("^rev.*\s*_[lr].*$"))) {
 			state = eLightState::Reverselight;
-			col = {255, 255, 255, 128};
+			col = {240, 240, 240, 128};
 		} else if (std::regex_search(name, std::regex("^light_day"))) {
 			state = eLightState::Daylight;
 		} else if (std::regex_search(name, std::regex("^light_night"))) {
@@ -181,11 +181,10 @@ void Lights::Initialize() {
 		!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)) {
 			if (data.m_bFogLightsOn) {
 				RenderLights(pVeh, eLightState::FogLight, vehicleAngle, cameraAngle);
-				static RwTexture *pLightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/foglight.png")), 120);
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 				posn.x = 0.0f;
 				posn.y += 2.0f;
-				Common::RegisterShadow(pVeh, posn, 225, 225, 225, GetShadowAlphaForDayTime(), 0.0f, 0.0f, "", 2.5f, 0.0f, pLightTex);
+				Common::RegisterShadow(pVeh, posn, 225, 225, 225, GetShadowAlphaForDayTime(), 0.0f, 0.0f, "foglight", 2.5f);
 			}
 		}
 		
@@ -210,13 +209,15 @@ void Lights::Initialize() {
 				RenderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
 			}
 
+			bool bike = CModelInfo::IsBikeModel(pVeh->m_nModelIndex);
+			CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
+			posn.x = 0.0f;
+			posn.y += 0.2f;
 			if (pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver) {
-				RenderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
+				RenderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle, false);
+				Common::RegisterShadow(pVeh, posn, 240, 240, 240, GetShadowAlphaForDayTime(), 180.0f, 0.0f, bike ? "taillight" : "taillight_bike", 1.75f);
 			} else { // taillights
-				CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
-				posn.y += 0.2f;
-				Common::RegisterShadow(pVeh, posn, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "indicator");
-				Common::RegisterShadow(pVeh, {posn.x*-1, posn.y, posn.z}, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "indicator");
+				Common::RegisterShadow(pVeh, posn, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, bike ? "taillight" : "taillight_bike", 1.75f);
 			}
 		}
 	});
@@ -228,7 +229,7 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 	bool flag = true;
 	int id = 0;
 	for (auto e: m_Dummies[pVeh->m_nModelIndex][state]) {
-		if (IsBumperOrWingDamaged(pVeh, e->PartType)) {
+		if (e->PartType != eDetachPart::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType)) {
 			flag = false;
 			if (state == eLightState::FogLight) {
 				m_VehData.Get(pVeh).m_bFogLightsOn = false;
@@ -481,7 +482,7 @@ void Lights::InitIndicators() {
 				bool MidDisabled = false;
 
 				for (auto e: m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorLeft]) {
-					if (IsBumperOrWingDamaged(pVeh, e->PartType)) {
+					if (e->PartType != eDetachPart::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType)) {
 						if (e->Type == eDummyPos::FrontLeft) {
 							FrontDisabled = true;
 						}
@@ -513,7 +514,7 @@ void Lights::InitIndicators() {
 				bool MidDisabled = false;
 
 				for (auto e: m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorRight]) {
-					if (IsBumperOrWingDamaged(pVeh, e->PartType)) {
+					if (e->PartType != eDetachPart::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType)) {
 						if (e->Type == eDummyPos::FrontRight) {
 							FrontDisabled = true;
 						}
