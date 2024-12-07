@@ -215,18 +215,26 @@ void Lights::Initialize() {
 			if (pVeh->m_fBreakPedal && pVeh->m_pDriver) {
 				RenderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
 			}
+
+			bool reverseLightsOn = !isBike && !m_Dummies[pVeh->m_nModelIndex][eLightState::Reverselight].empty() 
+				&& pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver;
 			
+			if (reverseLightsOn) {
+				RenderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle, false);
+			}
+
 			if (pVeh->m_nRenderLightsFlags) {
 				CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 				posn.x = 0.0f;
 				posn.y += 0.2f;
-				if (!isBike && !m_Dummies[pVeh->m_nModelIndex][eLightState::Reverselight].empty() 
-				&& pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver) {
-					RenderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle, false);
-					Common::RegisterShadow(pVeh, posn, 240, 240, 240, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
-				} else { // taillights
-					Common::RegisterShadow(pVeh, posn, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
+				int r = 250;
+				int g = 0;
+				int b = 0;
+
+				if (reverseLightsOn) {
+					r = g = b = 240;
 				}
+				Common::RegisterShadow(pVeh, posn, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
 			}
 		}
 	});
@@ -269,7 +277,7 @@ void Lights::RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightSta
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		Common::RegisterCoronaWithAngle(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			60, id, dummy->Angle, 0.3f,  0.3f);
+			60, id, dummy->Angle, 0.175f,  0.175f);
 	}
 };
 
