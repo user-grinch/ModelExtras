@@ -19,7 +19,6 @@
 #include "vehicle/avs/materials.h"
 #include "vehicle/sirens.h"
 
-static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
 
 void FeatureMgr::Initialize() {
     plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {
@@ -29,24 +28,23 @@ void FeatureMgr::Initialize() {
 
     plugin::Events::vehicleSetModelEvent += VehicleMaterials::OnModelSet;
 
-    Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model) {
-        Add(static_cast<void*>(pVeh), (RwFrame *)pVeh->m_pRwClump->object.parent, eModelEntityType::Vehicle);
-    };
-
     Events::vehicleRenderEvent.before += [](CVehicle *pVeh) {
+        Add(static_cast<void*>(pVeh), (RwFrame *)pVeh->m_pRwClump->object.parent, eModelEntityType::Vehicle);
         Process(static_cast<void*>(pVeh), eModelEntityType::Vehicle);
     };
 
-    Events::pedRenderEvent += [](CPed* pPed) {
-        Add(static_cast<void*>(pPed), 
-            (RwFrame *)pPed->m_pRwClump->object.parent, eModelEntityType::Ped);
+    Events::vehicleDtorEvent += [](CVehicle *pVeh) {
+        Remove(static_cast<void*>(pVeh));
+    };
+
+    Events::pedRenderEvent.before += [](CPed* pPed) {
+        Add(static_cast<void*>(pPed), (RwFrame *)pPed->m_pRwClump->object.parent, eModelEntityType::Ped);
         Process(static_cast<void*>(pPed), eModelEntityType::Ped);
 
         // jetpack
         CTaskSimpleJetPack *pTask = pPed->m_pIntelligence->GetTaskJetPack();
         if (pTask && pTask->m_pJetPackClump) {
-            Add(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), 
-                (RwFrame *)pTask->m_pJetPackClump->object.parent, eModelEntityType::Jetpack);
+            Add(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), (RwFrame *)pTask->m_pJetPackClump->object.parent, eModelEntityType::Jetpack);
             Process(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), eModelEntityType::Jetpack);
         }
 
@@ -66,10 +64,18 @@ void FeatureMgr::Initialize() {
         }
     };
 
-    objectRenderEvent += [](CObject *pObj) {
-        Add(static_cast<void*>(pObj), 
-            (RwFrame *)pObj->m_pRwClump->object.parent, eModelEntityType::Object);
+    Events::pedDtorEvent += [](CPed *ptr) {
+        Remove(static_cast<void*>(ptr));
+    };
+
+    static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
+    objectRenderEvent.before += [](CObject *pObj) {
+        Add(static_cast<void*>(pObj), (RwFrame *)pObj->m_pRwClump->object.parent, eModelEntityType::Object);
         Process(static_cast<void*>(pObj), eModelEntityType::Object);
+    };
+
+    Events::objectDtorEvent += [](CObject *ptr) {
+        Remove(static_cast<void*>(ptr));
     };
     
     // Index features
@@ -158,42 +164,14 @@ void FeatureMgr::Initialize() {
     }
 }
 
-static std::string GetNodeName(const std::string& input) {
-    int c = 0;
-    std::string result;
-    
-    for (char c : input) {
-        if (c == '_') {
-            c++;
-            if (c == 2) {
-                break;
-            }
-        }
-        result += c;
-    }
-    
-    return result;
-}
-
 void FeatureMgr::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type) {
     if(frame) {
-        int model = 0;
-        if (type == eModelEntityType::Weapon) {
-            model = static_cast<CWeapon*>(ptr)->m_eWeaponType;
-        } else {
-            model = static_cast<CEntity*>(ptr)->m_nModelIndex;
-        }
         const std::string name = GetFrameNodeName(frame);
-
         for (auto e : m_FunctionTable) {
             if (NODE_FOUND(name, e.first)) {
-                m_ModelTable[model].emplace_back(frame, e.first);
+                m_EntityTable[ptr].emplace_back(frame, e.first);
             }
         }
-
-        // if (m_FunctionTable.find(GetNodeName(name)) != m_FunctionTable.end()) {
-        //     m_ModelTable[pEntity->m_nModelIndex].emplace_back(frame, name);
-        // }
 
         if (RwFrame * newFrame = frame->child) {
             FindNodes(ptr, newFrame, type);
@@ -206,31 +184,17 @@ void FeatureMgr::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type) {
 }
 
 void FeatureMgr::Add(void *ptr, RwFrame* frame, eModelEntityType type) {
-    int model = 0;
-    if (type == eModelEntityType::Weapon) {
-        model = static_cast<CWeapon*>(ptr)->m_eWeaponType;
-    } else if (type == eModelEntityType::Jetpack) { 
-        model = 370;
-    } else {
-        model = static_cast<CEntity*>(ptr)->m_nModelIndex;
-    }
-
-    if (m_ModelTable.find(model) == m_ModelTable.end()) {
+    if (m_EntityTable.find(ptr) == m_EntityTable.end()) {
         FindNodes(ptr, frame, type);
     }
 }
 
-void FeatureMgr::Process(void *ptr, eModelEntityType type) {
-    int model = 0;
-    if (type == eModelEntityType::Weapon) {
-        model = static_cast<CWeapon*>(ptr)->m_eWeaponType;
-    } else if (type == eModelEntityType::Jetpack) { 
-        model = 370;
-    } else {
-        model = static_cast<CEntity*>(ptr)->m_nModelIndex;
-    }
+void FeatureMgr::Remove(void *ptr) {
+    m_EntityTable.erase(ptr);
+}
 
-    for (auto e: m_ModelTable[model]) {
+void FeatureMgr::Process(void *ptr, eModelEntityType type) {
+    for (auto e: m_EntityTable[ptr]) {
         if (m_FunctionTable[e.id]) {
             m_FunctionTable[e.id](ptr, e.m_pFrame, type);
         }
