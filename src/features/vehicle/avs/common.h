@@ -7,6 +7,7 @@ private:
     static inline std::map<std::string, RwTexture*> Textures;
 
 public:
+    static float NormalizeAngle(float angle);
 	static RwTexture* GetTexture(std::string texName);
     static void RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, int id, float size);
     static void RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, int id, float angle, float radius, float size);

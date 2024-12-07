@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "dummy.h"
+#include "common.h"
 
 inline std::string GetInfo(RwFrame* parent, const std::string& pattern, const std::string def) {
     if (!pattern.empty()) {
@@ -30,16 +31,7 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
     Size = 0.3f;
 
     // Calculate the angle based on the frame's orientation
-    Angle = CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f;
-    
-    // Normalize angle
-    while (Angle < 0.0f) {
-        Angle += 360.0f;
-    }
-
-    while (Angle > 360.0f) {
-        Angle -= 360.0f;
-    }
+    Angle = Common::NormalizeAngle(CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f);
 
     if (type == eDummyPos::FrontLeft) {
         ShdwPosition.x -= std::stoi(GetInfo(frame, "offset:(\\d+)", "10")) / 10.0f; 

@@ -14,40 +14,46 @@ void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green,
 		size, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, false);
 };
 
+float Common::NormalizeAngle(float angle) {
+    while (angle < 0.0f) angle += 360.0f;
+    while (angle >= 360.0f) angle -= 360.0f;
+    return angle;
+}
+
 void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, int id, float angle, float radius, float size) {
-	if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-		return;
-	}
-	float vehicleAngle = (pVeh->GetHeading() * 180.0f) / 3.14f;
-	float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
-	float dummyAngle = vehicleAngle + angle;
+    if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+        return;
+    }
 
-	float differenceAngle = ((cameraAngle > dummyAngle) ? (cameraAngle - dummyAngle) : (dummyAngle - cameraAngle));
+    constexpr float RAD_TO_DEG = 180.0f / 3.141592653589793f;
 
-	if (differenceAngle < 90.0f || differenceAngle > 270.0f)
-		return;
+    float vehicleAngle = 180 + NormalizeAngle(pVeh->GetHeading() * RAD_TO_DEG);
+    float cameraAngle = NormalizeAngle(TheCamera.GetHeading() * RAD_TO_DEG);
+    float dummyAngle = NormalizeAngle(vehicleAngle + angle);
 
-	float alphaFloat = static_cast<float>(alpha);
+    // Calculate the smallest angular difference
+    float differenceAngle = std::abs(cameraAngle - dummyAngle);
+    if (differenceAngle > 180.0f) {
+        differenceAngle = 360.0f - differenceAngle;
+    }
 
-	alphaFloat = (alphaFloat < 0.0f) ? (alphaFloat * -1) : (alphaFloat);
-	float diameter = (radius / 2.0f);
-	if (differenceAngle < diameter + 15.0f) { // 15.0f
-		float angle = diameter - differenceAngle;
+    // Corona is visible only if the camera is facing towards it (within a 90-degree range)
+    if (differenceAngle >= 90.0f) {
+        return;
+    }
 
-		float multiplier = (angle / 15.0f);
+    // Adjust alpha based on proximity to the edge of visibility
+    float alphaFloat = static_cast<float>(alpha);
+    float diameter = radius / 2.0f;
 
-		alpha = static_cast<char>(alphaFloat * multiplier);
-	}
-	else if (differenceAngle > (360.0f - diameter) - 15.0f) {
-		float angle = 15.0f - (differenceAngle - ((360.0f - diameter) - 15.0f));
+    if (differenceAngle > diameter - 15.0f) {
+        float angleOffset = 15.0f - (differenceAngle - (diameter - 15.0f));
+        float multiplier = angleOffset / 15.0f;
+        alpha = static_cast<uchar>(alphaFloat * multiplier);
+    }
 
-		float multiplier = angle / 15.0f;
-
-		alpha = static_cast<char>(alphaFloat * multiplier);
-	}
-
-	return RegisterCorona(pVeh, posn, red, green, blue, alpha, id, size);
-};
+    RegisterCorona(pVeh, posn, red, green, blue, alpha, id, size);
+}
 
 RwTexture* Common::GetTexture(std::string texture) {
 	if (Textures.contains(texture) && Textures[texture])
