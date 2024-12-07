@@ -118,7 +118,7 @@ void Lights::Initialize() {
 		std::smatch match;
 		if (std::regex_search(name, match, std::regex("^fogl(ight)?_[lr].*$"))) {
 			state = (toupper(match.str(2)[0]) == 'L') ? (eLightState::FogLight) : (eLightState::FogLight);
-		} else if (std::regex_search(name, std::regex("^rev.*\s*_[lr].*$"))) {
+		} else if (std::regex_search(name, std::regex( "^rev.*\s*_[lr].*$"))) {
 			state = eLightState::Reverselight;
 			col = {240, 240, 240, 128};
 		} else if (std::regex_search(name, std::regex("^light_day"))) {

@@ -71,7 +71,7 @@ void WeaponSoundSystem::Initialize() {
         void(CAEWeaponAudioEntity*, eWeaponType, CPhysical*, int)> CAEWeaponAudioEntity_WeaponFireEvent;
 
     CAEWeaponAudioEntity_WeaponFireEvent += [](CAEWeaponAudioEntity* pAudioEnt, eWeaponType weaponType, CPhysical* entity, int) {
-        if (pAudioEnt) {
+        if (pAudioEnt && pAudioEnt->m_pPed) {
             C3DAudioStream *pStream = WeaponSoundSystem::FindAudio(weaponType, "shoot");
             if (pStream) {
                 pStream->SetProgress(0.0f);
@@ -88,7 +88,7 @@ void WeaponSoundSystem::Initialize() {
         void(CAEWeaponAudioEntity*, eWeaponType, CPed*, int)> CAEWeaponAudioEntity_WeaponFireReload;
 
     CAEWeaponAudioEntity_WeaponFireReload += [](CAEWeaponAudioEntity* pAudioEnt, eWeaponType weaponType, CPed* pPed, int unk) {
-        if (pAudioEnt) {
+        if (pAudioEnt && pAudioEnt->m_pPed) {
             C3DAudioStream *pStream = WeaponSoundSystem::FindAudio(weaponType, "reload");
             if (pStream) {
                 pStream->SetProgress(0.0f);
@@ -106,7 +106,7 @@ void WeaponSoundSystem::Initialize() {
         void(CAEWeaponAudioEntity*, eWeaponType, CPed*, int)> CAEWeaponAudioEntity_WeaponProjectile;
 
     CAEWeaponAudioEntity_WeaponProjectile += [](CAEWeaponAudioEntity* pAudioEnt, eWeaponType weaponType, CPed* pPed, int unk) {
-        if (pAudioEnt) {
+        if (pAudioEnt && pAudioEnt->m_pPed) {
             C3DAudioStream *pStream = WeaponSoundSystem::FindAudio(weaponType, "projectile");
             if (pStream) {
                 pStream->SetProgress(0.0f);
@@ -124,7 +124,7 @@ void WeaponSoundSystem::Initialize() {
         void(CAEPedAudioEntity*, int, CPhysical*, char, float, unsigned int)> CAEPedAudioEntity_HitEvent;
 
     CAEPedAudioEntity_HitEvent += [](CAEPedAudioEntity* pAudioEnt, int, CPhysical* entity, char a, float b, unsigned int c) {
-        if (pAudioEnt) {
+        if (pAudioEnt && pAudioEnt->m_pPed) {
             eWeaponType weaponType = pAudioEnt->m_pPed->m_aWeapons[pAudioEnt->m_pPed->m_nActiveWeaponSlot].m_eWeaponType;
             C3DAudioStream *pStream = WeaponSoundSystem::FindAudio(weaponType, "hit");
             if (pStream) {
@@ -142,7 +142,7 @@ void WeaponSoundSystem::Initialize() {
         plugin::ArgPick4N<CAEPedAudioEntity*, 0, int, 1, int, 2, int, 3>, char(CAEPedAudioEntity*, int, int, int)> CAEPedAudioEntity_SwingEvent;
 
     CAEPedAudioEntity_SwingEvent += [](CAEPedAudioEntity* pAudioEnt, int a, int b, int c) {
-        if (pAudioEnt) {
+        if (pAudioEnt && pAudioEnt->m_pPed) {
             eWeaponType weaponType = pAudioEnt->m_pPed->m_aWeapons[pAudioEnt->m_pPed->m_nActiveWeaponSlot].m_eWeaponType;
             C3DAudioStream *pStream = WeaponSoundSystem::FindAudio(weaponType, "swing");
             if (pStream) {

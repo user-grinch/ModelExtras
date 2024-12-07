@@ -19,7 +19,6 @@
 #include "vehicle/avs/materials.h"
 #include "vehicle/sirens.h"
 
-
 void FeatureMgr::Initialize() {
     plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {
         VehicleMaterials::RestoreMaterials();
