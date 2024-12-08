@@ -50,17 +50,22 @@ void OdoMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
 
     if (val < 999999) {
         std::string showStr = std::to_string(val);
+        std::string screen = data.m_ScreenText;
 
         // 1 -> 000001
-        while (showStr.size() < 6) {
+        while (showStr.length() < 6) {
             showStr = "0" + showStr;
         }
 
-        if (data.m_ScreenText != showStr) {
+        while (screen.length() < 6) {
+            screen = "0" + screen;
+        }
+
+        if (screen != showStr) {
             // Update odometer value
             for (unsigned int i = 0; i < 6; i++) {
-                if (showStr[i] != data.m_ScreenText[i]) {
-                    float angle = (std::stof(std::to_string(showStr[i])) - std::stof(std::to_string(data.m_ScreenText[i]))) * 36.0f;
+                if (showStr[i] != screen[i]) {
+                    float angle = (std::stof(std::to_string(showStr[i])) - std::stof(std::to_string(screen[i]))) * 36.0f;
                     Util::SetFrameRotationX(data.m_FrameList[i], angle);
                 }
             }

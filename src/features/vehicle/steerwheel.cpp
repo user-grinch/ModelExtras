@@ -9,8 +9,12 @@ void SteerWheel::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     float maxAngle = ROTATION_VAL;
     const std::string name = GetFrameNodeName(frame);
 
+    if (name.empty()) {
+        return;
+    }
+
     if (name[0] == 'f') { // vehfuncs 
-        if (isdigit(name[7])) {
+        if (name.length() >= 7 && isdigit(name[7])) {
             angle *= (float)std::stoi(&name[7]) / 2;
         } else {
             angle *= ROTATION_VAL;
