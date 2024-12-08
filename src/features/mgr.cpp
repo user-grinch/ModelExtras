@@ -33,7 +33,7 @@ void FeatureMgr::Initialize() {
     };
 
     Events::vehicleDtorEvent += [](CVehicle *pVeh) {
-        Remove(static_cast<void*>(pVeh));
+        Remove(static_cast<void*>(pVeh), eModelEntityType::Vehicle);
     };
 
     Events::pedRenderEvent.before += [](CPed* pPed) {
@@ -64,7 +64,7 @@ void FeatureMgr::Initialize() {
     };
 
     Events::pedDtorEvent += [](CPed *ptr) {
-        Remove(static_cast<void*>(ptr));
+        Remove(static_cast<void*>(ptr), eModelEntityType::Ped);
     };
 
     static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
@@ -74,7 +74,7 @@ void FeatureMgr::Initialize() {
     };
 
     Events::objectDtorEvent += [](CObject *ptr) {
-        Remove(static_cast<void*>(ptr));
+        Remove(static_cast<void*>(ptr), eModelEntityType::Object);
     };
     
     // Index features
@@ -168,7 +168,7 @@ void FeatureMgr::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type) {
         const std::string name = GetFrameNodeName(frame);
         for (auto e : m_FunctionTable) {
             if (NODE_FOUND(name, e.first)) {
-                m_EntityTable[ptr].emplace_back(frame, e.first);
+                m_EntityTable[type][ptr].emplace_back(frame, e.first);
             }
         }
 
@@ -183,17 +183,17 @@ void FeatureMgr::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type) {
 }
 
 void FeatureMgr::Add(void *ptr, RwFrame* frame, eModelEntityType type) {
-    if (m_EntityTable.find(ptr) == m_EntityTable.end()) {
+    if (m_EntityTable[type].find(ptr) == m_EntityTable[type].end()) {
         FindNodes(ptr, frame, type);
     }
 }
 
-void FeatureMgr::Remove(void *ptr) {
-    m_EntityTable.erase(ptr);
+void FeatureMgr::Remove(void *ptr, eModelEntityType type) {
+    m_EntityTable[type].erase(ptr);
 }
 
 void FeatureMgr::Process(void *ptr, eModelEntityType type) {
-    for (auto e: m_EntityTable[ptr]) {
+    for (auto e: m_EntityTable[type][ptr]) {
         if (m_FunctionTable[e.id]) {
             m_FunctionTable[e.id](ptr, e.m_pFrame, type);
         }

@@ -1,7 +1,7 @@
 #pragma once
+#include "pch.h"
 #include <plugin.h>
-#include <vector>
-#include <map>
+#include <unordered_map>
 #include <functional>
 
 class FeatureMgr {
@@ -11,10 +11,8 @@ private:
         std::string id;
     };
 
-    // May need to switch to entity based table later
-    static inline std::map<void*, std::vector<FrameExtension>> m_EntityTable;
-    static inline std::map<int, std::vector<FrameExtension>> m_ModelTable;
-    static inline std::map <std::string, std::function<void(void*, RwFrame*, eModelEntityType)>> m_FunctionTable;
+    static inline std::unordered_map<eModelEntityType, std::unordered_map<void*, std::vector<FrameExtension>>> m_EntityTable;
+    static inline std::unordered_map <std::string, std::function<void(void*, RwFrame*, eModelEntityType)>> m_FunctionTable;
 
     static void FindNodes(void* ptr, RwFrame *frame, eModelEntityType type);
 
@@ -23,5 +21,5 @@ public:
 
     static void Add(void *ptr, RwFrame* frame, eModelEntityType type);
     static void Process(void *ptr, eModelEntityType type);
-    static void Remove(void *ptr);
+    static void Remove(void *ptr, eModelEntityType type);
 };
