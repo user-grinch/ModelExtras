@@ -102,13 +102,10 @@ void FeatureMgr::Initialize() {
     }
     
     if (gConfig.ReadBoolean("FEATURES", "RpmMeter", false)) {
-        m_FunctionTable["x_rpm"] = m_FunctionTable["fc_rpm"] = RpmMeter::Process;
+        m_FunctionTable["x_rpm"] = m_FunctionTable["fc_rpm"] = m_FunctionTable["tahook"] = RpmMeter::Process;
     }
     if (gConfig.ReadBoolean("FEATURES", "SpeedMeter", false)) {
         m_FunctionTable["x_sm"] = m_FunctionTable["fc_sm"] = m_FunctionTable["speedook"] = SpeedMeter::Process;
-    }
-    if (gConfig.ReadBoolean("FEATURES", "TachoMeter", false)) {
-        m_FunctionTable["x_tm"] = m_FunctionTable["tahook"] = TachoMeter::Process;
     }
     if (gConfig.ReadBoolean("FEATURES", "GasMeter", false)) {
         m_FunctionTable["x_gm"] = m_FunctionTable["petrolok"] = GasMeter::Process;

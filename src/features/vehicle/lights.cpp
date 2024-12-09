@@ -5,6 +5,7 @@
 #include "defines.h"
 #include <CShadows.h>
 #include <eVehicleClass.h>
+#include <CCutsceneMgr.h>
 
 inline bool IsNightTime() {
 	return CClock::GetIsTimeInRange(20, 6);
@@ -424,6 +425,10 @@ void Lights::InitIndicators() {
 		eLightState state = data.m_nIndicatorState;
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) == false && 
 		m_Dummies[pVeh->m_nModelIndex].size() == 0 && m_Materials[pVeh->m_nModelIndex][state].size() == 0) {
+			return;
+		}
+
+		if (CCutsceneMgr::ms_running || TheCamera.m_bWideScreenOn) {
 			return;
 		}
 		

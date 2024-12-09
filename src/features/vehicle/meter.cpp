@@ -4,81 +4,69 @@
 void GearMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = vehData.Get(pVeh);
-    std::string name = GetFrameNodeName(frame);
     if (!data.m_bInitialized) {
         Util::StoreChilds(frame, data.m_FrameList);
         data.m_bInitialized = true;
     }
 
     if (pVeh->m_nCurrentGear != data.m_nCurrent) {
-        data.m_nCurrent = pVeh->m_nCurrentGear;
-
         Util::HideAllChilds(frame);
         if (data.m_FrameList.size() > static_cast<size_t>(data.m_nCurrent)) {
             Util::ShowAllAtomics(data.m_FrameList[data.m_nCurrent]);
         }
+        data.m_nCurrent = pVeh->m_nCurrentGear;
     }
 }
 
 void OdoMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = vehData.Get(pVeh);
-    std::string name = GetFrameNodeName(frame);
+    
     if (!data.m_bInitialized) {
+        std::string name = GetFrameNodeName(frame);
         Util::StoreChilds(frame, data.m_FrameList);
-        data.m_nTempVal = 1234 + rand() % (57842 - 1234);
+        data.m_nPrevRot = 1234 + rand() % (57842 - 1234);
 
         if (NODE_FOUND(name, "_kph")) {
             data.m_fMul = 100;
         }
+        data.m_bDigital = NODE_FOUND(name, "_digital");
         data.m_bInitialized = true;
     }
 
-    // Calculate new value
-    int rot = 0;
-    if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE) {
-        CBike *bike = (CBike*)pVeh;
-        rot = static_cast<int>(bike->m_afWheelRotationX[1]);
-    } else {
-        CAutomobile *am = (CAutomobile*)pVeh;
-        rot = static_cast<int>(am->m_fWheelRotation[3]);
+    if (data.m_FrameList.size() < 6) {
+        gLogger->error("Vehicle ID: {}. {} odometer childs detected, 6 expected", pVeh->m_nModelIndex, data.m_FrameList.size());
+        return;
     }
 
-    int rotVal = static_cast<int>((rot / (2.86* data.m_fMul)));
-    int val = std::stoi(data.m_ScreenText) + abs(data.m_nTempVal - rotVal);
-    data.m_nTempVal = rotVal;
+    float curRot = (pVeh->m_nVehicleSubClass == VEHICLE_BIKE) ? static_cast<CBike*>(pVeh)->m_afWheelRotationX[1] : static_cast<CAutomobile*>(pVeh)->m_fWheelRotation[3];
+    curRot /= (2.86 * data.m_fMul);
 
-    if (val < 999999) {
-        std::string showStr = std::to_string(val);
-        std::string screen = data.m_ScreenText;
+    int displayVal = std::stoi(data.m_ScreenText) + abs(data.m_nPrevRot - curRot);
+    displayVal = plugin::Clamp(displayVal, 0, 999999);
+    data.m_nPrevRot = curRot;
 
-        // 1 -> 000001
-        while (showStr.length() < 6) {
-            showStr = "0" + showStr;
-        }
+    std::stringstream ss;
+    ss << std::setw(6) << std::setfill('0') << displayVal;
+    std::string updatedText = ss.str();
 
-        while (screen.length() < 6) {
-            screen = "0" + screen;
-        }
-
-        if (screen != showStr) {
-            // Update odometer value
-            for (unsigned int i = 0; i < 6; i++) {
-                if (showStr[i] != screen[i]) {
-                    float angle = (std::stof(std::to_string(showStr[i])) - std::stof(std::to_string(screen[i]))) * 36.0f;
-                    Util::SetFrameRotationX(data.m_FrameList[i], angle);
-                }
+    if (data.m_ScreenText != updatedText) {
+        for (unsigned int i = 0; i < 6; i++) {
+            if (updatedText[i] != data.m_ScreenText[i]) {
+                float angle = (updatedText[i] - data.m_ScreenText[i]) * 36.0f;
+                Util::SetFrameRotationX(data.m_FrameList[i], angle);
             }
-            data.m_ScreenText = showStr;
         }
+        data.m_ScreenText = std::move(updatedText);
     }
 }
 
 void RpmMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
-    std::string name = GetFrameNodeName(frame);
     VehData &data = vehData.Get(pVeh);
+    
     if (!data.m_bInitialized) {
+        std::string name = GetFrameNodeName(frame);
         data.m_nMaxRpm = std::stoi(Util::GetRegexVal(name, ".*m([0-9]+).*", "100"));
         data.m_fMaxRotation = std::stof(Util::GetRegexVal(name, ".*r([0-9]+).*", "100"));
         data.m_bInitialized = true;
@@ -88,26 +76,27 @@ void RpmMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     float speed = Util::GetVehicleSpeedRealistic(pVeh);
     float delta = CTimer::ms_fTimeScale;
 
-    if (pVeh->m_nCurrentGear != 0)
+    if (pVeh->m_nCurrentGear != 0) {
         rpm += 2.0f * delta * speed / pVeh->m_nCurrentGear;
+    }
 
-    if (pVeh->m_nVehicleFlags.bEngineOn)
+    if (pVeh->m_nVehicleFlags.bEngineOn) {
         rpm += 6.0f * delta;
+    }
 
-    float new_rot = (data.m_fMaxRotation / data.m_nMaxRpm) * rpm * delta * 0.50f;
-    new_rot = new_rot > data.m_fMaxRotation ? data.m_fMaxRotation : new_rot;
-    new_rot = new_rot < 0 ? 0 : new_rot;
+    float newRot = (data.m_fMaxRotation / data.m_nMaxRpm) * rpm * delta * 0.50f;
+    newRot = plugin::Clamp(newRot, 0, data.m_fMaxRotation);
 
-    float change = (new_rot - data.m_fCurRotation) * 0.25f * delta;
+    float change = (newRot - data.m_fCurRotation) * 0.25f * delta;
     Util::SetFrameRotationY(frame, change);
     data.m_fCurRotation += change;
 }
 
 void SpeedMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
-    std::string name = GetFrameNodeName(frame);
     VehData &data = vehData.Get(pVeh);
     if (!data.m_bInitialized) {
+        std::string name = GetFrameNodeName(frame);
         if (NODE_FOUND(name, "_kph")) {
             data.m_fMul= 100.0f;
         }
@@ -116,51 +105,24 @@ void SpeedMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
         data.m_fMaxRotation = std::stof(Util::GetRegexVal(name, ".*r([0-9]+).*", "100"));
         data.m_bInitialized = true;
     }
+
     float speed = Util::GetVehicleSpeedRealistic(pVeh);
     float delta = CTimer::ms_fTimeScale;
 
-    float totalRot = (data.m_fMaxRotation / data.m_nMaxSpeed) * speed * delta;
-    totalRot = totalRot > data.m_fMaxRotation ? data.m_fMaxRotation : totalRot;
-    totalRot = totalRot < 0 ? 0 : totalRot;
+    float newRot = (data.m_fMaxRotation / data.m_nMaxSpeed) * speed * delta;
+    newRot = plugin::Clamp(newRot, 0, data.m_fMaxRotation);
 
-    float change = (totalRot - data.m_fCurRotation) * 0.5f * delta;
-
+    float change = (newRot - data.m_fCurRotation) * 0.5f * delta;
     Util::SetFrameRotationY(frame, change);
-
-    data.m_fCurRotation += change;
-}
-
-void TachoMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
-    CVehicle *pVeh = static_cast<CVehicle*>(ptr);
-    std::string name = GetFrameNodeName(frame);
-    VehData &data = vehData.Get(pVeh);
-    if (!data.m_bInitialized) {
-        data.m_nMaxVal = std::stoi(Util::GetRegexVal(name, ".*m([0-9]+).*", "50"));
-        data.m_fMaxRotation = std::stof(Util::GetRegexVal(name, ".*r([0-9]+).*", "100"));
-        data.m_bInitialized = true;
-    }
-    float reading = Util::GetVehicleSpeedRealistic(pVeh) / 5.0f;
-    float delta = CTimer::ms_fTimeScale;
-
-    float totalRot = (data.m_fMaxRotation / data.m_nMaxVal) * reading * delta;
-    totalRot = totalRot > data.m_fMaxRotation ? data.m_fMaxRotation : totalRot;
-    totalRot = totalRot < 0 ? 0 : totalRot;
-
-    float change = (totalRot - data.m_fCurRotation) * 0.5f * delta;
-
-    Util::SetFrameRotationY(frame, change);
-
     data.m_fCurRotation += change;
 }
 
 void GasMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle *pVeh = static_cast<CVehicle*>(ptr);
     VehData &data = vehData.Get(pVeh);
-    if (data.m_bInitialized) {
-        return;
+    if (!data.m_bInitialized) {
+        std::string name = GetFrameNodeName(frame);
+        Util::SetFrameRotationY(frame, RandomNumberInRange(20.0f, 70.0f));
+        data.m_bInitialized = true;
     }
-
-    std::string name = GetFrameNodeName(frame);
-    Util::SetFrameRotationY(frame, RandomNumberInRange(20.0f, 70.0f));
-    data.m_bInitialized = true;
 }
