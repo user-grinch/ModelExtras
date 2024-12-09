@@ -3,35 +3,26 @@
 #include <TxdDef.h>
 #include <CTxdStore.h>
 #include <CKeyGen.h>
-#define MAX_REMAPS 32
-#define NODE_ID "x_ranmap"
 
-void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType type)
-{
-	if (pModelInfo)
-	{
+void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType type) {
+	if (pModelInfo) {
 		TxdDef pedTxd = CTxdStore::ms_pTxdPool->m_pObjects[pModelInfo->m_nTxdIndex];
-
 		RwTexDictionary * pedTxdDic = pedTxd.m_pRwDictionary;
-		if (pedTxdDic)
-		{
+		if (pedTxdDic) {
 			RwLinkList *objectList = &pedTxdDic->texturesInDict;
-			if (!rwLinkListEmpty(objectList))
-			{
+			if (!rwLinkListEmpty(objectList)) {
 				RwLLLink *current = rwLinkListGetFirstLLLink(objectList);
 				RwLLLink *end = rwLinkListGetTerminator(objectList);
 
 				current = rwLinkListGetFirstLLLink(objectList);
-				while (current != end)
-				{
+				while (current != end) {
 					RwTexture *pTexture = rwLLLinkGetData(current, RwTexture, lInDictionary);
 
 					std::string name = pTexture->name;
 					std::size_t found = name.find("_remap");
                     std::size_t bloodFound = name.find("_b");
 
-					if (found != std::string::npos && bloodFound == std::string::npos)
-					{
+					if (found != std::string::npos && bloodFound == std::string::npos) {
                         std::string ogRemap = name.substr(0, found);
                         RemapData &data = xRemaps.Get(model);
 
