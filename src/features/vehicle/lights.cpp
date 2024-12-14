@@ -477,15 +477,21 @@ void Lights::InitIndicators() {
 			}
 		}
 
-		if (state == eLightState::IndicatorNone) {
+		if (pVeh->m_pTrailer) {
+			Lights::VehData &trailer = Lights::m_VehData.Get(pVeh->m_pTrailer);
+			trailer.m_nIndicatorState = data.m_nIndicatorState;
+		}
+
+		if (pVeh->m_pTractor) {
+			Lights::VehData &trailer = Lights::m_VehData.Get(pVeh->m_pTractor);
+			trailer.m_nIndicatorState = data.m_nIndicatorState;
+		}
+
+		if (!delayState || state == eLightState::IndicatorNone) {
 			return;
 		}
 
-		if (!delayState)
-			return;
-
 		// global turn lights
-		bool test = gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false);
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) &&
 			(m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorLeft].size() == 0 || m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorRight].size() == 0)
 			 && m_Materials[pVeh->m_nModelIndex][state].size() == 0)
@@ -496,12 +502,6 @@ void Lights::InitIndicators() {
 			{
 				if (DistanceBetweenPoints(TheCamera.m_vecGameCamPos, pVeh->GetPosition()) < 150.0f) {
 					DrawVehicleTurnlights(pVeh, state);
-					if (pVeh->m_pTractor) {
-						DrawVehicleTurnlights(pVeh->m_pTractor, state);
-					}
-					if (pVeh->m_pTrailer) {
-						DrawVehicleTurnlights(pVeh->m_pTrailer, state);
-					}
 				}
 			}
 		} else {
