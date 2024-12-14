@@ -11,7 +11,7 @@ void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green,
 
 	unsigned int coronaID = plugin::RandomNumberInRange(0, INT_MAX);
 	CCoronas::RegisterCorona(coronaID, pVeh, red, green, blue, alpha, pos,
-		size, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 15.0f, false, false);
+		size, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
 };
 
 float Common::NormalizeAngle(float angle) {
