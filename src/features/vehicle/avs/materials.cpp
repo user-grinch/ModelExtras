@@ -3,37 +3,42 @@
 #include <CTxdStore.h>
 
 VehicleMaterial::VehicleMaterial(RpMaterial* material, eDummyPos pos) {
-	Material = material;
 
-	Texture = material->texture;
-	TextureActive = material->texture;
-	Pos = pos;
-	Color = { material->color.red, material->color.green, material->color.blue, material->color.alpha };
+	if (material) {
+		Material = material;
 
-	std::string name = std::string(Texture->name);
+		if (material->texture) {
+			Texture = material->texture;
+			TextureActive = material->texture;
+			Pos = pos;
+			Color = { material->color.red, material->color.green, material->color.blue, material->color.alpha };
 
-	RwTexture *pTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, std::string(name + "on").c_str());
-	if (!pTexture) {
-		pTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, std::string(name + "_on").c_str());
-	}
+			std::string name = std::string(Texture->name);
 
-	if (!pTexture) {
-		pTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, "vehiclelightson128");
-	}
+			RwTexture *pTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, std::string(name + "on").c_str());
+			if (!pTexture) {
+				pTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, std::string(name + "_on").c_str());
+			}
 
-	if (!pTexture) {
-		int slot = CTxdStore::FindTxdSlot("vehicle");
-		if (slot < 0) {
-		    slot = CTxdStore::AddTxdSlot("vehicle");
-			CTxdStore::LoadTxd(slot, "vehicle");
+			if (!pTexture) {
+				pTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, "vehiclelightson128");
+			}
+
+			if (!pTexture) {
+				int slot = CTxdStore::FindTxdSlot("vehicle");
+				if (slot < 0) {
+					slot = CTxdStore::AddTxdSlot("vehicle");
+					CTxdStore::LoadTxd(slot, "vehicle");
+				}
+				CTxdStore::SetCurrentTxd(slot);
+				pTexture = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), "vehiclelightson128");
+				CTxdStore::PopCurrentTxd();
+			}
+
+			if (pTexture) {
+				TextureActive = pTexture;
+			}
 		}
-		CTxdStore::SetCurrentTxd(slot);
-		pTexture = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), "vehiclelightson128");
-		CTxdStore::PopCurrentTxd();
-	}
-
-	if (pTexture) {
-		TextureActive = pTexture;
 	}
 };
 

@@ -126,7 +126,7 @@ void FeatureMgr::Initialize() {
         m_FunctionTable["spotlight_dummy"] = SpotLight::Process;
     }
 
-    if (gConfig.ReadBoolean("FEATURES", "Wheelhubs", false)) {
+    if (gConfig.ReadBoolean("FEATURES", "WheelHubs", false)) {
         m_FunctionTable["hub_"] = WheelHub::Process;
     }
 

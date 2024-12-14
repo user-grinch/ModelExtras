@@ -1,10 +1,14 @@
 #include "pch.h"
 #include "wheelhub.h"
 
+
 void UpdateRotation(RwFrame *ori, RwFrame *tar) {
     if (ori && tar) {
-        float rot = Util::GetMatrixRotationZ(&ori->modelling);
-        Util::SetMatrixRotationZ(&tar->modelling, rot);
+        RwV3d pos = RwFrameGetMatrix(ori)->pos;
+        pos.y -= 0.02f;
+        RwFrameGetMatrix(tar)->pos = pos;
+        float rot = Util::GetMatrixRotationZ(&ori->modelling); 
+        Util::SetMatrixRotationZ(&tar->modelling, rot);  
     }
 }
 

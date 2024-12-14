@@ -4,14 +4,14 @@
 #include <CShadows.h>
 #include <CCamera.h>
 
-void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, int id, float size) {
+void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, float size) {
 	if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		return;
 	}
 
-	unsigned int coronaID = reinterpret_cast<unsigned int>(pVeh) + 30 + id;
+	unsigned int coronaID = plugin::RandomNumberInRange(0, INT_MAX);
 	CCoronas::RegisterCorona(coronaID, pVeh, red, green, blue, alpha, pos,
-		size, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 50.0f, false, false);
+		size, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.5f, 0, 15.0f, false, false);
 };
 
 float Common::NormalizeAngle(float angle) {
@@ -20,7 +20,7 @@ float Common::NormalizeAngle(float angle) {
     return angle;
 }
 
-void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, int id, float angle, float radius, float size) {
+void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, float angle, float radius, float size) {
     if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
         return;
     }
@@ -52,7 +52,7 @@ void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uc
         alpha = static_cast<uchar>(alphaFloat * multiplier);
     }
 
-    RegisterCorona(pVeh, posn, red, green, blue, alpha, id, size);
+    RegisterCorona(pVeh, posn, red, green, blue, alpha, size);
 }
 
 RwTexture* Common::GetTexture(std::string texture) {

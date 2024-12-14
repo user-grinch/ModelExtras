@@ -865,11 +865,10 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 			dummyAngle -= 180.0f;
 
 		Common::RegisterCoronaWithAngle(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha, 
-			(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, dummyAngle, material->Radius, material->Size);
+			 dummyAngle, material->Radius, material->Size);
 	}
 
-	Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha,
-		(reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, material->Size);
+	Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha, material->Size);
 	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
 		CVector pos = position;
 		pos.x += (pos.x > 0 ? 1.2f : -1.2f); // FIX ME!!!

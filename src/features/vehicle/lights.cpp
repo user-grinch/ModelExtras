@@ -13,9 +13,9 @@ inline bool IsNightTime() {
 
 inline unsigned int GetShadowAlphaForDayTime() {
 	if (IsNightTime()) {
-		return 80;
+		return 210;
 	} else {
-		return 30;
+		return 180;
 	}
 }
 
@@ -126,7 +126,7 @@ void Lights::Initialize() {
 			state = eLightState::Daylight;
 		} else if (std::regex_search(name, std::regex("^light_night"))) {
 			state = eLightState::Nightlight;
-		} else if (std::regex_search(name, std::regex("^light_(?!em)"))) {
+		} else if (std::regex_search(name, std::regex("^light_em"))) {
 			state = eLightState::AllDayLight;
 		} else {
 			return;
@@ -278,7 +278,7 @@ void Lights::RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightSta
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		Common::RegisterCoronaWithAngle(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			60, id, dummy->Angle, 0.175f,  0.175f);
+			60, dummy->Angle, 0.175f,  0.175f);
 	}
 };
 
@@ -326,7 +326,7 @@ void DrawTurnlight(CVehicle *pVeh, eDummyPos pos) {
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, 255, 128, 0, GetShadowAlphaForDayTime(), dummyAngle, 0.0f, "indicator");
-    Common::RegisterCoronaWithAngle(pVeh, posn, 255, 128, 0, GetCoronaAlphaForDayTime(), dummyId, dummyAngle, 0.3f, 0.3f);
+    Common::RegisterCoronaWithAngle(pVeh, posn, 255, 128, 0, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, 0.3f);
 }
 
 void DrawVehicleTurnlights(CVehicle *vehicle, eLightState lightsStatus) {
@@ -425,7 +425,7 @@ void Lights::InitIndicators() {
 		Lights::VehData &data = Lights::m_VehData.Get(pVeh);
 		int model = pVeh->m_nModelIndex;
 		eLightState state = data.m_nIndicatorState;
-		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) == false && 
+		if (!gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) &&
 		m_Dummies[pVeh->m_nModelIndex].size() == 0 && m_Materials[pVeh->m_nModelIndex][state].size() == 0) {
 			return;
 		}
@@ -483,6 +483,7 @@ void Lights::InitIndicators() {
 			return;
 
 		// global turn lights
+		bool test = gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false);
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) &&
 			(m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorLeft].size() == 0 || m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorRight].size() == 0)
 			 && m_Materials[pVeh->m_nModelIndex][state].size() == 0)
@@ -495,6 +496,9 @@ void Lights::InitIndicators() {
 					DrawVehicleTurnlights(pVeh, state);
 					if (pVeh->m_pTractor) {
 						DrawVehicleTurnlights(pVeh->m_pTractor, state);
+					}
+					if (pVeh->m_pTrailer) {
+						DrawVehicleTurnlights(pVeh->m_pTrailer, state);
 					}
 				}
 			}

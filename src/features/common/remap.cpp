@@ -160,7 +160,7 @@ void Remap::BeforeRender(void* ptr, eModelEntityType type) {
                     m_pRandom[pData->curPtr] = RandomNumberInRange(0, sz-1);
                 }
 
-                m_pOriginalTextures.push_back({reinterpret_cast<unsigned int *>(&mat->texture), *reinterpret_cast<unsigned int *>(&mat->texture)});
+                m_pOriginalTextures.push_back({reinterpret_cast<unsigned int*>(&mat->texture), *reinterpret_cast<unsigned int *>(&mat->texture)});
 
                 if (pData->useBlood && pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pBlood) {
                     mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pBlood;
