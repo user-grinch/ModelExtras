@@ -141,7 +141,7 @@ void Lights::Initialize() {
 		}
 
 		static size_t prev = 0;
-		if (KeyPressed(VK_J) && !m_Dummies[pVeh->m_nModelIndex][eLightState::FogLight].empty()) {
+		if (KeyPressed(VK_J)){// && !m_Dummies[pVeh->m_nModelIndex][eLightState::FogLight].empty()) {
 			size_t now = CTimer::m_snTimeInMilliseconds;
 			if (now - prev > 500.0f) {
 				VehData& data = m_VehData.Get(pVeh);
@@ -183,25 +183,27 @@ void Lights::Initialize() {
 		bool leftOk = !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT);
 		bool rightOk = !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT);
 		if (data.m_bFogLightsOn) {
-			RenderLights(pVeh, eLightState::FogLight, vehicleAngle, cameraAngle, !(leftOk && rightOk), "foglight", 1.0f);
+			CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
+			RenderLights(pVeh, eLightState::FogLight, vehicleAngle, cameraAngle, false, "foglight_single", 1.0f);
 			if (leftOk && rightOk) {
-				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 				posn.x = 0.0f;
 				posn.y += 4.2f;
-				Common::RegisterShadow(pVeh, posn, 225, 225, 225, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "foglight", 2.5f);
+				Common::RegisterShadow(pVeh, posn, 225, 225, 225, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "foglight_twin", 2.0f);
+			} else {
+				posn.x = leftOk ? -0.5f : 0.5f;
+				posn.y += 3.2f;
+				Common::RegisterShadow(pVeh, posn, 225, 225, 225, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "foglight_single", 1.2f);
 			}
 		}
 
 		
 		if (pVeh->m_nVehicleFlags.bLightsOn) {
 			VehData& data = m_VehData.Get(pVeh);
-			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT) 
-			&& m_Materials[pVeh->m_nModelIndex][eLightState::FrontLightLeft].size() != 0) {
+			if (leftOk && m_Materials[pVeh->m_nModelIndex][eLightState::FrontLightLeft].size() != 0) {
 				RenderLights(pVeh, eLightState::FrontLightLeft, vehicleAngle, cameraAngle);
 			}
 
-			if (!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)
-			&& m_Materials[pVeh->m_nModelIndex][eLightState::FrontLightRight].size() != 0) {
+			if (rightOk && m_Materials[pVeh->m_nModelIndex][eLightState::FrontLightRight].size() != 0) {
 				RenderLights(pVeh, eLightState::FrontLightRight, vehicleAngle, cameraAngle);
 			}
 		}
