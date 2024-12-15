@@ -141,7 +141,7 @@ void Lights::Initialize() {
 		}
 
 		static size_t prev = 0;
-		if (KeyPressed(VK_J)){// && !m_Dummies[pVeh->m_nModelIndex][eLightState::FogLight].empty()) {
+		if (KeyPressed(VK_J) && !m_Dummies[pVeh->m_nModelIndex][eLightState::FogLight].empty()) {
 			size_t now = CTimer::m_snTimeInMilliseconds;
 			if (now - prev > 500.0f) {
 				VehData& data = m_VehData.Get(pVeh);
@@ -210,24 +210,35 @@ void Lights::Initialize() {
 
 		bool isBike = CModelInfo::IsBikeModel(pVeh->m_nModelIndex);
 		if (isBike || CModelInfo::IsCarModel(pVeh->m_nModelIndex)) {
+
+			CVehicle *pCurVeh = pVeh;
+
+			if (pVeh->m_pTrailer) {
+				pCurVeh = pVeh->m_pTrailer;
+			}
+
+			if (pVeh->m_pTractor) {
+				pCurVeh = pVeh->m_pTractor;
+			}
+
 			if (pVeh->m_nRenderLightsFlags) {
-				RenderLights(pVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
-				RenderLights(pVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
+				RenderLights(pCurVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
+				RenderLights(pCurVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
 			}
 
 			if (pVeh->m_fBreakPedal && pVeh->m_pDriver) {
-				RenderLights(pVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
+				RenderLights(pCurVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
 			}
 
-			bool reverseLightsOn = !isBike && !m_Dummies[pVeh->m_nModelIndex][eLightState::Reverselight].empty() 
+			bool reverseLightsOn = !isBike && !m_Dummies[pCurVeh->m_nModelIndex][eLightState::Reverselight].empty() 
 				&& pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver;
 			
 			if (reverseLightsOn) {
-				RenderLights(pVeh, eLightState::Reverselight, vehicleAngle, cameraAngle, false);
+				RenderLights(pCurVeh, eLightState::Reverselight, vehicleAngle, cameraAngle, false);
 			}
 
 			if (pVeh->m_nRenderLightsFlags) {
-				CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
+				CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pCurVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 				posn.x = 0.0f;
 				posn.y += 0.2f;
 				int r = 250;
@@ -237,7 +248,7 @@ void Lights::Initialize() {
 				if (reverseLightsOn) {
 					r = g = b = 240;
 				}
-				Common::RegisterShadow(pVeh, posn, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
+				Common::RegisterShadow(pCurVeh, posn, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
 			}
 		}
 	});
@@ -480,11 +491,13 @@ void Lights::InitIndicators() {
 		if (pVeh->m_pTrailer) {
 			Lights::VehData &trailer = Lights::m_VehData.Get(pVeh->m_pTrailer);
 			trailer.m_nIndicatorState = data.m_nIndicatorState;
+			data.m_nIndicatorState = eLightState::IndicatorNone;
 		}
 
 		if (pVeh->m_pTractor) {
 			Lights::VehData &trailer = Lights::m_VehData.Get(pVeh->m_pTractor);
 			trailer.m_nIndicatorState = data.m_nIndicatorState;
+			data.m_nIndicatorState = eLightState::IndicatorNone;
 		}
 
 		if (!delayState || state == eLightState::IndicatorNone) {
