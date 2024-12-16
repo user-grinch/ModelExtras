@@ -41,7 +41,7 @@ void WeaponSoundSystem::Register(const std::filesystem::path& filepath) {
     if (model > NULL && weapontype > eWeaponType::WEAPON_UNARMED) {
         m_vecRegisteredWeapons[weapontype][audioType] = 
             (C3DAudioStream*)SoundSystem.CreateStream(filepath.string().c_str(), true);
-        gLogger->info("Registered weapon sound '{}' for {}", audioType, weaponName);
+        LOG_VERBOSE("Registered weapon sound '{}' for {}", audioType, weaponName);
     }
 }
 

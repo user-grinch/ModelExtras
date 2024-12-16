@@ -78,8 +78,10 @@ void FeatureMgr::Initialize() {
     };
     
     // Index features
+    gLogger->info("Enabled features,");
     if (gConfig.ReadBoolean("FEATURES", "Chains", false)) {
         m_FunctionTable["x_chain"] = m_FunctionTable["fc_chain"] = Chain::Process;
+        gLogger->info("Chain");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "Brakes", false)) {
@@ -87,77 +89,96 @@ void FeatureMgr::Initialize() {
         m_FunctionTable["x_rbrake"] = m_FunctionTable["fc_rbrake"] = RearBrake::Process;
         m_FunctionTable["x_clutch"] = m_FunctionTable["fc_cl"] = Clutch::Process;
         m_FunctionTable["x_gearlever"] = m_FunctionTable["fc_gl"] = GearLever::Process;
+        gLogger->info("Brakes");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "GearSounds", false)) {
         m_FunctionTable["x_gs"] = GearSound::Process;
+        gLogger->info("Gear Sounds");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "GearMeter", false)) {
         m_FunctionTable["x_gearmeter"] = m_FunctionTable["fc_gm"] = GearMeter::Process;
+        gLogger->info("Gear Meter");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "OdoMeter", false)) {
         m_FunctionTable["x_ometer"] = m_FunctionTable["fc_om"] = OdoMeter::Process;
+        gLogger->info("OdoMeter");
     }
     
     if (gConfig.ReadBoolean("FEATURES", "RpmMeter", false)) {
         m_FunctionTable["x_rpm"] = m_FunctionTable["fc_rpm"] = m_FunctionTable["tahook"] = RpmMeter::Process;
+        gLogger->info("RPM Meter");
     }
     if (gConfig.ReadBoolean("FEATURES", "SpeedMeter", false)) {
         m_FunctionTable["x_sm"] = m_FunctionTable["fc_sm"] = m_FunctionTable["speedook"] = SpeedMeter::Process;
+        gLogger->info("Speed Meter");
     }
     if (gConfig.ReadBoolean("FEATURES", "GasMeter", false)) {
         m_FunctionTable["x_gm"] = m_FunctionTable["petrolok"] = GasMeter::Process;
+        gLogger->info("Gas Meter");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "RotateHandleBars", false)) {
         m_FunctionTable["forks_front"] = HandleBar::AddSource;
         m_FunctionTable["handlebars"] = HandleBar::Process;
+        gLogger->info("Rotating Handlebars");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "RotateSteerWheel", false)) {
         // TODO: need updated IDs
         m_FunctionTable["steer"] = SteerWheel::Process;
         m_FunctionTable["steering_dummy"] = SteerWheel::Process;
+        gLogger->info("Steering");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "SpotLights", false)) {
         m_FunctionTable["spotlight_dummy"] = SpotLight::Process;
+        gLogger->info("Spotlights");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "WheelHubs", false)) {
         m_FunctionTable["hub_"] = WheelHub::Process;
+        gLogger->info("WheelHubs");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "Sirens", false)) {
         Sirens::Initialize();
+        gLogger->info("Sirens");
     }
     if (gConfig.ReadBoolean("FEATURES", "Lights", false)) {
         Lights::Initialize();
+        gLogger->info("Lights");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "WeaponSoundSystem", false)) {
         WeaponSoundSystem::Initialize();
+        gLogger->info("Weapon Sounds");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "PaintJobs", false)) {
         PaintJobs::Initialize();
+        gLogger->info("Paintjobs");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "BodyStates", false)) {
         m_FunctionTable["x_body_state"] = BodyState::Process;
+        gLogger->info("Body States");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "Remap", false)) {
         Remap::Initialize();
         m_FunctionTable["x_remap"] = BloodRemap::Process;
+        gLogger->info("Random Remap");
     }
 
     if (gConfig.ReadBoolean("FEATURES", "Randomizer", false)) {
         Randomizer::Initialize();
         m_FunctionTable["x_randomizer"] = Randomizer::Process;
+        gLogger->info("Randomizer");
     }
+    PRINT_LINEBREAK
 }
 
 void FeatureMgr::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type) {
@@ -166,6 +187,7 @@ void FeatureMgr::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type) {
         for (auto e : m_FunctionTable) {
             if (NODE_FOUND(name, e.first)) {
                 m_EntityTable[type][ptr].emplace_back(frame, e.first);
+                LOG_VERBOSE("Found {} in model {}", e.first, static_cast<CEntity*>(ptr)->m_nModelIndex);
             }
         }
 

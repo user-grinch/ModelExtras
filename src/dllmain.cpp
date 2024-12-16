@@ -23,6 +23,8 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             gConfig.WriteBoolean("MISC", "ShowDonationPopup", false);
         }
 
+        gVerboseLogging = gConfig.ReadBoolean("CONFIG", "VerboseLogging", false);
+
         plugin::Events::gameProcessEvent += [](){
             SoundSystem.Process();
         };
@@ -37,7 +39,8 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             bool AVSInstalled = GetModuleHandle("AdvancedVehicleSirens.asi");
             bool EarShot = GetModuleHandle("EarShot.asi");
 
-            gLogger->flush_on(spdlog::level::info);
+            gLogger->flush_on(spdlog::level::debug);
+            spdlog::set_level(spdlog::level::debug);
             gLogger->set_pattern("%v"); 
             gLogger->info("Starting " MOD_TITLE " (" __DATE__ ")\nAuthor: Grinch_\nDiscord: "
                                         DISCORD_INVITE "\nPatreon: " PATREON_LINK "\nMore Info: " GITHUB_LINK "");

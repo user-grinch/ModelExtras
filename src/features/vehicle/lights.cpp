@@ -371,7 +371,7 @@ void Lights::InitIndicators() {
 						pos = eDummyPos::MiddleRight;
 					} else if (material->color.green == 56) {
 						pos = eDummyPos::RearRight;
-					} 
+					}
 					RegisterMaterial(vehicle, material, eLightState::IndicatorRight, pos);
 				}
 			}
@@ -424,6 +424,7 @@ void Lights::InitIndicators() {
 				}
 
 				if (!exists) {
+					LOG_VERBOSE("Registering {} for {}", name, pVeh->m_nModelIndex);
 					m_Dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 128, 0, 128 }));
 				}
 			}

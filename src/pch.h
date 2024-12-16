@@ -59,3 +59,11 @@ static CBaseModelInfo ** CModelInfo__ms_modelInfoPtrs = reinterpret_cast<CBaseMo
     gLogger->set_pattern("%v"); \
     gLogger->info(""); \
     gLogger->set_pattern("[%L] %v");
+
+
+extern bool gVerboseLogging;
+
+#define LOG_VERBOSE(fmt, ...) \
+    if (gVerboseLogging) { \
+      gLogger->debug(fmt, __VA_ARGS__); \
+    }

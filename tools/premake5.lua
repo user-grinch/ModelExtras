@@ -65,6 +65,7 @@ project "ModelExtras"
 
     filter "configurations:Release"
         optimize "On"
+        symbols "On"
         links { 
             "plugin.lib",
             "bass",
