@@ -64,7 +64,12 @@ void VehicleMaterials::OnModelSet(CVehicle* vehicle, int model) {
 		RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial* material, void* data) {
 			if (!material || !material->texture)
 				return material;
-
+			
+			/*
+			*	Note: Material data need to be model based
+			*		  Dummy data should be entity based
+			*		  Don't change it
+			*/
 			if (materials[currentVehicle->m_nModelIndex].contains(material))
 				return material;
 

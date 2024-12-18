@@ -35,6 +35,11 @@ private:
         ~VehData() {}
     };
 
+	/*
+	*	Note: Material data need to be model based
+	*		  Dummy data should be entity based
+	*		  Don't change it
+	*/
 	static inline std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> m_Materials;
 	static inline std::map<CVehicle*, std::map<eLightState, std::vector<VehicleDummy*>>> m_Dummies;
     static inline VehicleExtendedData<VehData> m_VehData;

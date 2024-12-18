@@ -34,6 +34,11 @@ class VehicleMaterials {
 		static inline std::vector<std::function<RpMaterial*(CVehicle*, RpMaterial*)>> functions;
 		static inline std::vector<std::function<void(CVehicle*)>> renders;
 		static inline std::vector<std::function<void(CVehicle*, RwFrame*, std::string, bool)>> dummy;
+		/*
+		*	Note: Material data need to be model based
+		*		  Dummy data should be entity based
+		*		  Don't change it
+		*/
 		static inline std::map<int, std::map<RpMaterial*, bool>> materials;
 		static inline CVehicle* currentVehicle;
 		static inline std::list<std::pair<unsigned int*, unsigned int>> storedMaterials;
