@@ -26,8 +26,6 @@ enum class eLightState {
 
 class Lights {
 private: 
-	static void InitIndicators();
-
 	struct VehData {
         bool m_bFogLightsOn = false;
 		bool m_bLongLightsOn = false;
