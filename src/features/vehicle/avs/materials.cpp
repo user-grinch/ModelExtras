@@ -79,34 +79,25 @@ void VehicleMaterials::OnModelSet(CVehicle* vehicle, int model) {
 		return atomic;
 	}, nullptr);
 
-	if (!dummies.contains(currentVehicle->m_nModelIndex) || dummies[currentVehicle->m_nModelIndex] == false) {
-		dummies[currentVehicle->m_nModelIndex] = true;
-	}
-
 	VehicleMaterials::FindDummies(vehicle, (RwFrame*)vehicle->m_pRwClump->object.parent);
 };
 
 void VehicleMaterials::FindDummies(CVehicle* vehicle, RwFrame* frame, bool parent) {
-	if (!frame)
-		return;
+	if (frame) {
+		const std::string name = GetFrameNodeName(frame);
 
-	const std::string name = GetFrameNodeName(frame);
+		if (RwFrame* nextFrame = frame->child) {
+			FindDummies(vehicle, nextFrame, (RwFrameGetParent(frame))?(true):(false));
+		}
 
-	if (RwFrame* nextFrame = frame->child)
-		FindDummies(vehicle, nextFrame, (RwFrameGetParent(frame))?(true):(false));
+		if (RwFrame* nextFrame = frame->next) {
+			FindDummies(vehicle, nextFrame, parent);
+		}
 
-	if (RwFrame* nextFrame = frame->next)
-		FindDummies(vehicle, nextFrame, parent);
-
-	if (frames[currentVehicle->m_nModelIndex].contains(frame))
-		return;
-
-	frames[currentVehicle->m_nModelIndex][frame] = true;
-
-	for (auto e: dummy)
-		e(currentVehicle, frame, name, parent);
-
-	return;
+		for (auto e: dummy) {
+			e(currentVehicle, frame, name, parent);
+		}
+	}
 };
 
 void VehicleMaterials::StoreMaterial(std::pair<unsigned int*, unsigned int> pair) {
@@ -114,18 +105,16 @@ void VehicleMaterials::StoreMaterial(std::pair<unsigned int*, unsigned int> pair
 };
 
 void VehicleMaterials::RestoreMaterials() {
-	for (auto& p : storedMaterials)
+	for (auto& p : storedMaterials) {
 		*p.first = p.second;
-
+	}
 	storedMaterials.clear();
 };
 
 void VehicleMaterials::OnRender(CVehicle* vehicle) {
-	if (renders.size() == 0)
-		return;
-	
-	int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-
-	for (auto e: renders)
-		e(vehicle);
+	if (!renders.empty()) {
+		for (auto e: renders) {
+			e(vehicle);
+		}
+	}
 };

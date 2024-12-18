@@ -38,7 +38,7 @@ private:
     };
 
 	static inline std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> m_Materials;
-	static inline std::map<int, std::map<eLightState, std::vector<VehicleDummy*>>> m_Dummies;
+	static inline std::map<CVehicle*, std::map<eLightState, std::vector<VehicleDummy*>>> m_Dummies;
     static inline VehicleExtendedData<VehData> m_VehData;
 
 	static void RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state, eDummyPos pos = eDummyPos::None);

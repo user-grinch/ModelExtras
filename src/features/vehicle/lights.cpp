@@ -21,9 +21,9 @@ inline unsigned int GetShadowAlphaForDayTime() {
 
 inline unsigned int GetCoronaAlphaForDayTime() {
 	if (IsNightTime()) {
-		return 100;
+		return 180;
 	} else {
-		return 70;
+		return 150;
 	}
 }
 
@@ -73,6 +73,10 @@ void Lights::Initialize() {
 		}
 	};
 
+	Events::vehicleDtorEvent += [](CVehicle *pVeh){
+		m_Dummies.erase(pVeh);
+	};
+
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
 		if (material->color.red == 255 && material->color.green == 173 && material->color.blue == 0)
 			RegisterMaterial(vehicle, material, eLightState::Reverselight);
@@ -111,7 +115,7 @@ void Lights::Initialize() {
 		return material;
 	});
 
-	VehicleMaterials::RegisterDummy([](CVehicle* vehicle, RwFrame* frame, std::string name, bool parent) {
+	VehicleMaterials::RegisterDummy([](CVehicle* pVeh, RwFrame* frame, std::string name, bool parent) {
 		eLightState state = eLightState::None;
 		eDummyPos rotation = eDummyPos::Rear;
 		RwRGBA col{ 255, 255, 255, 128 };
@@ -131,7 +135,7 @@ void Lights::Initialize() {
 		} else {
 			return;
 		}
-		m_Dummies[vehicle->m_nModelIndex][state].push_back(new VehicleDummy(frame, name, parent, rotation, col));
+		m_Dummies[pVeh][state].push_back(new VehicleDummy(frame, name, parent, rotation, col));
 	});
 	
 	Events::processScriptsEvent += []() {
@@ -141,7 +145,7 @@ void Lights::Initialize() {
 		}
 
 		static size_t prev = 0;
-		if (KeyPressed(VK_J) && !m_Dummies[pVeh->m_nModelIndex][eLightState::FogLight].empty()) {
+		if (KeyPressed(VK_J) && !m_Dummies[pVeh][eLightState::FogLight].empty()) {
 			size_t now = CTimer::m_snTimeInMilliseconds;
 			if (now - prev > 500.0f) {
 				VehData& data = m_VehData.Get(pVeh);
@@ -230,7 +234,7 @@ void Lights::Initialize() {
 				RenderLights(pCurVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
 			}
 
-			bool reverseLightsOn = !isBike && !m_Dummies[pCurVeh->m_nModelIndex][eLightState::Reverselight].empty() 
+			bool reverseLightsOn = !isBike && !m_Dummies[pCurVeh][eLightState::Reverselight].empty() 
 				&& pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver;
 			
 			if (reverseLightsOn) {
@@ -248,7 +252,7 @@ void Lights::Initialize() {
 				if (reverseLightsOn) {
 					r = g = b = 240;
 				}
-				Common::RegisterShadow(pCurVeh, posn, 250, 0, 0, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
+				Common::RegisterShadow(pCurVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
 			}
 		}
 	});
@@ -259,7 +263,7 @@ void Lights::Initialize() {
 void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle, float cameraAngle, bool shadows, std::string texture, float sz) {
 	bool flag = true;
 	int id = 0;
-	for (auto e: m_Dummies[pVeh->m_nModelIndex][state]) {
+	for (auto e: m_Dummies[pVeh][state]) {
 		if (e->PartType != eDetachPart::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType)) {
 			flag = false;
 			if (state == eLightState::FogLight) {
@@ -274,24 +278,22 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 		}
 	}
 
-	VehData& data = m_VehData.Get(pVeh);
-	for (auto &e: m_Materials[pVeh->m_nModelIndex][state]) {
-		if (flag) {
+	if (flag) {
+		for (auto &e: m_Materials[pVeh->m_nModelIndex][state]) {
 			EnableMaterial(e);
 		}
 	}
 };
 
-void Lights::RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state, eDummyPos pos) {
-	VehData& data = m_VehData.Get(vehicle);
+void Lights::RegisterMaterial(CVehicle* pVeh, RpMaterial* material, eLightState state, eDummyPos pos) {
 	material->color.red = material->color.green = material->color.blue = 255;
-	m_Materials[vehicle->m_nModelIndex][state].push_back(new VehicleMaterial(material, pos));
+	m_Materials[pVeh->m_nModelIndex][state].push_back(new VehicleMaterial(material, pos));
 };
 
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
 		Common::RegisterCoronaWithAngle(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue, 
-			60, dummy->Angle, 0.175f,  0.175f);
+			60, dummy->Angle, 0.3f,  0.3f);
 	}
 };
 
@@ -415,7 +417,7 @@ void Lights::InitIndicators() {
 
 			if (rot != eDummyPos::None) {
 				bool exists = false;
-				for (auto e: m_Dummies[pVeh->m_nModelIndex][state]) {
+				for (auto e: m_Dummies[pVeh][state]) {
 					if (e->Position.y == pFrame->modelling.pos.y
 					&& e->Position.z == pFrame->modelling.pos.z) {
 						exists = true;
@@ -425,7 +427,7 @@ void Lights::InitIndicators() {
 
 				if (!exists) {
 					LOG_VERBOSE("Registering {} for {}", name, pVeh->m_nModelIndex);
-					m_Dummies[pVeh->m_nModelIndex][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 128, 0, 128 }));
+					m_Dummies[pVeh][state].push_back(new VehicleDummy(pFrame, name, parent, rot, { 255, 128, 0, 128 }));
 				}
 			}
 		}
@@ -440,7 +442,7 @@ void Lights::InitIndicators() {
 		int model = pVeh->m_nModelIndex;
 		eLightState state = data.m_nIndicatorState;
 		if (!gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) &&
-		m_Dummies[pVeh->m_nModelIndex].size() == 0 && m_Materials[pVeh->m_nModelIndex][state].size() == 0) {
+		m_Dummies[pVeh].size() == 0 && m_Materials[pVeh->m_nModelIndex][state].size() == 0) {
 			return;
 		}
 
@@ -507,7 +509,7 @@ void Lights::InitIndicators() {
 
 		// global turn lights
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) &&
-			(m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorLeft].size() == 0 || m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorRight].size() == 0)
+			(m_Dummies[pVeh][eLightState::IndicatorLeft].size() == 0 || m_Dummies[pVeh][eLightState::IndicatorRight].size() == 0)
 			 && m_Materials[pVeh->m_nModelIndex][state].size() == 0)
 		{
 			if ((pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) &&
@@ -525,7 +527,7 @@ void Lights::InitIndicators() {
 				bool RearDisabled = false;
 				bool MidDisabled = false;
 
-				for (auto e: m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorLeft]) {
+				for (auto e: m_Dummies[pVeh][eLightState::IndicatorLeft]) {
 					if (e->PartType != eDetachPart::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType)) {
 						if (e->Type == eDummyPos::FrontLeft) {
 							FrontDisabled = true;
@@ -557,7 +559,7 @@ void Lights::InitIndicators() {
 				bool RearDisabled = false;
 				bool MidDisabled = false;
 
-				for (auto e: m_Dummies[pVeh->m_nModelIndex][eLightState::IndicatorRight]) {
+				for (auto e: m_Dummies[pVeh][eLightState::IndicatorRight]) {
 					if (e->PartType != eDetachPart::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType)) {
 						if (e->Type == eDummyPos::FrontRight) {
 							FrontDisabled = true;

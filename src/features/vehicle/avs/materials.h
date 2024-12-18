@@ -35,8 +35,6 @@ class VehicleMaterials {
 		static inline std::vector<std::function<void(CVehicle*)>> renders;
 		static inline std::vector<std::function<void(CVehicle*, RwFrame*, std::string, bool)>> dummy;
 		static inline std::map<int, std::map<RpMaterial*, bool>> materials;
-		static inline std::map<int, std::map<RwFrame*, bool>> frames;
-		static inline std::map<int, bool> dummies;
 		static inline CVehicle* currentVehicle;
 		static inline std::list<std::pair<unsigned int*, unsigned int>> storedMaterials;
 
