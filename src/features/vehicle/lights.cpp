@@ -39,7 +39,7 @@ CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
     return CVector2D(0.0f, 0.0f);
 }
 
-void DrawTurnlight(CVehicle *pVeh, eDummyPos pos) {
+void DrawGlobalLight(CVehicle *pVeh, eDummyPos pos, CRGBA col) {
 	if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE) {
 		CAutomobile *ptr = reinterpret_cast<CAutomobile*>(pVeh);
 		if ((pos == eDummyPos::FrontLeft && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT))
@@ -60,18 +60,18 @@ void DrawTurnlight(CVehicle *pVeh, eDummyPos pos) {
     if (leftSide) posn.x *= -1.0f;
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
-	Common::RegisterShadow(pVeh, posn, 255, 128, 0, GetShadowAlphaForDayTime(), dummyAngle, 0.0f, "indicator");
-    Common::RegisterCoronaWithAngle(pVeh, posn, 255, 128, 0, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, 0.3f);
+	Common::RegisterShadow(pVeh, posn, col.r, col.g, col.b, GetShadowAlphaForDayTime(), dummyAngle, 0.0f, "indicator");
+    Common::RegisterCoronaWithAngle(pVeh, posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, 0.3f);
 }
 
 inline void DrawVehicleTurnlights(CVehicle *vehicle, eLightState lightsStatus) {
     if (lightsStatus == eLightState::IndicatorBoth || lightsStatus == eLightState::IndicatorRight) {
-        DrawTurnlight(vehicle, eDummyPos::FrontRight);
-        DrawTurnlight(vehicle, eDummyPos::RearRight);
+        DrawGlobalLight(vehicle, eDummyPos::FrontRight, {255, 128, 0, 0});
+        DrawGlobalLight(vehicle, eDummyPos::RearRight, {255, 128, 0, 0});
     }
     if (lightsStatus == eLightState::IndicatorBoth || lightsStatus == eLightState::IndicatorLeft) {
-        DrawTurnlight(vehicle, eDummyPos::FrontLeft);
-        DrawTurnlight(vehicle, eDummyPos::RearLeft);
+        DrawGlobalLight(vehicle, eDummyPos::FrontLeft, {255, 128, 0, 0});
+        DrawGlobalLight(vehicle, eDummyPos::RearLeft, {255, 128, 0, 0});
     }
 }
 
@@ -360,11 +360,19 @@ void Lights::Initialize() {
 					RenderLights(pCurVeh, eLightState::Brakelight, vehicleAngle, cameraAngle);
 				}
 
-				bool reverseLightsOn = !isBike && !m_Dummies[pCurVeh][eLightState::Reverselight].empty() 
+				bool isRevlightSupportedByModel = !m_Dummies[pCurVeh][eLightState::Reverselight].empty();
+
+				bool globalRevlights = gConfig.ReadBoolean("FEATURES", "GlobalReverseLights", false);
+				bool reverseLightsOn = !isBike && (isRevlightSupportedByModel || globalRevlights)
 					&& pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver;
 				
 				if (reverseLightsOn) {
-					RenderLights(pCurVeh, eLightState::Reverselight, vehicleAngle, cameraAngle, false);
+					if (isRevlightSupportedByModel) {
+						RenderLights(pCurVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
+					} else if (globalRevlights) {
+						DrawGlobalLight(pVeh, eDummyPos::RearLeft, {240, 240, 240, 128});
+						DrawGlobalLight(pVeh, eDummyPos::RearRight, {240, 240, 240, 128});
+					}
 				}
 
 				if (pVeh->m_nRenderLightsFlags) {
@@ -374,18 +382,20 @@ void Lights::Initialize() {
 					int r = 250;
 					int g = 0;
 					int b = 0;
+					int a = GetShadowAlphaForDayTime();
 
-					if (reverseLightsOn) {
-						r = g = b = 240;
+					if (pVeh->m_fBreakPedal) {
+						a += 40;
 					}
-					Common::RegisterShadow(pCurVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
+
+					Common::RegisterShadow(pCurVeh, posn, r, g, b, a, 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
 				}
 			}
 		}
 
 		// Indicator Lights
 		eLightState state = data.m_nIndicatorState;
-		if (!gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) && m_Dummies[pVeh].size() == 0 && m_Materials[pVeh->m_nModelIndex][state].size() == 0) {
+		if (!gConfig.ReadBoolean("FEATURES", "GlobalIndicatorLights", false) && m_Dummies[pVeh].size() == 0 && m_Materials[pVeh->m_nModelIndex][state].size() == 0) {
 			return;
 		}
 
@@ -451,7 +461,7 @@ void Lights::Initialize() {
 		}
 
 		// global turn lights
-		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicators", false) &&
+		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicatorLights", false) &&
 			(m_Dummies[pVeh][eLightState::IndicatorLeft].size() == 0 || m_Dummies[pVeh][eLightState::IndicatorRight].size() == 0)
 			 && m_Materials[pVeh->m_nModelIndex][state].size() == 0)
 		{
