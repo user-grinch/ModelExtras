@@ -90,11 +90,14 @@ inline bool IsBumperOrWingDamaged(CVehicle* pVeh, eDetachPart part) {
 }
 
 void Lights::Initialize() {
-	static float headlightTexWidth = 8.0f;
+	static float headlightTexWidth = 10.0f;
 	static float headlightTexWidthBike = 2.75f;
+	static unsigned short headlightAlpha = 240;
 	patch::SetPointer(0x6E16A3, &headlightTexWidth);
 	patch::SetPointer(0x6E1537, &headlightTexWidth);
 	patch::SetPointer(0x6E1548, &headlightTexWidthBike);
+	patch::SetPointer(0x70C6CB, &headlightAlpha);
+	patch::SetPointer(0x70C72D, &headlightAlpha);
 
 	// NOP CVehicle::DoHeadLightBeam
 	patch::Nop(0x6A2E9F, 0x58);
@@ -382,13 +385,11 @@ void Lights::Initialize() {
 					int r = 250;
 					int g = 0;
 					int b = 0;
-					int a = GetShadowAlphaForDayTime();
 
-					if (pVeh->m_fBreakPedal) {
-						a += 40;
+					if (pVeh->m_fBreakPedal) { // do twice
+						Common::RegisterShadow(pCurVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
 					}
-
-					Common::RegisterShadow(pCurVeh, posn, r, g, b, a, 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
+					Common::RegisterShadow(pCurVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
 				}
 			}
 		}

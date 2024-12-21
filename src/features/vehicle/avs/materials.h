@@ -5,7 +5,7 @@
 #include "game_sa/CPools.h"
 #include "game_sa/CModelInfo.h"
 #include "game_sa/NodeName.h"
-#include "game_sa/RenderWare.h"
+#include "RenderWare.h"
 
 enum class eDummyPos;
 

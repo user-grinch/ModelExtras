@@ -1,7 +1,7 @@
 #pragma once
 #include "materials.h"
 #include "game_sa/CGeneral.h"
-#include "game_sa/RenderWare.h"
+#include "RenderWare.h"
 
 enum class eDummyPos { 
     None,

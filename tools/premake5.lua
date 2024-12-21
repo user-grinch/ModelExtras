@@ -39,6 +39,7 @@ project "ModelExtras"
         "PLUGIN_SGV_10US",
         "_GTA_",
         "GTASA",
+        "RW"
     }
 
     includedirs {
@@ -46,6 +47,7 @@ project "ModelExtras"
         "../src/",
         PSDK_DIR .. "/plugin_sa/",
         PSDK_DIR .. "/plugin_sa/game_sa/",
+        PSDK_DIR .. "/plugin_sa/game_sa/rw/",
         PSDK_DIR .. "/shared/",
         PSDK_DIR .. "/shared/game/"
     }
@@ -65,7 +67,6 @@ project "ModelExtras"
 
     filter "configurations:Release"
         optimize "On"
-        symbols "On"
         links { 
             "plugin.lib",
             "bass",
