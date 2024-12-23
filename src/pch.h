@@ -6,6 +6,7 @@
 #include <CModelInfo.h>
 #include <regex>
 
+#include <RenderWare.h>
 #include <plugin.h>
 
 #include "bass.h"

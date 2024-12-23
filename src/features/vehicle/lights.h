@@ -4,6 +4,9 @@
 #include "avs/dummy.h"
 #include "avs/materials.h"
 
+#include "audiostream3d.h"
+#include "soundsystem.h"
+
 enum class eLightState { 
 	None, 
 	FrontLightLeft, 
@@ -34,6 +37,8 @@ private:
         VehData(CVehicle *pVeh) {}
         ~VehData() {}
     };
+
+	static inline C3DAudioStream* m_LightOnStream = nullptr, *m_LightOffStream = nullptr;
 
 	/*
 	*	Note: Material data need to be model based
