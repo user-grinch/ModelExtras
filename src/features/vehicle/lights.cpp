@@ -350,8 +350,8 @@ void Lights::Initialize() {
 				RenderLights(pVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
 			}
 			
-			bool leftOk = !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT);
-			bool rightOk = !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT);
+			bool leftOk = true;//!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT);
+			bool rightOk = true;//!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT);
 			if (data.m_bFogLightsOn) {
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 				RenderLights(pVeh, eLightState::FogLight, vehicleAngle, cameraAngle, false, "foglight_single", 1.0f);
@@ -365,7 +365,6 @@ void Lights::Initialize() {
 					Common::RegisterShadow(pVeh, posn, 225, 225, 225, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "foglight_single", 1.2f);
 				}
 			}
-
 			
 			if (pVeh->m_nVehicleFlags.bLightsOn) {
 				VehData& data = m_VehData.Get(pVeh);
@@ -501,7 +500,7 @@ void Lights::Initialize() {
 		// global turn lights
 		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicatorLights", false) &&
 			(m_Dummies[pVeh][eLightState::IndicatorLeft].size() == 0 || m_Dummies[pVeh][eLightState::IndicatorRight].size() == 0)
-			 && m_Materials[pVeh->m_nModelIndex][state].size() == 0)
+			 && (m_Materials[pVeh->m_nModelIndex][eLightState::IndicatorLeft].size() == 0 || m_Materials[pVeh->m_nModelIndex][eLightState::IndicatorRight].size() == 0))
 		{
 			if ((pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) &&
 				(pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE || pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) &&
@@ -584,12 +583,14 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 	bool flag = true;
 	int id = 0;
 	for (auto e: m_Dummies[pVeh][state]) {
-		if (e->PartType != eDetachPart::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType)) {
-			flag = false;
-			if (state == eLightState::FogLight) {
-				m_VehData.Get(pVeh).m_bFogLightsOn = false;
+		if (CModelInfo::IsCarModel(pVeh->m_nModelIndex)) {
+			if (e->PartType != eDetachPart::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType)) {
+				flag = false;
+				if (state == eLightState::FogLight) {
+					m_VehData.Get(pVeh).m_bFogLightsOn = false;
+				}
+				continue;
 			}
-			continue;
 		}
 		EnableDummy((int)pVeh + (int)state + id++, e, pVeh);
 

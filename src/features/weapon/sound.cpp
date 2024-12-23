@@ -6,7 +6,7 @@
 #include <CAEAudioHardware.h>
 #include <CAEPedAudioEntity.h>
 
-inline float GetGameVolume() {
+float GetGameVolume() {
     return *(BYTE*)0xBA6797 / 64.0f;
 }
 
