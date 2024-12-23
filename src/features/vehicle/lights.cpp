@@ -243,13 +243,13 @@ void Lights::Initialize() {
 			state = (toupper(match.str(2)[0]) == 'L') ? (eLightState::FogLight) : (eLightState::FogLight);
 		} else if (std::regex_search(name, std::regex( "^rev.*\s*_[lr].*$"))) {
 			state = eLightState::Reverselight;
-			col = {240, 240, 240, 128};
 		} else if (std::regex_search(name, std::regex("^light_day"))) {
 			state = eLightState::Daylight;
 		} else if (std::regex_search(name, std::regex("^light_night"))) {
 			state = eLightState::Nightlight;
 		} else if (std::regex_search(name, std::regex("^light_em"))) {
 			state = eLightState::AllDayLight;
+			col = { 0, 0, 0, 0 }; // Make invisible
 		} else if (std::regex_search(name, match, std::regex("^(turnl_|indicator_)(.{2})"))) { // Indicator Lights
 			std::string stateStr = match.str(2);
 			eLightState state = (toupper(stateStr[0]) == 'L') ? eLightState::IndicatorLeft : eLightState::IndicatorRight;
@@ -350,8 +350,8 @@ void Lights::Initialize() {
 				RenderLights(pVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
 			}
 			
-			bool leftOk = true;//!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT);
-			bool rightOk = true;//!automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT);
+			bool leftOk = !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT);
+			bool rightOk = !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT);
 			if (data.m_bFogLightsOn) {
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 				RenderLights(pVeh, eLightState::FogLight, vehicleAngle, cameraAngle, false, "foglight_single", 1.0f);
