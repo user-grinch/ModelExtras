@@ -404,7 +404,7 @@ void Lights::Initialize() {
 
 				bool globalRevlights = gConfig.ReadBoolean("FEATURES", "GlobalReverseLights", false);
 				bool reverseLightsOn = !isBike && (isRevlightSupportedByModel || globalRevlights)
-					&& pVeh->m_nCurrentGear == 0 && pVeh->m_fMovingSpeed != 0 && pVeh->m_pDriver;
+					&& pVeh->m_nCurrentGear == 0 && (pVeh->m_fMovingSpeed >= 0.01f) && pVeh->m_pDriver;
 				
 				if (reverseLightsOn) {
 					if (isRevlightSupportedByModel) {
