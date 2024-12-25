@@ -6,8 +6,9 @@
 #include <CShadows.h>
 #include <eVehicleClass.h>
 #include <CCutsceneMgr.h>
-
-extern float GetGameVolume();
+#include <CAudioEngine.h>
+#include <rwcore.h>
+#include <rpworld.h>
 
 inline bool IsNightTime() {
 	return CClock::GetIsTimeInRange(20, 6);
@@ -98,7 +99,7 @@ unsigned int HEADLIGHT_SHADOW_ALPHA = 240;
 float HEADLIGHT_SHADOW_WIDTH_BIKE = 2.75f;
 float HEADLIGHT_SHADOW_WIDTH = 240;
 float HEADLIGHT_SHADOW_WIDTH_SHORT = 8.0f;
-float HEADLIGHT_SHADOW_WIDTH_LONG = 10.0f;
+float HEADLIGHT_SHADOW_WIDTH_LONG = 8.0f;
 
 // Coronas
 float HEADLIGHT_CORONA_SIZE_SHORT = 0.075f;
@@ -118,10 +119,6 @@ void Lights::Initialize() {
 	patch::SetPointer(0x70C72D, &HEADLIGHT_SHADOW_ALPHA);
 	patch::SetUInt(0x6E0CF8, 0xC0); // Decrease inner corona alpha a bit
 
-	// NOP CVehicle::DoHeadLightBeam
-	patch::Nop(0x6A2E9F, 0x58);
-	patch::Nop(0x6BDE73, 0x12);
-
 	static RwTexture* hss = nullptr;
 	static RwTexture* hsl = nullptr;
 	static RwTexture* hts = nullptr;
@@ -132,8 +129,6 @@ void Lights::Initialize() {
 		hsl = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_single_long.png")), 255);
 		hts = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_twin_short.png")), 255);
 		htl = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_twin_long.png")), 255);
-		m_LightOnStream = (C3DAudioStream*)SoundSystem.CreateStream(MOD_DATA_PATH("sounds/light_on.mp3"), true);
-		m_LightOffStream = (C3DAudioStream*)SoundSystem.CreateStream(MOD_DATA_PATH("sounds/light_off.mp3"), true);
 		};
 
 	static FastcallEvent <AddressList<0x6E1A76, H_CALL>, PRIORITY_BEFORE,
@@ -141,7 +136,6 @@ void Lights::Initialize() {
 
 	DoHeadLightEvent += [](CVehicle* pVeh, int b) {
 		VehData& data = m_VehData.Get(pVeh);
-
 		if (data.m_bLongLightsOn) {
 			plugin::patch::SetPointer(0x6E1693, htl); // Twin
 			plugin::patch::SetPointer(0x6E151D, hsl); // Single
@@ -315,12 +309,7 @@ void Lights::Initialize() {
 					VehData& data = m_VehData.Get(pVeh);
 					data.m_bFogLightsOn = !data.m_bFogLightsOn;
 					prev = now;
-
-					C3DAudioStream* ptr = data.m_bFogLightsOn ? m_LightOnStream : m_LightOffStream;
-					ptr->SetProgress(0.0f);
-					ptr->Set3dPosition(pVeh->GetPosition());
-					ptr->SetVolume(GetGameVolume());
-					ptr->Play();
+					AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_ON, 10.0, 1.0);
 				}
 			}
 
@@ -330,12 +319,7 @@ void Lights::Initialize() {
 					VehData& data = m_VehData.Get(pVeh);
 					data.m_bLongLightsOn = !data.m_bLongLightsOn;
 					prev = now;
-
-					C3DAudioStream* ptr = data.m_bLongLightsOn ? m_LightOnStream : m_LightOffStream;
-					ptr->SetProgress(0.0f);
-					ptr->Set3dPosition(pVeh->GetPosition());
-					ptr->SetVolume(GetGameVolume());
-					ptr->Play();
+					AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_ON, 10.0, 1.0);
 				}
 			}
 		}

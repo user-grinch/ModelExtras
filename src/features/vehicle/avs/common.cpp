@@ -5,13 +5,13 @@
 #include <CCamera.h>
 
 void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, float size) {
-	if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-		return;
-	}
+    if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+        return;
+    }
 
-	unsigned int coronaID = plugin::RandomNumberInRange(0, INT_MAX);
-	CCoronas::RegisterCorona(coronaID, pVeh, red, green, blue, alpha, pos,
-		size, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.3f, 0, 70.0f, false, false);
+    unsigned int coronaID = plugin::RandomNumberInRange(0, INT_MAX);
+    CCoronas::RegisterCorona(coronaID, pVeh, red, green, blue, alpha, pos,
+        size, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
 };
 
 float Common::NormalizeAngle(float angle) {
@@ -56,36 +56,36 @@ void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uc
 }
 
 RwTexture* Common::GetTexture(std::string texture) {
-	if (Textures.contains(texture) && Textures[texture])
-		return Textures[texture];
+    if (Textures.contains(texture) && Textures[texture])
+        return Textures[texture];
 
-	Textures[texture] = Util::LoadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str(), 60.0f);
+    Textures[texture] = Util::LoadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str(), 60.0f);
     return Textures[texture];
 };
 
-void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, unsigned int alpha, float angle, float currentAngle, const std::string& shadwTexName, float shdwSz, float shdwOffset, RwTexture *pTexture) {
-	if (shdwSz == 0.0f || !gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
-		return;
-	}
+void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, unsigned int alpha, float angle, float currentAngle, const std::string& shadwTexName, float shdwSz, float shdwOffset, RwTexture* pTexture) {
+    if (shdwSz == 0.0f || !gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
+        return;
+    }
 
-	CVector center = pVeh->TransformFromObjectSpace(
-		CVector(
-			position.x + (shdwOffset * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-			position.y + ((1.2f + shdwOffset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-			position.z
-		)
-	);
+    CVector center = pVeh->TransformFromObjectSpace(
+        CVector(
+            position.x + (shdwOffset * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+            position.y + ((1.2f + shdwOffset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+            position.z
+        )
+    );
 
-	float fAngle = pVeh->GetHeading() + (((angle + currentAngle) + 180.0f) * 3.14f / 180.0f);
+    float fAngle = pVeh->GetHeading() + (((angle + currentAngle) + 180.0f) * 3.14f / 180.0f);
 
-	CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
-	CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-	up *= shdwSz;
+    CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
+    CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
+    up *= shdwSz;
     right *= shdwSz;
 
-	CShadows::StoreShadowToBeRendered(2, (pTexture != NULL ? pTexture: Common::GetTexture(shadwTexName)), &center,
-		up.x, up.y,
-		right.x, right.y,
-		alpha, red, green, blue,
-		2.0f, false, 1.0f, 0, true);
+    CShadows::StoreShadowToBeRendered(2, (pTexture != NULL ? pTexture : Common::GetTexture(shadwTexName)), &center,
+        up.x, up.y,
+        right.x, right.y,
+        alpha, red, green, blue,
+        2.0f, false, 1.0f, 0, true);
 };
