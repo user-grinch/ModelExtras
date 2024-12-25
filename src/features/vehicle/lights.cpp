@@ -349,8 +349,13 @@ void Lights::Initialize() {
 				RenderLights(pVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
 			}
 
-			bool leftOk = !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT);
-			bool rightOk = !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT);
+			bool leftOk = true;
+			bool rightOk = true;
+			if (CModelInfo::IsCarModel(pVeh->m_nModelIndex)) {
+				leftOk = !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT);
+				rightOk = !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT);
+			}
+
 			if (data.m_bFogLightsOn) {
 				CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 				RenderLights(pVeh, eLightState::FogLight, vehicleAngle, cameraAngle, false, "foglight_single", 1.0f);
