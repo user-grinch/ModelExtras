@@ -4,36 +4,36 @@
 #include <CCoronas.h>
 #include "defines.h"
 
-void SpotLight::Process(void *ptr, RwFrame* pFrame, eModelEntityType type) {    
-	CVehicle *pVeh = static_cast<CVehicle*>(ptr);
-    VehData &data = vehData.Get(pVeh);
-    
+void SpotLight::Process(void* ptr, RwFrame* pFrame, eModelEntityType type) {
+	CVehicle* pVeh = static_cast<CVehicle*>(ptr);
+	VehData& data = vehData.Get(pVeh);
+
 	if (!data.bInit) {
 		if (!bHooksInjected) {
-			Events::vehicleRenderEvent += [](CVehicle *pVeh) {
+			Events::vehicleRenderEvent += [](CVehicle* pVeh) {
 				OnVehicleRender(pVeh);
-			};
+				};
 
 			Events::drawingEvent += []() {
 				OnHudRender();
-			};
-			pSpotlightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("/textures/spotlight256.png")));
+				};
+			pSpotlightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("/textures/spotlight.png")));
 			bHooksInjected = true;
 		}
-		VehData &data = vehData.Get(pVeh);
+		VehData& data = vehData.Get(pVeh);
 		data.pFrame = pFrame;
 		data.bInit = true;
 	}
 }
 
 void SpotLight::OnHudRender() {
-	CVehicle *pVeh = FindPlayerVehicle(-1, false);
+	CVehicle* pVeh = FindPlayerVehicle(-1, false);
 
 	if (!pVeh) {
 		return;
 	}
 
-	VehData &data = vehData.Get(pVeh);
+	VehData& data = vehData.Get(pVeh);
 
 	static size_t prev = 0;
 	if (KeyPressed(VK_B)) {
@@ -73,8 +73,8 @@ void SpotLight::OnHudRender() {
 	//RwFrameRotate(Frame, (RwV3d*)0x008D2E18, heading, rwCOMBINEREPLACE);
 };
 
-void SpotLight::OnVehicleRender(CVehicle *pVeh) {
-	VehData &data = vehData.Get(pVeh);
+void SpotLight::OnVehicleRender(CVehicle* pVeh) {
+	VehData& data = vehData.Get(pVeh);
 	if (!data.bEnabled || data.pFrame == nullptr)
 		return;
 
@@ -93,11 +93,11 @@ void SpotLight::OnVehicleRender(CVehicle *pVeh) {
 	float differenceAngle = ((cameraAngle > vehicleAngle) ? (cameraAngle - vehicleAngle) : (vehicleAngle - cameraAngle));
 
 	// if (differenceAngle > 90.0f && differenceAngle < 270.0f) {
-		CVector position = CVector(matrix.pos);
+	CVector position = CVector(matrix.pos);
 
-		CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(pVeh) + 49, pVeh, 255, 255, 255, 100, position,
-			0.3f, 300.0f, eCoronaType::CORONATYPE_SHINYSTAR, eCoronaFlareType::FLARETYPE_NONE, false, false, 0, 90.0f, false, 1.0f, 0, 50.0f, false, true);
-	// }
+	CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(pVeh) + 49, pVeh, 255, 255, 255, 100, position,
+		0.3f, 300.0f, eCoronaType::CORONATYPE_SHINYSTAR, eCoronaFlareType::FLARETYPE_NONE, false, false, 0, 90.0f, false, 1.0f, 0, 50.0f, false, true);
+// }
 
 	matrix.RotateZ(vehicleHeading);
 
