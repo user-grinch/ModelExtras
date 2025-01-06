@@ -21,9 +21,11 @@ enum class VehicleSirenStates {
     Mute
 };
 
+#define DEFAULT_SIREN_SHADOW "round"
+
 struct VehicleSirenShadow {
     float Size = 0.0f;
-    std::string Type = "taillight256";
+    std::string Type = DEFAULT_SIREN_SHADOW;
     float Offset = 0.0f;
 };
 
@@ -144,7 +146,7 @@ public:
     std::map<int, std::vector<VehicleMaterial*>> Materials;
     std::vector<VehicleSirenState*> States;
     bool isImVehFtSiren = false;
-    
+
     VehicleSirenData(nlohmann::json json);
 
     static inline std::map<std::string, nlohmann::json> References;
@@ -182,7 +184,7 @@ private:
     static inline std::map<int, VehicleSirenData*> modelData;
     static inline std::map<int, std::vector<VehicleDummy*>> modelRotators;
 
-    static char __fastcall hkUsesSiren(CVehicle *ptr);
+    static char __fastcall hkUsesSiren(CVehicle* ptr);
     static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay);
 
     static void ParseConfig();

@@ -268,7 +268,11 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 					if (json["shadow"]["type"] == 1)
 						Shadow.Type = "pointlight";
 					else if (json["shadow"]["type"] == 0)
-						Shadow.Type = "taillight";
+						Shadow.Type = DEFAULT_SIREN_SHADOW;
+					else if (json["shadow"]["type"] == 10)
+						Shadow.Type = "narrow";
+					// TODO: Implement others
+					// No docs for them
 				}
 				else if (json["shadow"]["type"].is_string()) {
 					Shadow.Type = json["shadow"]["type"];
@@ -283,6 +287,14 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 					Shadow.Offset = json["shadow"]["offset"];
 				else
 					gLogger->error("Model " + std::to_string(Sirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", shadow object property offset is not an acceptable number!");
+			}
+
+			// ModelExtras
+			if (Shadow.Type == "0" || Shadow.Type == DEFAULT_SIREN_SHADOW) {
+				Shadow.Size *= 5.0f;
+			}
+			else {
+				Shadow.Size *= 2.0f;
 			}
 		}
 		else {
@@ -472,7 +484,6 @@ void Sirens::Initialize() {
 		else {
 			RegisterMaterial(vehicle, material);
 		}
-
 		return material;
 	});
 
@@ -582,8 +593,8 @@ void Sirens::Initialize() {
 			}
 		}
 
-		for (int number = 0; number < 10; number++) {
-			if (KeyPressed(VK_0 + number)) { // 0 -> 9
+		for (int number = 0; number < 9; number++) {
+			if (KeyPressed(VK_1 + number)) { // 1 -> 9
 				int model = vehicle->m_nModelIndex;
 
 				if (!modelData.contains(model))
@@ -872,16 +883,19 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 			dummyAngle -= 180.0f;
 
 		Common::RegisterCoronaWithAngle(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha,
-			 dummyAngle, material->Radius, material->Size * 2.5f);
+			 dummyAngle, material->Radius, material->Size * 2.0f);
+	}
+	else {
+		Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha, material->Size * 2.0f);
 	}
 
-	Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, alpha, material->Size * 2.5f);
 	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
 		CVector pos = position;
 		pos.x += (pos.x > 0 ? 1.2f : -1.2f); // FIX ME!!!
 		unsigned char alpha = static_cast<char>((static_cast<float>(material->Color.alpha) * -1) * material->InertiaMultiplier);
+
 		Common::RegisterShadow(vehicle, pos, material->Color.red, material->Color.green, material->Color.blue,
-			material->Color.alpha, dummy->Angle, dummy->CurrentAngle, "indicator", material->Shadow.Size * 5.0f, material->Shadow.Offset, nullptr);
+			material->Color.alpha, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, material->Shadow.Size, material->Shadow.Offset, nullptr);
 	}
 };
 
