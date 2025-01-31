@@ -419,7 +419,9 @@ void Sirens::RegisterMaterial(CVehicle* vehicle, RpMaterial* material) {
 		if (modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
 			id = 256 - id;
 		}
-		material->color.red = material->color.blue = material->color.green = 255;
+		else { // Only reset on IVF vehicles
+			material->color.red = material->color.blue = material->color.green = 255;
+		}
 		modelData[vehicle->m_nModelIndex]->Materials[id].push_back(new VehicleMaterial(material));
 	}
 };
@@ -479,17 +481,20 @@ void Sirens::Initialize() {
 		};
 
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
-		if (modelData.contains(vehicle->m_nModelIndex) && modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
-			if ((std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0)
-			&& (material->color.red >= 240 && material->color.green == 0 && material->color.blue == 0)) {
+		if (modelData.contains(vehicle->m_nModelIndex)
+			&& (material->color.green == 255 || modelData[vehicle->m_nModelIndex]->isImVehFtSiren)) {
+			if (modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
+				if ((std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0)
+				&& (material->color.red >= 240 && material->color.green == 0 && material->color.blue == 0)) {
+					RegisterMaterial(vehicle, material);
+				}
+			}
+			else {
 				RegisterMaterial(vehicle, material);
 			}
 		}
-		else {
-			RegisterMaterial(vehicle, material);
-		}
 		return material;
-	});
+		});
 
 	VehicleMaterials::RegisterDummy([](CVehicle* vehicle, RwFrame* frame, std::string name, bool parent) {
 		if (!modelData.contains(vehicle->m_nModelIndex))

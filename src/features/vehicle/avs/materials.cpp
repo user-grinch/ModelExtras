@@ -8,6 +8,8 @@
 
 RwTexture* FindTextureInDict(RpMaterial* pMat, RwTexDictionary* pDict) {
 	const std::string baseName = pMat->texture->name;
+
+	// texture glitch fix
 	const std::vector<std::string> texNames = {
 		// baseName,
 		baseName + "on",
