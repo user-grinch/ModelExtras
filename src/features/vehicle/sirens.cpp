@@ -412,11 +412,15 @@ VehicleSirenData::VehicleSirenData(nlohmann::json json) {
 
 
 void Sirens::RegisterMaterial(CVehicle* vehicle, RpMaterial* material) {
-	int color = material->color.red;
 
 	if (modelData.contains(vehicle->m_nModelIndex)) {
+		// Don't move this out
+		int id = material->color.red;
+		if (modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
+			id = 256 - id;
+		}
 		material->color.red = material->color.blue = material->color.green = 255;
-		modelData[vehicle->m_nModelIndex]->Materials[color].push_back(new VehicleMaterial(material));
+		modelData[vehicle->m_nModelIndex]->Materials[id].push_back(new VehicleMaterial(material));
 	}
 };
 
@@ -500,8 +504,8 @@ void Sirens::Initialize() {
 		std::smatch match;
 
 		if (std::regex_search(name, match, pattern)) {
-			std::string material = match[2];
-			vehicleData[index]->Dummies[std::stoi(material)].push_back(new VehicleDummy(frame, name, parent, eDummyPos::None));
+			int id = std::stoi(match[2]);
+			vehicleData[index]->Dummies[id].push_back(new VehicleDummy(frame, name, parent, eDummyPos::None));
 		}
 	});
 
@@ -777,7 +781,7 @@ void Sirens::Initialize() {
 
 			mat.second->Frames++;
 		}
-	});
+		});
 
 	patch::ReplaceFunctionCall(0x6D8492, hkUsesSiren);
 

@@ -6,52 +6,57 @@
 #include <rwplcore.h>
 #include <rpworld.h>
 
+RwTexture* FindTextureInDict(RpMaterial* pMat, RwTexDictionary* pDict) {
+	const std::string baseName = pMat->texture->name;
+	const std::vector<std::string> texNames = {
+		// baseName,
+		baseName + "on",
+		baseName + "_on",
+		// "sirenlighton",
+		// "sirenlight_on",
+		// "vehiclelightson128"
+	};
+
+	RwTexture* pTex = nullptr;
+	for (const auto& name : texNames) {
+		pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
+		if (pTex) {
+			break;
+		}
+	}
+	return pTex;
+}
+
 VehicleMaterial::VehicleMaterial(RpMaterial* material, eDummyPos pos) {
-	if (!material) return;
+	if (!material || !material->texture) return;
 
 	Material = material;
-	if (!material->texture) return;
-
 	Texture = material->texture;
 	TextureActive = material->texture;
 	Pos = pos;
 	Color = { material->color.red, material->color.green, material->color.blue, material->color.alpha };
 
-	const std::string baseName = material->texture->name;
-	const std::vector<std::string> texNames = {
-		baseName + "on",
-		baseName + "_on",
-		"sirenlighton",
-		"sirenlight_on",
-		"vehiclelightson128"
-	};
-
-	RwTexture* pTexture = nullptr;
-
-	for (const auto& name : texNames) {
-		pTexture = RwTexDictionaryFindNamedTexture(material->texture->dict, name.c_str());
-		if (pTexture) break;
-	}
-
+	RwTexture* pTexture = FindTextureInDict(material, material->texture->dict);
 	if (!pTexture) {
 		int slot = CTxdStore::FindTxdSlot("vehicle");
+		bool loaded = false;
+
 		if (slot < 0) {
 			slot = CTxdStore::AddTxdSlot("vehicle");
 			CTxdStore::LoadTxd(slot, "vehicle");
+			loaded = true;
 		}
-
 		CTxdStore::SetCurrentTxd(slot);
-		if (auto* currentDict = RwTexDictionaryGetCurrent()) {
-			pTexture = RwTexDictionaryFindNamedTexture(currentDict, "vehiclelightson128");
+		pTexture = FindTextureInDict(material, RwTexDictionaryGetCurrent());
+		if (loaded) {
+			CTxdStore::PopCurrentTxd();
 		}
-		CTxdStore::PopCurrentTxd();
 	}
 
 	if (pTexture) {
 		TextureActive = pTexture;
 	}
 }
-
 
 void VehicleMaterials::Register(std::function<RpMaterial* (CVehicle*, RpMaterial*)> function) {
 	functions.push_back(function);

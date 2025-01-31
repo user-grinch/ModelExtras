@@ -25,13 +25,13 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
 
         gVerboseLogging = gConfig.ReadBoolean("CONFIG", "VerboseLogging", false);
 
-        plugin::Events::gameProcessEvent += [](){
+        plugin::Events::gameProcessEvent += []() {
             SoundSystem.Process();
-        };
+            };
 
-        plugin::Events::shutdownRwEvent += [](){
+        plugin::Events::shutdownRwEvent += []() {
             SoundSystem.Clear();
-        };
+            };
 
         Events::initGameEvent += []() {
             bool ImVehFtInstalled = GetModuleHandle("ImVehFt.asi");
@@ -41,7 +41,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
 
             gLogger->flush_on(spdlog::level::debug);
             spdlog::set_level(spdlog::level::debug);
-            gLogger->set_pattern("%v"); 
+            gLogger->set_pattern("%v");
             gLogger->info("Starting " MOD_TITLE " (" __DATE__ ")\nAuthor: Grinch_\nDiscord: "
                                         DISCORD_INVITE "\nPatreon: " PATREON_LINK "\nMore Info: " GITHUB_LINK "");
 
@@ -54,7 +54,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             for (const auto& name : donators) {
                 gLogger->info("- {}", name);
             }
-            
+
             gLogger->set_pattern("[%L] %v");
             SoundSystem.Init();
 
@@ -69,22 +69,22 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
                 return;
             }
 
-            if (gConfig.ReadBoolean("MISC", "ShowDeprecationMessage", true) 
+            if (gConfig.ReadBoolean("MISC", "ShowDeprecationMessage", true)
             && (ImVehFtInstalled || ImVehFtFixInstalled || AVSInstalled || EarShot)) {
                 std::string str = "ModelExtras contain the functions of these plugins,\n\n";
-                
+
                 if (ImVehFtInstalled) str += "- ImVehFt.asi\n";
                 if (ImVehFtFixInstalled) str += "- ImVehFtFix.asi\n";
                 if (AVSInstalled) str += "- AdvancedVehicleSirens.asi\n";
                 if (EarShot) str += "- EarShot.asi\n";
 
                 str += "\nIt is recommanded to remove them to ensure proper gameplay.";
-                MessageBox(RsGlobal.ps->window, str.c_str(), "Deprecated plugins found!", MB_OK);
+                MessageBox(NULL, str.c_str(), "Deprecated plugins found!", MB_OK);
                 gConfig.WriteBoolean("MISC", "ShowDeprecationMessage", false);
             }
 
             FeatureMgr::Initialize();
-        };
+            };
     }
     return TRUE;
 }

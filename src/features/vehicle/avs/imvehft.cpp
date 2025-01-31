@@ -107,13 +107,14 @@ int ImVehFt_EmlToJson(const std::string& emlPath) {
     outfile.close();
 
     std::string backupDir = MOD_DATA_PATH("sirens\\backup\\");
-    std::filesystem::create_directories(backupDir); 
+    std::filesystem::create_directories(backupDir);
 
     std::filesystem::path source(emlPath);
-    std::filesystem::path destination = backupDir + source.filename().string();  
+    std::filesystem::path destination = backupDir + source.filename().string();
     try {
         std::filesystem::rename(source, destination);
-    } catch (const std::filesystem::filesystem_error& e) {
+    }
+    catch (const std::filesystem::filesystem_error& e) {
         gLogger->error("Failed to move {} to backup: {}", emlPath, e.what());
         return -1;
     }
