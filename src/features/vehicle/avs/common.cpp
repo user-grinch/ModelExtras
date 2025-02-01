@@ -72,7 +72,7 @@ void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red,
         CVector(
             position.x + (shdwOffset * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
             position.y + ((1.2f + shdwOffset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-            position.z
+            position.z - 0.5f
         )
     );
 

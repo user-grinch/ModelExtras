@@ -78,8 +78,8 @@ public:
     float Inertia = 0.0f;
     float InertiaMultiplier = 1.0f;
     float Radius = 180.0f;
-    RwRGBA Color = { 255, 255, 255, 128 };
-    RwRGBA DefaultColor = { 255, 255, 255, 128 };
+    RwRGBA Color = { 255, 255, 255, 255 };
+    RwRGBA DefaultColor = { 255, 255, 255, 255 };
     VehicleSirenDiffuse Diffuse;
     int ColorCount = 0;
     uint64_t ColorTime = 0;
