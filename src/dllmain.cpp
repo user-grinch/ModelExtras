@@ -5,9 +5,12 @@
 extern void ShowDonationWindow();
 
 std::vector<std::string> donators = {
+    "Agha",
     "berrymuffin",
+    "Damian Jurkiewicz",
     "Dustin Eastwood",
     "Dwolf98",
+    "Francisco Flores",
     "KaiQ",
     "MC Silver",
     "Osama aj",
@@ -31,6 +34,21 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
 
         plugin::Events::shutdownRwEvent += []() {
             SoundSystem.Clear();
+            };
+
+        Events::initRwEvent.after += []() {
+            bool fxFuncs = GetModuleHandle("FxsFuncs.asi");
+            bool ola = GetModuleHandle("III.VC.SA.LimitAdjuster.asi");
+            bool fla = GetModuleHandle("$fastman92limitAdjuster.asi");
+
+            if ((fxFuncs && !(ola || fla))) {
+                std::string str = "Install any of the below,\n\n";
+
+                str += "- Open Limit Adjuster (Recommanded)\n";
+                str += "- Fastman92 Limit Adjuster (Increase IDE limits)\n";
+                MessageBox(NULL, str.c_str(), "LimitAdjuster required!", MB_OK);
+            }
+
             };
 
         Events::initGameEvent += []() {
