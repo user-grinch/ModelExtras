@@ -23,61 +23,61 @@ void FeatureMgr::Initialize() {
     plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {
         VehicleMaterials::RestoreMaterials();
         VehicleMaterials::OnRender(vehicle);
-    };
+        };
 
     plugin::Events::vehicleSetModelEvent += VehicleMaterials::OnModelSet;
 
-    Events::vehicleRenderEvent.before += [](CVehicle *pVeh) {
-        Add(static_cast<void*>(pVeh), (RwFrame *)pVeh->m_pRwClump->object.parent, eModelEntityType::Vehicle);
+    Events::vehicleRenderEvent.before += [](CVehicle* pVeh) {
+        Add(static_cast<void*>(pVeh), (RwFrame*)pVeh->m_pRwClump->object.parent, eModelEntityType::Vehicle);
         Process(static_cast<void*>(pVeh), eModelEntityType::Vehicle);
-    };
+        };
 
-    Events::vehicleDtorEvent += [](CVehicle *pVeh) {
+    Events::vehicleDtorEvent += [](CVehicle* pVeh) {
         Remove(static_cast<void*>(pVeh), eModelEntityType::Vehicle);
-    };
+        };
 
     Events::pedRenderEvent.before += [](CPed* pPed) {
-        Add(static_cast<void*>(pPed), (RwFrame *)pPed->m_pRwClump->object.parent, eModelEntityType::Ped);
+        Add(static_cast<void*>(pPed), (RwFrame*)pPed->m_pRwClump->object.parent, eModelEntityType::Ped);
         Process(static_cast<void*>(pPed), eModelEntityType::Ped);
 
         // jetpack
-        CTaskSimpleJetPack *pTask = pPed->m_pIntelligence->GetTaskJetPack();
+        CTaskSimpleJetPack* pTask = pPed->m_pIntelligence->GetTaskJetPack();
         if (pTask && pTask->m_pJetPackClump) {
-            Add(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), (RwFrame *)pTask->m_pJetPackClump->object.parent, eModelEntityType::Jetpack);
+            Add(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), (RwFrame*)pTask->m_pJetPackClump->object.parent, eModelEntityType::Jetpack);
             Process(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), eModelEntityType::Jetpack);
         }
 
         // weapons
-        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
+        CWeapon* pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
         if (pWeapon) {
             eWeaponType weaponType = pWeapon->m_eWeaponType;
             CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(weaponType, pPed->GetWeaponSkill(weaponType));
             if (pWeaponInfo && pWeaponInfo->m_nModelId1 > 0) {
                 CWeaponModelInfo* pWeaponModelInfo = static_cast<CWeaponModelInfo*>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
                 if (pWeaponModelInfo && pWeaponModelInfo->m_pRwClump) {
-                    Add(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), 
-                        (RwFrame *)pWeaponModelInfo->m_pRwClump->object.parent, eModelEntityType::Weapon);
+                    Add(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]),
+                        (RwFrame*)pWeaponModelInfo->m_pRwClump->object.parent, eModelEntityType::Weapon);
                     Process(static_cast<void*>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), eModelEntityType::Weapon);
                 }
             }
         }
-    };
+        };
 
-    Events::pedDtorEvent += [](CPed *ptr) {
+    Events::pedDtorEvent += [](CPed* ptr) {
         Remove(static_cast<void*>(ptr), eModelEntityType::Ped);
-    };
+        };
 
     static ThiscallEvent <AddressList<0x5343B2, H_CALL>, PRIORITY_BEFORE, ArgPickN<CObject*, 0>, void(CObject*)> objectRenderEvent;
-    objectRenderEvent.before += [](CObject *pObj) {
-        Add(static_cast<void*>(pObj), (RwFrame *)pObj->m_pRwClump->object.parent, eModelEntityType::Object);
+    objectRenderEvent.before += [](CObject* pObj) {
+        Add(static_cast<void*>(pObj), (RwFrame*)pObj->m_pRwClump->object.parent, eModelEntityType::Object);
         Process(static_cast<void*>(pObj), eModelEntityType::Object);
-    };
+        };
 
-    Events::objectDtorEvent += [](CObject *ptr) {
+    Events::objectDtorEvent += [](CObject* ptr) {
         Remove(static_cast<void*>(ptr), eModelEntityType::Object);
-    };
-    
-    // Index features
+        };
+
+        // Index features
     gLogger->info("Enabled features,");
     if (gConfig.ReadBoolean("FEATURES", "Chains", false)) {
         m_FunctionTable["x_chain"] = m_FunctionTable["fc_chain"] = Chain::Process;
@@ -106,7 +106,7 @@ void FeatureMgr::Initialize() {
         m_FunctionTable["x_ometer"] = m_FunctionTable["fc_om"] = OdoMeter::Process;
         gLogger->info("OdoMeter");
     }
-    
+
     if (gConfig.ReadBoolean("FEATURES", "RpmMeter", false)) {
         m_FunctionTable["x_rpm"] = m_FunctionTable["fc_rpm"] = m_FunctionTable["tahook"] = RpmMeter::Process;
         gLogger->info("RPM Meter");
@@ -140,6 +140,7 @@ void FeatureMgr::Initialize() {
 
     if (gConfig.ReadBoolean("FEATURES", "WheelHubs", false)) {
         m_FunctionTable["hub_"] = WheelHub::Process;
+        m_FunctionTable["wheel_"] = WheelHub::Process;
         gLogger->info("WheelHubs");
     }
 
@@ -181,8 +182,8 @@ void FeatureMgr::Initialize() {
     PRINT_LINEBREAK
 }
 
-void FeatureMgr::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type) {
-    if(frame) {
+void FeatureMgr::FindNodes(void* ptr, RwFrame* frame, eModelEntityType type) {
+    if (frame) {
         const std::string name = GetFrameNodeName(frame);
         for (auto e : m_FunctionTable) {
             if (NODE_FOUND(name, e.first)) {
@@ -191,28 +192,28 @@ void FeatureMgr::FindNodes(void *ptr, RwFrame * frame, eModelEntityType type) {
             }
         }
 
-        if (RwFrame * newFrame = frame->child) {
+        if (RwFrame* newFrame = frame->child) {
             FindNodes(ptr, newFrame, type);
         }
-        if (RwFrame * newFrame = frame->next) {
+        if (RwFrame* newFrame = frame->next) {
             FindNodes(ptr, newFrame, type);
         }
     }
     return;
 }
 
-void FeatureMgr::Add(void *ptr, RwFrame* frame, eModelEntityType type) {
+void FeatureMgr::Add(void* ptr, RwFrame* frame, eModelEntityType type) {
     if (m_EntityTable[type].find(ptr) == m_EntityTable[type].end()) {
         FindNodes(ptr, frame, type);
     }
 }
 
-void FeatureMgr::Remove(void *ptr, eModelEntityType type) {
+void FeatureMgr::Remove(void* ptr, eModelEntityType type) {
     m_EntityTable[type].erase(ptr);
 }
 
-void FeatureMgr::Process(void *ptr, eModelEntityType type) {
-    for (auto e: m_EntityTable[type][ptr]) {
+void FeatureMgr::Process(void* ptr, eModelEntityType type) {
+    for (auto e : m_EntityTable[type][ptr]) {
         if (m_FunctionTable[e.id]) {
             m_FunctionTable[e.id](ptr, e.m_pFrame, type);
         }
