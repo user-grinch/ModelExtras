@@ -11,6 +11,7 @@ bool VehicleSiren::GetSirenState() {
 };
 
 inline unsigned int GetShadowAlphaForDayTime();
+inline unsigned int GetCoronaAlphaForDayTime();
 
 char __fastcall Sirens::hkUsesSiren(CVehicle* ptr) {
 	if (Sirens::modelData.contains(ptr->m_nModelIndex)) {
@@ -480,12 +481,12 @@ void Sirens::Initialize() {
 		ParseConfig();
 		};
 
-	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
+	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, RwRGBA col) {
 		if (modelData.contains(vehicle->m_nModelIndex)
-			&& (material->color.blue == 255 || material->color.green == 255 || modelData[vehicle->m_nModelIndex]->isImVehFtSiren)) {
+			&& (col.blue == 255 || col.green == 255 || modelData[vehicle->m_nModelIndex]->isImVehFtSiren)) {
 			if (modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
 				if ((std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0)
-				&& (material->color.red >= 240 && material->color.green == 0 && material->color.blue == 0)) {
+				&& (col.red >= 240 && col.green == 0 && col.blue == 0)) {
 					RegisterMaterial(vehicle, material);
 				}
 			}
@@ -841,7 +842,7 @@ void Sirens::EnableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat
 
 void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time) {
 	CVector position = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
-
+	std::string name = GetFrameNodeName(dummy->Frame);
 	position.x = dummy->Position.x;
 	position.y = dummy->Position.y;
 	position.z = dummy->Position.z;
@@ -891,10 +892,10 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 		else if (material->Type == VehicleSirenType::Inversed)
 			dummyAngle -= 180.0f;
 
-		// Common::RegisterCoronaWithAngle(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, GetShadowAlphaForDayTime(),
-		// 	 dummyAngle, material->Radius, material->Size * 3.0f);
+		Common::RegisterCoronaWithAngle(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, GetShadowAlphaForDayTime(),
+			 dummyAngle, material->Radius, material->Size * 3.0f);
 	}
-	Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, GetShadowAlphaForDayTime(), material->Size * 3.0f);
+	Common::RegisterCorona(vehicle, position, material->Color.red, material->Color.green, material->Color.blue, GetCoronaAlphaForDayTime(), material->Size * 3.0f);
 
 	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
 		CVector pos = position;

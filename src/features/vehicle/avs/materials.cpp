@@ -16,7 +16,7 @@ RwTexture* FindTextureInDict(RpMaterial* pMat, RwTexDictionary* pDict) {
 		baseName + "_on",
 		// "sirenlighton",
 		// "sirenlight_on",
-		// "vehiclelightson128"
+		"vehiclelightson128"
 	};
 
 	RwTexture* pTex = nullptr;
@@ -60,7 +60,7 @@ VehicleMaterial::VehicleMaterial(RpMaterial* material, eDummyPos pos) {
 	}
 }
 
-void VehicleMaterials::Register(std::function<RpMaterial* (CVehicle*, RpMaterial*)> function) {
+void VehicleMaterials::Register(std::function<RpMaterial* (CVehicle*, RpMaterial*, RwRGBA)> function) {
 	functions.push_back(function);
 };
 
@@ -91,8 +91,9 @@ void VehicleMaterials::OnModelSet(CVehicle* vehicle, int model) {
 			if (materials[currentVehicle->m_nModelIndex].contains(material))
 				return material;
 
+			RwRGBA col = material->color;
 			for (auto& e : functions)
-				e(currentVehicle, material);
+				e(currentVehicle, material, col);
 
 			materials[currentVehicle->m_nModelIndex][material] = true;
 

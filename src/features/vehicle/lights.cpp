@@ -11,7 +11,7 @@
 #include <rpworld.h>
 
 inline bool IsNightTime() {
-	return CClock::GetIsTimeInRange(20, 6);
+	return CClock::GetIsTimeInRange(20, 7);
 }
 
 inline unsigned int GetShadowAlphaForDayTime() {
@@ -25,10 +25,10 @@ inline unsigned int GetShadowAlphaForDayTime() {
 
 inline unsigned int GetCoronaAlphaForDayTime() {
 	if (IsNightTime()) {
-		return 180;
+		return 210;
 	}
 	else {
-		return 150;
+		return 180;
 	}
 }
 
@@ -145,83 +145,86 @@ void Lights::Initialize() {
 		m_Dummies.erase(pVeh);
 		};
 
-	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material) {
-		if (material->color.red == 255 && material->color.green == 173 && material->color.blue == 0)
-			RegisterMaterial(vehicle, material, eLightState::Reverselight);
+	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, RwRGBA col) {
+		if (col.red == 255 && col.green == 173 && col.blue == 0)
+			RegisterMaterial(vehicle, material, eLightState::Reverselight, col);
 
-		else if (material->color.red == 0 && material->color.green == 255 && material->color.blue == 198)
-			RegisterMaterial(vehicle, material, eLightState::Reverselight);
+		else if (col.red == 0 && col.green == 255 && col.blue == 198)
+			RegisterMaterial(vehicle, material, eLightState::Reverselight, col);
 
-		else if (material->color.red == 184 && material->color.green == 255 && material->color.blue == 0)
-			RegisterMaterial(vehicle, material, eLightState::Brakelight);
+		else if (col.red == 184 && col.green == 255 && col.blue == 0)
+			RegisterMaterial(vehicle, material, eLightState::Brakelight, col);
 
-		else if (material->color.red == 255 && material->color.green == 59 && material->color.blue == 0)
-			RegisterMaterial(vehicle, material, eLightState::Brakelight);
+		else if (col.red == 255 && col.green == 59 && col.blue == 0)
+			RegisterMaterial(vehicle, material, eLightState::Brakelight, col);
 
-		else if (material->color.red == 0 && material->color.green == 16 && material->color.blue == 255)
-			RegisterMaterial(vehicle, material, eLightState::Nightlight);
+		else if ((col.red == 0 && col.green == 16 && col.blue == 255)
+		|| (col.red == 255 && col.green == 8 && col.blue == 128))
+			RegisterMaterial(vehicle, material, eLightState::Nightlight, col);
 
-		else if (material->color.red == 0 && material->color.green == 17 && material->color.blue == 255)
-			RegisterMaterial(vehicle, material, eLightState::AllDayLight);
-		else if (material->color.red == 0 && material->color.green == 18 && material->color.blue == 255)
-			RegisterMaterial(vehicle, material, eLightState::Daylight);
+		else if ((col.red == 0 && col.green == 17 && col.blue == 255)
+		|| (col.red == 255 && col.green == 9 && col.blue == 128))
+			RegisterMaterial(vehicle, material, eLightState::AllDayLight, col);
+		else if ((col.red == 0 && col.green == 18 && col.blue == 255)
+		|| (col.red == 255 && col.green == 7 && col.blue == 128))
+			RegisterMaterial(vehicle, material, eLightState::Daylight, col);
 
-		else if (material->color.red == 255 && material->color.green == 174 && material->color.blue == 0)
-			RegisterMaterial(vehicle, material, eLightState::FogLight);
-		else if (material->color.red == 0 && material->color.green == 255 && material->color.blue == 199)
-			RegisterMaterial(vehicle, material, eLightState::FogLight);
+		else if (col.red == 255 && col.green == 174 && col.blue == 0)
+			RegisterMaterial(vehicle, material, eLightState::FogLight, col);
+		else if (col.red == 0 && col.green == 255 && col.blue == 199)
+			RegisterMaterial(vehicle, material, eLightState::FogLight, col);
 
-		else if (material->color.red == 255 && material->color.green == 175 && material->color.blue == 0)
-			RegisterMaterial(vehicle, material, eLightState::FrontLightLeft);
-		else if (material->color.red == 0 && material->color.green == 255 && material->color.blue == 200)
-			RegisterMaterial(vehicle, material, eLightState::FrontLightRight);
-		else if (material->color.red == 255 && material->color.green == 60 && material->color.blue == 0)
-			RegisterMaterial(vehicle, material, eLightState::TailLightRight);
-		else if (material->color.red == 185 && material->color.green == 255 && material->color.blue == 0)
-			RegisterMaterial(vehicle, material, eLightState::TailLightLeft);
+		else if ((col.red == 255 && col.green == 175 && col.blue == 0)
+		|| (col.red == 255 && col.green == 1 && col.blue == 128))
+			RegisterMaterial(vehicle, material, eLightState::FrontLightLeft, col);
+		else if ((col.red == 0 && col.green == 255 && col.blue == 200)
+			|| (col.red == 255 && col.green == 2 && col.blue == 128))
+			RegisterMaterial(vehicle, material, eLightState::FrontLightRight, col);
+		else if (col.red == 255 && col.green == 60 && col.blue == 0)
+			RegisterMaterial(vehicle, material, eLightState::TailLightRight, col);
+		else if (col.red == 185 && col.green == 255 && col.blue == 0)
+			RegisterMaterial(vehicle, material, eLightState::TailLightLeft, col);
 
 		// Indicator Lights
 		eDummyPos pos = eDummyPos::None;
-		if (material->color.blue == 0) {
-			if (material->color.red == 255) { // Right
-				if (material->color.green >= 56 && material->color.green <= 59) {
-					if (material->color.green == 58) {
+		if (col.blue == 0) {
+			if (col.red == 255) { // Right
+				if (col.green >= 56 && col.green <= 59) {
+					if (col.green == 58) {
 						pos = eDummyPos::FrontRight;
 					}
-					else if (material->color.green == 57) {
+					else if (col.green == 57) {
 						pos = eDummyPos::MiddleRight;
 					}
-					else if (material->color.green == 56) {
+					else if (col.green == 56) {
 						pos = eDummyPos::RearRight;
 					}
-					RegisterMaterial(vehicle, material, eLightState::IndicatorRight, pos);
+					RegisterMaterial(vehicle, material, eLightState::IndicatorRight, col, pos);
 				}
 			}
-			else if (material->color.green == 255) { // Left
-				if (material->color.red >= 181 && material->color.red <= 184) {
-					if (material->color.red == 183) {
+			else if (col.green == 255) { // Left
+				if (col.red >= 181 && col.red <= 184) {
+					if (col.red == 183) {
 						pos = eDummyPos::FrontLeft;
 					}
-					else if (material->color.red == 182) {
+					else if (col.red == 182) {
 						pos = eDummyPos::MiddleLeft;
 					}
-					else if (material->color.red == 181) {
+					else if (col.red == 181) {
 						pos = eDummyPos::RearLeft;
 					}
-					RegisterMaterial(vehicle, material, eLightState::IndicatorLeft, pos);
+					RegisterMaterial(vehicle, material, eLightState::IndicatorLeft, col, pos);
 				}
 			}
 		}
 
-		if (material->color.red == 255
-		&& (material->color.green == 4 || material->color.green == 5)
-		&& material->color.blue == 128
+		if (col.red == 255 && (col.green == 4 || col.green == 5) && col.blue == 128
 		&& std::string(material->texture->name).rfind("light", 0) == 0) {
-			RegisterMaterial(vehicle, material, (material->color.green == 4) ? eLightState::IndicatorLeft : eLightState::IndicatorRight);
+			RegisterMaterial(vehicle, material, (col.green == 4) ? eLightState::IndicatorLeft : eLightState::IndicatorRight, col);
 		}
 
 		return material;
-	});
+		});
 
 	VehicleMaterials::RegisterDummy([](CVehicle* pVeh, RwFrame* frame, std::string name, bool parent) {
 		eLightState state = eLightState::None;
@@ -621,9 +624,14 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 	}
 };
 
-void Lights::RegisterMaterial(CVehicle* pVeh, RpMaterial* material, eLightState state, eDummyPos pos) {
+void Lights::RegisterMaterial(CVehicle* pVeh, RpMaterial* material, eLightState state, RwRGBA col, eDummyPos pos) {
 	material->color.red = material->color.green = material->color.blue = 255;
-	m_Materials[pVeh->m_nModelIndex][state].push_back(new VehicleMaterial(material, pos));
+	if (pVeh->m_nModelIndex == 416) {
+		int x = (int)pVeh;
+		x;
+	}
+	VehicleMaterial* mat = new VehicleMaterial(material, pos);
+	m_Materials[pVeh->m_nModelIndex][state].push_back(mat);
 };
 
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle) {
