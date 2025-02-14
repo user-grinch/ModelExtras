@@ -14,9 +14,10 @@ RwTexture* FindTextureInDict(RpMaterial* pMat, RwTexDictionary* pDict) {
 		// baseName,
 		baseName + "on",
 		baseName + "_on",
+		// Don't touch this
 		// "sirenlighton",
 		// "sirenlight_on",
-		"vehiclelightson128"
+		// "vehiclelightson128"
 	};
 
 	RwTexture* pTex = nullptr;
