@@ -10,8 +10,8 @@ bool VehicleSiren::GetSirenState() {
 	return (Mute == false) ? (vehicle->m_nVehicleFlags.bSirenOrAlarm) : (true);
 };
 
-inline unsigned int GetShadowAlphaForDayTime();
-inline unsigned int GetCoronaAlphaForDayTime();
+unsigned int GetShadowAlphaForDayTime();
+unsigned int GetCoronaAlphaForDayTime();
 
 char __fastcall Sirens::hkUsesSiren(CVehicle* ptr) {
 	if (Sirens::modelData.contains(ptr->m_nModelIndex)) {

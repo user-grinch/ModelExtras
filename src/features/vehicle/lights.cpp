@@ -14,7 +14,7 @@ inline bool IsNightTime() {
 	return CClock::GetIsTimeInRange(20, 7);
 }
 
-inline unsigned int GetShadowAlphaForDayTime() {
+unsigned int GetShadowAlphaForDayTime() {
 	if (IsNightTime()) {
 		return 210;
 	}
@@ -23,7 +23,7 @@ inline unsigned int GetShadowAlphaForDayTime() {
 	}
 }
 
-inline unsigned int GetCoronaAlphaForDayTime() {
+unsigned int GetCoronaAlphaForDayTime() {
 	if (IsNightTime()) {
 		return 210;
 	}
@@ -66,7 +66,7 @@ void DrawGlobalLight(CVehicle* pVeh, eDummyPos pos, CRGBA col) {
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, col.r, col.g, col.b, GetShadowAlphaForDayTime(), dummyAngle, 0.0f, "indicator");
-	Common::RegisterCoronaWithAngle(pVeh, posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, 0.3f);
+	Common::RegisterCoronaWithAngle(pVeh, posn, col.r, col.g, col.b, col.a, dummyAngle, 0.3f, 0.3f);
 }
 
 inline float GetZAngleForPoint(CVector2D const& point) {
