@@ -5,7 +5,7 @@
 #include <CCamera.h>
 
 void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, float size) {
-    if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+    if (!gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false)) {
         return;
     }
 
@@ -21,36 +21,36 @@ float Common::NormalizeAngle(float angle) {
 }
 
 void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, float angle, float radius, float size) {
-    if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-        return;
-    }
+    // if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+    //     return;
+    // }
 
-    constexpr float RAD_TO_DEG = 180.0f / 3.141592653589793f;
+    // constexpr float RAD_TO_DEG = 180.0f / 3.141592653589793f;
 
-    float vehicleAngle = 180 + NormalizeAngle(pVeh->GetHeading() * RAD_TO_DEG);
-    float cameraAngle = NormalizeAngle(TheCamera.GetHeading() * RAD_TO_DEG);
-    float dummyAngle = NormalizeAngle(vehicleAngle + angle);
+    // float vehicleAngle = 180 + NormalizeAngle(pVeh->GetHeading() * RAD_TO_DEG);
+    // float cameraAngle = NormalizeAngle(TheCamera.GetHeading() * RAD_TO_DEG);
+    // float dummyAngle = NormalizeAngle(vehicleAngle + angle);
 
-    // Calculate the smallest angular difference
-    float differenceAngle = std::abs(cameraAngle - dummyAngle);
-    if (differenceAngle > 180.0f) {
-        differenceAngle = 360.0f - differenceAngle;
-    }
+    // // Calculate the smallest angular difference
+    // float differenceAngle = std::abs(cameraAngle - dummyAngle);
+    // if (differenceAngle > 180.0f) {
+    //     differenceAngle = 360.0f - differenceAngle;
+    // }
 
-    // Corona is visible only if the camera is facing towards it (within a 90-degree range)
-    if (differenceAngle >= 90.0f) {
-        return;
-    }
+    // // Corona is visible only if the camera is facing towards it (within a 90-degree range)
+    // if (differenceAngle >= 90.0f) {
+    //     return;
+    // }
 
-    // Adjust alpha based on proximity to the edge of visibility
-    float alphaFloat = static_cast<float>(alpha);
-    float diameter = radius / 2.0f;
+    // // Adjust alpha based on proximity to the edge of visibility
+    // float alphaFloat = static_cast<float>(alpha);
+    // float diameter = radius / 2.0f;
 
-    if (differenceAngle > diameter - 15.0f) {
-        float angleOffset = 15.0f - (differenceAngle - (diameter - 15.0f));
-        float multiplier = angleOffset / 15.0f;
-        alpha = static_cast<uchar>(alphaFloat * multiplier);
-    }
+    // if (differenceAngle > diameter - 15.0f) {
+    //     float angleOffset = 15.0f - (differenceAngle - (diameter - 15.0f));
+    //     float multiplier = angleOffset / 15.0f;
+    //     alpha = static_cast<uchar>(alphaFloat * multiplier);
+    // }
 
     RegisterCorona(pVeh, posn, red, green, blue, alpha, size);
 }
@@ -64,7 +64,7 @@ RwTexture* Common::GetTexture(std::string texture) {
 };
 
 void Common::RegisterShadow(CVehicle* pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, unsigned int alpha, float angle, float currentAngle, const std::string& shadwTexName, float shdwSz, float shdwOffset, RwTexture* pTexture) {
-    if (shdwSz == 0.0f || !gConfig.ReadBoolean("FEATURES", "RenderShadows", false)) {
+    if (shdwSz == 0.0f || !gConfig.ReadBoolean("VEHICLE_FEATURES", "LightShadows", false)) {
         return;
     }
 

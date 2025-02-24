@@ -11,24 +11,24 @@
 #include <rpworld.h>
 
 inline bool IsNightTime() {
-	return CClock::GetIsTimeInRange(20, 7);
+	return CClock::GetIsTimeInRange(20, 6);
 }
 
 unsigned int GetShadowAlphaForDayTime() {
 	if (IsNightTime()) {
-		return 210;
+		return 250;
 	}
 	else {
-		return 180;
+		return 240;
 	}
 }
 
 unsigned int GetCoronaAlphaForDayTime() {
 	if (IsNightTime()) {
-		return 210;
+		return 250;
 	}
 	else {
-		return 180;
+		return 240;
 	}
 }
 
@@ -66,7 +66,7 @@ void DrawGlobalLight(CVehicle* pVeh, eDummyPos pos, CRGBA col) {
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, col.r, col.g, col.b, GetShadowAlphaForDayTime(), dummyAngle, 0.0f, "indicator");
-	Common::RegisterCoronaWithAngle(pVeh, posn, col.r, col.g, col.b, col.a, dummyAngle, 0.3f, 0.3f);
+	Common::RegisterCoronaWithAngle(pVeh, posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, 0.3f);
 }
 
 inline float GetZAngleForPoint(CVector2D const& point) {
@@ -386,7 +386,7 @@ void Lights::Initialize() {
 			if (isBike || CModelInfo::IsCarModel(pControlVeh->m_nModelIndex)) {
 				bool isRevlightSupportedByModel = !m_Dummies[pTowedVeh][eLightState::Reverselight].empty();
 
-				bool globalRevlights = gConfig.ReadBoolean("FEATURES", "GlobalReverseLights", false);
+				bool globalRevlights = gConfig.ReadBoolean("VEHICLE_FEATURES", "StandardLights_GlobalReverseLights", false);
 				bool reverseLightsOn = !isBike && (isRevlightSupportedByModel || globalRevlights)
 					&& pControlVeh->m_nCurrentGear == 0 && (pControlVeh->m_fMovingSpeed >= 0.01f) && pControlVeh->m_pDriver;
 
@@ -421,7 +421,7 @@ void Lights::Initialize() {
 
 		// Indicator Lights
 		eLightState state = data.m_nIndicatorState;
-		if (!gConfig.ReadBoolean("FEATURES", "GlobalIndicatorLights", false) && m_Dummies[pControlVeh].size() == 0 && m_Materials[pControlVeh->m_nModelIndex][state].size() == 0) {
+		if (!gConfig.ReadBoolean("VEHICLE_FEATURES", "StandardLights_GlobalIndicatorLights", false) && m_Dummies[pControlVeh].size() == 0 && m_Materials[pControlVeh->m_nModelIndex][state].size() == 0) {
 			return;
 		}
 

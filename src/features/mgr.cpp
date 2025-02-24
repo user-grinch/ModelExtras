@@ -77,108 +77,130 @@ void FeatureMgr::Initialize() {
         Remove(static_cast<void*>(ptr), eModelEntityType::Object);
         };
 
-        // Index features
+    // Index features
     gLogger->info("Enabled features,");
-    if (gConfig.ReadBoolean("FEATURES", "Chains", false)) {
-        m_FunctionTable["x_chain"] = m_FunctionTable["fc_chain"] = Chain::Process;
-        gLogger->info("Chain");
+
+    // Common Section
+    gLogger->info("Common ->");
+    if (gConfig.ReadBoolean("COMMON_FEATURES", "TextureRemaper", false)) {
+        Remap::Initialize();
+        m_FunctionTable["x_remap"] = BloodRemap::Process;
+        gLogger->info("TextureRemaper");
     }
 
-    if (gConfig.ReadBoolean("FEATURES", "Brakes", false)) {
+    if (gConfig.ReadBoolean("COMMON_FEATURES", "ModelRandomizer", false)) {
+        Randomizer::Initialize();
+        m_FunctionTable["x_randomizer"] = Randomizer::Process;
+        gLogger->info("ModelRandomizer");
+    }
+
+    // Bikes Section
+    gLogger->info("Bikes ->");
+    if (gConfig.ReadBoolean("BIKE_FEATURES", "AnimatedBrakes", false)) {
         m_FunctionTable["x_fbrake"] = m_FunctionTable["fc_fbrake"] = FrontBrake::Process;
         m_FunctionTable["x_rbrake"] = m_FunctionTable["fc_rbrake"] = RearBrake::Process;
+        gLogger->info("AnimatedBrakes");
+    }
+
+    if (gConfig.ReadBoolean("BIKE_FEATURES", "AnimatedClutch", false)) {
         m_FunctionTable["x_clutch"] = m_FunctionTable["fc_cl"] = Clutch::Process;
+        gLogger->info("AnimatedClutch");
+    }
+
+    if (gConfig.ReadBoolean("BIKE_FEATURES", "AnimatedGearLever", false)) {
         m_FunctionTable["x_gearlever"] = m_FunctionTable["fc_gl"] = GearLever::Process;
-        gLogger->info("Brakes");
+        gLogger->info("AnimatedClutch");
     }
 
-    if (gConfig.ReadBoolean("FEATURES", "GearSounds", false)) {
-        m_FunctionTable["x_gs"] = GearSound::Process;
-        gLogger->info("Gear Sounds");
-    }
-
-    if (gConfig.ReadBoolean("FEATURES", "GearMeter", false)) {
-        m_FunctionTable["x_gearmeter"] = m_FunctionTable["fc_gm"] = GearMeter::Process;
-        gLogger->info("Gear Meter");
-    }
-
-    if (gConfig.ReadBoolean("FEATURES", "OdoMeter", false)) {
-        m_FunctionTable["x_ometer"] = m_FunctionTable["fc_om"] = OdoMeter::Process;
-        gLogger->info("OdoMeter");
-    }
-
-    if (gConfig.ReadBoolean("FEATURES", "RpmMeter", false)) {
-        m_FunctionTable["x_rpm"] = m_FunctionTable["fc_rpm"] = m_FunctionTable["tahook"] = RpmMeter::Process;
-        gLogger->info("RPM Meter");
-    }
-    if (gConfig.ReadBoolean("FEATURES", "SpeedMeter", false)) {
-        m_FunctionTable["x_sm"] = m_FunctionTable["fc_sm"] = m_FunctionTable["speedook"] = SpeedMeter::Process;
-        gLogger->info("Speed Meter");
-    }
-    if (gConfig.ReadBoolean("FEATURES", "GasMeter", false)) {
-        m_FunctionTable["x_gm"] = m_FunctionTable["petrolok"] = GasMeter::Process;
-        gLogger->info("Gas Meter");
-    }
-
-    if (gConfig.ReadBoolean("FEATURES", "RotateHandleBars", false)) {
+    if (gConfig.ReadBoolean("BIKE_FEATURES", "RotatingHandleBar", false)) {
         m_FunctionTable["forks_front"] = HandleBar::AddSource;
         m_FunctionTable["handlebars"] = HandleBar::Process;
-        gLogger->info("Rotating Handlebars");
+        gLogger->info("RotatingHandleBar");
     }
 
-    if (gConfig.ReadBoolean("FEATURES", "RotateSteerWheel", false)) {
-        // TODO: need updated IDs
+
+
+    // Vehicle Section
+    gLogger->info("Vehicles ->");
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AdditionalPaintJobs", false)) {
+        PaintJobs::Initialize();
+        gLogger->info("AdditionalPaintJobs");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AnimatedChain", false)) {
+        m_FunctionTable["x_chain"] = m_FunctionTable["fc_chain"] = Chain::Process;
+        gLogger->info("AnimatedChain");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AnimatedGasMeter", false)) {
+        m_FunctionTable["x_gm"] = m_FunctionTable["petrolok"] = GasMeter::Process;
+        gLogger->info("AnimatedGasMeter");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AnimatedGearMeter", false)) {
+        m_FunctionTable["x_gearmeter"] = m_FunctionTable["fc_gm"] = GearMeter::Process;
+        gLogger->info("AnimatedGearMeter");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AnimatedOdoMeter", false)) {
+        m_FunctionTable["x_ometer"] = m_FunctionTable["fc_om"] = OdoMeter::Process;
+        gLogger->info("AnimatedOdoMeter");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AnimatedRpmMeter", false)) {
+        m_FunctionTable["x_rpm"] = m_FunctionTable["fc_rpm"] = m_FunctionTable["tahook"] = RpmMeter::Process;
+        gLogger->info("AnimatedRpmMeter");
+    }
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AnimatedSpeedMeter", false)) {
+        m_FunctionTable["x_sm"] = m_FunctionTable["fc_sm"] = m_FunctionTable["speedook"] = SpeedMeter::Process;
+        gLogger->info("AnimatedSpeedMeter");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "GearChangeSounds", false)) {
+        m_FunctionTable["x_gs"] = GearSound::Process;
+        gLogger->info("GearChangeSounds");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "RotatingSteeringWheel", false)) {
         m_FunctionTable["steer"] = SteerWheel::Process;
         m_FunctionTable["steering_dummy"] = SteerWheel::Process;
-        gLogger->info("Steering");
+        gLogger->info("RotatingSteeringWheel");
     }
 
-    if (gConfig.ReadBoolean("FEATURES", "SpotLights", false)) {
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "RotatingWheelHubs", false)) {
+        m_FunctionTable["hub_"] = WheelHub::Process;
+        m_FunctionTable["wheel_"] = WheelHub::Process;
+        gLogger->info("RotatingWheelHubs");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "StandardLights", false)) {
+        Lights::Initialize();
+        gLogger->info("StandardLights");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "SirenLights", false)) {
+        Sirens::Initialize();
+        gLogger->info("SirenLights");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "SpotLights", false)) {
         m_FunctionTable["spotlight_dummy"] = SpotLight::Process;
         gLogger->info("Spotlights");
     }
 
-    if (gConfig.ReadBoolean("FEATURES", "WheelHubs", false)) {
-        m_FunctionTable["hub_"] = WheelHub::Process;
-        m_FunctionTable["wheel_"] = WheelHub::Process;
-        gLogger->info("WheelHubs");
-    }
 
-    if (gConfig.ReadBoolean("FEATURES", "Sirens", false)) {
-        Sirens::Initialize();
-        gLogger->info("Sirens");
-    }
-    if (gConfig.ReadBoolean("FEATURES", "Lights", false)) {
-        Lights::Initialize();
-        gLogger->info("Lights");
-    }
-
-    if (gConfig.ReadBoolean("FEATURES", "WeaponSoundSystem", false)) {
-        WeaponSoundSystem::Initialize();
-        gLogger->info("Weapon Sounds");
-    }
-
-    if (gConfig.ReadBoolean("FEATURES", "PaintJobs", false)) {
-        PaintJobs::Initialize();
-        gLogger->info("Paintjobs");
-    }
-
-    if (gConfig.ReadBoolean("FEATURES", "BodyStates", false)) {
+    // Weapons Section
+    gLogger->info("Weapons ->");
+    if (gConfig.ReadBoolean("WEAPON_FEATURES", "BodyStateVariation", false)) {
         m_FunctionTable["x_body_state"] = BodyState::Process;
-        gLogger->info("Body States");
+        gLogger->info("BodyStateVariation");
     }
 
-    if (gConfig.ReadBoolean("FEATURES", "Remap", false)) {
-        Remap::Initialize();
-        m_FunctionTable["x_remap"] = BloodRemap::Process;
-        gLogger->info("Random Remap");
+    if (gConfig.ReadBoolean("WEAPON_FEATURES", "CustomSounds", false)) {
+        WeaponSoundSystem::Initialize();
+        gLogger->info("CustomSounds");
     }
 
-    if (gConfig.ReadBoolean("FEATURES", "Randomizer", false)) {
-        Randomizer::Initialize();
-        m_FunctionTable["x_randomizer"] = Randomizer::Process;
-        gLogger->info("Randomizer");
-    }
     PRINT_LINEBREAK
 }
 

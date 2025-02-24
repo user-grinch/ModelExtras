@@ -1,0 +1,13 @@
+{
+    "clangd.fallbackFlags": [
+        "-I${workspaceFolder}/**",
+        "-I${workspaceFolder}/src/**",
+        "-I${PLUGIN_SDK_DIR}/*",
+        "-I${PLUGIN_SDK_DIR}/plugin_sa/*",
+        "-I${PLUGIN_SDK_DIR}/plugin_sa/game_sa/*",
+        "-I${PLUGIN_SDK_DIR}/plugin_sa/game_sa/rw/*",
+        "-I${PLUGIN_SDK_DIR}/shared/*",
+        "-I${PLUGIN_SDK_DIR}/shared/game/*",
+        "-IC:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.19041.0\\ucrt\\*"
+    ]
+}
