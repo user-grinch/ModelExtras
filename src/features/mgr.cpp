@@ -18,6 +18,7 @@
 #include "vehicle/paintjobs.h"
 #include "vehicle/avs/materials.h"
 #include "vehicle/sirens.h"
+#include "vehicle/plate.h"
 
 void FeatureMgr::Initialize() {
     plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {
@@ -77,7 +78,9 @@ void FeatureMgr::Initialize() {
         Remove(static_cast<void*>(ptr), eModelEntityType::Object);
         };
 
-    // Index features
+    LicensePlate.Initialize();
+
+// Index features
     gLogger->info("Enabled features,");
 
     // Common Section

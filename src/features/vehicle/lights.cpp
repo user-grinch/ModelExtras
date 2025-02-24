@@ -10,7 +10,7 @@
 #include <rwcore.h>
 #include <rpworld.h>
 
-inline bool IsNightTime() {
+bool IsNightTime() {
 	return CClock::GetIsTimeInRange(20, 6);
 }
 

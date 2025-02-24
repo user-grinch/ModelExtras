@@ -87,6 +87,7 @@
         "cstdarg": "cpp",
         "expected": "cpp",
         "numbers": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "*.def": "cpp"
     },
 }
