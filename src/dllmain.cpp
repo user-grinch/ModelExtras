@@ -56,6 +56,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             bool ImVehFtFixInstalled = GetModuleHandle("ImVehFtFix.asi");
             bool AVSInstalled = GetModuleHandle("AdvancedVehicleSirens.asi");
             bool EarShot = GetModuleHandle("EarShot.asi");
+            bool PedFuncs = GetModuleHandle("PedFuncs.asi");
 
             gLogger->flush_on(spdlog::level::debug);
             spdlog::set_level(spdlog::level::debug);
@@ -95,6 +96,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
                 if (ImVehFtFixInstalled) str += "- ImVehFtFix.asi\n";
                 if (AVSInstalled) str += "- AdvancedVehicleSirens.asi\n";
                 if (EarShot) str += "- EarShot.asi\n";
+                if (PedFuncs) str += "- PedFuncs.asi\n";
 
                 str += "\nIt is recommanded to remove them to ensure proper gameplay.";
                 MessageBox(NULL, str.c_str(), "Deprecated plugins found!", MB_OK);
