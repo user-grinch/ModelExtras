@@ -88,7 +88,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
                 return;
             }
 
-            if (gConfig.ReadBoolean("MISC", "ShowDeprecationMessage", true)
+            if (gConfig.ReadBoolean("MISC", "ShowIncompatibleWarning", true)
             && (ImVehFtInstalled || ImVehFtFixInstalled || AVSInstalled || EarShot)) {
                 std::string str = "ModelExtras contain the functions of these plugins,\n\n";
 
@@ -99,8 +99,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
                 if (PedFuncs) str += "- PedFuncs.asi\n";
 
                 str += "\nIt is recommanded to remove them to ensure proper gameplay.";
-                MessageBox(NULL, str.c_str(), "Deprecated plugins found!", MB_OK);
-                gConfig.WriteBoolean("MISC", "ShowDeprecationMessage", false);
+                MessageBox(NULL, str.c_str(), "Incompatible plugins found!", MB_OK);
             }
 
             FeatureMgr::Initialize();
