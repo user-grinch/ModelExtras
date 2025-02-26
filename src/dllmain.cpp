@@ -101,9 +101,9 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
                 str += "\nIt is recommanded to remove them to ensure proper gameplay.";
                 MessageBox(NULL, str.c_str(), "Incompatible plugins found!", MB_OK);
             }
-
-            FeatureMgr::Initialize();
             };
+        FeatureMgr::Initialize();
+
     }
     return TRUE;
 }

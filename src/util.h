@@ -41,5 +41,9 @@ public:
   static void HideAllChilds(RwFrame* parent_frame);
   static void ShowAllChilds(RwFrame* parent_frame);
   static RwTexture* LoadTextureFromFile(const char* filename, RwUInt8 alphaValue = 255);
+
+  static RwTexture* LoadDDSTextureCB(const char* path, const char* name);
+  static RwTexture* LoadPNGTextureCB(const char* path, const char* name);
+  static RwTexture* LoadBMPTextureCB(const char* path, const char* name);
 };
 

@@ -386,3 +386,85 @@ RwTexture* Util::FindTextureInDict(RpMaterial* pMat, RwTexDictionary* pDict) {
     }
     return pTex;
 }
+
+bool FileCheck(const char* name) {
+    struct stat buffer;
+
+    return (stat(name, &buffer) == 0);
+}
+
+// Taken from _AG (vHud)
+
+RwTexture* Util::LoadDDSTextureCB(const char* path, const char* name) {
+    char file[512];
+
+    sprintf(file, "%s\\%s", path, name);
+
+    return RwD3D9DDSTextureRead(file, NULL);
+}
+
+RwTexture* Util::LoadBMPTextureCB(const char* path, const char* name) {
+    int w, h, d, f;
+    char file[512];
+    RwTexture* texture = NULL;
+
+    sprintf(file, "%s\\%s.bmp", path, name);
+
+    if (file && FileCheck(file)) {
+        if (RwImage* img = RtBMPImageRead(file)) {
+            RwImageFindRasterFormat(img, rwRASTERTYPETEXTURE, &w, &h, &d, &f);
+
+            if (RwRaster* raster = RwRasterCreate(w * 0.25f, h * 0.25f, d, f)) {
+                RwRasterSetFromImage(raster, img);
+
+                if (texture = RwTextureCreate(raster)) {
+                    RwTextureSetName(texture, name);
+
+                    if ((texture->raster->cFormat & 0x80) == 0)
+                        RwTextureSetFilterMode(texture, rwFILTERLINEAR);
+                    else
+                        RwTextureSetFilterMode(texture, rwFILTERLINEARMIPLINEAR);
+
+                    RwTextureSetAddressing(texture, rwTEXTUREADDRESSWRAP);
+                }
+            }
+
+            RwImageDestroy(img);
+        }
+    }
+
+    return texture;
+}
+
+RwTexture* Util::LoadPNGTextureCB(const char* path, const char* name) {
+    int w, h, d, f;
+    char file[512];
+    RwTexture* texture = NULL;
+
+    sprintf(file, "%s\\%s.png", path, name);
+
+    if (file && FileCheck(file)) {
+        if (RwImage* img = RtPNGImageRead(file)) {
+            RwImageFindRasterFormat(img, rwRASTERTYPETEXTURE, &w, &h, &d, &f);
+
+            if (RwRaster* raster = RwRasterCreate(w, h, d, f)) {
+                RwRasterSetFromImage(raster, img);
+
+                if (texture = RwTextureCreate(raster)) {
+                    RwTextureSetName(texture, name);
+
+                    if ((texture->raster->cFormat & 0x80) == 0)
+                        RwTextureSetFilterMode(texture, rwFILTERLINEAR);
+                    else
+                        RwTextureSetFilterMode(texture, rwFILTERLINEARMIPLINEAR);
+
+                    RwTextureSetAddressing(texture, rwTEXTUREADDRESSWRAP);
+                }
+            }
+
+            RwImageDestroy(img);
+        }
+    }
+
+    return texture;
+}

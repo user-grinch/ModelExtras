@@ -78,9 +78,7 @@ void FeatureMgr::Initialize() {
         Remove(static_cast<void*>(ptr), eModelEntityType::Object);
         };
 
-    LicensePlate.Initialize();
-
-// Index features
+    // Index features
     gLogger->info("Enabled features,");
 
     // Common Section
@@ -163,6 +161,12 @@ void FeatureMgr::Initialize() {
         m_FunctionTable["x_gs"] = GearSound::Process;
         gLogger->info("GearChangeSounds");
     }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "HDLicensePlate", false)) {
+        LicensePlate.Initialize();
+        gLogger->info("HDLicensePlate");
+    }
+
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "RotatingSteeringWheel", false)) {
         m_FunctionTable["steer"] = SteerWheel::Process;

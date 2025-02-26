@@ -4,45 +4,65 @@
 #include <CWeather.h>
 #include <rwcore.h>
 #include <rpworld.h>
+#include <RenderWare.h>
 
 LicensePlateFeature LicensePlate;
 extern bool IsNightTime();
 
 void LicensePlateFeature::Initialize() {
-    if (pCharSetTex) {
-        return;
-    }
-
-    pCharSetTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("plates/platecharset.png")), 255);
-    RwTextureSetFilterMode(pCharSetTex, rwFILTERNEAREST);
-    RwTextureSetAddressingU(pCharSetTex, rwFILTERMIPNEAREST);
-    RwTextureSetAddressingV(pCharSetTex, rwFILTERMIPNEAREST);
-
-
-    // Don't add .dds extension!
-    m_Plates[DAY_LS] = RwD3D9DDSTextureRead(MOD_DATA_PATH_S(std::string("plates/plateback3")), NULL);
-    m_Plates[DAY_SF] = RwD3D9DDSTextureRead(MOD_DATA_PATH_S(std::string("plates/plateback1")), NULL);
-    m_Plates[DAY_LV] = RwD3D9DDSTextureRead(MOD_DATA_PATH_S(std::string("plates/plateback2")), NULL);
-
-    m_Plates[NIGHT_LS] = RwD3D9DDSTextureRead(MOD_DATA_PATH_S(std::string("plates/plateback3_l")), NULL);
-    m_Plates[NIGHT_SF] = RwD3D9DDSTextureRead(MOD_DATA_PATH_S(std::string("plates/plateback1_l")), NULL);
-    m_Plates[NIGHT_LV] = RwD3D9DDSTextureRead(MOD_DATA_PATH_S(std::string("plates/plateback2_l")), NULL);
-
-    for (int i = 0; i < ePlateType::TOTAL_SZ; i++) {
-        RwTextureSetAddressingU(pCharSetTex, rwFILTERMIPNEAREST);
-        RwTextureSetAddressingV(pCharSetTex, rwFILTERMIPNEAREST);
-        RwTextureSetFilterMode(pCharSetTex, rwFILTERLINEAR);
-    }
-
-    // plugin::patch::Nop(0x6FDF44, 4);
+    plugin::patch::SetPointer(0xC3EF60, LicensePlate.m_Plates[DAY_SF]);
+    plugin::patch::SetPointer(0xC3EF64, LicensePlate.m_Plates[DAY_LV]);
+    plugin::patch::SetPointer(0xC3EF68, LicensePlate.m_Plates[DAY_LS]);
+    plugin::patch::SetPointer(0xC3EF5C, &pCharSetTex);
+    plugin::patch::SetPointer(0x6FDEE5, &pCharSetTex);
     plugin::patch::SetChar(0x6FDF47, rwFILTERLINEARMIPLINEAR);
     plugin::patch::ReplaceFunction(0x6FD500, CCustomCarPlateMgr_Initialise);
+    plugin::patch::ReplaceFunction(0x6FD720, CCustomCarPlateMgr_Shudown);
     plugin::patch::ReplaceFunction(0x6FDE50, CCustomCarPlateMgr_SetupMaterialPlatebackTexture);
+    plugin::patch::ReplaceFunction(0x6FDEA0, CCustomCarPlateMgr_CreatePlateTexture);
+}
+
+void __cdecl LicensePlateFeature::CCustomCarPlateMgr_Shudown() {
+    if (pCharSetTex) {
+        RwRasterUnlock(pCharSetTex->raster);
+        pCharsetLockedData = nullptr;
+        RwTextureDestroy(pCharSetTex);
+        pCharSetTex = nullptr;
+    }
+
+    for (size_t i = 0; i < ePlateType::TOTAL_SZ; i++) {
+        RwTextureDestroy(m_Plates[i]);
+    }
+}
+
+bool __cdecl LicensePlateFeature::CCustomCarPlateMgr_Initialise() {
+    const char* dirPath = MOD_DATA_PATH_S(std::string("plates"));
+    pCharSetTex = Util::LoadPNGTextureCB(dirPath, "platecharset");
+    RwTextureSetFilterMode(pCharSetTex, rwFILTERLINEARMIPLINEAR);
+    RwTextureSetAddressingU(pCharSetTex, rwFILTERLINEARMIPNEAREST);
+    RwTextureSetAddressingV(pCharSetTex, rwFILTERLINEARMIPNEAREST);
+    pCharSetTex->raster->stride = 512;
+
+    // Don't add .dds extension!
+    m_Plates[DAY_LV] = Util::LoadDDSTextureCB(dirPath, "plateback3");
+    m_Plates[DAY_LS] = Util::LoadDDSTextureCB(dirPath, "plateback1");
+    m_Plates[DAY_SF] = Util::LoadDDSTextureCB(dirPath, "plateback2");
+
+    m_Plates[NIGHT_LV] = Util::LoadDDSTextureCB(dirPath, "plateback3_l");
+    m_Plates[NIGHT_LS] = Util::LoadDDSTextureCB(dirPath, "plateback1_l");
+    m_Plates[NIGHT_SF] = Util::LoadDDSTextureCB(dirPath, "plateback2_l");
+
+    for (int i = 0; i < ePlateType::TOTAL_SZ; i++) {
+        RwTextureSetAddressingU(m_Plates[i], rwFILTERMIPNEAREST);
+        RwTextureSetAddressingV(m_Plates[i], rwFILTERMIPNEAREST);
+        RwTextureSetFilterMode(m_Plates[i], rwFILTERLINEAR);
+    }
+    pCharsetLockedData = RwRasterLock(RwTextureGetRaster(LicensePlate.pCharSetTex), 0, rwRASTERLOCKREAD);
+    return pCharsetLockedData != 0;
 }
 
 RpMaterial* __cdecl LicensePlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTexture(RpMaterial* material, char plateType) {
-    if (plateType == -1)
-    {
+    if (plateType == -1) {
         if (CWeather::WeatherRegion == 1)
             plateType = 2;
         else
@@ -60,18 +80,84 @@ RpMaterial* __cdecl LicensePlateFeature::CCustomCarPlateMgr_SetupMaterialPlateba
     return material;
 }
 
+bool LicensePlateFeature::CCustomCarPlateMgr_RenderLicenseplateTextToRaster(const char* text, RwRaster* charsRaster, RwRaster* plateRaster) {
+    assert(text);
+    assert(charsRaster);
+    assert(plateRaster);
 
+    const auto lockedPlateRaster = RwRasterLock(plateRaster, 0, rwRASTERLOCKNOFETCH | rwRASTERLOCKWRITE);
+    if (!lockedPlateRaster)
+        return false;
 
-bool __cdecl LicensePlateFeature::CCustomCarPlateMgr_Initialise() {
-    LicensePlate.Initialize();
-    plugin::patch::SetPointer(0xC3EF5C, LicensePlate.pCharSetTex);
-    plugin::patch::SetPointer(0xC3EF60, LicensePlate.m_Plates[DAY_SF]);
-    plugin::patch::SetPointer(0xC3EF64, LicensePlate.m_Plates[DAY_LV]);
-    plugin::patch::SetPointer(0xC3EF68, LicensePlate.m_Plates[DAY_LS]);
-    plugin::patch::SetPointer(0xC3EF78, RwRasterLock(RwTextureGetRaster(LicensePlate.pCharSetTex), 0, rwRASTERLOCKREAD));
-    return plugin::patch::GetPointer(0xC3EF78) != NULL;
+    if (!pCharsetLockedData)
+        return false;
+
+    const auto plateRasterStride = RwRasterGetStride(plateRaster);
+    if (!plateRasterStride)
+        return false;
+
+    const auto charsRasterStride = RwRasterGetStride(charsRaster);
+    if (!charsRasterStride)
+        return false;
+
+    // Copy each character from charset raster to plate raster
+    // Going from left to right
+
+    auto plateRasterCharIter = lockedPlateRaster; // Always points to the top left corner of each character
+    for (auto letter = 0; letter < MAX_TEXT_LENGTH; letter++) {
+        unsigned int charCol, charRow;
+        GetCharacterPositionInCharSet(text[letter], charCol, charRow);
+
+        // Copy specific character from charset raster to plate raster
+
+        // Size of a pixel (texel) in `pCharsetLockedData`. It's in 32 bit BGRA format
+        constexpr auto texelSize = 4;
+
+        // Character's top left corner in charset raster
+        auto charRasterIt = &pCharsetLockedData[(CHARSET_COL_WIDTH * CHARSET_ROW_HEIGHT * charRow + CHARSET_CHAR_WIDTH * charCol) * texelSize];
+
+        // Character's top left corner in target (plate) raster
+        auto plateRasterIt = plateRasterCharIter;
+
+        // Copy character row by row (going from top to bottom) to target (plate) raster
+        for (auto r = 0u; r < CHARSET_CHAR_HEIGHT; r++) {
+            memcpy(plateRasterIt, charRasterIt, CHARSET_CHAR_WIDTH * texelSize); // Copy row
+
+            // Advance to next row
+            plateRasterIt += plateRasterStride;
+            charRasterIt += charsRasterStride;
+        }
+
+        // Advance to next character's column
+        plateRasterCharIter += CHARSET_CHAR_WIDTH * texelSize;
+    }
+
+    RwRasterUnlock(plateRaster);
+
+    return true;
 }
 
-void LicensePlateFeature::Process(RwFrame* frame, CVehicle* pVeh) {
+RwTexture* LicensePlateFeature::CCustomCarPlateMgr_CreatePlateTexture(char* text, uint8_t plateType) {
+    assert(text);
+    const auto plateRaster = RwRasterCreate(256, 64, 32, rwRASTERFORMAT8888 | rwRASTERPIXELLOCKEDWRITE);
+    if (!plateRaster)
+        return nullptr;
 
+    if (!RwTextureGetRaster(pCharSetTex)) {
+        RwRasterDestroy(plateRaster);
+        return nullptr;
+    }
+
+    if (!CCustomCarPlateMgr_RenderLicenseplateTextToRaster(text, RwTextureGetRaster(pCharSetTex), plateRaster)) {
+        RwRasterDestroy(plateRaster);
+        return nullptr;
+    }
+
+    if (const auto plateTex = RwTextureCreate(plateRaster)) {
+        RwTextureSetName(plateTex, text);
+        RwTextureSetFilterMode(plateTex, rwFILTERNEAREST);
+        return plateTex;
+    }
+
+    return nullptr;
 }
