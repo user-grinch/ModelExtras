@@ -45,12 +45,12 @@ bool __cdecl LicensePlateFeature::CCustomCarPlateMgr_Initialise() {
 
     // Don't add .dds extension!
     m_Plates[DAY_LV] = Util::LoadDDSTextureCB(dirPath, "plateback3");
-    m_Plates[DAY_LS] = Util::LoadDDSTextureCB(dirPath, "plateback1");
-    m_Plates[DAY_SF] = Util::LoadDDSTextureCB(dirPath, "plateback2");
+    m_Plates[DAY_LS] = Util::LoadDDSTextureCB(dirPath, "plateback2");
+    m_Plates[DAY_SF] = Util::LoadDDSTextureCB(dirPath, "plateback1");
 
     m_Plates[NIGHT_LV] = Util::LoadDDSTextureCB(dirPath, "plateback3_l");
-    m_Plates[NIGHT_LS] = Util::LoadDDSTextureCB(dirPath, "plateback1_l");
-    m_Plates[NIGHT_SF] = Util::LoadDDSTextureCB(dirPath, "plateback2_l");
+    m_Plates[NIGHT_LS] = Util::LoadDDSTextureCB(dirPath, "plateback2_l");
+    m_Plates[NIGHT_SF] = Util::LoadDDSTextureCB(dirPath, "plateback1_l");
 
     for (int i = 0; i < ePlateType::TOTAL_SZ; i++) {
         RwTextureSetAddressingU(m_Plates[i], rwFILTERMIPNEAREST);
