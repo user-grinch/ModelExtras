@@ -13,7 +13,7 @@ enum ePlateType {
   TOTAL_SZ
 };
 
-class LicensePlateFeature : public IFeature {
+class PlateFeature : public IFeature {
 protected:
   static inline RwTexture* pCharSetTex = nullptr;
   static inline RwTexture* m_Plates[ePlateType::TOTAL_SZ];
@@ -45,4 +45,4 @@ public:
   void Initialize();
 };
 
-extern LicensePlateFeature LicensePlate;
+extern PlateFeature LicensePlate;

@@ -19,6 +19,7 @@
 #include "vehicle/avs/materials.h"
 #include "vehicle/sirens.h"
 #include "vehicle/plate.h"
+#include "vehicle/carcols.h"
 
 void FeatureMgr::Initialize() {
     plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {
@@ -167,6 +168,10 @@ void FeatureMgr::Initialize() {
         gLogger->info("HDLicensePlate");
     }
 
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "IVFCarcols", false)) {
+        IVFCarcols.Initialize();
+        gLogger->info("IVFCarcols");
+    }
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "RotatingSteeringWheel", false)) {
         m_FunctionTable["steer"] = SteerWheel::Process;
