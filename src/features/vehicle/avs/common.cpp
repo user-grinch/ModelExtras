@@ -10,7 +10,7 @@ void Common::RegisterCorona(CVehicle* pVeh, int coronaID, CVector pos, uchar red
     }
 
     CCoronas::RegisterCorona(coronaID, pVeh, red, green, blue, alpha, pos,
-        size / 5.0f, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
+        size / 4.0f, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
 };
 
 float Common::NormalizeAngle(float angle) {

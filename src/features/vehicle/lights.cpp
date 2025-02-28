@@ -148,32 +148,23 @@ void Lights::Initialize() {
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, RwRGBA col) {
 		if (col.red == 255 && col.green == 173 && col.blue == 0)
 			RegisterMaterial(vehicle, material, eLightState::Reverselight, col);
-
 		else if (col.red == 0 && col.green == 255 && col.blue == 198)
 			RegisterMaterial(vehicle, material, eLightState::Reverselight, col);
-
-		else if (col.red == 184 && col.green == 255 && col.blue == 0)
+		else if ((col.red == 184 && col.green == 255 && col.blue == 0) || (col.red == 255 && col.green == 59 && col.blue == 0))
 			RegisterMaterial(vehicle, material, eLightState::Brakelight, col);
-
-		else if (col.red == 255 && col.green == 59 && col.blue == 0)
-			RegisterMaterial(vehicle, material, eLightState::Brakelight, col);
-
 		else if ((col.red == 0 && col.green == 16 && col.blue == 255)
 		|| (col.red == 255 && col.green == 8 && col.blue == 128))
 			RegisterMaterial(vehicle, material, eLightState::Nightlight, col);
-
 		else if ((col.red == 0 && col.green == 17 && col.blue == 255)
 		|| (col.red == 255 && col.green == 9 && col.blue == 128))
 			RegisterMaterial(vehicle, material, eLightState::AllDayLight, col);
 		else if ((col.red == 0 && col.green == 18 && col.blue == 255)
 		|| (col.red == 255 && col.green == 7 && col.blue == 128))
 			RegisterMaterial(vehicle, material, eLightState::Daylight, col);
-
 		else if (col.red == 255 && col.green == 174 && col.blue == 0)
 			RegisterMaterial(vehicle, material, eLightState::FogLight, col);
 		else if (col.red == 0 && col.green == 255 && col.blue == 199)
 			RegisterMaterial(vehicle, material, eLightState::FogLight, col);
-
 		else if ((col.red == 255 && col.green == 175 && col.blue == 0)
 		|| (col.red == 255 && col.green == 1 && col.blue == 128))
 			RegisterMaterial(vehicle, material, eLightState::FrontLightLeft, col);
@@ -382,6 +373,33 @@ void Lights::Initialize() {
 				}
 			}
 
+			if (IsNightTime()) {
+				if (m_Materials[pControlVeh->m_nModelIndex][eLightState::Nightlight].size() != 0) {
+					RenderLights(pControlVeh, eLightState::Nightlight, vehicleAngle, cameraAngle);
+				}
+
+				if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::Nightlight].size() != 0) {
+					RenderLights(pTowedVeh, eLightState::Nightlight, vehicleAngle, cameraAngle);
+				}
+			}
+			else {
+				if (m_Materials[pControlVeh->m_nModelIndex][eLightState::Daylight].size() != 0) {
+					RenderLights(pControlVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
+				}
+
+				if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::Daylight].size() != 0) {
+					RenderLights(pTowedVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
+				}
+			}
+
+			if (m_Materials[pControlVeh->m_nModelIndex][eLightState::AllDayLight].size() != 0) {
+				RenderLights(pControlVeh, eLightState::AllDayLight, vehicleAngle, cameraAngle);
+			}
+
+			if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::AllDayLight].size() != 0) {
+				RenderLights(pTowedVeh, eLightState::AllDayLight, vehicleAngle, cameraAngle);
+			}
+
 			bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
 			if (isBike || CModelInfo::IsCarModel(pControlVeh->m_nModelIndex)) {
 				bool isRevlightSupportedByModel = !m_Dummies[pTowedVeh][eLightState::Reverselight].empty();
@@ -488,7 +506,7 @@ void Lights::Initialize() {
 		}
 
 		// global turn lights
-		if (gConfig.ReadBoolean("FEATURES", "GlobalIndicatorLights", false) &&
+		if (gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false) &&
 			(m_Dummies[pControlVeh][eLightState::IndicatorLeft].size() == 0 || m_Dummies[pControlVeh][eLightState::IndicatorRight].size() == 0)
 			 && (m_Materials[pControlVeh->m_nModelIndex][eLightState::IndicatorLeft].size() == 0 || m_Materials[pControlVeh->m_nModelIndex][eLightState::IndicatorRight].size() == 0))
 		{
