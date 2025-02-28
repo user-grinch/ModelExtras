@@ -4,14 +4,13 @@
 #include <CShadows.h>
 #include <CCamera.h>
 
-void Common::RegisterCorona(CVehicle* pVeh, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, float size) {
+void Common::RegisterCorona(CVehicle* pVeh, int coronaID, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, float size) {
     if (!gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false)) {
         return;
     }
 
-    unsigned int coronaID = plugin::RandomNumberInRange(0, INT_MAX);
     CCoronas::RegisterCorona(coronaID, pVeh, red, green, blue, alpha, pos,
-        size, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
+        size / 5.0f, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
 };
 
 float Common::NormalizeAngle(float angle) {
@@ -20,39 +19,43 @@ float Common::NormalizeAngle(float angle) {
     return angle;
 }
 
-void Common::RegisterCoronaWithAngle(CVehicle* pVeh, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, float angle, float radius, float size) {
-    // if (!gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-    //     return;
-    // }
+void Common::RegisterCoronaWithAngle(CVehicle* pVeh, int coronaID, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, float angle, float radius, float size) {
+    constexpr float RAD_TO_DEG = 180.0f / 3.141592653589793f;
 
-    // constexpr float RAD_TO_DEG = 180.0f / 3.141592653589793f;
+    float vehicleAngle = 180 + NormalizeAngle(pVeh->GetHeading() * RAD_TO_DEG);
+    float cameraAngle = NormalizeAngle(TheCamera.GetHeading() * RAD_TO_DEG);
+    float dummyAngle = NormalizeAngle(vehicleAngle + angle);
+    float InertiaAngle = 5.0f;
 
-    // float vehicleAngle = 180 + NormalizeAngle(pVeh->GetHeading() * RAD_TO_DEG);
-    // float cameraAngle = NormalizeAngle(TheCamera.GetHeading() * RAD_TO_DEG);
-    // float dummyAngle = NormalizeAngle(vehicleAngle + angle);
+    float differenceAngle = ((cameraAngle > angle) ? (cameraAngle - angle) : (angle - cameraAngle));
 
-    // // Calculate the smallest angular difference
-    // float differenceAngle = std::abs(cameraAngle - dummyAngle);
-    // if (differenceAngle > 180.0f) {
-    //     differenceAngle = 360.0f - differenceAngle;
-    // }
+    float diameter = (radius / 2.0f);
 
-    // // Corona is visible only if the camera is facing towards it (within a 90-degree range)
-    // if (differenceAngle >= 90.0f) {
-    //     return;
-    // }
+    if (differenceAngle < diameter || differenceAngle >(360.0f - diameter))
+        return;
 
-    // // Adjust alpha based on proximity to the edge of visibility
-    // float alphaFloat = static_cast<float>(alpha);
-    // float diameter = radius / 2.0f;
+    // if (PluginConfig::Lights->Enhancement->InertiaEnabled) {
+    float alphaFloat = static_cast<float>(alpha);
 
-    // if (differenceAngle > diameter - 15.0f) {
-    //     float angleOffset = 15.0f - (differenceAngle - (diameter - 15.0f));
-    //     float multiplier = angleOffset / 15.0f;
-    //     alpha = static_cast<uchar>(alphaFloat * multiplier);
-    // }
+    alphaFloat = (alphaFloat < 0.0f) ? (alphaFloat * -1) : (alphaFloat);
 
-    RegisterCorona(pVeh, posn, red, green, blue, alpha, size);
+    if (differenceAngle < diameter + InertiaAngle) {
+        float angle = diameter - differenceAngle;
+
+        float multiplier = (angle / InertiaAngle);
+
+        alpha = static_cast<char>(alphaFloat * multiplier);
+    }
+    else if (differenceAngle > (360.0f - diameter) - InertiaAngle) {
+        float angle = InertiaAngle - (differenceAngle - ((360.0f - diameter) - InertiaAngle));
+
+        float multiplier = angle / InertiaAngle;
+
+        alpha = static_cast<char>(alphaFloat * multiplier);
+    }
+// }
+
+    return RegisterCorona(pVeh, coronaID, posn, red, green, blue, alpha, size);
 }
 
 RwTexture* Common::GetTexture(std::string texture) {

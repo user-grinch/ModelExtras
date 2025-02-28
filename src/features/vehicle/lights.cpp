@@ -66,7 +66,7 @@ void DrawGlobalLight(CVehicle* pVeh, eDummyPos pos, CRGBA col) {
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, col.r, col.g, col.b, GetShadowAlphaForDayTime(), dummyAngle, 0.0f, "indicator");
-	Common::RegisterCoronaWithAngle(pVeh, posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, 0.3f);
+	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, 0.3f);
 }
 
 inline float GetZAngleForPoint(CVector2D const& point) {
@@ -634,9 +634,9 @@ void Lights::RegisterMaterial(CVehicle* pVeh, RpMaterial* material, eLightState 
 	m_Materials[pVeh->m_nModelIndex][state].push_back(mat);
 };
 
-void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle) {
+void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* pVeh) {
 	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
-		Common::RegisterCoronaWithAngle(vehicle, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue,
+		Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue,
 			60, dummy->Angle, 0.3f, 0.3f);
 	}
 };

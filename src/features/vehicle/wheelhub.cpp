@@ -88,16 +88,26 @@ void WheelHub::FindNodes(RwFrame* frame, void* ptr) {
 void WheelHub::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle* pVeh = static_cast<CVehicle*>(ptr);
 
-    VehData& data = xData.Get(pVeh);
-    if (!data.m_bInit) {
-        FindNodes(frame, ptr);
-        data.m_bInit = true;
+    if (!pVeh) {
+        return;
     }
 
-    UpdateRotation(data.wheellf, data.hublf);
-    UpdateRotation(data.wheellm, data.hublm);
-    UpdateRotation(data.wheellb, data.hublb);
-    UpdateRotation(data.wheelrf, data.hubrf);
-    UpdateRotation(data.wheelrm, data.hubrm);
-    UpdateRotation(data.wheelrb, data.hubrb);
+    VehData* pData = &xData.Get(pVeh);
+
+    // Fix crash during airport cutscene
+    if (!pData) {
+        return;
+    }
+
+    if (!pData->m_bInit) {
+        FindNodes(frame, ptr);
+        pData->m_bInit = true;
+    }
+
+    UpdateRotation(pData->wheellf, pData->hublf);
+    UpdateRotation(pData->wheellm, pData->hublm);
+    UpdateRotation(pData->wheellb, pData->hublb);
+    UpdateRotation(pData->wheelrf, pData->hubrf);
+    UpdateRotation(pData->wheelrm, pData->hubrm);
+    UpdateRotation(pData->wheelrb, pData->hubrb);
 }

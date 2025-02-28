@@ -4,14 +4,14 @@
 
 inline std::string GetInfo(RwFrame* parent, const std::string& pattern, const std::string def) {
     if (!pattern.empty()) {
-        std::regex re(pattern); 
+        std::regex re(pattern);
         RwFrame* next = parent->child;
         while (next) {
             std::string name = GetFrameNodeName(next);
             std::smatch match;
             if (std::regex_search(name, match, re)) {
                 if (match.size() > 1) {
-                    return match[1].str(); 
+                    return match[1].str();
                 }
             }
             next = next->next;
@@ -34,12 +34,12 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
     Angle = Common::NormalizeAngle(CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f);
 
     if (type == eDummyPos::FrontLeft) {
-        ShdwPosition.x -= std::stoi(GetInfo(frame, "offset:(\\d+)", "2")) / 10.0f; 
+        ShdwPosition.x -= std::stoi(GetInfo(frame, "offset:(\\d+)", "2")) / 10.0f;
         Angle = 0 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
     }
 
     if (type == eDummyPos::FrontRight) {
-        ShdwPosition.x += std::stoi(GetInfo(frame, "offset:(\\d+)", "2")) / 10.0f; 
+        ShdwPosition.x += std::stoi(GetInfo(frame, "offset:(\\d+)", "2")) / 10.0f;
         Angle = 0 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
     }
 
@@ -54,19 +54,19 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
     }
 
     if (type == eDummyPos::RearLeft) {
-        ShdwPosition.x += -std::stoi(GetInfo(frame, "offset:(\\d+)", "2")) / 10.0f; 
+        ShdwPosition.x += -std::stoi(GetInfo(frame, "offset:(\\d+)", "2")) / 10.0f;
         Angle = 180 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
     }
 
     if (type == eDummyPos::RearRight) {
-        ShdwPosition.x += std::stoi(GetInfo(frame, "offset:(\\d+)", "2")) / 10.0f; 
+        ShdwPosition.x += std::stoi(GetInfo(frame, "offset:(\\d+)", "2")) / 10.0f;
         Angle = 180 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "0"));
     }
 
     if (type == eDummyPos::Rear) {
         Angle = 180 - std::stoi(GetInfo(frame, "rot:(-?\\d+)", "2"));
     }
-    
+
     if (name.find("indicator_") != std::string::npos || name.find("turnl_") != std::string::npos) {
         std::string part = GetInfo(frame, "part:(\\D{2})", "");
         if (!part.empty()) {
@@ -110,8 +110,8 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
 }
 
 int VehicleDummy::ReadHex(char a, char b) {
-	a = (a <= '9') ? a - '0' : (a & 0x7) + 9;
-	b = (b <= '9') ? b - '0' : (b & 0x7) + 9;
+    a = (a <= '9') ? a - '0' : (a & 0x7) + 9;
+    b = (b <= '9') ? b - '0' : (b & 0x7) + 9;
 
-	return (a << 4) + b;
+    return (a << 4) + b;
 }
