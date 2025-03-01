@@ -35,5 +35,27 @@ Get stable binaries from [here]([https://github.com/user-grinch/GrinchTrainer-II
 
 *Only GTA SA v1.0 US Hoodlum is supported*
 
+## Credits
+- Plugin SDK
+- CLEO
+- DkPac22
+- Junior-Djjr
+- Nora
+- KaiQ
+
+## Donators
+- berrymuffin
+- Damian Jurkiewicz
+- Dustin Eastwood
+- Dwolf98
+- KaiQ
+- MC Silver
+- Osama aj
+- Pol3 Million
+- Seemann
+- spdfnpe
+
+Credits & donators list can be found in the ModelExtas.ini file.
+
 
 Thanks to Junior-Djjr & Plugin-SDK.

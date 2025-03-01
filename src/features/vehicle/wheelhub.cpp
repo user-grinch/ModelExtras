@@ -88,6 +88,10 @@ void WheelHub::FindNodes(RwFrame* frame, void* ptr) {
 void WheelHub::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
     CVehicle* pVeh = static_cast<CVehicle*>(ptr);
 
+    if (!pVeh->GetIsOnScreen()) {
+        return;
+    }
+
     if (!pVeh) {
         return;
     }
