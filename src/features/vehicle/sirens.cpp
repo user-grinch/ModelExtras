@@ -11,7 +11,6 @@ bool VehicleSiren::GetSirenState() {
 };
 
 unsigned int GetShadowAlphaForDayTime();
-unsigned int GetCoronaAlphaForDayTime();
 
 char __fastcall Sirens::hkUsesSiren(CVehicle* ptr) {
 	if (Sirens::modelData.contains(ptr->m_nModelIndex)) {
@@ -896,7 +895,7 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 			 dummyAngle, material->Radius, material->Size * 3.0f);
 	}
 	else {
-		Common::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position, material->Color.red, material->Color.green, material->Color.blue, GetCoronaAlphaForDayTime(), material->Size * 3.0f);
+		Common::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position, material->Color.red, material->Color.green, material->Color.blue, material->Color.alpha, material->Size * 3.0f);
 	}
 
 	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {

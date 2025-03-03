@@ -27,14 +27,13 @@ protected:
 
   struct VehData {
     bool m_bInit = false;
-    std::string plateText = "DEFAULT";
     bool m_bNightTexture = false;
 
     VehData(CVehicle* pVeh) {}
     ~VehData() {}
   };
 
-  VehicleExtendedData<VehData> vehData;
+  static inline VehicleExtendedData<VehData> vehData;
   static RpMaterial* __cdecl CCustomCarPlateMgr_SetupMaterialPlatebackTexture(RpMaterial* material, char plateType);
   static bool __cdecl CCustomCarPlateMgr_Initialise();
   static void __cdecl CCustomCarPlateMgr_Shudown();

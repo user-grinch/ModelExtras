@@ -9,6 +9,12 @@
 PlateFeature LicensePlate;
 extern bool IsNightTime();
 
+bool lightState = false;
+RpMaterial* __cdecl CCustomCarPlateMgr_SetupClump(RpAtomic* clump, void* plateText, char plateType)
+{
+    return NULL;
+}
+
 void PlateFeature::Initialize() {
     plugin::patch::SetPointer(0xC3EF60, LicensePlate.m_Plates[DAY_SF]);
     plugin::patch::SetPointer(0xC3EF64, LicensePlate.m_Plates[DAY_LV]);
@@ -20,6 +26,21 @@ void PlateFeature::Initialize() {
     plugin::patch::ReplaceFunction(0x6FD720, CCustomCarPlateMgr_Shudown);
     plugin::patch::ReplaceFunction(0x6FDE50, CCustomCarPlateMgr_SetupMaterialPlatebackTexture);
     plugin::patch::ReplaceFunction(0x6FDEA0, CCustomCarPlateMgr_CreatePlateTexture);
+    // plugin::patch::ReplaceFunctionCall(0x4C949E, CCustomCarPlateMgr_SetupClump);
+    // plugin::Events::vehicleRenderEvent.before += [this](CVehicle* pVeh) {
+    //     bool curState = false;
+    //     if (pVeh->m_pDriver != nullptr) {
+    //         curState = IsNightTime();
+    //     }
+
+    //     auto& data = vehData.Get(pVeh);
+    //     if (data.m_bNightTexture != curState || !data.m_bInit) {
+    //         CVehicleModelInfo* pInfo = (CVehicleModelInfo*)CModelInfo::GetModelInfo(pVeh->m_nModelIndex);
+    //         lightState = data.m_bNightTexture = curState;
+    //         CCustomCarPlateMgr::SetupClump(pVeh->m_pRwClump, pInfo->m_szPlateText, pInfo->m_nPlateType);
+    //         data.m_bInit = true;
+    //     }
+    //     };
 }
 
 void __cdecl PlateFeature::CCustomCarPlateMgr_Shudown() {
@@ -39,8 +60,8 @@ bool __cdecl PlateFeature::CCustomCarPlateMgr_Initialise() {
     const char* dirPath = MOD_DATA_PATH_S(std::string("plates"));
     pCharSetTex = Util::LoadPNGTextureCB(dirPath, "platecharset");
     RwTextureSetFilterMode(pCharSetTex, rwFILTERLINEARMIPLINEAR);
-    RwTextureSetAddressingU(pCharSetTex, rwFILTERLINEARMIPNEAREST);
-    RwTextureSetAddressingV(pCharSetTex, rwFILTERLINEARMIPNEAREST);
+    RwTextureSetAddressingU(pCharSetTex, rwFILTERLINEARMIPLINEAR);
+    RwTextureSetAddressingV(pCharSetTex, rwFILTERLINEARMIPLINEAR);
     pCharSetTex->raster->stride = 512;
 
     // Don't add .dds extension!
@@ -53,8 +74,8 @@ bool __cdecl PlateFeature::CCustomCarPlateMgr_Initialise() {
     m_Plates[NIGHT_SF] = Util::LoadDDSTextureCB(dirPath, "plateback1_l");
 
     for (int i = 0; i < ePlateType::TOTAL_SZ; i++) {
-        RwTextureSetAddressingU(m_Plates[i], rwFILTERMIPNEAREST);
-        RwTextureSetAddressingV(m_Plates[i], rwFILTERMIPNEAREST);
+        RwTextureSetAddressingU(m_Plates[i], rwFILTERLINEARMIPLINEAR);
+        RwTextureSetAddressingV(m_Plates[i], rwFILTERLINEARMIPLINEAR);
         RwTextureSetFilterMode(m_Plates[i], rwFILTERLINEAR);
     }
     pCharsetLockedData = RwRasterLock(RwTextureGetRaster(LicensePlate.pCharSetTex), 0, rwRASTERLOCKREAD);
@@ -69,7 +90,7 @@ RpMaterial* __cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
             plateType = CWeather::WeatherRegion > 2 && CWeather::WeatherRegion <= 4;
     }
 
-    if (IsNightTime()) {
+    if (lightState) {
         material->surfaceProps.ambient = 4.0;
         RpMaterialSetTexture(material, m_Plates[plateType + 3]);
     }
