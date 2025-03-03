@@ -28,10 +28,8 @@ void PlateFeature::Initialize() {
     plugin::patch::ReplaceFunction(0x6FDEA0, CCustomCarPlateMgr_CreatePlateTexture);
     // plugin::patch::ReplaceFunctionCall(0x4C949E, CCustomCarPlateMgr_SetupClump);
     // plugin::Events::vehicleRenderEvent.before += [this](CVehicle* pVeh) {
-    //     bool curState = false;
-    //     if (pVeh->m_pDriver != nullptr) {
-    //         curState = IsNightTime();
-    //     }
+    //     bool hasDriver = (pVeh->m_pDriver != nullptr);
+    //     bool curState = hasDriver ? IsNightTime() : false;
 
     //     auto& data = vehData.Get(pVeh);
     //     if (data.m_bNightTexture != curState || !data.m_bInit) {
@@ -41,6 +39,7 @@ void PlateFeature::Initialize() {
     //         data.m_bInit = true;
     //     }
     //     };
+
 }
 
 void __cdecl PlateFeature::CCustomCarPlateMgr_Shudown() {
@@ -90,7 +89,7 @@ RpMaterial* __cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
             plateType = CWeather::WeatherRegion > 2 && CWeather::WeatherRegion <= 4;
     }
 
-    if (lightState) {
+    if (IsNightTime()) {
         material->surfaceProps.ambient = 4.0;
         RpMaterialSetTexture(material, m_Plates[plateType + 3]);
     }

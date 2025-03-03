@@ -45,6 +45,7 @@ Get stable binaries from [here]([https://github.com/user-grinch/GrinchTrainer-II
 
 ## Donators
 - berrymuffin
+- Boris Ilincic
 - Damian Jurkiewicz
 - Dustin Eastwood
 - Dwolf98
