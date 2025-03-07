@@ -39,7 +39,6 @@ void PlateFeature::Initialize() {
     //         data.m_bInit = true;
     //     }
     //     };
-
 }
 
 void __cdecl PlateFeature::CCustomCarPlateMgr_Shudown() {

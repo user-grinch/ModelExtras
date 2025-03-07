@@ -93,7 +93,7 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
 
         std::string sz = GetInfo(frame, "corona_sz:(\\d+)", "");
         if (!sz.empty()) {
-            Size = static_cast<float>(std::stoi(sz) - '0');
+            Size = static_cast<float>(std::stoi(sz) - '0') / 10.0f;
         }
     }
 
