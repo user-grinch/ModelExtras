@@ -89,7 +89,7 @@ RpMaterial* __cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
     }
 
     if (IsNightTime()) {
-        material->surfaceProps.ambient = 4.0;
+        material->surfaceProps.ambient = 8.0;
         RpMaterialSetTexture(material, m_Plates[plateType + 3]);
     }
     else {

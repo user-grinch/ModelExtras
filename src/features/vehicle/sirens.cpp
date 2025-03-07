@@ -820,7 +820,7 @@ void Sirens::EnableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat
 
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
 
-	material->Material->surfaceProps.ambient = 1.0f + (3.0f * mat->InertiaMultiplier);
+	material->Material->surfaceProps.ambient = 5.0f + (3.0f * mat->InertiaMultiplier);
 
 	if (mat->Diffuse.Color) {
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->color), *reinterpret_cast<unsigned int*>(&material->Material->color)));

@@ -662,7 +662,7 @@ void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* pVeh) {
 void Lights::EnableMaterial(VehicleMaterial* material) {
 	if (material && material->Material) {
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
-		material->Material->surfaceProps.ambient = 4.0;
+		material->Material->surfaceProps.ambient = 8.0;
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
 		material->Material->texture = material->TextureActive;
 	}
