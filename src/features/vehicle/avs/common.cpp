@@ -3,6 +3,7 @@
 #include <CCoronas.h>
 #include <CShadows.h>
 #include <CCamera.h>
+#include "defines.h"
 
 void Common::RegisterCorona(CVehicle* pVeh, int coronaID, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, float size) {
     if (!gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false)) {
@@ -10,7 +11,7 @@ void Common::RegisterCorona(CVehicle* pVeh, int coronaID, CVector pos, uchar red
     }
 
     CCoronas::RegisterCorona(coronaID, pVeh, red, green, blue, alpha, pos,
-        size / 4.0f, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
+        size * CORONA_SZ_MUL, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
 };
 
 float Common::NormalizeAngle(float angle) {

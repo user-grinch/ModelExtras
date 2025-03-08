@@ -66,7 +66,7 @@ void DrawGlobalLight(CVehicle* pVeh, eDummyPos pos, CRGBA col) {
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, col.r, col.g, col.b, GetShadowAlphaForDayTime(), dummyAngle, 0.0f, "indicator");
-	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, 0.3f);
+	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, 0.9f);
 }
 
 inline float GetZAngleForPoint(CVector2D const& point) {
@@ -146,9 +146,7 @@ void Lights::Initialize() {
 		};
 
 	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, RwRGBA col) {
-		if (col.red == 255 && col.green == 173 && col.blue == 0)
-			RegisterMaterial(vehicle, material, eLightState::Reverselight, col);
-		else if (col.red == 0 && col.green == 255 && col.blue == 198)
+		if ((col.red == 255 && col.green == 173 && col.blue == 0) || (col.red == 0 && col.green == 255 && col.blue == 198))
 			RegisterMaterial(vehicle, material, eLightState::Reverselight, col);
 		else if ((col.red == 184 && col.green == 255 && col.blue == 0) || (col.red == 255 && col.green == 59 && col.blue == 0))
 			RegisterMaterial(vehicle, material, eLightState::Brakelight, col);
@@ -506,7 +504,7 @@ void Lights::Initialize() {
 		}
 
 		// global turn lights
-		if (gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false) &&
+		if (gConfig.ReadBoolean("VEHICLE_FEATURES", "StandardLights_GlobalIndicatorLights", false) &&
 			(m_Dummies[pControlVeh][eLightState::IndicatorLeft].size() == 0 || m_Dummies[pControlVeh][eLightState::IndicatorRight].size() == 0)
 			 && (m_Materials[pControlVeh->m_nModelIndex][eLightState::IndicatorLeft].size() == 0 || m_Materials[pControlVeh->m_nModelIndex][eLightState::IndicatorRight].size() == 0))
 		{
@@ -548,7 +546,7 @@ void Lights::Initialize() {
 					}
 
 					bool isRear = (e->Type == eDummyPos::RearLeft || e->Type == eDummyPos::RearRight);
-					EnableDummy((int)pControlVeh + id++, e, isRear ? pTowedVeh : pControlVeh);
+					EnableDummy((int)pControlVeh + 42 + id++, e, isRear ? pTowedVeh : pControlVeh);
 					Common::RegisterShadow(isRear ? pTowedVeh : pControlVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, GetShadowAlphaForDayTime(), e->Angle, e->CurrentAngle, "indicator");
 				}
 
@@ -590,7 +588,7 @@ void Lights::Initialize() {
 						continue;
 					}
 					bool isRear = (e->Type == eDummyPos::RearLeft || e->Type == eDummyPos::RearRight);
-					EnableDummy((int)pControlVeh + id++, e, isRear ? pTowedVeh : pControlVeh);
+					EnableDummy((int)pControlVeh + 44 + id++, e, isRear ? pTowedVeh : pControlVeh);
 					Common::RegisterShadow(isRear ? pTowedVeh : pControlVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, GetShadowAlphaForDayTime(), e->Angle, e->CurrentAngle, "indicator");
 				}
 
@@ -628,7 +626,7 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 				continue;
 			}
 		}
-		EnableDummy((int)pVeh + (int)state + id++, e, pVeh);
+		EnableDummy((int)pVeh + (int)state + 30 + id++, e, pVeh);
 
 		if (shadows) {
 			Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, GetShadowAlphaForDayTime(), e->Angle, e->CurrentAngle, texture, sz);
@@ -653,16 +651,16 @@ void Lights::RegisterMaterial(CVehicle* pVeh, RpMaterial* material, eLightState 
 };
 
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* pVeh) {
-	if (gConfig.ReadBoolean("FEATURES", "RenderCoronas", false)) {
+	if (gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false)) {
 		Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue,
-			60, dummy->Angle, 0.3f, dummy->Size);
+		dummy->Color.alpha, dummy->Angle, 0.3f, dummy->Size);
 	}
 };
 
 void Lights::EnableMaterial(VehicleMaterial* material) {
 	if (material && material->Material) {
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
-		material->Material->surfaceProps.ambient = 8.0;
+		material->Material->surfaceProps.ambient = AMBIENT_ON_VAL;
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
 		material->Material->texture = material->TextureActive;
 	}

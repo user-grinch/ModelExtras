@@ -74,7 +74,7 @@ public:
 class VehicleSirenMaterial {
 public:
     bool Validate = false;
-    float Size = 0.2f;
+    float Size = 0.6f;
     float Inertia = 0.0f;
     float InertiaMultiplier = 1.0f;
     float Radius = 180.0f;

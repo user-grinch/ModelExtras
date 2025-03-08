@@ -67,10 +67,7 @@ void SpotLight::OnHudRender() {
 	data.pFrame->modelling.up.z = matrix.up.z;
 
 	float vehicleHeading = pVeh->GetHeading() * 180.0f / 3.14f;
-
 	RwFrameRotate(data.pFrame, (RwV3d*)0x008D2E18, vehicleHeading, rwCOMBINEPRECONCAT);
-
-	//RwFrameRotate(Frame, (RwV3d*)0x008D2E18, heading, rwCOMBINEREPLACE);
 };
 
 void SpotLight::OnVehicleRender(CVehicle* pVeh) {

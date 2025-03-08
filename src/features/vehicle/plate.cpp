@@ -5,6 +5,7 @@
 #include <rwcore.h>
 #include <rpworld.h>
 #include <RenderWare.h>
+#include "defines.h"
 
 PlateFeature LicensePlate;
 extern bool IsNightTime();
@@ -89,7 +90,7 @@ RpMaterial* __cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
     }
 
     if (IsNightTime()) {
-        material->surfaceProps.ambient = 8.0;
+        material->surfaceProps.ambient = AMBIENT_ON_VAL;
         RpMaterialSetTexture(material, m_Plates[plateType + 3]);
     }
     else {

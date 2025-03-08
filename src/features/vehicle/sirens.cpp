@@ -5,6 +5,7 @@
 #include <CShadows.h>
 #include <rwcore.h>
 #include <rpworld.h>
+#include "defines.h"
 
 bool VehicleSiren::GetSirenState() {
 	return (Mute == false) ? (vehicle->m_nVehicleFlags.bSirenOrAlarm) : (true);
@@ -820,7 +821,7 @@ void Sirens::EnableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat
 
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
 
-	material->Material->surfaceProps.ambient = 5.0f + (3.0f * mat->InertiaMultiplier);
+	material->Material->surfaceProps.ambient = (AMBIENT_ON_VAL - 3) + (3.0f * mat->InertiaMultiplier);
 
 	if (mat->Diffuse.Color) {
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->color), *reinterpret_cast<unsigned int*>(&material->Material->color)));
@@ -891,11 +892,13 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 		else if (material->Type == VehicleSirenType::Inversed)
 			dummyAngle -= 180.0f;
 
-		Common::RegisterCoronaWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position, material->Color.red, material->Color.green, material->Color.blue, GetShadowAlphaForDayTime(),
-			 dummyAngle, material->Radius, material->Size * 3.0f);
+		Common::RegisterCoronaWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position,
+			material->Color.red, material->Color.green, material->Color.blue, GetShadowAlphaForDayTime(),
+			dummyAngle, material->Radius, material->Size);
 	}
 	else {
-		Common::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position, material->Color.red, material->Color.green, material->Color.blue, material->Color.alpha, material->Size * 3.0f);
+		Common::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position, material->Color.red,
+			material->Color.green, material->Color.blue, material->Color.alpha, material->Size);
 	}
 
 	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {

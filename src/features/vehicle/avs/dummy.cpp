@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "dummy.h"
 #include "common.h"
+#include "defines.h"
 
 inline std::string GetInfo(RwFrame* parent, const std::string& pattern, const std::string def) {
     if (!pattern.empty()) {
@@ -28,7 +29,7 @@ VehicleDummy::VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummy
     hasParent = parent;
     Color = color;
     Type = type;
-    Size = 0.3f;
+    Size = 0.6f;
 
     // Calculate the angle based on the frame's orientation
     Angle = Common::NormalizeAngle(CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f);
