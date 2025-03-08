@@ -15,7 +15,8 @@ enum class eLightState {
 	AllDayLight,
 	Daylight,
 	Nightlight,
-	FogLight,
+	FogLightLeft,
+	FogLightRight,
 
 	IndicatorLeft,
 	IndicatorRight,

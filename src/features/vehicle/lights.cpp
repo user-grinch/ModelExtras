@@ -183,9 +183,9 @@ void Lights::Initialize() {
 		|| (col.red == 255 && col.green == 7 && col.blue == 128))
 			RegisterMaterial(vehicle, material, eLightState::Daylight, col);
 		else if (col.red == 255 && col.green == 174 && col.blue == 0)
-			RegisterMaterial(vehicle, material, eLightState::FogLight, col);
+			RegisterMaterial(vehicle, material, eLightState::FogLightLeft, col);
 		else if (col.red == 0 && col.green == 255 && col.blue == 199)
-			RegisterMaterial(vehicle, material, eLightState::FogLight, col);
+			RegisterMaterial(vehicle, material, eLightState::FogLightRight, col);
 		else if ((col.red == 255 && col.green == 175 && col.blue == 0)
 		|| (col.red == 255 && col.green == 1 && col.blue == 128))
 			RegisterMaterial(vehicle, material, eLightState::FrontLightLeft, col);
@@ -244,8 +244,8 @@ void Lights::Initialize() {
 		RwRGBA col{ 255, 255, 255, 128 };
 
 		std::smatch match;
-		if (std::regex_search(name, match, std::regex("^fogl(ight)?_[lr].*$"))) {
-			state = (toupper(match.str(2)[0]) == 'L') ? (eLightState::FogLight) : (eLightState::FogLight);
+		if (std::regex_search(name, match, std::regex("^fogl(ight)?_([lr]).*$"))) {
+			state = (toupper(match.str(2)[0]) == 'L') ? (eLightState::FogLightLeft) : (eLightState::FogLightRight);
 		}
 		else if (std::regex_search(name, std::regex("^rev.*\s*_[lr].*$"))) {
 			state = eLightState::Reverselight;
@@ -307,7 +307,8 @@ void Lights::Initialize() {
 		CVehicle* pVeh = FindPlayerVehicle(-1, false);
 		if (pVeh) {
 			static size_t prev = 0;
-			if (KeyPressed(VK_J) && !m_Dummies[pVeh][eLightState::FogLight].empty()) {
+			if (KeyPressed(VK_J)
+			&& (!m_Dummies[pVeh][eLightState::FogLightLeft].empty() || !m_Dummies[pVeh][eLightState::FogLightRight].empty())) {
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f) {
 					VehData& data = m_VehData.Get(pVeh);
@@ -364,21 +365,25 @@ void Lights::Initialize() {
 			bool leftOk = true;
 			bool rightOk = true;
 			if (CModelInfo::IsCarModel(pControlVeh->m_nModelIndex)) {
-				leftOk = !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT);
-				rightOk = !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT);
+				bool leftOn = automobile->m_renderLights.m_bLeftFront;
+				bool rightOn = automobile->m_renderLights.m_bRightFront;
+				leftOk = leftOn && !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT);
+				rightOk = rightOn && !automobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT);
 			}
 
 			if (data.m_bFogLightsOn) {
 				CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pControlVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
-				RenderLights(pControlVeh, eLightState::FogLight, vehicleAngle, cameraAngle, false, "foglight_single", 1.0f);
 				if (leftOk && rightOk) {
 					posn.x = 0.0f;
 					posn.y += 4.2f;
 					Common::RegisterShadow(pControlVeh, posn, 225, 225, 225, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "foglight_twin", 2.0f);
+					RenderLights(pControlVeh, eLightState::FogLightLeft, vehicleAngle, cameraAngle, false, "foglight_single", 1.0f);
+					RenderLights(pControlVeh, eLightState::FogLightRight, vehicleAngle, cameraAngle, false, "foglight_single", 1.0f);
 				}
-				else {
+				else if (leftOk || rightOk) {
 					posn.x = leftOk ? -0.5f : 0.5f;
 					posn.y += 3.2f;
+					RenderLights(pControlVeh, leftOk ? eLightState::FogLightLeft : eLightState::FogLightRight, vehicleAngle, cameraAngle, false, "foglight_single", 1.0f);
 					Common::RegisterShadow(pControlVeh, posn, 225, 225, 225, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "foglight_single", 1.2f);
 				}
 			}
@@ -633,7 +638,7 @@ void Lights::Initialize() {
 				}
 			}
 		}
-		});
+});
 };
 
 void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle, float cameraAngle, bool shadows, std::string texture, float sz) {
@@ -643,7 +648,7 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 		if (CModelInfo::IsCarModel(pVeh->m_nModelIndex)) {
 			if (e->PartType != eDetachPart::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType)) {
 				flag = false;
-				if (state == eLightState::FogLight) {
+				if (state == eLightState::FogLightLeft || state == eLightState::FogLightRight) {
 					m_VehData.Get(pVeh).m_bFogLightsOn = false;
 				}
 				continue;
