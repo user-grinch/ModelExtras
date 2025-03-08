@@ -32,6 +32,29 @@ unsigned int GetCoronaAlphaForDayTime() {
 	}
 }
 
+float GetAmbianceMult() {
+	static HMODULE graphicsTweaker = nullptr;
+	static float ambienceMult = 1.0f;
+
+	if (graphicsTweaker == nullptr) {
+		graphicsTweaker = GetModuleHandle("GraphicsTweaker.SA.asi");
+		std::vector<char> path(256);
+		GetModuleFileName(graphicsTweaker, path.data(), static_cast<DWORD>(path.size()));
+
+		std::string iniPath(path.data());
+		size_t pos = iniPath.find(".asi");
+		if (pos != std::string::npos) {
+			iniPath.replace(pos, 4, ".ini");
+
+			CIniReader gConfig(iniPath);
+			ambienceMult = gConfig.ReadFloat("Timecycle", "MultAmbientNight", 1.0f);
+			gLogger->info("Graphics Tweaker installed with MultAmbientNight = {}", ambienceMult);
+			ambienceMult = 1.0f / ambienceMult;
+		}
+	}
+	return ambienceMult;
+}
+
 // Indicator lights
 static uint64_t delay;
 static bool delayState;
@@ -426,11 +449,11 @@ void Lights::Initialize() {
 					int b = 0;
 					Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
 					if (pControlVeh->m_nRenderLightsFlags && pControlVeh->m_fBreakPedal) {
+						RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
 						Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
 					}
 					RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
 					RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
-					RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
 				}
 			}
 		}
@@ -652,7 +675,8 @@ void Lights::RegisterMaterial(CVehicle* pVeh, RpMaterial* material, eLightState 
 
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* pVeh) {
 	if (gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false)) {
-		Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue,
+		dummy->Update();
+		Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, *(CVector*)&dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue,
 		dummy->Color.alpha, dummy->Angle, 0.3f, dummy->Size);
 	}
 };
@@ -660,7 +684,7 @@ void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* pVeh) {
 void Lights::EnableMaterial(VehicleMaterial* material) {
 	if (material && material->Material) {
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
-		material->Material->surfaceProps.ambient = AMBIENT_ON_VAL;
+		material->Material->surfaceProps.ambient = AMBIENT_ON_VAL * GetAmbianceMult();
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
 		material->Material->texture = material->TextureActive;
 	}

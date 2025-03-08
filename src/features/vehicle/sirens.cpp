@@ -12,6 +12,7 @@ bool VehicleSiren::GetSirenState() {
 };
 
 unsigned int GetShadowAlphaForDayTime();
+float GetAmbianceMult();
 
 char __fastcall Sirens::hkUsesSiren(CVehicle* ptr) {
 	if (Sirens::modelData.contains(ptr->m_nModelIndex)) {
@@ -821,7 +822,7 @@ void Sirens::EnableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat
 
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
 
-	material->Material->surfaceProps.ambient = (AMBIENT_ON_VAL - 3) + (3.0f * mat->InertiaMultiplier);
+	material->Material->surfaceProps.ambient = AMBIENT_ON_VAL * GetAmbianceMult();
 
 	if (mat->Diffuse.Color) {
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->color), *reinterpret_cast<unsigned int*>(&material->Material->color)));
@@ -847,6 +848,7 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 	position.y = dummy->Position.y;
 	position.z = dummy->Position.z;
 
+	dummy->Update();
 	unsigned char alpha = material->Color.alpha;
 
 	if (material->PatternTotal != 0 && material->Inertia != 0.0f) {
@@ -894,7 +896,7 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 
 		Common::RegisterCoronaWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position,
 			material->Color.red, material->Color.green, material->Color.blue, GetShadowAlphaForDayTime(),
-			dummyAngle, material->Radius, material->Size);
+			dummy->Angle, material->Radius, material->Size);
 	}
 	else {
 		Common::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position, material->Color.red,

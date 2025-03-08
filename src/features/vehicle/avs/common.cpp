@@ -28,42 +28,36 @@ void Common::RegisterCoronaWithAngle(CVehicle* pVeh, int coronaID, CVector posn,
     float dummyAngle = NormalizeAngle(vehicleAngle + angle);
     float InertiaAngle = 5.0f;
 
-    float differenceAngle = ((cameraAngle > angle) ? (cameraAngle - angle) : (angle - cameraAngle));
+    // Corrected difference calculation
+    float differenceAngle = std::fmod(std::fabs(cameraAngle - dummyAngle) + 180.0f, 360.0f) - 180.0f;
+    differenceAngle = std::fabs(differenceAngle);
 
     float diameter = (radius / 2.0f);
 
     if (differenceAngle < diameter || differenceAngle >(360.0f - diameter))
         return;
 
-    // if (PluginConfig::Lights->Enhancement->InertiaEnabled) {
     float alphaFloat = static_cast<float>(alpha);
 
-    alphaFloat = (alphaFloat < 0.0f) ? (alphaFloat * -1) : (alphaFloat);
-
     if (differenceAngle < diameter + InertiaAngle) {
-        float angle = diameter - differenceAngle;
-
-        float multiplier = (angle / InertiaAngle);
-
-        alpha = static_cast<char>(alphaFloat * multiplier);
+        float adjustedAngle = diameter - differenceAngle;
+        float multiplier = adjustedAngle / InertiaAngle;
+        alpha = static_cast<uchar>(std::clamp(alphaFloat * multiplier, 0.0f, 255.0f));
     }
     else if (differenceAngle > (360.0f - diameter) - InertiaAngle) {
-        float angle = InertiaAngle - (differenceAngle - ((360.0f - diameter) - InertiaAngle));
-
-        float multiplier = angle / InertiaAngle;
-
-        alpha = static_cast<char>(alphaFloat * multiplier);
+        float adjustedAngle = InertiaAngle - (differenceAngle - ((360.0f - diameter) - InertiaAngle));
+        float multiplier = adjustedAngle / InertiaAngle;
+        alpha = static_cast<uchar>(std::clamp(alphaFloat * multiplier, 0.0f, 255.0f));
     }
-// }
 
-    return RegisterCorona(pVeh, coronaID, posn, red, green, blue, alpha, size);
+    RegisterCorona(pVeh, coronaID, posn, red, green, blue, alpha, size);
 }
 
 RwTexture* Common::GetTexture(std::string texture) {
     if (Textures.contains(texture) && Textures[texture])
         return Textures[texture];
 
-    Textures[texture] = Util::LoadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str(), 60.0f);
+    Textures[texture] = Util::LoadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str(), 100.0f);
     return Textures[texture];
 };
 
