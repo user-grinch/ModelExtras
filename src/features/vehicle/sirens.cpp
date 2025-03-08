@@ -860,8 +860,7 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 	}
 
 	if (material->Type != VehicleSirenType::NonDirectional) {
-		float vehicleAngle = (vehicle->GetHeading() * 180.0f) / 3.14f;
-		float dummyAngle = vehicleAngle + dummy->Angle;
+		float dummyAngle = dummy->Angle;
 
 		if (material->Type == VehicleSirenType::Rotator) {
 			uint64_t elapsed = time - material->Rotator->TimeElapse;
@@ -891,12 +890,18 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 			while (dummyAngle < 0.0f)
 				dummyAngle += 360.0f;
 		}
-		else if (material->Type == VehicleSirenType::Inversed)
+		else if (material->Type == VehicleSirenType::Inversed) {
 			dummyAngle -= 180.0f;
+		}
+
+		// Fix, probably gonna fk me later again
+		if (modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
+			dummyAngle -= 180.0f;
+		}
 
 		Common::RegisterCoronaWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position,
 			material->Color.red, material->Color.green, material->Color.blue, GetShadowAlphaForDayTime(),
-			dummy->Angle, material->Radius, material->Size);
+			dummyAngle, material->Radius, material->Size);
 	}
 	else {
 		Common::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position, material->Color.red,

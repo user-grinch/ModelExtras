@@ -99,7 +99,12 @@ int ImVehFt_EmlToJson(const std::string& emlPath) {
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["pattern"] = pattern;
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["shadow"]["size"] = shadow;
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["inertia"] = flash / 100.0f;
-        jsonData["states"]["1. ModelExtras"][std::to_string(id)]["type"] = ((type == 0) ? "directional" : ((type == 1) ? "inversed-directional" : ((type == 4) ? "non-directional" : "non-directional")));
+        jsonData["states"]["1. ModelExtras"][std::to_string(id)]["type"] = ((type == 0) ? "directional" : ((type == 1) ? "inversed-directional" : "non-directional"));
+
+        // This is the only way ffs
+        if (type == 0) {
+            jsonData["states"]["1. ModelExtras"][std::to_string(id)]["rot"] = 180.0f;
+        }
     }
 
     infile.close();

@@ -23,12 +23,11 @@ float Common::NormalizeAngle(float angle) {
 void Common::RegisterCoronaWithAngle(CVehicle* pVeh, int coronaID, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, float angle, float radius, float size) {
     constexpr float RAD_TO_DEG = 180.0f / 3.141592653589793f;
 
-    float vehicleAngle = 180 + NormalizeAngle(pVeh->GetHeading() * RAD_TO_DEG);
+    float vehicleAngle = NormalizeAngle(pVeh->GetHeading() * RAD_TO_DEG);
     float cameraAngle = NormalizeAngle(TheCamera.GetHeading() * RAD_TO_DEG);
     float dummyAngle = NormalizeAngle(vehicleAngle + angle);
     float InertiaAngle = 5.0f;
 
-    // Corrected difference calculation
     float differenceAngle = std::fmod(std::fabs(cameraAngle - dummyAngle) + 180.0f, 360.0f) - 180.0f;
     differenceAngle = std::fabs(differenceAngle);
 
