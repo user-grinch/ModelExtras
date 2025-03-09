@@ -45,22 +45,22 @@ extern CIniReader gConfig;
 static inline CdeclEvent <AddressList<0x5E7859, H_CALL>, PRIORITY_BEFORE, ArgPickN<CPed*, 0>, void(CPed*)> weaponRenderEvent;
 static inline ThiscallEvent <AddressList<//0x43D821, H_CALL,
                                //   0x43D939, H_CALL,
-                                  0x45CC78, H_CALL,
-                                  0x47D3AD, H_CALL,
-                                //   0x5E3B53, H_CALL,
-                                //   0x5E5F14, H_CALL,
-                                //   0x5E6150, H_CALL,
-                                //   0x5E6223, H_CALL,
-                                  0x5E6327, H_CALL,
-                                  0x63072E, H_CALL,
-                                //   0x5E6483, H_CALL,
-                                  0x6348FC, H_CALL>, PRIORITY_BEFORE, ArgPick2N<CPed*, 0, int, 1>, void(CPed*, int)> weaponRemoveEvent;
-static CBaseModelInfo ** CModelInfo__ms_modelInfoPtrs = reinterpret_cast<CBaseModelInfo **>(plugin::patch::GetPointer(0x403DA7));
-#define PRINT_LINEBREAK \
-    gLogger->set_pattern("%v"); \
-    gLogger->info(""); \
-    gLogger->set_pattern("[%L] %v");
+  0x45CC78, H_CALL,
+  0x47D3AD, H_CALL,
+//   0x5E3B53, H_CALL,
+//   0x5E5F14, H_CALL,
+//   0x5E6150, H_CALL,
+//   0x5E6223, H_CALL,
+0x5E6327, H_CALL,
+0x63072E, H_CALL,
+//   0x5E6483, H_CALL,
+0x6348FC, H_CALL>, PRIORITY_BEFORE, ArgPick2N<CPed*, 0, int, 1>, void(CPed*, int)> weaponRemoveEvent;
+static CBaseModelInfo** CModelInfo__ms_modelInfoPtrs = reinterpret_cast<CBaseModelInfo**>(plugin::patch::GetPointer(0x403DA7));
 
+#define LOG_NO_LEVEL(x) \
+    gLogger->set_pattern("%v"); \
+    gLogger->info(x); \
+    gLogger->set_pattern("[%L] %v");
 
 extern bool gVerboseLogging;
 

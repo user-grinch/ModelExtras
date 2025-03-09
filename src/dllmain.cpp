@@ -19,6 +19,31 @@ std::vector<std::string> donators = {
     "spdfnpe"
 };
 
+void InitLogFile() {
+    static bool flag = true;
+    if (!flag) {
+        return;
+    }
+    gLogger->flush_on(spdlog::level::debug);
+    spdlog::set_level(spdlog::level::debug);
+    gLogger->set_pattern("%v");
+    gLogger->info("Starting " MOD_TITLE " (" __DATE__ ")\nAuthor: Grinch_\nDiscord: "
+                                DISCORD_INVITE "\nPatreon: " PATREON_LINK "\nMore Info: " GITHUB_LINK "");
+
+    // date time
+    SYSTEMTIME st;
+    GetSystemTime(&st);
+    gLogger->info("Date: {}-{}-{} Time: {}:{}\n", st.wYear, st.wMonth, st.wDay,
+                                st.wHour, st.wMinute);
+    gLogger->info("\nDonators:");
+    for (const auto& name : donators) {
+        gLogger->info("- {}", name);
+    }
+
+    gLogger->set_pattern("[%L] %v");
+    flag = false;
+}
+
 BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
     if (nReason == DLL_PROCESS_ATTACH) {
         if (gConfig.ReadBoolean("MISC", "ShowDonationPopup", true)) {
@@ -58,23 +83,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             bool EarShot = GetModuleHandle("EarShot.asi");
             bool PedFuncs = GetModuleHandle("PedFuncs.asi");
 
-            gLogger->flush_on(spdlog::level::debug);
-            spdlog::set_level(spdlog::level::debug);
-            gLogger->set_pattern("%v");
-            gLogger->info("Starting " MOD_TITLE " (" __DATE__ ")\nAuthor: Grinch_\nDiscord: "
-                                        DISCORD_INVITE "\nPatreon: " PATREON_LINK "\nMore Info: " GITHUB_LINK "");
-
-            // date time
-            SYSTEMTIME st;
-            GetSystemTime(&st);
-            gLogger->info("Date: {}-{}-{} Time: {}:{}\n", st.wYear, st.wMonth, st.wDay,
-                                        st.wHour, st.wMinute);
-            gLogger->info("\nDonators:");
-            for (const auto& name : donators) {
-                gLogger->info("- {}", name);
-            }
-
-            gLogger->set_pattern("[%L] %v");
+            InitLogFile();
             SoundSystem.Init();
 
             /*

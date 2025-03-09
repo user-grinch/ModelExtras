@@ -452,7 +452,7 @@ void Sirens::ParseConfig() {
 			ext = ".json";
 		}
 
-		gLogger->info("Reading siren config {}{}", file, ext);
+		LOG_VERBOSE("Reading sirens/{}{}", file, ext);
 		std::ifstream infile(path + file + ext);
 		bool isImVehFt = (ext == ".json");
 

@@ -33,10 +33,11 @@ unsigned int GetCoronaAlphaForDayTime() {
 }
 
 float GetAmbianceMult() {
+	static bool bInit = false;
 	static HMODULE graphicsTweaker = nullptr;
 	static float ambienceMult = 1.0f;
 
-	if (graphicsTweaker == nullptr) {
+	if (graphicsTweaker == nullptr && !bInit) {
 		graphicsTweaker = GetModuleHandle("GraphicsTweaker.SA.asi");
 		std::vector<char> path(256);
 		GetModuleFileName(graphicsTweaker, path.data(), static_cast<DWORD>(path.size()));
@@ -51,6 +52,7 @@ float GetAmbianceMult() {
 			gLogger->info("Graphics Tweaker installed with MultAmbientNight = {}", ambienceMult);
 			ambienceMult = 1.0f / ambienceMult;
 		}
+		bInit = true;
 	}
 	return ambienceMult;
 }

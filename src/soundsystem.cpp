@@ -20,7 +20,7 @@ float CSoundSystem::masterVolumeMusic = 1.0f;
 void EnumerateBassDevices(int& total, int& enabled, int& default_device)
 {
     BASS_DEVICEINFO info;
-    PRINT_LINEBREAK
+    LOG_NO_LEVEL("");
     for (default_device = -1, enabled = 0, total = 0; BASS_GetDeviceInfo(total, &info); ++total)
     {
         if (info.flags & BASS_DEVICE_ENABLED) ++enabled;
@@ -92,17 +92,18 @@ bool CSoundSystem::Init()
 
         initialized = true;
         BASS_Apply3D();
-        PRINT_LINEBREAK
+        LOG_NO_LEVEL("");
         return true;
     }
 
     int code = BASS_ErrorGetCode();
     if (code == BASS_ERROR_ALREADY) {
         gLogger->info("BASS already initialized. Skipping init process.");
-    } else {
+    }
+    else {
         gLogger->warn("Could not initialize BASS sound system. Error code: {}", BASS_ErrorGetCode());
     }
-    PRINT_LINEBREAK
+    LOG_NO_LEVEL("");
     return false;
 }
 
@@ -111,7 +112,7 @@ bool CSoundSystem::Initialized()
     return initialized;
 }
 
-CAudioStream* CSoundSystem::CreateStream(const char *filename, bool in3d)
+CAudioStream* CSoundSystem::CreateStream(const char* filename, bool in3d)
 {
     CAudioStream* result = in3d ? new C3DAudioStream(filename) : new CAudioStream(filename);
     if (!result->IsOk())
@@ -124,7 +125,7 @@ CAudioStream* CSoundSystem::CreateStream(const char *filename, bool in3d)
     return result;
 }
 
-void CSoundSystem::DestroyStream(CAudioStream *stream)
+void CSoundSystem::DestroyStream(CAudioStream* stream)
 {
     if (streams.erase(stream))
         delete stream;
@@ -151,7 +152,7 @@ void CSoundSystem::Resume()
     paused = false;
     for (auto stream : streams)
     {
-        if(stream->GetState() == CAudioStream::Playing) stream->Resume();
+        if (stream->GetState() == CAudioStream::Playing) stream->Resume();
     }
 }
 
@@ -180,8 +181,8 @@ void CSoundSystem::Process()
         masterVolumeMusic = AEAudioHardware.m_fMusicMasterScalingFactor * 0.5f;
 
         // camera movements
-        CMatrixLink * pMatrix = nullptr;
-        CVector * pVec = nullptr;
+        CMatrixLink* pMatrix = nullptr;
+        CVector* pVec = nullptr;
         if (TheCamera.m_matrix)
         {
             pMatrix = TheCamera.m_matrix;
@@ -211,7 +212,7 @@ void CSoundSystem::Process()
         }
 
         // process streams
-        for(auto stream : streams) stream->Process();
+        for (auto stream : streams) stream->Process();
 
         // apply above changes
         BASS_Apply3D();
