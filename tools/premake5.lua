@@ -1,3 +1,5 @@
+require "ecc/ecc"
+
 PSDK_DIR = os.getenv("PLUGIN_SDK_DIR")
 
 workspace "ModelExtras"

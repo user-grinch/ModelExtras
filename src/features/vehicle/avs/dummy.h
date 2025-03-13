@@ -2,34 +2,8 @@
 #include "materials.h"
 #include "game_sa/CGeneral.h"
 #include "RenderWare.h"
-
-enum class eDummyPos {
-    None,
-    // remove later
-    Front,
-    Rear,
-    Left,
-    Right,
-
-    MiddleLeft,
-    MiddleRight,
-    FrontLeft,
-    RearLeft,
-    FrontRight,
-    RearRight,
-};
-
-// This enum order needs to be same as ePanels
-enum class eDetachPart {
-    FrontLeftWing,
-    FrontRightWing,
-    RearLeftWing,
-    RearRightWing,
-    WindScreen,
-    FrontBumper,
-    RearBumper,
-    Unknown,
-};
+#include "enums/parenttype.h"
+#include "enums/dummypos.h"
 
 class VehicleDummy {
 private:
@@ -38,15 +12,15 @@ private:
 
 public:
     RwFrame* Frame;
-    RwRGBA Color = { 255, 255, 255, 128 };
+    CRGBA Color = { 255, 255, 255, 128 };
     CVector Position, ShdwPosition;
     eDummyPos Type;
-    eDetachPart PartType = eDetachPart::Unknown;
+    eParentType PartType = eParentType::Unknown;
     float Size;
     float Angle;
     float CurrentAngle = 0.0f;
 
-    VehicleDummy(RwFrame* frame, std::string name, bool parent, eDummyPos type = eDummyPos::None, RwRGBA color = { 255, 255, 255, 128 });
+    VehicleDummy(CVehicle* pVeh, RwFrame* frame, std::string name, bool parent, eDummyPos type = eDummyPos::None, RwRGBA color = { 255, 255, 255, 128 });
 
     void ResetAngle() {
         if (CurrentAngle != 0.0f) {

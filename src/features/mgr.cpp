@@ -20,10 +20,15 @@
 #include "vehicle/sirens.h"
 #include "vehicle/plate.h"
 #include "vehicle/carcols.h"
+#include "datamgr.h"
 
 void InitLogFile();
 
 void FeatureMgr::Initialize() {
+
+    plugin::Events::initGameEvent += []() {
+        DataMgr::Init();
+        };
     plugin::Events::vehicleRenderEvent.before += [](CVehicle* vehicle) {
         VehicleMaterials::RestoreMaterials();
         VehicleMaterials::OnRender(vehicle);

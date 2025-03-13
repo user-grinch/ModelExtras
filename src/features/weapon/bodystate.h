@@ -1,7 +1,7 @@
 #pragma once
 #include <plugin.h>
 #include "../../interface/ifeature.hpp"
-#include "../../weaponExtender.h"
+#include "weaponExtender.h"
 #include <vector>
 
 enum class eBodyState {
@@ -17,7 +17,7 @@ enum class eBodyState {
 class BodyState {
 private:
   struct xData {
-    xData(CWeapon*){}
+    xData(CWeapon*) {}
     eBodyState prevBodyState;
   };
 

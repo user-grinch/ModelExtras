@@ -7,13 +7,7 @@
 #include <CCoronas.h>
 #include "avs/dummy.h"
 #include "avs/materials.h"
-
-enum class VehicleSirenType {
-    Directional = 0,
-    NonDirectional,
-    Inversed,
-    Rotator
-};
+#include "enums/lighttype.h"
 
 enum class VehicleSirenStates {
     Off = 0,
@@ -93,7 +87,7 @@ public:
     int PatternTotal = 0;
     uint64_t PatternTime = 0;
     uint64_t Delay = 0;
-    VehicleSirenType Type = VehicleSirenType::Directional;
+    LightType Type = LightType::Directional;
     bool ImVehFt = false;
     VehicleSirenRotator* Rotator;
     VehicleSirenShadow Shadow;

@@ -1,12 +1,12 @@
 #pragma once
 #include "../../interface/ifeature.hpp"
-#include "../../weaponExtender.h"
+#include "weaponExtender.h"
 #include <vector>
 #include <filesystem>
 #include <map>
 
-#include "audiostream3d.h"
-#include "soundsystem.h"
+#include "audio/audiostream3d.h"
+#include "audio/soundsystem.h"
 
 class WeaponSoundSystem {
 private:

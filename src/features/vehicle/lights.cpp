@@ -100,7 +100,7 @@ inline float GetZAngleForPoint(CVector2D const& point) {
 	return angle;
 }
 
-inline bool IsBumperOrWingDamaged(CVehicle* pVeh, eDetachPart part) {
+inline bool IsBumperOrWingDamaged(CVehicle* pVeh, eParentType part) {
 	if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE) {
 		CAutomobile* ptr = reinterpret_cast<CAutomobile*>(pVeh);
 		return ptr->m_damageManager.GetPanelStatus((int)part);
@@ -170,61 +170,61 @@ void Lights::Initialize() {
 		m_Dummies.erase(pVeh);
 		};
 
-	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, RwRGBA col) {
-		if ((col.red == 255 && col.green == 173 && col.blue == 0) || (col.red == 0 && col.green == 255 && col.blue == 198))
+	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, CRGBA col) {
+		if ((col.r == 255 && col.g == 173 && col.b == 0) || (col.r == 0 && col.g == 255 && col.b == 198))
 			RegisterMaterial(vehicle, material, eLightState::Reverselight, col);
-		else if ((col.red == 184 && col.green == 255 && col.blue == 0) || (col.red == 255 && col.green == 59 && col.blue == 0))
+		else if ((col.r == 184 && col.g == 255 && col.b == 0) || (col.r == 255 && col.g == 59 && col.b == 0))
 			RegisterMaterial(vehicle, material, eLightState::Brakelight, col);
-		else if ((col.red == 0 && col.green == 16 && col.blue == 255)
-		|| (col.red == 255 && col.green == 8 && col.blue == 128))
+		else if ((col.r == 0 && col.g == 16 && col.b == 255)
+		|| (col.r == 255 && col.g == 8 && col.b == 128))
 			RegisterMaterial(vehicle, material, eLightState::Nightlight, col);
-		else if ((col.red == 0 && col.green == 17 && col.blue == 255)
-		|| (col.red == 255 && col.green == 9 && col.blue == 128))
+		else if ((col.r == 0 && col.g == 17 && col.b == 255)
+		|| (col.r == 255 && col.g == 9 && col.b == 128))
 			RegisterMaterial(vehicle, material, eLightState::AllDayLight, col);
-		else if ((col.red == 0 && col.green == 18 && col.blue == 255)
-		|| (col.red == 255 && col.green == 7 && col.blue == 128))
+		else if ((col.r == 0 && col.g == 18 && col.b == 255)
+		|| (col.r == 255 && col.g == 7 && col.b == 128))
 			RegisterMaterial(vehicle, material, eLightState::Daylight, col);
-		else if (col.red == 255 && col.green == 174 && col.blue == 0)
+		else if (col.r == 255 && col.g == 174 && col.b == 0)
 			RegisterMaterial(vehicle, material, eLightState::FogLightLeft, col);
-		else if (col.red == 0 && col.green == 255 && col.blue == 199)
+		else if (col.r == 0 && col.g == 255 && col.b == 199)
 			RegisterMaterial(vehicle, material, eLightState::FogLightRight, col);
-		else if ((col.red == 255 && col.green == 175 && col.blue == 0)
-		|| (col.red == 255 && col.green == 1 && col.blue == 128))
+		else if ((col.r == 255 && col.g == 175 && col.b == 0)
+		|| (col.r == 255 && col.g == 1 && col.b == 128))
 			RegisterMaterial(vehicle, material, eLightState::FrontLightLeft, col);
-		else if ((col.red == 0 && col.green == 255 && col.blue == 200)
-			|| (col.red == 255 && col.green == 2 && col.blue == 128))
+		else if ((col.r == 0 && col.g == 255 && col.b == 200)
+			|| (col.r == 255 && col.g == 2 && col.b == 128))
 			RegisterMaterial(vehicle, material, eLightState::FrontLightRight, col);
-		else if (col.red == 255 && col.green == 60 && col.blue == 0)
+		else if (col.r == 255 && col.g == 60 && col.b == 0)
 			RegisterMaterial(vehicle, material, eLightState::TailLightRight, col);
-		else if (col.red == 185 && col.green == 255 && col.blue == 0)
+		else if (col.r == 185 && col.g == 255 && col.b == 0)
 			RegisterMaterial(vehicle, material, eLightState::TailLightLeft, col);
 
 		// Indicator Lights
 		eDummyPos pos = eDummyPos::None;
-		if (col.blue == 0) {
-			if (col.red == 255) { // Right
-				if (col.green >= 56 && col.green <= 59) {
-					if (col.green == 58) {
+		if (col.b == 0) {
+			if (col.r == 255) { // Right
+				if (col.g >= 56 && col.g <= 59) {
+					if (col.g == 58) {
 						pos = eDummyPos::FrontRight;
 					}
-					else if (col.green == 57) {
+					else if (col.g == 57) {
 						pos = eDummyPos::MiddleRight;
 					}
-					else if (col.green == 56) {
+					else if (col.g == 56) {
 						pos = eDummyPos::RearRight;
 					}
 					RegisterMaterial(vehicle, material, eLightState::IndicatorRight, col, pos);
 				}
 			}
-			else if (col.green == 255) { // Left
-				if (col.red >= 181 && col.red <= 184) {
-					if (col.red == 183) {
+			else if (col.g == 255) { // Left
+				if (col.r >= 181 && col.r <= 184) {
+					if (col.r == 183) {
 						pos = eDummyPos::FrontLeft;
 					}
-					else if (col.red == 182) {
+					else if (col.r == 182) {
 						pos = eDummyPos::MiddleLeft;
 					}
-					else if (col.red == 181) {
+					else if (col.r == 181) {
 						pos = eDummyPos::RearLeft;
 					}
 					RegisterMaterial(vehicle, material, eLightState::IndicatorLeft, col, pos);
@@ -232,9 +232,9 @@ void Lights::Initialize() {
 			}
 		}
 
-		if (col.red == 255 && (col.green == 4 || col.green == 5) && col.blue == 128
+		if (col.r == 255 && (col.g == 4 || col.g == 5) && col.b == 128
 		&& std::string(material->texture->name).rfind("light", 0) == 0) {
-			RegisterMaterial(vehicle, material, (col.green == 4) ? eLightState::IndicatorLeft : eLightState::IndicatorRight, col);
+			RegisterMaterial(vehicle, material, (col.g == 4) ? eLightState::IndicatorLeft : eLightState::IndicatorRight, col);
 		}
 
 		return material;
@@ -242,7 +242,6 @@ void Lights::Initialize() {
 
 	VehicleMaterials::RegisterDummy([](CVehicle* pVeh, RwFrame* frame, std::string name, bool parent) {
 		eLightState state = eLightState::None;
-		eDummyPos rotation = eDummyPos::Rear;
 		RwRGBA col{ 255, 255, 255, 128 };
 
 		std::smatch match;
@@ -289,13 +288,14 @@ void Lights::Initialize() {
 
 				if (!exists) {
 					LOG_VERBOSE("Registering {} for {}", name, pVeh->m_nModelIndex);
-					m_Dummies[pVeh][state].push_back(new VehicleDummy(frame, name, parent, rot, { 255, 128, 0, 128 }));
+					m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, parent, rot, { 255, 128, 0, 128 }));
+					return;
 				}
 			}
 		}
 
 		if (state != eLightState::None) {
-			m_Dummies[pVeh][state].push_back(new VehicleDummy(frame, name, parent, rotation, col));
+			m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, parent, eDummyPos::Rear, col));
 		}
 	});
 
@@ -562,7 +562,7 @@ void Lights::Initialize() {
 				bool MidDisabled = false;
 
 				for (auto e : m_Dummies[pControlVeh][eLightState::IndicatorLeft]) {
-					if (e->PartType != eDetachPart::Unknown && IsBumperOrWingDamaged(pControlVeh, e->PartType)) {
+					if (e->PartType != eParentType::Unknown && IsBumperOrWingDamaged(pControlVeh, e->PartType)) {
 						if (e->Type == eDummyPos::FrontLeft) {
 							FrontDisabled = true;
 						}
@@ -577,7 +577,7 @@ void Lights::Initialize() {
 
 					bool isRear = (e->Type == eDummyPos::RearLeft || e->Type == eDummyPos::RearRight);
 					EnableDummy((int)pControlVeh + 42 + id++, e, isRear ? pTowedVeh : pControlVeh);
-					Common::RegisterShadow(isRear ? pTowedVeh : pControlVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, GetShadowAlphaForDayTime(), e->Angle, e->CurrentAngle, "indicator");
+					Common::RegisterShadow(isRear ? pTowedVeh : pControlVeh, e->ShdwPosition, e->Color.r, e->Color.g, e->Color.b, GetShadowAlphaForDayTime(), e->Angle, e->CurrentAngle, "indicator");
 				}
 
 				for (auto e : m_Materials[pControlVeh->m_nModelIndex][eLightState::IndicatorLeft]) {
@@ -605,7 +605,7 @@ void Lights::Initialize() {
 				bool MidDisabled = false;
 
 				for (auto e : m_Dummies[pControlVeh][eLightState::IndicatorRight]) {
-					if (e->PartType != eDetachPart::Unknown && IsBumperOrWingDamaged(pControlVeh, e->PartType)) {
+					if (e->PartType != eParentType::Unknown && IsBumperOrWingDamaged(pControlVeh, e->PartType)) {
 						if (e->Type == eDummyPos::FrontRight) {
 							FrontDisabled = true;
 						}
@@ -619,7 +619,7 @@ void Lights::Initialize() {
 					}
 					bool isRear = (e->Type == eDummyPos::RearLeft || e->Type == eDummyPos::RearRight);
 					EnableDummy((int)pControlVeh + 44 + id++, e, isRear ? pTowedVeh : pControlVeh);
-					Common::RegisterShadow(isRear ? pTowedVeh : pControlVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, GetShadowAlphaForDayTime(), e->Angle, e->CurrentAngle, "indicator");
+					Common::RegisterShadow(isRear ? pTowedVeh : pControlVeh, e->ShdwPosition, e->Color.r, e->Color.g, e->Color.b, GetShadowAlphaForDayTime(), e->Angle, e->CurrentAngle, "indicator");
 				}
 
 				for (auto& e : m_Materials[pControlVeh->m_nModelIndex][eLightState::IndicatorRight]) {
@@ -648,7 +648,7 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 	int id = 0;
 	for (auto e : m_Dummies[pVeh][state]) {
 		if (CModelInfo::IsCarModel(pVeh->m_nModelIndex)) {
-			if (e->PartType != eDetachPart::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType)) {
+			if (e->PartType != eParentType::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType)) {
 				flag = false;
 				if (state == eLightState::FogLightLeft || state == eLightState::FogLightRight) {
 					m_VehData.Get(pVeh).m_bFogLightsOn = false;
@@ -659,7 +659,7 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 		EnableDummy((int)pVeh + (int)state + 30 + id++, e, pVeh);
 
 		if (shadows) {
-			Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.red, e->Color.green, e->Color.blue, GetShadowAlphaForDayTime(), e->Angle, e->CurrentAngle, texture, sz);
+			Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.r, e->Color.g, e->Color.b, GetShadowAlphaForDayTime(), e->Angle, e->CurrentAngle, texture, sz);
 		}
 	}
 
@@ -670,7 +670,7 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 	}
 };
 
-void Lights::RegisterMaterial(CVehicle* pVeh, RpMaterial* material, eLightState state, RwRGBA col, eDummyPos pos) {
+void Lights::RegisterMaterial(CVehicle* pVeh, RpMaterial* material, eLightState state, CRGBA col, eDummyPos pos) {
 	material->color.red = material->color.green = material->color.blue = 255;
 	if (pVeh->m_nModelIndex == 416) {
 		int x = (int)pVeh;
@@ -683,8 +683,8 @@ void Lights::RegisterMaterial(CVehicle* pVeh, RpMaterial* material, eLightState 
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* pVeh) {
 	if (gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false)) {
 		dummy->Update();
-		Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, *(CVector*)&dummy->Position, dummy->Color.red, dummy->Color.green, dummy->Color.blue,
-		dummy->Color.alpha, dummy->Angle, 0.3f, dummy->Size);
+		Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, *(CVector*)&dummy->Position, dummy->Color.r, dummy->Color.g, dummy->Color.b,
+		dummy->Color.a, dummy->Angle, 0.3f, dummy->Size);
 	}
 };
 

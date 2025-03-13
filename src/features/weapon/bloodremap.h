@@ -1,6 +1,6 @@
 #pragma once
 #include <plugin.h>
-#include "../../weaponExtender.h"
+#include "weaponExtender.h"
 #include <map>
 
 class BloodRemap {
@@ -23,6 +23,6 @@ class BloodRemap {
   static inline WeaponExtender<FrameData> xData;
   static void Initialize(RwFrame* frame, CWeapon* pWeapon);
 
-  public:
-    static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
+public:
+  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
 };

@@ -6,15 +6,14 @@
 #include "game_sa/CModelInfo.h"
 #include "game_sa/NodeName.h"
 #include "RenderWare.h"
-
-enum class eDummyPos;
+#include "enums/dummypos.h"
 
 class VehicleMaterial {
 public:
 	RpMaterial* Material;
 	RwTexture* Texture;
 	RwTexture* TextureActive;
-	RwRGBA Color;
+	CRGBA Color;
 	eDummyPos Pos;
 
 	VehicleMaterial(RpMaterial* material, eDummyPos pos = (eDummyPos)0);
@@ -22,7 +21,7 @@ public:
 
 class VehicleMaterials {
 public:
-	static void Register(std::function<RpMaterial* (CVehicle*, RpMaterial*, RwRGBA)> function);
+	static void Register(std::function<RpMaterial* (CVehicle*, RpMaterial*, CRGBA)> function);
 	static void RegisterRender(std::function<void(CVehicle*)> render);
 	static void RegisterDummy(std::function<void(CVehicle*, RwFrame*, std::string, bool)> function);
 	static void OnModelSet(CVehicle* vehicle, int model);
@@ -31,7 +30,7 @@ public:
 	static void RestoreMaterials();
 
 private:
-	static inline std::vector<std::function<RpMaterial* (CVehicle*, RpMaterial*, RwRGBA)>> functions;
+	static inline std::vector<std::function<RpMaterial* (CVehicle*, RpMaterial*, CRGBA)>> functions;
 	static inline std::vector<std::function<void(CVehicle*)>> renders;
 	static inline std::vector<std::function<void(CVehicle*, RwFrame*, std::string, bool)>> dummy;
 	/*

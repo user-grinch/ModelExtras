@@ -61,7 +61,7 @@ VehicleMaterial::VehicleMaterial(RpMaterial* material, eDummyPos pos) {
 	}
 }
 
-void VehicleMaterials::Register(std::function<RpMaterial* (CVehicle*, RpMaterial*, RwRGBA)> function) {
+void VehicleMaterials::Register(std::function<RpMaterial* (CVehicle*, RpMaterial*, CRGBA)> function) {
 	functions.push_back(function);
 };
 

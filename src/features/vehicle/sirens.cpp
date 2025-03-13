@@ -6,6 +6,7 @@
 #include <rwcore.h>
 #include <rpworld.h>
 #include "defines.h"
+#include "lights.h"
 
 bool VehicleSiren::GetSirenState() {
 	return (Mute == false) ? (vehicle->m_nVehicleFlags.bSirenOrAlarm) : (true);
@@ -234,13 +235,13 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 	if (json.contains("type")) {
 		if (json["type"].is_string()) {
 			if (json["type"] == "directional")
-				Type = VehicleSirenType::Directional;
+				Type = LightType::Directional;
 			else if (json["type"] == "non-directional")
-				Type = VehicleSirenType::NonDirectional;
+				Type = LightType::NonDirectional;
 			else if (json["type"] == "inversed-directional")
-				Type = VehicleSirenType::Inversed;
+				Type = LightType::Inversed;
 			else if (json["type"] == "rotator") {
-				Type = VehicleSirenType::Rotator;
+				Type = LightType::Rotator;
 
 				if (json.contains("rotator")) {
 					if (json["rotator"].is_object())
@@ -482,16 +483,16 @@ void Sirens::Initialize() {
 		ParseConfig();
 		};
 
-	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, RwRGBA col) {
+	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, CRGBA col) {
 		if (modelData.contains(vehicle->m_nModelIndex)
-			&& (col.blue == 255 || col.green == 255 || modelData[vehicle->m_nModelIndex]->isImVehFtSiren)) {
+			&& (col.b == 255 || col.g == 255 || modelData[vehicle->m_nModelIndex]->isImVehFtSiren)) {
 			if (modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
 				if ((std::string(material->texture->name).find("siren", 0) != 0 || std::string(material->texture->name).find("vehiclelights128", 0) != 0)
-				&& (col.red >= 240 && col.green == 0 && col.blue == 0)) {
+				&& (col.r >= 240 && col.g == 0 && col.b == 0)) {
 					RegisterMaterial(vehicle, material);
 				}
 			}
-			else if (col.green == 255 && col.blue == 255) {
+			else if (col.g == 255 && col.b == 255) {
 				RegisterMaterial(vehicle, material);
 			}
 		}
@@ -512,7 +513,7 @@ void Sirens::Initialize() {
 
 		if (std::regex_search(name, match, pattern)) {
 			int id = std::stoi(match[2]);
-			vehicleData[index]->Dummies[id].push_back(new VehicleDummy(frame, name, parent, eDummyPos::None));
+			vehicleData[index]->Dummies[id].push_back(new VehicleDummy(vehicle, frame, name, parent, eDummyPos::None));
 		}
 	});
 
@@ -686,7 +687,7 @@ void Sirens::Initialize() {
 		for (auto& mat : state->Materials) {
 			if (mat.second->Delay != 0) {
 				if (time - vehicleData[index]->Delay < mat.second->Delay) {
-					if (mat.second->Type == VehicleSirenType::Rotator) {
+					if (mat.second->Type == LightType::Rotator) {
 						if ((time - mat.second->Rotator->TimeElapse) > mat.second->Rotator->Time) {
 							mat.second->Rotator->TimeElapse = time;
 
@@ -726,7 +727,7 @@ void Sirens::Initialize() {
 					}
 				}
 			}
-			else if (mat.second->Type == VehicleSirenType::Rotator) {
+			else if (mat.second->Type == LightType::Rotator) {
 				uint64_t elapsed = time - mat.second->Rotator->TimeElapse;
 				if (elapsed > mat.second->Rotator->Time) {
 					mat.second->Rotator->TimeElapse = time;
@@ -859,10 +860,10 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 		alpha = static_cast<char>(alphaFloat * material->InertiaMultiplier);
 	}
 
-	if (material->Type != VehicleSirenType::NonDirectional) {
+	if (material->Type != LightType::NonDirectional) {
 		float dummyAngle = dummy->Angle;
 
-		if (material->Type == VehicleSirenType::Rotator) {
+		if (material->Type == LightType::Rotator) {
 			uint64_t elapsed = time - material->Rotator->TimeElapse;
 
 			float angle = ((elapsed / ((float)material->Rotator->Time)) * material->Rotator->Radius);
@@ -890,7 +891,7 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 			while (dummyAngle < 0.0f)
 				dummyAngle += 360.0f;
 		}
-		else if (material->Type == VehicleSirenType::Inversed) {
+		else if (material->Type == LightType::Inversed) {
 			dummyAngle -= 180.0f;
 		}
 

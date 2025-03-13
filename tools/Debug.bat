@@ -4,6 +4,7 @@ echo Building Debug
 echo --------------------------------------------------
 echo[
 call "tools\Setup.bat"
+premake5 --config=Debug ecc
 MsBuild %PLUGIN_NAME%.sln /property:Configuration=Debug
 del "%GTA_SA_DIR%\%PLUGIN_NAME%.asi" /Q
 del "%GTA_SA_DIR%\%PLUGIN_NAME%.pdb" /Q
