@@ -32,7 +32,6 @@ VehicleDummy::VehicleDummy(CVehicle* pVeh, RwFrame* frame, std::string name, boo
             }
 
             Size = lights.value("CoronaSize", Size);
-            Type = eDummyPosFromString(lights.value("DummyPos", ""));
             PartType = eParentTypeFromString(lights.value("Parent", ""));
 
             if (lights.contains("Shadow")) {

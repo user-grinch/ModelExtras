@@ -15,20 +15,22 @@ bool IsNightTime() {
 }
 
 unsigned int GetShadowAlphaForDayTime() {
+	static int intensity = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalShadowIntensity", 250);
 	if (IsNightTime()) {
-		return 250;
+		return intensity - 5;
 	}
 	else {
-		return 240;
+		return intensity - 15;
 	}
 }
 
 unsigned int GetCoronaAlphaForDayTime() {
+	static int intensity = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalCoronaIntensity", 250);
 	if (IsNightTime()) {
-		return 250;
+		return intensity - 5;
 	}
 	else {
-		return 240;
+		return intensity - 15;
 	}
 }
 
@@ -66,7 +68,8 @@ void DrawGlobalLight(CVehicle* pVeh, eDummyPos pos, CRGBA col) {
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, col.r, col.g, col.b, GetShadowAlphaForDayTime(), dummyAngle, 0.0f, "indicator");
-	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, 0.9f);
+	static float size = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalCoronaSize", 0.6f);
+	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, size);
 }
 
 inline float GetZAngleForPoint(CVector2D const& point) {
@@ -416,8 +419,8 @@ void Lights::Initialize() {
 						RenderLights(pTowedVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
 					}
 					else if (globalRevlights) {
-						DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, { 240, 240, 240, 128 });
-						DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, { 240, 240, 240, 128 });
+						DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, { 240, 240, 240, 0 });
+						DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, { 240, 240, 240, 0 });
 					}
 				}
 

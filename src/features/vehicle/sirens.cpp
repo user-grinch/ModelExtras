@@ -432,7 +432,7 @@ void Sirens::RegisterMaterial(CVehicle* vehicle, RpMaterial* material) {
 extern int ImVehFt_EmlToJson(const std::string& emlPath);
 
 void Sirens::ParseConfig() {
-	std::string path = std::string(MOD_DATA_PATH("json/sirens/"));
+	std::string path = std::string(MOD_DATA_PATH("data/sirens/"));
 	std::map<int, nlohmann::json> tempData;
 
 	for (auto& p : std::filesystem::directory_iterator(path)) {
