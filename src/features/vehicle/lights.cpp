@@ -32,31 +32,6 @@ unsigned int GetCoronaAlphaForDayTime() {
 	}
 }
 
-float GetAmbianceMult() {
-	static bool bInit = false;
-	static HMODULE graphicsTweaker = nullptr;
-	static float ambienceMult = 1.0f;
-
-	if (graphicsTweaker == nullptr && !bInit) {
-		graphicsTweaker = GetModuleHandle("GraphicsTweaker.SA.asi");
-		std::vector<char> path(256);
-		GetModuleFileName(graphicsTweaker, path.data(), static_cast<DWORD>(path.size()));
-
-		std::string iniPath(path.data());
-		size_t pos = iniPath.find(".asi");
-		if (pos != std::string::npos) {
-			iniPath.replace(pos, 4, ".ini");
-
-			CIniReader gConfig(iniPath);
-			ambienceMult = gConfig.ReadFloat("Timecycle", "MultAmbientNight", 1.0f);
-			gLogger->info("Graphics Tweaker installed with MultAmbientNight = {}", ambienceMult);
-			ambienceMult = 1.0f / ambienceMult;
-		}
-		bInit = true;
-	}
-	return ambienceMult;
-}
-
 // Indicator lights
 static uint64_t delay;
 static bool delayState;
@@ -671,13 +646,9 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 };
 
 void Lights::RegisterMaterial(CVehicle* pVeh, RpMaterial* material, eLightState state, CRGBA col, eDummyPos pos) {
-	material->color.red = material->color.green = material->color.blue = 255;
-	if (pVeh->m_nModelIndex == 416) {
-		int x = (int)pVeh;
-		x;
-	}
 	VehicleMaterial* mat = new VehicleMaterial(material, pos);
 	m_Materials[pVeh->m_nModelIndex][state].push_back(mat);
+	material->color.red = material->color.green = material->color.blue = 255;
 };
 
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* pVeh) {
@@ -690,7 +661,7 @@ void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* pVeh) {
 void Lights::EnableMaterial(VehicleMaterial* material) {
 	if (material && material->Material) {
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
-		material->Material->surfaceProps.ambient = AMBIENT_ON_VAL * GetAmbianceMult();
+		material->Material->surfaceProps.ambient = AMBIENT_ON_VAL;
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
 		material->Material->texture = material->TextureActive;
 	}

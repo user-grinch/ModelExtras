@@ -13,7 +13,6 @@ bool VehicleSiren::GetSirenState() {
 };
 
 unsigned int GetShadowAlphaForDayTime();
-float GetAmbianceMult();
 
 char __fastcall Sirens::hkUsesSiren(CVehicle* ptr) {
 	if (Sirens::modelData.contains(ptr->m_nModelIndex)) {
@@ -823,7 +822,7 @@ void Sirens::EnableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat
 
 	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
 
-	material->Material->surfaceProps.ambient = AMBIENT_ON_VAL * GetAmbianceMult();
+	material->Material->surfaceProps.ambient = AMBIENT_ON_VAL;
 
 	if (mat->Diffuse.Color) {
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->color), *reinterpret_cast<unsigned int*>(&material->Material->color)));

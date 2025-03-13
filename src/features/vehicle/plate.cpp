@@ -9,7 +9,6 @@
 
 PlateFeature LicensePlate;
 extern bool IsNightTime();
-extern float GetAmbianceMult();
 
 bool lightState = false;
 RpMaterial* __cdecl CCustomCarPlateMgr_SetupClump(RpAtomic* clump, void* plateText, char plateType)
@@ -91,11 +90,11 @@ RpMaterial* __cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
     }
 
     if (IsNightTime()) {
-        material->surfaceProps.ambient = AMBIENT_ON_VAL * GetAmbianceMult();
+        material->surfaceProps.ambient = AMBIENT_ON_VAL;
         RpMaterialSetTexture(material, m_Plates[plateType + 3]);
     }
     else {
-        material->surfaceProps.ambient = 1.0f * GetAmbianceMult();
+        material->surfaceProps.ambient = 1.0f;
         RpMaterialSetTexture(material, m_Plates[plateType]);
     }
     return material;

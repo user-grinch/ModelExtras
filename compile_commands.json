@@ -1,13 +1,16 @@
 {
     "clangd.fallbackFlags": [
         "-std=c++20",
+        "-I${workspaceFolder}/include/**",
+        "-I${workspaceFolder}/include/spdlog/**",
         "-I${workspaceFolder}",
         "-I${workspaceFolder}/src",
         "-I${PLUGIN_SDK_DIR}",
         "-I${PLUGIN_SDK_DIR}/plugin_sa",
-        "-ID:/GitHub Projects/plugin-sdk/plugin_sa/game_sa",
+        "-I${PLUGIN_SDK_DIR}/plugin_sa/game_sa",
         "-I${PLUGIN_SDK_DIR}/plugin_sa/game_sa/rw",
-        "-I${PLUGIN_SDK_DIR}/shared",
+        "-I${PLUGIN_SDK_DIR}/shared/**",
+        "-I${PLUGIN_SDK_DIR}/shared/",
         "-I${PLUGIN_SDK_DIR}/shared/game",
         "-isystem C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/ucrt"
     ]
