@@ -1,0 +1,45 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Cadillac Fleetwood Eldorado (69347-H) 1968
+
+vehicle_id 419
+num_colors 21
+
+#1968 Cadillac Colors
+0 0 0		# 0 Sable Black 				
+226 217 202		# 1 Grecian White 
+123 132 139		# 2 Regal Silver Metallic
+57 62 68		# 3 Summit Gray Metallic  
+163 181 201		# 4 Arctic Blue
+69 85 118		# 5 Normandy Blue Metallic 
+27 36 43		# 6 Emperor Blue Metallic 
+41 76 98		# 7 Caribe Aqua Metallic
+79 101 98		# 8 Silverpine Green Metallic 
+20 31 33		# 9 Ivanhoe Green Metallic
+232 232 158		# 10 Kashmir Ivory 
+183 165 141		# 11 Sudan Beige
+130 122 99		# 12 Baroque Gold Metallic
+59 49 40		# 13 Chestnut Brown Metallic
+82 26 25		# 14 San Mateo Red Metallic 
+51 26 30		# 15 Regent Maroon Metallic
+34 46 84		# 16 Spectre Blue Firemist
+125 107 69		# 17 Topaz Gold Firemist
+54 74 47		# 18 Monterey Green Firemist 
+52 44 41		# 19 Rosewood Firemist
+55 26 30		# 20 Madeira Plum Firemist
+
+num_variations 8
+
+#Body Roof Interior1 Interior2
+4 4 13 12
+17 13 11 12
+14 14 1 1
+0 3 6 6
+7 1 2 5   
+18 18 11 12
+2 2 14 20
+16 16 9 5
+
+
+
+
+

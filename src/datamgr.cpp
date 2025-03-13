@@ -3,7 +3,7 @@
 #include <string>
 
 void DataMgr::Init() {
-    std::string path = MOD_DATA_PATH("data/");
+    std::string path = MOD_DATA_PATH("json/");
 
     for (const auto& e : std::filesystem::directory_iterator(path)) {
         if (e.is_regular_file() && e.path().extension() == ".json") {

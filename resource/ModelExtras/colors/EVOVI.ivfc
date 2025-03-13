@@ -1,0 +1,25 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Mitsubishi Lancer Evolution VI (CP9A) 1999
+
+vehicle_id 560
+num_colors 8
+
+#exterior
+7 6 4			# 0 Pyrenees Black Pearl 				
+221 221 221		# 1 Scotia White 
+185 195 225		# 2 Satellite Silver 
+2 37 93			# 3 Issel Blue 
+15 43 106		# 4 Lance Blue 
+250 10 0		# 5 Passion Red
+241 188 15		# 6 Dandelion Yellow
+37 37 39		# 7 Leather Grey
+
+num_variations 6
+
+#Body Seats None None
+0 7 0 0
+1 7 0 0
+2 7 0 0
+3 7 0 0
+4 7 0 0
+5 7 0 0

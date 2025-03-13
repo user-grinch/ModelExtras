@@ -1,0 +1,41 @@
+#Chevrolet Apache '58 Color Settings file for IVF 2.1.1
+#Vehicle: Chevrolet Apache '58
+
+vehicle_id 15223
+num_colors 19
+
+#exterior
+142 194 186         # 0 Glen Green
+194 54 45           # 1 Rio Red
+95 150 191          # 2 Cashmere Blue
+249 236 197         # 3 Honey Beige
+31 71 64            # 4 Forest Green Poly
+147 65 49           # 5 Sierra Gold Poly
+40 66 103           # 6 Fathom Blue Poly
+112 167 188         # 7 Tropic Turquoise
+233 200 124         # 8 Colonial Cream
+
+#second and third exterior color
+214 218 214	    # 9 frost white	
+77 98 104	    # 10 petrol blue green poly
+174 155 127	    # 11 flax	
+52 26 30	    # 12 mid currant red poly
+71 53 50	    # 13 dk.beechwood poly
+45 58 53	    # 14 dark green poly
+167 162 143	    # 15 lt.champagne poly
+32 75 107	    # 16 nassau blue poly
+111 130 151	    # 17 spinnaker blue solid
+93 126 141	    # 18 jasper green poly
+
+num_variations 8
+
+#Apache
+#Body Body2 Livery Unused
+0 9 10 0
+1 11 12 0
+2 2 9 0
+3 3 13 0
+4 9 14 0
+5 5 15 0
+6 18 16 0
+7 9 11 0

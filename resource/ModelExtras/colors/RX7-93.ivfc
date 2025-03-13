@@ -1,0 +1,28 @@
+#Funky Color Settings file for IVF 2.1.1
+#Vehicle: Mazda RX-7 (FD) '93
+
+vehicle_id 477
+num_colors 9
+
+#exterior colors
+250 248 246			# 0 Chaste White
+28 23 29			# 1 Brilliant Black
+161 2 20			# 2 Vintage Red
+38 44 56			# 3 Montego Blue
+248 206 23		    # 4 Competition Yellow
+167 181 192			# 5 Silverstone Metallic
+189 151 128			# 6 Biege interior
+40 40 40 			# 7 Black interior
+143 42 43 			# 8 Red interior
+
+num_variations 8
+
+#Body Interior Logo N/A
+0 7 0 0
+1 7 0 0
+2 6 1 0
+3 6 1 0
+4 7 0 0
+5 7 0 0
+1 8 1 0
+5 8 1 0

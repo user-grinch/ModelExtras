@@ -365,7 +365,7 @@ void Lights::Initialize() {
 				}
 			}
 
-			if (pControlVeh->m_nVehicleFlags.bLightsOn) {
+			if (pControlVeh->m_nVehicleFlags.bLightsOn || !pControlVeh->ms_forceVehicleLightsOff) {
 				VehData& data = m_VehData.Get(pControlVeh);
 				if (leftOk && m_Materials[pControlVeh->m_nModelIndex][eLightState::FrontLightLeft].size() != 0) {
 					RenderLights(pControlVeh, eLightState::FrontLightLeft, vehicleAngle, cameraAngle);

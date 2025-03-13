@@ -1,0 +1,44 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Oldsmobile 4-4-2 '70
+
+vehicle_id 475
+num_colors 25
+
+#exterior
+15 15 15			# 0 Black 				
+236 237 221         # 1 Classic White
+116 123 128         # 2 Platinum
+245 18 36           # 3 Rally Red
+68 121 140          # 4 Aegean Aqua
+183 205 223         # 5 Azure Blue
+253 240 66          # 6 Sebring Yellow
+87 101 118          # 7 Oxford Gray
+79 107 141          # 8 Gulfstream Blue
+43 77 115           # 9 Viking Blue
+31 44 67            # 10 Twilight Blue
+99 136 142          # 11 Reef Turquoise
+111 128 104         # 12 Aspen Green
+71 95 69            # 13 Ming Jade
+49 60 51            # 14 Sherwood Green
+218 203 144         # 15 Bamboo
+158 116 48          # 16 Nugget Gold
+158 135 86          # 17 Burnished Gold
+203 191 177         # 18 Sandalwood
+150 134 104         # 19 Copper Mist
+87 75 58            # 20 Cinnamon Bronze
+105 39 40           # 21 Granadier Red
+161 42 44           # 22 Fire Red
+122 90 95           # 23 Regency Rose
+57 29 28            # 24 Burgundy Mist
+
+num_variations 8
+
+#Body Stripes N/A N/A
+12 0 0 0
+16 1 0 0
+2 0 0 0
+9 1 0 0
+13 0 0 0
+5 0 0 0
+3 1 0 0
+6 0 0 0

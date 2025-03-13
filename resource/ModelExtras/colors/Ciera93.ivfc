@@ -1,0 +1,33 @@
+#Funky Color Settings file for IVF 2.1.1
+#Vehicle: Oldsmobile Cutlass Ciera 1993
+
+vehicle_id 547
+num_colors 12
+
+#exterior colors
+235 242 235			# 0 Bright White
+102 9 30			# 1 Medium Garnet Red
+52 26 30			# 2 Dark Cherry Red
+171 146 118			# 3 Light Driftwood
+40 60 70			# 4 Dark Green Gray
+104 131 157			# 5 Light Sapphire Blue
+31 37 59			# 6 Black Sapphire Blue
+94 91 91			# 7 Medium Gray
+
+#interior colors
+70 89 122			# 8 saxony blue poly
+124 28 42			# 9 garnet red poly
+156 141 113			# 10 bisque frost poly
+140 146 154			# 11 slate gray
+
+num_variations 8
+
+#Body Interior N/A N/A
+0 11 0 0
+1 10 0 0
+2 9 0 0
+3 10 0 0
+4 10 0 0
+5 8 0 0
+6 11 0 0
+7 9 0 0

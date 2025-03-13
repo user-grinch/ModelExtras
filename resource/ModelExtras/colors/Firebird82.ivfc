@@ -1,0 +1,35 @@
+#Funky Color Settings file for IVF 2.1.1
+#Vehicle: Pontiac Firebird S/E 1982
+
+vehicle_id 15214
+num_colors 13
+
+#exterior colors
+131 145 155			# 0 Silver
+0 0 0			        # 1 Black
+71 119 163			# 2 Light Blue
+26 26 62  			# 3 Dark Blue
+157 107 50			# 4 Gold
+167 26 23			# 5 Bright Red
+54 8 7  			# 6 Maroon
+49 58 67			# 7 Dark Charcoal
+
+#interior colors
+161 127 87                      # 8 Camel Tan
+9 94 150                        # 9 Blue
+100 53 52  			# 10 Maroon
+91 101 122			# 11 Charcoal
+117 125 131			# 12 Gray
+
+
+num_variations 8
+
+#Body Interior N/A N/A
+0 10 0 0
+1 8 0 0
+2 9 0 0
+3 12 0 0
+4 8 0 0
+5 11 0 0
+6 10 0 0 
+7 12 0 0

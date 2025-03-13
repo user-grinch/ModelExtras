@@ -1,0 +1,26 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Chevrolet Camaro IROC-Z 1990 1.1
+
+vehicle_id 402
+num_colors 7
+
+0 0 0				# 0 Camaro Black 				
+242 239 226			# 1 Camaro White
+51 119 190			# 2 Bright Blue
+220 3 0			    # 3 Bright Red
+17 54 104			# 4 Dark Blue
+86 95 105			# 5 Medium Gray				
+110 22 29			# 6 Dark Red					
+
+
+num_variations 8
+
+#Body Interior N/A N/A
+0 6 0 0
+1 5 0 0
+1 6 0 0
+2 5 0 0
+3 5 0 0
+4 5 0 0
+5 5 0 0 
+4 6 0 0

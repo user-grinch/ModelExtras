@@ -1,0 +1,43 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Cadillac Series 62 '49
+
+vehicle_id 575
+num_colors 20
+
+#exterior
+5 5 5               # 0 Black
+190 192 174         # 1 French Grey
+95 128 120          # 2 Lucerne Green
+64 10 9             # 3 Madeira Maroon
+117 137 152         # 4 Corinth Blue
+45 77 35            # 5 Cypress Green
+195 206 124         # 6 Chartreuse
+219 196 146         # 7 Fiesta Ivory
+15 40 56            # 8 Triumph Blue
+29 39 34            # 9 Dartmouth Green
+72 65 36            # 10 Tyrolian Gray
+156 140 118         # 11 El Paso Beige
+93 104 114          # 12 Horizon Blue
+94 94 89            # 13 Kingswood Green
+77 85 85            # 14 Avalon Grey
+
+#interior
+163 29 36           # 15 Red
+201 171 137         # 16 Beige
+40 50 55            # 17 Grey
+
+#roof
+245 245 245	        # 18 White
+37 37 39            # 19 Black
+
+num_variations 8
+
+#Body Interior Roof N/A
+11 16 18 0
+12 11 18 0
+1 16 18 0
+13 10 18 0
+2 17 18 0
+14 12 19 0
+3 11 18 0
+6 16 19 0

@@ -1,0 +1,33 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Honda City Turbo II '83
+
+vehicle_id 589
+num_colors 12
+
+#exterior
+5 5 5               # 0 Black
+250 250 250         # 1 White
+160 157 174         # 2 Silver
+252 48 23           # 3 Red
+44 95 204           # 4 Light Blue
+134 193 53          # 5 Light Green
+254 234 41          # 6 Yellow
+45 139 87           # 7 Dark Green
+134 196 233         # 8 Sky Blue
+46 66 139           # 9 Dark Blue
+251 19 93           # 10 Pretty in Pink
+
+#misc
+30 30 30            # 11 Plastic
+
+num_variations 8
+
+#Body Bumpers Badges Motocompo
+0 11 1 3
+1 11 3 1
+2 11 3 3
+3 11 1 3
+4 11 1 2
+5 11 1 2
+6 11 2 6
+8 11 2 3

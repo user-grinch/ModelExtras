@@ -1,0 +1,40 @@
+#Funky Color Settings file for IVF 2.1.1
+#Vehicle: BMW 535i
+
+vehicle_id 405
+num_colors 16
+
+#exterior colors
+38 49 71   	# 0 Arctic Blue Metallic 045			
+171 183 199	# 1 Polaris Metallic 060
+1 1 1		     # 2 Black 086
+142 21 38		# 3 Cinnabar Red 138
+253 254 246	# 4 Alpine White I 146
+237 13 21		# 5 Henna Red 413
+52 70 70		# 6 Agate Green Metallic 177
+67 80 89		# 7 Delphin Metallic 184
+27 36 43		# 8 Diamond Black Metallic 181
+76 44 55        # 9 Burgundy Red Metallic 199
+73 72 78		# 10 Anthrazit 0269 Int 
+165 162 169	# 11 Pearle Biege 0156 Int
+157 156 161	# 12 Silber Uberkaro 0380 Int
+210 177 144	# 13 Nature 0382 Int
+109 60 46		# 14 Cardinal Red 0256 Int
+79 75 102		# 15 Indigo 0271 Int
+
+num_variations 8
+
+#Body Interior N/A N/A
+0 15 0 0
+1 12 0 0
+2 13 0 0
+3 14 0 0
+4 10 0 0
+5 10 0 0
+6 12 0 0
+9 14 0 0
+
+
+
+
+

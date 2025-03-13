@@ -1,0 +1,33 @@
+#Funky Color Settings file for IVF 2.1.1
+#Vehicle: Acura NSX 1990 NA1
+
+vehicle_id 411
+num_colors 9
+
+#exterior colors
+1 1 1       	# 0 Berlina Black				
+44 76 75		# 1 Brooklands Green Pearl
+175 26 19		# 2 Formula Red
+255 254 255	# 3 Grand Prix White
+48 48 60   	# 4 Midnight Pearl
+202 201 197	# 5 Sebring Silver Metallic
+234 211 195	# 6 Ivory Interior
+159 137 100	# 7 Camel Interior
+32 38 36		# 8 Onyx Interior
+
+num_variations 8
+
+#Body roof interior N/A
+0 0 6 0
+1 0 8 0
+2 0 7 0
+3 0 8 0
+4 0 6 0
+5 0 8 0
+2 2 8 0
+5 5 6 0
+
+
+
+
+

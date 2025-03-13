@@ -1,0 +1,51 @@
+#Funky Color Settings file for IVF 2.1.1
+#Vehicle: Ford LTD Landau 1975 1.1
+
+vehicle_id 421
+num_colors 29
+
+#exterior
+10 10 10		    # 0 Black
+252 252 252 	    # 1 Polar White
+138 148 157		    # 2 Silver Met
+145 37 27           # 3 Brt Red
+35 86 89            # 4 Med State Blue
+198 232 233         # 5 Pastel Blue
+251 218 85          # 6 Drt Yellow
+162 44 30           # 7 Candyapple Red
+144 37 27           # 8 Dk Red
+60 28 29            # 9 Maroon Mat
+2 63 84             # 10 Brt Blue Met
+0 20 47             # 11 Dk Blue Met
+126 139 60          # 12 Lt Green Gold
+207 218 149         # 13 Lt Green
+145 62 48           # 14 Dk Copper Met
+138 72 24           # 15 Saddle Bronze
+186 57 35           # 16 Orange
+69 26 17            # 17 Dk Copper Met
+255 239 144         # 18 Pastel Yellow
+199 177 119         # 19 Med Ivy Yellow
+105 79 30           # 20 Dk Gold Met
+
+#interior
+231 215 188         # 21 Ford White
+119 91 68           # 22 Ford Medium Tan
+108 124 121         # 23 Ford Silver Metallic
+158 124 79          # 24 Ford Light Gold
+103 106 71          # 25 Ford Light Green
+48 61 41            # 26 Ford Medium Green
+77 34 32            # 27 Ford Dark Red
+26 27 27            # 28 Ford Black
+
+
+num_variations 8
+
+#Body Roof Interior N/A
+2 28 23 0
+3 1 27 0
+5 28 10 0
+9 9 27 0
+12 28 25 0
+15 15 24 0
+18 21 22 0
+20 19 24 0

@@ -1,0 +1,45 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Willys-Overland Jeep Pickup Truck 4x4 '48 
+
+vehicle_id 478
+num_colors 24
+
+#exterior
+34 30 31            # 0 Black
+47 57 70			# 1 Harbor Blue
+229 210 107			# 2 Fiesta Yellow
+144 60 47			# 3 Mahogany Brown
+224 132 77			# 4 Clear Maple
+86 112 135			# 5 Pacific Blue
+60 78 72 			# 6 Emerald Green
+210 163 128			# 7 Universal Beige
+63 39 41 			# 8 Tunisian Red
+135 131 122			# 9 Potomac Gray
+43 67 46            # 10 Pine Green
+132 148 171			# 11 currant blue poly
+54 70 66			# 12 Shasta Green
+95 58 50			# 13 Autumn Brown
+226 213 132 		# 14 Michigan Yellow
+37 51 67 			# 15 Normandy Blue
+121 31 38           # 16 Luzon Red
+84 108 68			# 17 Sportsman Green
+#misc
+242 230 172         # 18 ivory
+186 197 225	    	# 19 white diamond pearl
+#interior
+108 45 36           # 20 Red
+84 83 79            # 21 Grey
+210 180 110         # 22 Beige
+149 109 60          # 23 Beige Dark
+
+num_variations 8
+
+#Body Panel Rims Seats
+10 10 10 23
+5 11 19 23
+12 12 0 21
+9 9 16 20
+14 14 0 22
+16 16 18 22
+15 15 9 21
+8 8 8 20

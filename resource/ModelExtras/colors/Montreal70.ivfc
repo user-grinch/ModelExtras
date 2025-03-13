@@ -1,0 +1,34 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Alfa Romeo Montreal '70
+
+vehicle_id 15230
+num_colors 13
+
+#exterior
+5 5 5               # 0 Black
+226 223 218		    # 1 White Zagato
+188 211 219         # 2 Celeste Pinifarina
+210 37 33           # 3 Rosso Italia
+206 158 96          # 4 Giallo Oro Gelb
+62 63 68            # 5 Grigio Grafite
+219 222 117         # 6 Giallo Prototipo
+39 70 132           # 7 Blu Blau
+29 33 60            # 8 Blu Francia
+45 91 80            # 9 Verde Vivo
+
+#interior
+163 29 36           # 10 Red
+201 171 137         # 11 Beige
+40 50 55            # 12 Grey
+
+num_variations 8
+
+#Body Interior N/A N/A
+9 11 0 0
+1 12 0 0
+2 11 0 0
+3 10 0 0
+4 12 0 0
+5 12 0 0
+6 11 0 0
+7 12 0 0

@@ -1,0 +1,34 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Ford Mainline 'Glenshit' '53
+
+vehicle_id 604
+num_colors 15
+
+#factory colors	(Ford 1953)	
+9 9 9		        # 0 Raven Black
+186 190 195			# 1 Dove Tone Gray
+113 140 163			# 2 Glacier Blue
+202 44 40			# 3 Coral Flame
+38 58 77			# 4 Sheridian Blue
+133 136 117			# 5 Woodsmoke Gray
+255 252 194			# 6 Sungate Ivory
+34 44 40			# 7 Timberline Green
+80 107 88			# 8 Femmist Green
+230 254 220 		# 9 Seafoam Green
+74 23 31 			# 10 Carnival Red
+108 76 60			# 11 Polynesian Brown
+185 176 155			# 12 Sandpiper Tan
+207 98 94			# 13 Flamingo Red
+135 174 170			# 14 Cascade Green
+
+num_variations 8
+
+#Body Interior N/A N/A
+14 12 0 0
+7 11 0 0
+3 10 0 0
+2 5 0 0
+6 12 0 0
+9 11 0 0
+12 11 0 0
+13 10 0 0

@@ -1,0 +1,39 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Jeep CJ-5 (Renegade) 1976
+
+vehicle_id 500
+num_colors 15
+
+#exterior
+15 15 15			# 0 Classic Black 				
+247 241 229		    # 1 Alpine White
+123 119 116         # 2 Pewter Gray
+214 33 42           # 3 Firecracker Red
+175 156 90          # 4 Sand Tan
+70 136 160          # 5 Medium Blue
+247 207 32          # 6 Sunshine Yellow
+128 90 43           # 7 Renegade Orange
+46 91 26            # 8 Reef Green
+
+#renegade livery
+27 36 105           # 9 Midnight Blue
+255 201 40          # 10 Yellow Stripe
+
+#interior vinyl
+40 50 55            # 11 Wellington Grey
+209 180 114         # 12 Wellington Beige
+22 65 95            # 13 Lewis Blue
+149 109 60          # 14 Lewis Beige
+
+num_variations 8
+
+#Renegade
+#Body Roof Livery Interior
+1 11 9 13
+2 11 9 13
+3 14 10 14
+5 14 9 13
+6 14 9 13
+7 14 10 14
+8 11 10 14
+0 14 10 14

@@ -1,0 +1,33 @@
+#Funky Color Settings file for IVF 2.1.1
+#Vehicle: Dodge Aspen sedan 1979
+
+vehicle_id 15216
+num_colors 12
+
+#exterior colors
+63 81 100			# 0 Ensign Blue
+108 147 188			# 1 Cadet Blue
+92 153 139			# 2 Teal Frost
+94 26 32		        # 3 Regent Red Sunfire
+63 42 39			# 4 Sable Tan Sunfire
+239 222 175			# 5 Light Cashmere
+252 250 246			# 6 Eggshell White
+125 128 131			# 7 Pewter Gray
+
+#interior colors
+184 151 120			# 8 Cashmere
+78 122 101			# 9 Teal Green
+151 57 77			# 10 Red
+96 134 154			# 11 Blue
+
+num_variations 8
+
+#Body Interior N/A N/A
+0 11 0 0
+1 11 0 0
+2 9 0 0
+3 10 0 0
+4 8 0 0
+5 8 0 0
+6 8 0 0
+7 10 0 0

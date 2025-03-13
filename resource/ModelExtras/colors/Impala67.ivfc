@@ -1,0 +1,44 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Chevrolet Impala SS Hardtop Sedan 1967
+
+vehicle_id 536
+num_colors 19
+
+#exterior colors
+7 6 4			# 0 Tuxedo Black 				
+221 221 221		# 1 Ermine White 
+129 159 169		# 2 Nantucket Blue 
+33 38 60		# 3 Deepwater Blue 
+41 119 152		# 4 Marina Blue 
+141 120 94		# 5 Granada Gold
+124 139 122		# 6 Mountain Green
+73 149 155		# 7 Emerald Turquoise
+46 69 84		# 8 Tahoe Turquiose
+61 47 53		# 9 Royal Plum
+74 36 41		# 10 Madeira Maroon
+150 37 35		# 11 Bolero Red
+167 150 117		# 12 Sierra Fawn
+234 224 188		# 13 Capri Cream
+253 237 165		# 14 Butternut Yellow
+
+#interior colors
+20 20 20		# 15 Black 
+155 28 22		# 16 Red
+129 159 169		# 17 Blue 
+141 120 94		# 18 Granada Gold	
+
+num_variations 8
+
+#Body Interior N/A N/A
+0 15 0 0
+1 16 0 0
+4 18 0 0
+8 15 0 0 
+7 17 0 0
+11 16 0 0 
+10 15 0 0
+13 18 0 0
+
+
+
+

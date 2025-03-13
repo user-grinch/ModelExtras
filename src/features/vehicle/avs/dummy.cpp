@@ -20,17 +20,6 @@ VehicleDummy::VehicleDummy(CVehicle* pVeh, RwFrame* frame, std::string name, boo
     // Calculate the angle based on the frame's orientation
     Angle = Common::NormalizeAngle(CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f);
 
-    // Legacy support for ImVehFt vehicles
-    size_t prmPos = name.find("_prm");
-    if (prmPos != std::string::npos && prmPos + 11 <= name.size()) {
-        Color.r = VehicleDummy::ReadHex(name[prmPos + 4], name[prmPos + 5]);
-        Color.g = VehicleDummy::ReadHex(name[prmPos + 6], name[prmPos + 7]);
-        Color.b = VehicleDummy::ReadHex(name[prmPos + 8], name[prmPos + 9]);
-
-        Type = static_cast<eDummyPos>(name[prmPos + 10] - '0');
-        Size = static_cast<float>(name[prmPos + 11] - '0') / 10.0f;
-    }
-
     auto& jsonData = DataMgr::Get(pVeh->m_nModelIndex);
     if (jsonData.contains("Lights")) {
         if (jsonData["Lights"].contains(name.c_str())) {
@@ -52,6 +41,18 @@ VehicleDummy::VehicleDummy(CVehicle* pVeh, RwFrame* frame, std::string name, boo
                 offSetVal = shadow.value("Offset", 0.0f);
                 angleVal = shadow.value("Rotation", 0.0f);
             }
+        }
+    }
+    else {
+         // Legacy support for ImVehFt vehicles
+        size_t prmPos = name.find("_prm");
+        if (prmPos != std::string::npos && prmPos + 11 <= name.size()) {
+            Color.r = VehicleDummy::ReadHex(name[prmPos + 4], name[prmPos + 5]);
+            Color.g = VehicleDummy::ReadHex(name[prmPos + 6], name[prmPos + 7]);
+            Color.b = VehicleDummy::ReadHex(name[prmPos + 8], name[prmPos + 9]);
+
+            Type = static_cast<eDummyPos>(name[prmPos + 10] - '0');
+            Size = static_cast<float>(name[prmPos + 11] - '0') / 10.0f;
         }
     }
     if (type == eDummyPos::FrontLeft) {

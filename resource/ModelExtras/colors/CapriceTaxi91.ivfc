@@ -1,0 +1,29 @@
+#rush58 Color Settings file for IVF 2.1.1
+#Vehicle: Chevrolet Caprice Taxi 1991/92
+
+vehicle_id 15215
+num_colors 5
+
+#Colors
+0 0 0				# 0 black				black
+245 245 245			# 1 white				white
+34 103 206                      # 2 blue taxi cab                       blue
+132 4 16			# 3 cherry red				red
+233 199 40                      # 4 yellow taxi cab                     yellow
+
+num_variations 8
+
+#Body Roof Body2 N/A
+76 61 61 0
+6 6 6 0
+1 43 1 0
+116 1 116 1
+2 4 4 0
+3 44 1 1
+44 1 44 1
+6 1 6 0
+
+
+
+
+

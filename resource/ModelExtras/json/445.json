@@ -1,24 +1,7 @@
 {
-    "Clutch": {
-        "Offset": 0
-    },
-    "GearLever": {
-        "Offset": 0
-    },
-    "FrontBrake": {
-        "MaxRotation": 360.0
-    },
-    "RearBrake": {
-        "MaxRotation": 360.0
-    },
     "RPMmeter": {
         "MaxRPM": 200,
         "MaxRotation": 270
-    },
-    "Odometer": {
-        "KPH": true,
-        "Digital": true,
-        "Kilometers": true
     },
     "Speedometer": {
         "MaxSpeed": 200,

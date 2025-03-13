@@ -1,0 +1,34 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Buick Riviera '79
+
+vehicle_id 491
+num_colors 15
+
+#exterior
+5 5 5			    # 0 Black
+255 247 229		    # 1 White
+134 138 142         # 2 Silver
+87 39 42	        # 3 Carmine
+95 116 135			# 4 Medium Blue
+120 76 43			# 5 Dark Gold
+244 220 160			# 6 Bright Yellow
+18 18 65			# 7 Dark Blue
+216 221 188			# 8 Light Green
+108 123 85			# 9 Medium Green
+201 176 142			# 10 Tan
+56 26 21			# 11 Dark Brown
+188 216 239			# 12 Light Blue
+67 41 44            # 13 Dark Carmine
+255 232 172			# 14 Light Yellow
+
+num_variations 8
+
+#Body Roof Interior N/A
+1 1 11 0
+2 1 13 0
+3 13 13 0
+4 4 4 0
+7 4 4 0
+9 8 9 0
+11 11 5 0
+14 10 11 0

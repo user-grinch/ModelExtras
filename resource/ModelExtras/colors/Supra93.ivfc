@@ -1,0 +1,37 @@
+#Funky Color Settings file for IVF 2.1.1
+#Vehicle: Toyota Supra JZA80 1993
+
+vehicle_id 559
+num_colors 11
+
+#exterior colors
+5 5 5	          # 0 Black
+252 253 247     # 1 Super White 2
+21 41 60	     # 2 Baltic Blue
+187 36 27  	# 3 Super Red IV
+58 134 130   	# 4 Medium Turquoise Metallic Clearcoat
+190 187 182	# 5 Gray Pearl Metallic
+189 151 128	# 6 Biege Interior
+41 41 41	     # 7 Black Interior
+35 34 32	     # 8 Anthracite
+8 45 41	     # 9 Jewel Green
+235 235 235     # 10 Alpine Silver Metallic			
+
+
+
+num_variations 7
+
+#Body Interior Roof N/A
+10 7 0 0
+8 7 0 0
+1 7 0 0
+3 7 0 0
+4 7 0 0
+2 6 0 0
+9 7 0 0
+0 6 0 0
+
+
+
+
+

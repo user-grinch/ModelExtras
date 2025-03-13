@@ -1,0 +1,31 @@
+#Funky Color Settings file for IVF 2.1.1
+#Vehicle: Ford LTD Crown Victoria 1986
+
+vehicle_id 15224
+num_colors 10
+
+#exterior colors
+0 0 0   			# 0 Black
+245 245 245			# 1 Oxford White
+74 73 79			# 2 Dark Grey
+88 10 10  			# 3 Midnight Canyon Red
+99 131 158			# 4 Spinnaker Blue
+15 14 56		        # 5 Dark Shadow Blue
+189 163 131		        # 6 Medium Sand Beige
+65 45 22 			# 7 Dark Clove Brown
+
+#interior colors
+109 108 110			# 8 medium gray poly
+70 89 122			# 9 saxony blue poly
+
+num_variations 8
+
+#Body Interior N/A N/A
+0 3 0 0
+1 6 0 0
+2 8 0 0
+3 8 0 0
+4 9 0 0
+5 8 0 0
+6 7 0 0
+7 6 0 0
