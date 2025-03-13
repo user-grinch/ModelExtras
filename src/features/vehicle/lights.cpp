@@ -682,7 +682,6 @@ void Lights::RegisterMaterial(CVehicle* pVeh, RpMaterial* material, eLightState 
 
 void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* pVeh) {
 	if (gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false)) {
-		dummy->Update();
 		Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, *(CVector*)&dummy->Position, dummy->Color.r, dummy->Color.g, dummy->Color.b,
 		dummy->Color.a, dummy->Angle, 0.3f, dummy->Size);
 	}

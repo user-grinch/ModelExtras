@@ -46,9 +46,4 @@ public:
         ResetAngle();
         AddAngle(angle);
     }
-
-    void Update() {
-        Position = { Frame->modelling.pos.x, Frame->modelling.pos.y, Frame->modelling.pos.z };
-        ShdwPosition = Position;
-    }
 };

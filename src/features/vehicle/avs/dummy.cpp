@@ -14,6 +14,8 @@ VehicleDummy::VehicleDummy(CVehicle* pVeh, RwFrame* frame, std::string name, boo
     Color = color;
     Type = type;
     Size = 0.6f;
+    float offSetVal = 0.0f;
+    float angleVal = 0.0f;
 
     // Calculate the angle based on the frame's orientation
     Angle = Common::NormalizeAngle(CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f);
@@ -30,32 +32,60 @@ VehicleDummy::VehicleDummy(CVehicle* pVeh, RwFrame* frame, std::string name, boo
     }
 
     auto& jsonData = DataMgr::data[pVeh->m_nModelIndex];
-    gLogger->error(DataMgr::data[445].dump());
     if (jsonData.contains("Lights")) {
         if (jsonData["Lights"].contains(name.c_str())) {
             auto& lights = jsonData["Lights"][name.c_str()];
 
-            // Retrieve and set the color values
             if (lights.contains("Color")) {
                 Color.r = lights["Color"].value("R", Color.r);
                 Color.g = lights["Color"].value("G", Color.g);
                 Color.b = lights["Color"].value("B", Color.b);
             }
 
-            // Retrieve the size and position values
             Size = lights.value("CoronaSize", Size);
             Type = eDummyPosFromString(lights.value("DummyPos", ""));
             PartType = eParentTypeFromString(lights.value("Parent", ""));
 
-            // Handle shadow data if available
             if (lights.contains("Shadow")) {
                 auto& shadow = lights["Shadow"];
-                ShdwPosition.x = shadow.value("Offset", ShdwPosition.x);
-                Angle = shadow.value("Rotation", Angle); // Change "Angle" to "Rotation" based on your JSON
+                offSetVal = shadow.value("Offset", 0.0f);
+                angleVal = shadow.value("Rotation", 0.0f);
             }
         }
     }
+    if (type == eDummyPos::FrontLeft) {
+        ShdwPosition.x -= offSetVal / 10.0f;
+        Angle = 0 - angleVal;
+    }
 
+    if (type == eDummyPos::FrontRight) {
+        ShdwPosition.x += offSetVal / 10.0f;
+        Angle = 0 - angleVal;
+    }
+
+    if (type == eDummyPos::MiddleLeft) {
+        ShdwPosition.x -= 2 * offSetVal / 10.0f;
+        Angle = 90 - angleVal;
+    }
+
+    if (type == eDummyPos::MiddleRight) {
+        ShdwPosition.x += 2 * offSetVal / 10.0f;
+        Angle = 270 - angleVal;
+    }
+
+    if (type == eDummyPos::RearLeft) {
+        ShdwPosition.x += -offSetVal / 10.0f;
+        Angle = 180 - angleVal;
+    }
+
+    if (type == eDummyPos::RearRight) {
+        ShdwPosition.x += offSetVal / 10.0f;
+        Angle = 180 - angleVal;
+    }
+
+    if (type == eDummyPos::Rear) {
+        Angle = 180 - angleVal;
+    }
 }
 
 int VehicleDummy::ReadHex(char a, char b) {

@@ -849,7 +849,6 @@ void Sirens::EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, Vehicle
 	position.y = dummy->Position.y;
 	position.z = dummy->Position.z;
 
-	dummy->Update();
 	unsigned char alpha = material->Color.alpha;
 
 	if (material->PatternTotal != 0 && material->Inertia != 0.0f) {
