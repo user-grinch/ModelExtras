@@ -19,6 +19,7 @@ public:
     float Size;
     float Angle;
     float CurrentAngle = 0.0f;
+    bool hasShadow = false;
 
     VehicleDummy(CVehicle* pVeh, RwFrame* frame, std::string name, bool parent, eDummyPos type = eDummyPos::None, RwRGBA color = { 255, 255, 255, 128 });
 

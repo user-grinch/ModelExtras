@@ -1,12 +1,12 @@
 #include "pch.h"
 #include "Gear.h"
 #include "bass.h"
-#include "../../soundsystem.h"
-#include "../../audiostream.h"
+#include "../../audio/soundsystem.h"
+#include "../../audio/audiostream.h"
 
 void Clutch::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
-    CVehicle *pVeh = static_cast<CVehicle*>(ptr);
-    VehData &data = vehData.Get(pVeh);
+    CVehicle* pVeh = static_cast<CVehicle*>(ptr);
+    VehData& data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
 
     if (!data.m_bInitialized) {
@@ -24,15 +24,18 @@ void Clutch::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
                 data.m_nLastGear = pVeh->m_nCurrentGear;
                 data.m_eState = eFrameState::IsMoving;
             }
-        } else {
+        }
+        else {
             if (data.m_eState == eFrameState::AtOffset) {
                 if (data.m_fCurRotation == 0) {
                     data.m_eState = eFrameState::AtOrigin;
-                } else {
+                }
+                else {
                     if (data.m_nCurOffset > 0) {
                         data.m_fCurRotation -= 1;
                         data.m_fCalVal = -1;
-                    } else {
+                    }
+                    else {
                         data.m_fCurRotation += 1;
                         data.m_fCalVal = 1;
                     }
@@ -40,14 +43,17 @@ void Clutch::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
                     Util::SetFrameRotationZ(frame, data.m_fCalVal);
                     data.m_nLastFrameMS = timer;
                 }
-            } else {
+            }
+            else {
                 if (data.m_fCurRotation == data.m_nCurOffset) {
                     data.m_eState = eFrameState::AtOffset;
-                } else {
+                }
+                else {
                     if (data.m_nCurOffset < data.m_fCurRotation) {
                         data.m_fCurRotation -= 1;
                         data.m_fCalVal = -1;
-                    } else {
+                    }
+                    else {
                         data.m_fCurRotation += 1;
                         data.m_fCalVal = 1;
                     }
@@ -61,8 +67,8 @@ void Clutch::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
 }
 
 void GearLever::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
-    CVehicle *pVeh = static_cast<CVehicle*>(ptr);
-    VehData &data = vehData.Get(pVeh);
+    CVehicle* pVeh = static_cast<CVehicle*>(ptr);
+    VehData& data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
     if (!data.m_bInitialized) {
         data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
@@ -82,25 +88,30 @@ void GearLever::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
                 data.m_nLastGear = pVeh->m_nCurrentGear;
                 data.m_eState = eFrameState::IsMoving;
             }
-        } else {
+        }
+        else {
             if (data.m_eState == eFrameState::AtOffset) {
                 if (data.m_fCurRotation != 0) {
                     if (data.m_fCurRotation > 0) {
                         data.m_fCurRotation -= 1;
                         data.m_fCalVal = -1;
-                    } else {
+                    }
+                    else {
                         data.m_fCurRotation += 1;
                         data.m_fCalVal = 1;
                     }
                     Util::SetFrameRotationX(frame, data.m_fCalVal);
-                } else {
+                }
+                else {
                     data.m_eState = eFrameState::AtOrigin;
                 }
-            } else {
+            }
+            else {
                 if (data.m_nCurOffset != abs(data.m_fCurRotation)) {
                     data.m_fCurRotation += data.m_fCalVal;
                     Util::SetFrameRotationX(frame, data.m_fCalVal);
-                } else {
+                }
+                else {
                     data.m_eState = eFrameState::AtOffset;
                 }
             }
@@ -111,9 +122,9 @@ void GearLever::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
 }
 
 void GearSound::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
-    CVehicle *pVeh = static_cast<CVehicle*>(ptr);
+    CVehicle* pVeh = static_cast<CVehicle*>(ptr);
     std::string name = GetFrameNodeName(frame);
-    VehData &data = vehData.Get(pVeh);
+    VehData& data = vehData.Get(pVeh);
     if (!data.m_bInitialized) {
         std::string upPath = MOD_DATA_PATH_S(std::format("audio/gear/{}.wav", Util::GetRegexVal(name, "x_gs_(.*$)", "")));
         data.m_pUpAudio = SoundSystem.CreateStream(upPath.c_str(), false);
