@@ -20,3 +20,7 @@ void DataMgr::Init() {
         }
     }
 }
+
+nlohmann::json& DataMgr::Get(int model) {
+    return data[model];
+}

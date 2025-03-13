@@ -3,16 +3,10 @@
 #include <json.hpp>
 
 class DataMgr {
-public:
+private:
     static inline std::map <int, nlohmann::json> data;
 
+public:
     static void Init();
-
-    // template<typename T>
-    // static T Get(std::string section, std::string key, T def) {
-    //     if (data.contains(section) && data[key].contains(key)) {
-    //         return data[section][key];
-    //     }
-    //     return def;
-    // }
+    static nlohmann::json& Get(int model);
 };

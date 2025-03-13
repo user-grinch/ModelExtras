@@ -1,9 +1,10 @@
 #include "pch.h"
 #include "Meter.h"
+#include "datamgr.h"
 
 void GearMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
-    CVehicle *pVeh = static_cast<CVehicle*>(ptr);
-    VehData &data = vehData.Get(pVeh);
+    CVehicle* pVeh = static_cast<CVehicle*>(ptr);
+    VehData& data = vehData.Get(pVeh);
     if (!data.m_bInitialized) {
         Util::StoreChilds(frame, data.m_FrameList);
         data.m_bInitialized = true;
@@ -19,18 +20,23 @@ void GearMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
 }
 
 void OdoMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
-    CVehicle *pVeh = static_cast<CVehicle*>(ptr);
-    VehData &data = vehData.Get(pVeh);
-    
+    CVehicle* pVeh = static_cast<CVehicle*>(ptr);
+    VehData& data = vehData.Get(pVeh);
+
     if (!data.m_bInitialized) {
         std::string name = GetFrameNodeName(frame);
         Util::StoreChilds(frame, data.m_FrameList);
         data.m_nPrevRot = 1234 + rand() % (57842 - 1234);
 
-        if (NODE_FOUND(name, "_kph")) {
-            data.m_fMul = 100;
+        auto& jsonData = DataMgr::Get(pVeh->m_nModelIndex);
+        if (jsonData.contains("Odometer")) {
+            if (jsonData["Odometer"].contains("KPH")) {
+                data.m_fMul = jsonData["Odometer"]["KPH"].get<bool>() ? 100 : 1;
+            }
+            if (jsonData["Odometer"].contains("Digital")) {
+                data.m_bDigital = jsonData["Odometer"]["Digital"].get<bool>();
+            }
         }
-        data.m_bDigital = NODE_FOUND(name, "_digital");
         data.m_bInitialized = true;
     }
 
@@ -62,13 +68,22 @@ void OdoMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
 }
 
 void RpmMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
-    CVehicle *pVeh = static_cast<CVehicle*>(ptr);
-    VehData &data = vehData.Get(pVeh);
-    
+    CVehicle* pVeh = static_cast<CVehicle*>(ptr);
+    VehData& data = vehData.Get(pVeh);
+
     if (!data.m_bInitialized) {
         std::string name = GetFrameNodeName(frame);
         data.m_nMaxRpm = std::stoi(Util::GetRegexVal(name, ".*m([0-9]+).*", "100"));
         data.m_fMaxRotation = std::stof(Util::GetRegexVal(name, ".*r([0-9]+).*", "100"));
+        auto& jsonData = DataMgr::Get(pVeh->m_nModelIndex);
+        if (jsonData.contains("RPMMater")) {
+            if (jsonData["RPMMater"].contains("MaxRPM")) {
+                data.m_nMaxRpm = jsonData["RPMMater"].value("MaxRPM", 100.0f);
+            }
+            if (jsonData["RPMMater"].contains("MaxRotation")) {
+                data.m_fMaxRotation = jsonData["RPMMater"].value("MaxRotation", 100.0f);
+            }
+        }
         data.m_bInitialized = true;
     }
 
@@ -93,16 +108,27 @@ void RpmMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
 }
 
 void SpeedMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
-    CVehicle *pVeh = static_cast<CVehicle*>(ptr);
-    VehData &data = vehData.Get(pVeh);
+    CVehicle* pVeh = static_cast<CVehicle*>(ptr);
+    VehData& data = vehData.Get(pVeh);
     if (!data.m_bInitialized) {
         std::string name = GetFrameNodeName(frame);
-        if (NODE_FOUND(name, "_kph")) {
-            data.m_fMul= 100.0f;
-        }
 
         data.m_nMaxSpeed = std::stoi(Util::GetRegexVal(name, ".*m([0-9]+).*", "100"));
         data.m_fMaxRotation = std::stof(Util::GetRegexVal(name, ".*r([0-9]+).*", "100"));
+
+        auto& jsonData = DataMgr::Get(pVeh->m_nModelIndex);
+        if (jsonData.contains("SpeedMeter")) {
+            if (jsonData["SpeedMeter"].contains("KPH")) {
+                data.m_fMul = jsonData["Odometer"]["KPH"].get<bool>() ? 100 : 1;
+            }
+            if (jsonData["SpeedMeter"].contains("MaxSpeed")) {
+                data.m_nMaxSpeed = jsonData["SpeedMeter"].value("MaxSpeed", 100.0f);
+            }
+            if (jsonData["SpeedMeter"].contains("MaxRotation")) {
+                data.m_fMaxRotation = jsonData["SpeedMeter"].value("MaxRotation", 100.0f);
+            }
+        }
+
         data.m_bInitialized = true;
     }
 
@@ -118,8 +144,8 @@ void SpeedMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
 }
 
 void GasMeter::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
-    CVehicle *pVeh = static_cast<CVehicle*>(ptr);
-    VehData &data = vehData.Get(pVeh);
+    CVehicle* pVeh = static_cast<CVehicle*>(ptr);
+    VehData& data = vehData.Get(pVeh);
     if (!data.m_bInitialized) {
         std::string name = GetFrameNodeName(frame);
         Util::SetFrameRotationY(frame, RandomNumberInRange(20.0f, 70.0f));

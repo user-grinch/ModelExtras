@@ -31,7 +31,7 @@ VehicleDummy::VehicleDummy(CVehicle* pVeh, RwFrame* frame, std::string name, boo
         Size = static_cast<float>(name[prmPos + 11] - '0') / 10.0f;
     }
 
-    auto& jsonData = DataMgr::data[pVeh->m_nModelIndex];
+    auto& jsonData = DataMgr::Get(pVeh->m_nModelIndex);
     if (jsonData.contains("Lights")) {
         if (jsonData["Lights"].contains(name.c_str())) {
             auto& lights = jsonData["Lights"][name.c_str()];
