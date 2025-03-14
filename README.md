@@ -1,6 +1,5 @@
 # ![ModelExtras](https://github.com/user-grinch/ModelExtras/blob/main/resource/ModelExtras.png)
 
-## ModelExtras
 ModelExtras adds additional functionality to peds, weapons, and vehicle components. It works similarly to [VehFuncs](https://gtaforums.com/topic/904475-vehfuncs/) and [ImVehFt](https://gtaforums.com/topic/528175-improved-vehicle-features/).
 
 ### 📥 Download
@@ -35,16 +34,12 @@ ModelExtras adds additional functionality to peds, weapons, and vehicle componen
 - BodyState
 - Custom Sounds
 
----
-
 ## 🛠 Installation
 1. Install [Visual C++ Redistributable 2022 x86](https://aka.ms/vs/17/release/vc_redist.x86.exe).
 2. Install [Asi Loader](https://www.gtagarage.com/mods/show.php?id=21709).
 3. Download the mod from [here](https://github.com/user-grinch/ModelExtras/releases) and extract all files into your game directory.
 
 🚨 *Only supports GTA San Andreas v1.0 US Hoodlum.*
-
----
 
 ## 🎖 Credits
 - Plugin SDK
@@ -68,8 +63,3 @@ ModelExtras adds additional functionality to peds, weapons, and vehicle componen
 - spdfnpe
 
 📜 A full list of credits and donators can be found in `ModelExtras.ini`.
-
----
-
-🚀 *Special thanks to Junior-Djjr & Plugin-SDK!*
-
