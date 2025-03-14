@@ -9,6 +9,10 @@
 RwTexture* FindTextureInDict(RpMaterial* pMat, RwTexDictionary* pDict) {
 	const std::string baseName = pMat->texture->name;
 
+	if (baseName == "vehiclelights128") {
+		return RwTexDictionaryFindNamedTexture(pDict, "vehiclelightson128");
+	}
+
 	// texture glitch fix
 	const std::vector<std::string> texNames = {
 		// baseName,
@@ -17,7 +21,7 @@ RwTexture* FindTextureInDict(RpMaterial* pMat, RwTexDictionary* pDict) {
 		// Don't touch this
 		// "sirenlighton",
 		// "sirenlight_on",
-		"vehiclelightson128"
+		// "vehiclelightson128"
 	};
 
 	RwTexture* pTex = nullptr;
