@@ -1,6 +1,6 @@
 #pragma once
-#include <CBike.h>
 #include <CAutomobile.h>
+#include <CBike.h>
 #include <CTimer.h>
 #include <NodeName.h>
 #include <CModelInfo.h>

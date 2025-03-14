@@ -22,7 +22,7 @@ VehicleDummy::VehicleDummy(CVehicle* pVeh, RwFrame* frame, std::string name, boo
 
     auto& jsonData = DataMgr::Get(pVeh->m_nModelIndex);
     if (jsonData.contains("Lights")) {
-w        std::string newName = name.substr(0, name.find("_prm"));
+        std::string newName = name.substr(0, name.find("_prm"));
         if (jsonData["Lights"].contains(newName.c_str())) {
             auto& lights = jsonData["Lights"][newName.c_str()];
 

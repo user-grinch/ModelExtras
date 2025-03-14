@@ -491,7 +491,7 @@ void Sirens::Initialize() {
 					RegisterMaterial(vehicle, material);
 				}
 			}
-			else if (col.g == 255 && col.b == 255) {
+			else if (col.r > 0 && col.g == 255 && col.b == 255) {
 				RegisterMaterial(vehicle, material);
 			}
 		}

@@ -47,11 +47,12 @@ project "ModelExtras"
     includedirs {
         "../include/",
         "../src/",
-        PSDK_DIR .. "/plugin_sa/",
-        PSDK_DIR .. "/plugin_sa/game_sa/",
-        PSDK_DIR .. "/plugin_sa/game_sa/rw/",
-        PSDK_DIR .. "/shared/",
-        PSDK_DIR .. "/shared/game/"
+        PSDK_DIR .. "/*",
+        PSDK_DIR .. "/plugin_sa/*",
+        PSDK_DIR .. "/plugin_sa/game_sa/*",
+        PSDK_DIR .. "/plugin_sa/game_sa/rw/*",
+        PSDK_DIR .. "/shared/*",
+        PSDK_DIR .. "/shared/game/*",
     }
     
     libdirs {
