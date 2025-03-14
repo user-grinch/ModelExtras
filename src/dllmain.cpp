@@ -65,13 +65,14 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             bool fxFuncs = GetModuleHandle("FxsFuncs.asi");
             bool ola = GetModuleHandle("III.VC.SA.LimitAdjuster.asi");
             bool fla = GetModuleHandle("$fastman92limitAdjuster.asi");
+            bool gtweaker = GetModuleHandle("GraphicsTweaker.SA.asi");
 
             if ((fxFuncs && !(ola || fla))) {
                 std::string str = "Install any of the below,\n\n";
 
                 str += "- Open Limit Adjuster (Recommanded)\n";
                 str += "- Fastman92 Limit Adjuster (Increase IDE limits)\n";
-                MessageBox(NULL, str.c_str(), "LimitAdjuster required!", MB_OK);
+                MessageBox(RsGlobal.ps->window, str.c_str(), "LimitAdjuster required!", MB_OK);
             }
 
             };
@@ -93,7 +94,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
             if (!std::filesystem::is_directory(PLUGIN_PATH((char*)MOD_NAME))) {
                 std::string msg = std::format("{} folder not found. You need to put both '{}.asi' & '{}' folder in the same directory", MOD_NAME, MOD_NAME, MOD_NAME);
                 gLogger->error(msg.c_str());
-                MessageBox(NULL, msg.c_str(), MOD_NAME, MB_ICONERROR);
+                MessageBox(RsGlobal.ps->window, msg.c_str(), MOD_NAME, MB_ICONERROR);
                 return;
             }
 
@@ -108,7 +109,15 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved) {
                 if (PedFuncs) str += "- PedFuncs.asi\n";
 
                 str += "\nIt is recommanded to remove them to ensure proper gameplay.";
-                MessageBox(NULL, str.c_str(), "Incompatible plugins found!", MB_OK);
+                MessageBox(RsGlobal.ps->window, str.c_str(), "Incompatible plugins found!", MB_OK);
+            }
+
+            if (gConfig.ReadBoolean("MISC", "ShowGraphicsTweakerWarning", true)) {
+                std::string str = "Using GraphicsTweaker may result in visual anomalies.\n\n";
+                str += "Set these values to following to avoid issues,\n";
+                str += "1. MultAmbientNight = 1.0\n2. MultColorFilterNight = 1.0\n";
+                MessageBox(RsGlobal.ps->window, str.c_str(), "GraphicsTweaker Found!", MB_OK);
+                gConfig.WriteBoolean("MISC", "ShowGraphicsTweakerWarning", false);
             }
             };
         FeatureMgr::Initialize();

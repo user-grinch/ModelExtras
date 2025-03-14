@@ -7,10 +7,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 void CreateControls(HWND hWnd);
 
 const char* const LONG_MESSAGE =
-    "It takes a lot of effort to keep updating with new features and bug fixes. "
-    "If you find this mod helpful and would like to help with its development, "
-    "please consider making a donation.\n\n\n"
-    "This popup only shows up on first installion!";
+"It takes a lot of effort to keep updating with new features and bug fixes. "
+"If you find this mod helpful and would like to help with its development, "
+"please consider making a donation.\n\n\n"
+"This popup only shows up on first installion!";
 
 void ShowDonationWindow()
 {
@@ -28,12 +28,12 @@ void ShowDonationWindow()
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-    int windowWidth = 400; 
-    int windowHeight = 450; 
+    int windowWidth = 400;
+    int windowHeight = 450;
     int xPos = (screenWidth - windowWidth) / 2;
     int yPos = (screenHeight - windowHeight) / 2;
 
-    HWND hWnd = CreateWindowEx(WS_EX_APPWINDOW, CLASS_NAME, "ModelExtras Donation Popup", WS_OVERLAPPED | WS_SYSMENU, xPos, yPos, windowWidth, 
+    HWND hWnd = CreateWindowEx(WS_EX_APPWINDOW, CLASS_NAME, "ModelExtras Donation Popup", WS_OVERLAPPED | WS_SYSMENU, xPos, yPos, windowWidth,
                     windowHeight, NULL, NULL, GetModuleHandle(NULL), NULL);
 
     if (hWnd == NULL) return;
@@ -52,25 +52,25 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 {
     switch (message)
     {
-    case WM_CREATE:
-        CreateControls(hWnd);
-        break;
-    case WM_COMMAND:
-        Events::initRwEvent += [wParam]() {
-            if (LOWORD(wParam) == 1)
-                ShellExecute(NULL, "open", DISCORD_INVITE, NULL, NULL, SW_SHOWNORMAL);
-            else if (LOWORD(wParam) == 2)
-                ShellExecute(NULL, "open", PATREON_LINK, NULL, NULL, SW_SHOWNORMAL);
-            else if (LOWORD(wParam) == 3)
-                ShellExecute(NULL, "open", GITHUB_LINK, NULL, NULL, SW_SHOWNORMAL);
-        };
-        DestroyWindow(hWnd);
-        break;
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
+        case WM_CREATE:
+            CreateControls(hWnd);
+            break;
+        case WM_COMMAND:
+            Events::initRwEvent += [wParam]() {
+                if (LOWORD(wParam) == 1)
+                    ShellExecute(NULL, "open", DISCORD_INVITE, NULL, NULL, SW_SHOWNORMAL);
+                else if (LOWORD(wParam) == 2)
+                    ShellExecute(NULL, "open", PATREON_LINK, NULL, NULL, SW_SHOWNORMAL);
+                else if (LOWORD(wParam) == 3)
+                    ShellExecute(NULL, "open", GITHUB_LINK, NULL, NULL, SW_SHOWNORMAL);
+                };
+            DestroyWindow(hWnd);
+            break;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
     }
     return 0;
 }
@@ -94,7 +94,7 @@ void CreateControls(HWND hWnd)
     HWND hDiscordButton = CreateWindowEx(0, "BUTTON", "Discord", WS_CHILD | WS_VISIBLE | BS_FLAT, 25, 340, 100, 30, hWnd, (HMENU)1, NULL, NULL);
     HWND hDonationButton = CreateWindowEx(0, "BUTTON", "Donate", WS_CHILD | WS_VISIBLE | BS_FLAT, 145, 340, 100, 30, hWnd, (HMENU)2, NULL, NULL);
     HWND hGitHubButton = CreateWindowEx(0, "BUTTON", "GitHub", WS_CHILD | WS_VISIBLE | BS_FLAT, 265, 340, 100, 30, hWnd, (HMENU)3, NULL, NULL);
-    
+
     SendMessage(hImage, STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)hBitmap);
     SendMessage(hTitleText, WM_SETFONT, (WPARAM)hFont, TRUE);
     SendMessage(hLongText, WM_SETFONT, (WPARAM)hFont, TRUE);
