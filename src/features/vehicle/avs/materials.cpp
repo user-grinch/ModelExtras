@@ -9,6 +9,13 @@
 RwTexture* FindTextureInDict(RpMaterial* pMat, RwTexDictionary* pDict) {
 	const std::string baseName = pMat->texture->name;
 
+	/*
+		This needs to be handled separately
+		Apperently VehFuncs allows for more vehicleXX.txds
+		This needs to be handled someday too.
+
+		Directly addding it to the texNames vector causes graphical annomolies
+	*/
 	if (baseName == "vehiclelights128") {
 		return RwTexDictionaryFindNamedTexture(pDict, "vehiclelightson128");
 	}
