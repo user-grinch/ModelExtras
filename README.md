@@ -1,5 +1,6 @@
+<p align="center">
 <img src="https://github.com/user-grinch/ModelExtras/blob/main/resource/ModelExtras.png" width="400" align="center">
-
+</p>
 
 ModelExtras adds additional functionality to peds, weapons, and vehicle components. It works similarly to [VehFuncs](https://gtaforums.com/topic/904475-vehfuncs/) and [ImVehFt](https://gtaforums.com/topic/528175-improved-vehicle-features/).
 
