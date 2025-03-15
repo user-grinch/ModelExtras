@@ -1,67 +1,39 @@
 <p align="center">
-<img src="https://github.com/user-grinch/ModelExtras/blob/main/resource/ModelExtras.png" width="400" align="center">
+  <img src="https://github.com/user-grinch/ModelExtras/blob/main/resource/ModelExtras.png" width="400">
 </p>
 
-ModelExtras adds additional functionality to peds, weapons, and vehicle components. It works similarly to [VehFuncs](https://gtaforums.com/topic/904475-vehfuncs/) and [ImVehFt](https://gtaforums.com/topic/528175-improved-vehicle-features/).
+ModelExtras is a modification that adds extra functionality to pedestrian, vehicle, and weapon models in **GTA: San Andreas**. This mod enhances customization and introduces new features to improve your gaming experience.  
 
-### 📥 Download
-- **Stable binaries**: [GitHub Releases](https://github.com/user-grinch/ModelExtras/releases)
-- **Beta binaries**: Available on the [Discord server](https://discord.gg/AduJVdyqCD)
+⚠ **Important:** To work correctly, ModelExtras requires model adaptation. Pedestrian, vehicle, and weapon models must be adjusted accordingly. Detailed adaptation instructions are available in the sidebar.  
 
-[![Discord Banner](https://discordapp.com/api/guilds/689515979847237649/widget.png?style=banner2)](https://discord.gg/AduJVdyqCD)
-[![Support on Patreon](https://github.com/user-attachments/assets/e6aa195c-e93a-41a9-8b14-2788bed2d7d1)](https://www.patreon.com/grinch_)
+## Getting Started  
 
----
+Follow these key guidelines to use ModelExtras effectively:  
 
-## ⚙️ Features
-- Random Remap
-- Randomizer
-- Brakes
-- Chains
-- Clutch
-- Gear Change Sound
-- Gear Meter
-- Gear Switcher
-- Handlebar
-- Odometer
-- RPM Meter
-- Speedometer
-- Sirens
-- Turn Lights
-- Fog Lights
-- Brake Lights
-- Reverse Lights
-- Wheel Hubs
-- BloodRemap
-- BodyState
-- Custom Sounds
+### 1. **Model Adaptation is Required**  
+ModelExtras **will not work by default**. You must adapt your pedestrian, vehicle, or weapon models for compatibility. See the sidebar for step-by-step adaptation instructions.  
 
-## 🛠 Installation
-1. Install [Visual C++ Redistributable 2022 x86](https://aka.ms/vs/17/release/vc_redist.x86.exe).
-2. Install [Asi Loader](https://www.gtagarage.com/mods/show.php?id=21709).
-3. Download the mod from [here](https://github.com/user-grinch/ModelExtras/releases) and extract all files into your game directory.
+### 2. **Compatible with Other Mods**  
+ModelExtras works with models designed for:  
+- **EarShot**  (Funtionality included in ModelExtras)
+- **PedFunc**  (Funtionality included in ModelExtras)
+- **VehFunc**  
+- **EnhFunc**  
+- **ImVehFt**  (Funtionality included in ModelExtras)
+- **AVS** (Funtionality included in ModelExtras)
 
-🚨 *Only supports GTA San Andreas v1.0 US Hoodlum.*
+You can combine these mods for even more customization options.  
 
-## 🎖 Credits
-- Plugin SDK
-- CLEO
-- DkPac22
-- Junior-Djjr
-- Nora
-- KaiQ
+### 3. **Node Name Limitations**  
+The game limits node names to **23 characters**. Exceeding this may cause crashes, so keep names short.  
 
-## 💖 Donators
-- berrymuffin
-- Boris Ilincic
-- Damian Jurkiewicz
-- Dustin Eastwood
-- Dwolf98
-- KaiQ
-- MC Silver
-- Osama aj
-- Pol3 Million
-- Seemann
-- spdfnpe
+## Sidebar Resources  
 
-📜 A full list of credits and donators can be found in `ModelExtras.ini`.
+The sidebar includes detailed guides on:  
+✔ Adapting your models  
+✔ Ensuring compatibility  
+✔ Using ModelExtras to its full potential  
+
+Whether you're modifying pedestrians, vehicles, or weapons, these resources will help you get the best results.  
+
+**Happy Modding! 🎮**  
