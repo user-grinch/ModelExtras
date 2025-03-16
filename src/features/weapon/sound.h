@@ -5,17 +5,16 @@
 #include <filesystem>
 #include <map>
 
-#include "audio/audiostream3d.h"
-#include "audio/soundsystem.h"
+using StreamHandle = int;
 
-class WeaponSoundSystem {
+class WeaponSoundSystem
+{
 private:
-    static inline CSoundSystem m_SoundSystem;
-    static inline std::map<eWeaponType, std::map<std::string, C3DAudioStream*>> m_vecRegisteredWeapons;
+    static inline std::map<eWeaponType, std::map<std::string, StreamHandle>> m_vecRegisteredWeapons;
+    static StreamHandle FindAudio(eWeaponType weaponType, std::string audioType);
+    static void PlayAudioStream(StreamHandle handle, CPed *pPed);
 
 public:
     static void Initialize();
-    static C3DAudioStream* FindAudio(eWeaponType weaponType, std::string audioType);
-    static size_t GetCount();
-    static void Register(const std::filesystem::path& filepath);
+    static void Register(const std::filesystem::path &filepath);
 };

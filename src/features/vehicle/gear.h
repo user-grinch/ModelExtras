@@ -3,15 +3,18 @@
 #include <vector>
 class CAudioStream;
 
-enum class eFrameState {
+enum class eFrameState
+{
   AtOrigin,
   IsMoving,
   AtOffset,
 };
 
-class Clutch {
+class Clutch
+{
 protected:
-  struct VehData {
+  struct VehData
+  {
     bool m_bInitialized = false;
     eFrameState m_eState = eFrameState::AtOrigin;
     float m_fCalVal = 1.0f;
@@ -28,12 +31,14 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
+  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
 };
 
-class GearLever {
+class GearLever
+{
 protected:
-  struct VehData {
+  struct VehData
+  {
     bool m_bInitialized = false;
     eFrameState m_eState = eFrameState::AtOrigin;
     float m_fCalVal = 1.0f;
@@ -50,15 +55,19 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
+  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
 };
 
-class GearSound {
+using StreamHandle = int;
+
+class GearSound
+{
 protected:
-  struct VehData {
+  struct VehData
+  {
     bool m_bInitialized = false;
     uint m_nCurGear = 0;
-    CAudioStream *m_pUpAudio, *m_pDownAudio;
+    StreamHandle hUpAudio, hDownAudio;
 
     VehData(CVehicle *pVeh) {}
     ~VehData() {}
@@ -67,5 +76,5 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
+  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
 };

@@ -4,7 +4,7 @@
 
 void DataMgr::Init() {
     std::string path = MOD_DATA_PATH("data/");
-
+    
     for (const auto& e : std::filesystem::directory_iterator(path)) {
         if (e.is_regular_file() && e.path().extension() == ".json") {
             std::string filename = e.path().filename().string();

@@ -10,26 +10,33 @@
 #include <rwcore.h>
 #include <rpworld.h>
 
-bool IsNightTime() {
+bool IsNightTime()
+{
 	return CClock::GetIsTimeInRange(20, 6);
 }
 
-unsigned int GetShadowAlphaForDayTime() {
+unsigned int GetShadowAlphaForDayTime()
+{
 	static int intensity = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalShadowIntensity", 250);
-	if (IsNightTime()) {
+	if (IsNightTime())
+	{
 		return intensity - 5;
 	}
-	else {
+	else
+	{
 		return intensity - 15;
 	}
 }
 
-unsigned int GetCoronaAlphaForDayTime() {
+unsigned int GetCoronaAlphaForDayTime()
+{
 	static int intensity = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalCoronaIntensity", 250);
-	if (IsNightTime()) {
+	if (IsNightTime())
+	{
 		return intensity - 5;
 	}
-	else {
+	else
+	{
 		return intensity - 15;
 	}
 }
@@ -38,21 +45,23 @@ unsigned int GetCoronaAlphaForDayTime() {
 static uint64_t delay;
 static bool delayState;
 
-CVector2D GetCarPathLinkPosition(CCarPathLinkAddress& address) {
-	if (address.m_nAreaId != -1 && address.m_nCarPathLinkId != -1 && ThePaths.m_pPathNodes[address.m_nAreaId]) {
+CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address)
+{
+	if (address.m_nAreaId != -1 && address.m_nCarPathLinkId != -1 && ThePaths.m_pPathNodes[address.m_nAreaId])
+	{
 		return CVector2D(static_cast<float>(ThePaths.m_pNaviNodes[address.m_nAreaId][address.m_nCarPathLinkId].m_vecPosn.x) / 8.0f,
-			static_cast<float>(ThePaths.m_pNaviNodes[address.m_nAreaId][address.m_nCarPathLinkId].m_vecPosn.y) / 8.0f);
+						 static_cast<float>(ThePaths.m_pNaviNodes[address.m_nAreaId][address.m_nCarPathLinkId].m_vecPosn.y) / 8.0f);
 	}
 	return CVector2D(0.0f, 0.0f);
 }
 
-void DrawGlobalLight(CVehicle* pVeh, eDummyPos pos, CRGBA col) {
-	if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE) {
-		CAutomobile* ptr = reinterpret_cast<CAutomobile*>(pVeh);
-		if ((pos == eDummyPos::FrontLeft && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT))
-			|| (pos == eDummyPos::FrontRight && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT))
-			|| (pos == eDummyPos::RearLeft && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT))
-			|| (pos == eDummyPos::RearRight && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT))) {
+void DrawGlobalLight(CVehicle *pVeh, eDummyPos pos, CRGBA col)
+{
+	if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE)
+	{
+		CAutomobile *ptr = reinterpret_cast<CAutomobile *>(pVeh);
+		if ((pos == eDummyPos::FrontLeft && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT)) || (pos == eDummyPos::FrontRight && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)) || (pos == eDummyPos::RearLeft && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT)) || (pos == eDummyPos::RearRight && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)))
+		{
 			return;
 		}
 	}
@@ -61,26 +70,32 @@ void DrawGlobalLight(CVehicle* pVeh, eDummyPos pos, CRGBA col) {
 	bool leftSide = (pos == eDummyPos::RearLeft) || (pos == eDummyPos::FrontLeft);
 
 	CVector posn =
-		reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[idx];
+		reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[idx];
 
-	if (posn.x == 0.0f) posn.x = 0.15f;
-	if (leftSide) posn.x *= -1.0f;
+	if (posn.x == 0.0f)
+		posn.x = 0.15f;
+	if (leftSide)
+		posn.x *= -1.0f;
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, col.r, col.g, col.b, GetShadowAlphaForDayTime(), dummyAngle, 0.0f, "indicator");
-	static float size = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalCoronaSize", 0.6f);
+	static float size = gConfig.ReadFloat("VEHICLE_FEATURES", "c", 0.3f);
 	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, size);
 }
 
-inline float GetZAngleForPoint(CVector2D const& point) {
+inline float GetZAngleForPoint(CVector2D const &point)
+{
 	float angle = CGeneral::GetATanOfXY(point.x, point.y) * 57.295776f - 90.0f;
-	while (angle < 0.0f) angle += 360.0f;
+	while (angle < 0.0f)
+		angle += 360.0f;
 	return angle;
 }
 
-inline bool IsBumperOrWingDamaged(CVehicle* pVeh, eParentType part) {
-	if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE) {
-		CAutomobile* ptr = reinterpret_cast<CAutomobile*>(pVeh);
+inline bool IsBumperOrWingDamaged(CVehicle *pVeh, eParentType part)
+{
+	if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE)
+	{
+		CAutomobile *ptr = reinterpret_cast<CAutomobile *>(pVeh);
 		return ptr->m_damageManager.GetPanelStatus((int)part);
 	}
 	return false;
@@ -100,8 +115,8 @@ float HEADLIGHT_CORONA_SIZE_LONG = 0.115f;
 float HEADLIGHT_CORONA_ALPHA_SHORT = 128;
 float HEADLIGHT_CORONA_ALPHA_LONG = 255;
 
-
-void Lights::Initialize() {
+void Lights::Initialize()
+{
 	static float headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_SHORT;
 
 	patch::SetPointer(0x6E16A3, &headlightTexWidth);
@@ -111,44 +126,51 @@ void Lights::Initialize() {
 	patch::SetPointer(0x70C72D, &HEADLIGHT_SHADOW_ALPHA);
 	patch::SetUInt(0x6E0CF8, 0xC0); // Decrease inner corona alpha a bit
 
-	static RwTexture* hss = nullptr;
-	static RwTexture* hsl = nullptr;
-	static RwTexture* hts = nullptr;
-	static RwTexture* htl = nullptr;
+	static RwTexture *hss = nullptr;
+	static RwTexture *hsl = nullptr;
+	static RwTexture *hts = nullptr;
+	static RwTexture *htl = nullptr;
 
-	plugin::Events::initGameEvent += []() {
+	plugin::Events::initGameEvent += []()
+	{
 		hss = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_single_short.png")), 255);
 		hsl = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_single_long.png")), 255);
 		hts = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_twin_short.png")), 255);
 		htl = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_twin_long.png")), 255);
-		};
+	};
 
-	static FastcallEvent <AddressList<0x6E1A76, H_CALL>, PRIORITY_BEFORE,
-		ArgPick2N<CVehicle*, 0, int, 1>, void(CVehicle*, int)> DoHeadLightEvent;
+	static FastcallEvent<AddressList<0x6E1A76, H_CALL>, PRIORITY_BEFORE,
+						 ArgPick2N<CVehicle *, 0, int, 1>, void(CVehicle *, int)>
+		DoHeadLightEvent;
 
-	DoHeadLightEvent += [](CVehicle* pVeh, int b) {
-		VehData& data = m_VehData.Get(pVeh);
-		if (data.m_bLongLightsOn) {
+	DoHeadLightEvent += [](CVehicle *pVeh, int b)
+	{
+		VehData &data = m_VehData.Get(pVeh);
+		if (data.m_bLongLightsOn)
+		{
 			plugin::patch::SetPointer(0x6E1693, htl); // Twin
 			plugin::patch::SetPointer(0x6E151D, hsl); // Single
 			headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_LONG;
 			patch::SetFloat(0x6E0CA6, HEADLIGHT_CORONA_SIZE_LONG); // HeadLightCoronaSize
 			patch::SetUInt(0x6E0DEE, HEADLIGHT_CORONA_ALPHA_LONG); // HeadLightCoronaAlpha
 		}
-		else {
+		else
+		{
 			plugin::patch::SetPointer(0x6E1693, hts); // Twin
 			plugin::patch::SetPointer(0x6E151D, hss); // Single
 			headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_SHORT;
 			patch::SetFloat(0x6E0CA6, HEADLIGHT_CORONA_SIZE_SHORT);
 			patch::SetUInt(0x6E0DEE, HEADLIGHT_CORONA_ALPHA_SHORT); // HeadLightCoronaAlpha
 		}
-		};
+	};
 
-	Events::vehicleDtorEvent += [](CVehicle* pVeh) {
+	Events::vehicleDtorEvent += [](CVehicle *pVeh)
+	{
 		m_Dummies.erase(pVeh);
-		};
+	};
 
-	VehicleMaterials::Register([](CVehicle* vehicle, RpMaterial* material, CRGBA col) {
+	VehicleMaterials::Register([](CVehicle *vehicle, RpMaterial *material, CRGBA col)
+							   {
 		if ((col.r == 255 && col.g == 173 && col.b == 0) || (col.r == 0 && col.g == 255 && col.b == 198))
 			RegisterMaterial(vehicle, material, eLightState::Reverselight, col);
 		else if ((col.r == 184 && col.g == 255 && col.b == 0) || (col.r == 255 && col.g == 59 && col.b == 0))
@@ -215,10 +237,10 @@ void Lights::Initialize() {
 			RegisterMaterial(vehicle, material, (col.g == 4) ? eLightState::IndicatorLeft : eLightState::IndicatorRight, col);
 		}
 
-		return material;
-		});
+		return material; });
 
-	VehicleMaterials::RegisterDummy([](CVehicle* pVeh, RwFrame* frame, std::string name, bool parent) {
+	VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *frame, std::string name, bool parent)
+									{
 		eLightState state = eLightState::None;
 		RwRGBA col{ 255, 255, 255, 128 };
 
@@ -274,43 +296,49 @@ void Lights::Initialize() {
 
 		if (state != eLightState::None) {
 			m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, parent, eDummyPos::Rear, col));
-		}
-	});
+		} });
 
-	Events::processScriptsEvent += []() {
+	Events::processScriptsEvent += []()
+	{
 		size_t timestamp = CTimer::m_snTimeInMilliseconds;
-		if ((timestamp - delay) > 500) {
+		if ((timestamp - delay) > 500)
+		{
 			delay = timestamp;
 			delayState = !delayState;
 		}
 
-		CVehicle* pVeh = FindPlayerVehicle(-1, false);
-		if (pVeh) {
+		CVehicle *pVeh = FindPlayerVehicle(-1, false);
+		if (pVeh)
+		{
 			static size_t prev = 0;
-			if (KeyPressed(VK_J)
-			&& (!m_Dummies[pVeh][eLightState::FogLightLeft].empty() || !m_Dummies[pVeh][eLightState::FogLightRight].empty())) {
+			if (KeyPressed(VK_J) && (!m_Dummies[pVeh][eLightState::FogLightLeft].empty() || !m_Dummies[pVeh][eLightState::FogLightRight].empty()))
+			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
-				if (now - prev > 500.0f) {
-					VehData& data = m_VehData.Get(pVeh);
+				if (now - prev > 500.0f)
+				{
+					VehData &data = m_VehData.Get(pVeh);
 					data.m_bFogLightsOn = !data.m_bFogLightsOn;
 					prev = now;
 					AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_ON, 10.0, 1.0);
 				}
 			}
 
-			if (KeyPressed(VK_G)) {
+			if (KeyPressed(VK_G))
+			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
-				if (now - prev > 500.0f) {
-					VehData& data = m_VehData.Get(pVeh);
+				if (now - prev > 500.0f)
+				{
+					VehData &data = m_VehData.Get(pVeh);
 					data.m_bLongLightsOn = !data.m_bLongLightsOn;
 					prev = now;
 					AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_ON, 10.0, 1.0);
 				}
 			}
 		}
-		};
+	};
 
-	VehicleMaterials::RegisterRender([](CVehicle* pControlVeh) {
+	VehicleMaterials::RegisterRender([](CVehicle *pControlVeh)
+									 {
 		int model = pControlVeh->m_nModelIndex;
 		CVehicle* pTowedVeh = pControlVeh;
 		if (pControlVeh->m_pTrailer) {
@@ -617,18 +645,22 @@ void Lights::Initialize() {
 					}
 				}
 			}
-		}
-});
+		} });
 };
 
-void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle, float cameraAngle, bool shadows, std::string texture, float sz) {
+void Lights::RenderLights(CVehicle *pVeh, eLightState state, float vehicleAngle, float cameraAngle, bool shadows, std::string texture, float sz)
+{
 	bool flag = true;
 	int id = 0;
-	for (auto e : m_Dummies[pVeh][state]) {
-		if (CModelInfo::IsCarModel(pVeh->m_nModelIndex)) {
-			if (e->PartType != eParentType::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType)) {
+	for (auto e : m_Dummies[pVeh][state])
+	{
+		if (CModelInfo::IsCarModel(pVeh->m_nModelIndex))
+		{
+			if (e->PartType != eParentType::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType))
+			{
 				flag = false;
-				if (state == eLightState::FogLightLeft || state == eLightState::FogLightRight) {
+				if (state == eLightState::FogLightLeft || state == eLightState::FogLightRight)
+				{
 					m_VehData.Get(pVeh).m_bFogLightsOn = false;
 				}
 				continue;
@@ -636,36 +668,44 @@ void Lights::RenderLights(CVehicle* pVeh, eLightState state, float vehicleAngle,
 		}
 		EnableDummy((int)pVeh + (int)state + 30 + id++, e, pVeh);
 
-		if (shadows) {
+		if (shadows)
+		{
 			Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.r, e->Color.g, e->Color.b, GetShadowAlphaForDayTime(), e->Angle, e->CurrentAngle, texture, sz);
 		}
 	}
 
-	if (flag) {
-		for (auto& e : m_Materials[pVeh->m_nModelIndex][state]) {
+	if (flag)
+	{
+		for (auto &e : m_Materials[pVeh->m_nModelIndex][state])
+		{
 			EnableMaterial(e);
 		}
 	}
 };
 
-void Lights::RegisterMaterial(CVehicle* pVeh, RpMaterial* material, eLightState state, CRGBA col, eDummyPos pos) {
-	VehicleMaterial* mat = new VehicleMaterial(material, pos);
+void Lights::RegisterMaterial(CVehicle *pVeh, RpMaterial *material, eLightState state, CRGBA col, eDummyPos pos)
+{
+	VehicleMaterial *mat = new VehicleMaterial(material, pos);
 	m_Materials[pVeh->m_nModelIndex][state].push_back(mat);
 	material->color.red = material->color.green = material->color.blue = 255;
 };
 
-void Lights::EnableDummy(int id, VehicleDummy* dummy, CVehicle* pVeh) {
-	if (gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false)) {
-		Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, *(CVector*)&dummy->Position, dummy->Color.r, dummy->Color.g, dummy->Color.b,
-		dummy->Color.a, dummy->Angle, 0.3f, dummy->Size);
+void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh)
+{
+	if (gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false))
+	{
+		Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, *(CVector *)&dummy->Position, dummy->Color.r, dummy->Color.g, dummy->Color.b,
+										dummy->Color.a, dummy->Angle, 0.3f, dummy->Size);
 	}
 };
 
-void Lights::EnableMaterial(VehicleMaterial* material) {
-	if (material && material->Material) {
-		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int*>(&material->Material->surfaceProps.ambient)));
+void Lights::EnableMaterial(VehicleMaterial *material)
+{
+	if (material && material->Material)
+	{
+		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int *>(&material->Material->surfaceProps.ambient)));
 		material->Material->surfaceProps.ambient = AMBIENT_ON_VAL;
-		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int*>(&material->Material->texture), *reinterpret_cast<unsigned int*>(&material->Material->texture)));
+		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->texture), *reinterpret_cast<unsigned int *>(&material->Material->texture)));
 		material->Material->texture = material->TextureActive;
 	}
 };
