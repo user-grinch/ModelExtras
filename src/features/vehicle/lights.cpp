@@ -453,7 +453,7 @@ void Lights::Initialize()
 				}
 
 				// taillights/ brakelights
-				if (pControlVeh->m_pDriver && (pControlVeh->m_nRenderLightsFlags || pControlVeh->m_fBreakPedal)) {
+				if (IsNightTime() && pControlVeh->m_pDriver && (pControlVeh->m_nRenderLightsFlags || pControlVeh->m_fBreakPedal)) {
 					CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 					posn.x = 0.0f;
 					posn.y += 0.2f;

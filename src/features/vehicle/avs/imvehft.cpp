@@ -1,8 +1,10 @@
 #include "pch.h"
 #include <sstream>
 
-int ImVehFt_ReadColor(std::string input) {
-    if (input.length() == 3) {
+int ImVehFt_ReadColor(std::string input)
+{
+    if (input.length() == 3)
+    {
         return std::stoi(input);
     }
 
@@ -12,10 +14,12 @@ int ImVehFt_ReadColor(std::string input) {
     return color;
 };
 
-int ImVehFt_EmlToJson(const std::string& emlPath) {
+int ImVehFt_EmlToJson(const std::string &emlPath)
+{
     std::ifstream infile(emlPath);
 
-    if (!infile) {
+    if (!infile)
+    {
         gLogger->error("Failed to open .eml file");
         return -1;
     }
@@ -24,13 +28,16 @@ int ImVehFt_EmlToJson(const std::string& emlPath) {
     nlohmann::json jsonData;
     int model = -1;
 
-    while (std::getline(infile, line)) {
-        if (line.empty() || line[0] == '#') {
+    while (std::getline(infile, line))
+    {
+        if (line.empty() || line[0] == '#')
+        {
             continue;
         }
 
         std::istringstream iss(line);
-        if (!(iss >> model)) {
+        if (!(iss >> model))
+        {
             gLogger->error("Failed to parse model ID from .eml file");
             return -1;
         }
@@ -40,15 +47,18 @@ int ImVehFt_EmlToJson(const std::string& emlPath) {
         break;
     }
 
-    std::string jsonPath = MOD_DATA_PATH("sirens\\") + std::to_string(model) + ".json";
+    std::string jsonPath = MOD_DATA_PATH("data\\sirens\\") + std::to_string(model) + ".json";
     std::ofstream outfile(jsonPath);
-    if (!outfile) {
+    if (!outfile)
+    {
         gLogger->error("Failed to create .json file");
         return -1;
     }
 
-    while (std::getline(infile, line)) {
-        if (line.empty() || line[0] == '#') {
+    while (std::getline(infile, line))
+    {
+        if (line.empty() || line[0] == '#')
+        {
             continue;
         }
 
@@ -58,43 +68,54 @@ int ImVehFt_EmlToJson(const std::string& emlPath) {
         float size, flash;
         std::string tempColor;
 
-        if (!(iss >> id >> parent)) continue;
+        if (!(iss >> id >> parent))
+            continue;
 
-        if (!(iss >> tempColor)) continue;
+        if (!(iss >> tempColor))
+            continue;
         red = ImVehFt_ReadColor(tempColor);
 
-        if (!(iss >> tempColor)) continue;
+        if (!(iss >> tempColor))
+            continue;
         green = ImVehFt_ReadColor(tempColor);
 
-        if (!(iss >> tempColor)) continue;
+        if (!(iss >> tempColor))
+            continue;
         blue = ImVehFt_ReadColor(tempColor);
 
-        if (!(iss >> tempColor)) continue;
+        if (!(iss >> tempColor))
+            continue;
         alpha = ImVehFt_ReadColor(tempColor);
 
-        if (!(iss >> type >> size >> shadow >> flash)) continue;
-        if (!(iss >> switches >> starting)) continue;
+        if (!(iss >> type >> size >> shadow >> flash))
+            continue;
+        if (!(iss >> switches >> starting))
+            continue;
 
         std::vector<uint64_t> pattern;
         uint64_t count = 0;
 
-        for (int index = 0; index < switches; index++) {
+        for (int index = 0; index < switches; index++)
+        {
             std::string string;
-            if (!(iss >> string)) continue;
+            if (!(iss >> string))
+                continue;
             uint64_t milliseconds = std::stoi(string) - count;
             count += milliseconds;
 
-            if (milliseconds == 0) continue;
+            if (milliseconds == 0)
+                continue;
             pattern.push_back(milliseconds);
         }
 
-        if (count == 0 || count > 64553) {
+        if (count == 0 || count > 64553)
+        {
             starting = 1;
             pattern.clear();
         }
 
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["size"] = size;
-        jsonData["states"]["1. ModelExtras"][std::to_string(id)]["color"] = { { "red", red }, { "green", green }, { "blue", blue }, { "alpha", alpha } };
+        jsonData["states"]["1. ModelExtras"][std::to_string(id)]["color"] = {{"red", red}, {"green", green}, {"blue", blue}, {"alpha", alpha}};
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["state"] = starting;
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["pattern"] = pattern;
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["shadow"]["size"] = shadow;
@@ -102,7 +123,8 @@ int ImVehFt_EmlToJson(const std::string& emlPath) {
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["type"] = ((type == 0) ? "directional" : ((type == 1) ? "inversed-directional" : "non-directional"));
 
         // This is the only way ffs
-        if (type == 0) {
+        if (type == 0)
+        {
             jsonData["states"]["1. ModelExtras"][std::to_string(id)]["rot"] = 180.0f;
         }
     }
@@ -111,15 +133,17 @@ int ImVehFt_EmlToJson(const std::string& emlPath) {
     outfile << jsonData.dump(4);
     outfile.close();
 
-    std::string backupDir = MOD_DATA_PATH("sirens\\backup\\");
+    std::string backupDir = MOD_DATA_PATH("data\\sirens\\backup\\");
     std::filesystem::create_directories(backupDir);
 
     std::filesystem::path source(emlPath);
     std::filesystem::path destination = backupDir + source.filename().string();
-    try {
+    try
+    {
         std::filesystem::rename(source, destination);
     }
-    catch (const std::filesystem::filesystem_error& e) {
+    catch (const std::filesystem::filesystem_error &e)
+    {
         gLogger->error("Failed to move {} to backup: {}", emlPath, e.what());
         return -1;
     }
