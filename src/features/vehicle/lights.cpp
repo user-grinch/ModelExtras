@@ -12,7 +12,7 @@
 
 bool IsNightTime()
 {
-	return CClock::GetIsTimeInRange(20, 6);
+	return CClock::GetIsTimeInRange(20, 7);
 }
 
 unsigned int GetShadowAlphaForDayTime()
@@ -79,7 +79,7 @@ void DrawGlobalLight(CVehicle *pVeh, eDummyPos pos, CRGBA col)
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, col.r, col.g, col.b, GetShadowAlphaForDayTime(), dummyAngle, 0.0f, "indicator");
-	static float size = gConfig.ReadFloat("VEHICLE_FEATURES", "c", 0.3f);
+	static float size = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalCoronaSize", 0.3f);
 	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, size);
 }
 
@@ -203,7 +203,7 @@ void Lights::Initialize()
 		eDummyPos pos = eDummyPos::None;
 		if (col.b == 0) {
 			if (col.r == 255) { // Right
-				if (col.g >= 56 && col.g <= 59) {
+				if (col.g >= 56 && col.g <= 58) {
 					if (col.g == 58) {
 						pos = eDummyPos::FrontRight;
 					}
@@ -217,7 +217,7 @@ void Lights::Initialize()
 				}
 			}
 			else if (col.g == 255) { // Left
-				if (col.r >= 181 && col.r <= 184) {
+				if (col.r >= 181 && col.r <= 183) {
 					if (col.r == 183) {
 						pos = eDummyPos::FrontLeft;
 					}
@@ -297,6 +297,14 @@ void Lights::Initialize()
 		if (state != eLightState::None) {
 			m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, parent, eDummyPos::Rear, col));
 		} });
+
+	// Events::processScriptsEvent += []()
+	// {
+	// 	if (KeyPressed(VK_J))
+	// 	{
+	// 		VehicleMaterials::FindDummies(FindPlayerVehicle(0, false), (RwFrame *)FindPlayerVehicle(0, false)->m_pRwClump->object.parent, false, true);
+	// 	}
+	// };
 
 	Events::processScriptsEvent += []()
 	{
@@ -442,6 +450,8 @@ void Lights::Initialize()
 				bool reverseLightsOn = !isBike && (isRevlightSupportedByModel || globalRevlights)
 					&& pControlVeh->m_nCurrentGear == 0 && (pControlVeh->m_fMovingSpeed >= 0.01f) && pControlVeh->m_pDriver;
 
+				bool disableTailightCorona = false;
+
 				if (reverseLightsOn) {
 					if (isRevlightSupportedByModel) {
 						RenderLights(pTowedVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
@@ -449,24 +459,50 @@ void Lights::Initialize()
 					else if (globalRevlights) {
 						DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, { 240, 240, 240, 0 });
 						DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, { 240, 240, 240, 0 });
+						disableTailightCorona = true;
 					}
 				}
 
 				// taillights/ brakelights
-				if (IsNightTime() && pControlVeh->m_pDriver && (pControlVeh->m_nRenderLightsFlags || pControlVeh->m_fBreakPedal)) {
+				// Fix taillights blinking with indidcators issue
+				// static bool fixApplied = false;
+				// if (!fixApplied) {
+				// 	RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
+				// 	RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
+				// 	RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
+				// 	fixApplied = true;
+				// }
+
+				if (pControlVeh->m_pDriver && (pControlVeh->m_nRenderLightsFlags || pControlVeh->m_fBreakPedal)) {
 					CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 					posn.x = 0.0f;
 					posn.y += 0.2f;
 					int r = 250;
 					int g = 0;
 					int b = 0;
-					Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
+
 					if (pControlVeh->m_nRenderLightsFlags && pControlVeh->m_fBreakPedal) {
 						RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
 						Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
 					}
-					RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
-					RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
+					
+					if (IsNightTime()) {
+						// Some models use brakelights as taillights?
+						if (m_Dummies[pTowedVeh][eLightState::TailLightLeft].size() == 0 
+						&& m_Dummies[pTowedVeh][eLightState::TailLightRight].size() == 0) {
+							RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
+						} else {
+							RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
+							RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
+						}
+
+						if (!disableTailightCorona) {
+							DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, CRGBA(r, g, b, GetCoronaAlphaForDayTime()));
+							DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, CRGBA(r, g, b, GetCoronaAlphaForDayTime()));
+						}
+
+						Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
+					}
 				}
 			}
 		}
