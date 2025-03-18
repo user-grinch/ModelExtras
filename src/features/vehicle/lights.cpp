@@ -464,15 +464,6 @@ void Lights::Initialize()
 				}
 
 				// taillights/ brakelights
-				// Fix taillights blinking with indidcators issue
-				// static bool fixApplied = false;
-				// if (!fixApplied) {
-				// 	RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
-				// 	RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
-				// 	RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
-				// 	fixApplied = true;
-				// }
-
 				if (pControlVeh->m_pDriver && (pControlVeh->m_nRenderLightsFlags || pControlVeh->m_fBreakPedal)) {
 					CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 					posn.x = 0.0f;
@@ -488,12 +479,12 @@ void Lights::Initialize()
 					
 					if (IsNightTime()) {
 						// Some models use brakelights as taillights?
-						if (m_Dummies[pTowedVeh][eLightState::TailLightLeft].size() == 0 
-						&& m_Dummies[pTowedVeh][eLightState::TailLightRight].size() == 0) {
+						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::TailLightLeft].size() == 0 
+						&& m_Materials[pTowedVeh->m_nModelIndex][eLightState::TailLightRight].size() == 0) {
 							RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
 						} else {
-							RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle);
-							RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle);
+							RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle, false);
+							RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle, false);
 						}
 
 						if (!disableTailightCorona) {
@@ -730,8 +721,16 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh)
 {
 	if (gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false))
 	{
-		Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, *(CVector *)&dummy->Position, dummy->Color.r, dummy->Color.g, dummy->Color.b,
-										dummy->Color.a, dummy->Angle, 0.3f, dummy->Size);
+		if (dummy->LightType == LightType::NonDirectional)
+		{
+			Common::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, *(CVector *)&dummy->Position, dummy->Color.r, dummy->Color.g, dummy->Color.b,
+								   dummy->Color.a, dummy->Size);
+		}
+		else
+		{
+			Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, *(CVector *)&dummy->Position, dummy->Color.r, dummy->Color.g, dummy->Color.b,
+											dummy->Color.a, dummy->Angle + (dummy->LightType == LightType::Inversed ? 180.0f : 0.0f), 180.0f, dummy->Size);
+		}
 	}
 };
 
