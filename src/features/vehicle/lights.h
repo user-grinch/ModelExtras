@@ -5,7 +5,8 @@
 #include "avs/materials.h"
 #include "enums/lighttype.h"
 
-enum class eLightState {
+enum class eLightState
+{
 	None,
 	FrontLightLeft,
 	FrontLightRight,
@@ -18,6 +19,8 @@ enum class eLightState {
 	Nightlight,
 	FogLightLeft,
 	FogLightRight,
+	SideLightLeft,
+	SideLightRight,
 
 	IndicatorLeft,
 	IndicatorRight,
@@ -26,30 +29,32 @@ enum class eLightState {
 	Total,
 };
 
-class Lights {
+class Lights
+{
 private:
-	struct VehData {
+	struct VehData
+	{
 		bool m_bFogLightsOn = false;
 		bool m_bLongLightsOn = false;
 		eLightState m_nIndicatorState = eLightState::IndicatorNone;
 
-		VehData(CVehicle* pVeh) {}
+		VehData(CVehicle *pVeh) {}
 		~VehData() {}
 	};
 
 	/*
-	*	Note: Material data need to be model based
-	*		  Dummy data should be entity based
-	*		  Don't change it
-	*/
-	static inline std::map<int, std::map<eLightState, std::vector<VehicleMaterial*>>> m_Materials;
-	static inline std::map<CVehicle*, std::map<eLightState, std::vector<VehicleDummy*>>> m_Dummies;
+	 *	Note: Material data need to be model based
+	 *		  Dummy data should be entity based
+	 *		  Don't change it
+	 */
+	static inline std::map<int, std::map<eLightState, std::vector<VehicleMaterial *>>> m_Materials;
+	static inline std::map<CVehicle *, std::map<eLightState, std::vector<VehicleDummy *>>> m_Dummies;
 	static inline VehicleExtendedData<VehData> m_VehData;
 
-	static void RegisterMaterial(CVehicle* vehicle, RpMaterial* material, eLightState state, CRGBA col, eDummyPos pos = eDummyPos::None);
-	static void RenderLights(CVehicle* vehicle, eLightState state, float vehicleAngle, float cameraAngle, bool shadows = true, std::string texture = "indicator", float sz = 1.0f);
-	static void EnableMaterial(VehicleMaterial* material);
-	static void EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle);
+	static void RegisterMaterial(CVehicle *vehicle, RpMaterial *material, eLightState state, CRGBA col, eDummyPos pos = eDummyPos::None);
+	static void RenderLights(CVehicle *vehicle, eLightState state, float vehicleAngle, float cameraAngle, bool shadows = true, std::string texture = "indicator", float sz = 1.0f);
+	static void EnableMaterial(VehicleMaterial *material);
+	static void EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle);
 
 public:
 	static void Initialize();

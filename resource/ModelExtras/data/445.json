@@ -1,7 +1,24 @@
 {
+    "Clutch": {
+        "Offset": 0
+    },
+    "GearLever": {
+        "Offset": 0
+    },
+    "FrontBrake": {
+        "MaxRotation": 360.0
+    },
+    "RearBrake": {
+        "MaxRotation": 360.0
+    },
     "RPMmeter": {
         "MaxRPM": 200,
         "MaxRotation": 270
+    },
+    "Odometer": {
+        "KPH": true,
+        "Digital": true,
+        "Kilometers": true
     },
     "Speedometer": {
         "MaxSpeed": 200,
@@ -16,7 +33,7 @@
                 "B": 0
             },
             "CoronaSize": 0.5,
-            "DummyPos": "front-left",
+            "Type": "non-directional",
             "Parent": "rear-bumper",
             "Shadow": {
                 "Offset": 10,
@@ -30,7 +47,7 @@
                 "B": 255
             },
             "CoronaSize": 0.5,
-            "DummyPos": "front-left",
+            "Type": "directional",
             "Parent": "front-bumper",
             "Shadow": {
                 "Offset": 10,
@@ -44,7 +61,7 @@
                 "B": 0
             },
             "CoronaSize": 0.5,
-            "DummyPos": "front-left",
+            "Type": "inversed-directional",
             "Parent": "front-bumper",
             "Shadow": {
                 "Offset": 10,
@@ -58,7 +75,7 @@
                 "B": 255
             },
             "CoronaSize": 0.5,
-            "DummyPos": "front-left",
+            "Type": "inversed-directional",
             "Parent": "rear-bumper",
             "Shadow": {
                 "Offset": 10,

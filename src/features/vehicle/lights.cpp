@@ -171,6 +171,7 @@ void Lights::Initialize()
 
 	VehicleMaterials::Register([](CVehicle *vehicle, RpMaterial *material, CRGBA col)
 							   {
+		eDummyPos pos = eDummyPos::None;
 		if ((col.r == 255 && col.g == 173 && col.b == 0) || (col.r == 0 && col.g == 255 && col.b == 198))
 			RegisterMaterial(vehicle, material, eLightState::Reverselight, col);
 		else if ((col.r == 184 && col.g == 255 && col.b == 0) || (col.r == 255 && col.g == 59 && col.b == 0))
@@ -198,9 +199,16 @@ void Lights::Initialize()
 			RegisterMaterial(vehicle, material, eLightState::TailLightRight, col);
 		else if (col.r == 185 && col.g == 255 && col.b == 0)
 			RegisterMaterial(vehicle, material, eLightState::TailLightLeft, col);
+		else if (col.r == 255 && col.g == 200 && col.b == 1) {
+			RegisterMaterial(vehicle, material, eLightState::SideLightLeft, col);
+			pos = eDummyPos::MiddleLeft;
+		}
+		else if (col.r == 255 && col.g == 200 && col.b == 2) {
+			RegisterMaterial(vehicle, material, eLightState::SideLightRight, col);
+			pos = eDummyPos::MiddleRight;
+		}
 
 		// Indicator Lights
-		eDummyPos pos = eDummyPos::None;
 		if (col.b == 0) {
 			if (col.r == 255) { // Right
 				if (col.g >= 56 && col.g <= 58) {
@@ -256,6 +264,9 @@ void Lights::Initialize()
 		}
 		else if (std::regex_search(name, std::regex("^light_night"))) {
 			state = eLightState::Nightlight;
+		}
+		else if (std::regex_search(name, match, std::regex("^sidelight?_([lr]).*$"))) {
+			state = (toupper(match.str(1)[0]) == 'L') ? eLightState::SideLightLeft : eLightState::SideLightRight;
 		}
 		else if (std::regex_search(name, std::regex("^light_em"))) {
 			state = eLightState::AllDayLight;
@@ -423,6 +434,14 @@ void Lights::Initialize()
 				if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::Nightlight].size() != 0) {
 					RenderLights(pTowedVeh, eLightState::Nightlight, vehicleAngle, cameraAngle);
 				}
+
+				if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::SideLightLeft].size() != 0) {
+					RenderLights(pTowedVeh, eLightState::SideLightLeft, vehicleAngle, cameraAngle);
+				}
+
+				if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::SideLightRight].size() != 0) {
+					RenderLights(pTowedVeh, eLightState::SideLightRight, vehicleAngle, cameraAngle);
+				}
 			}
 			else {
 				if (m_Materials[pControlVeh->m_nModelIndex][eLightState::Daylight].size() != 0) {
@@ -474,6 +493,8 @@ void Lights::Initialize()
 
 					if (pControlVeh->m_nRenderLightsFlags && pControlVeh->m_fBreakPedal) {
 						RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
+						RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle, false);
+						RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle, false);
 						Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
 					}
 					
@@ -485,11 +506,11 @@ void Lights::Initialize()
 						} else {
 							RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle, false);
 							RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle, false);
-						}
 
-						if (!disableTailightCorona) {
-							DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, CRGBA(r, g, b, GetCoronaAlphaForDayTime()));
-							DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, CRGBA(r, g, b, GetCoronaAlphaForDayTime()));
+							if (!disableTailightCorona) {
+								DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, CRGBA(r, g, b, GetCoronaAlphaForDayTime()));
+								DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, CRGBA(r, g, b, GetCoronaAlphaForDayTime()));
+							}
 						}
 
 						Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);

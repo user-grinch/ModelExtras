@@ -23,6 +23,7 @@ public:
     float Angle;
     float CurrentAngle = 0.0f;
     bool hasShadow = false;
+    bool indicatorTaillightMode = false;
 
     VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, bool parent, eDummyPos type = eDummyPos::None, RwRGBA color = {255, 255, 255, 128});
 
