@@ -469,8 +469,6 @@ void Lights::Initialize()
 				bool reverseLightsOn = !isBike && (isRevlightSupportedByModel || globalRevlights)
 					&& pControlVeh->m_nCurrentGear == 0 && (pControlVeh->m_fMovingSpeed >= 0.01f) && pControlVeh->m_pDriver;
 
-				bool disableTailightCorona = false;
-
 				if (reverseLightsOn) {
 					if (isRevlightSupportedByModel) {
 						RenderLights(pTowedVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
@@ -478,7 +476,6 @@ void Lights::Initialize()
 					else if (globalRevlights) {
 						DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, { 240, 240, 240, 0 });
 						DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, { 240, 240, 240, 0 });
-						disableTailightCorona = true;
 					}
 				}
 
@@ -506,11 +503,6 @@ void Lights::Initialize()
 						} else {
 							RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle, false);
 							RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle, false);
-
-							if (!disableTailightCorona) {
-								DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, CRGBA(r, g, b, GetCoronaAlphaForDayTime()));
-								DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, CRGBA(r, g, b, GetCoronaAlphaForDayTime()));
-							}
 						}
 
 						Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
