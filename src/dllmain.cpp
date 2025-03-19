@@ -2,6 +2,7 @@
 #include "features/mgr.h"
 
 extern void ShowDonationWindow();
+extern void TrainerInit();
 
 std::vector<std::string> donators = {
     "Agha",
@@ -87,6 +88,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
             bool AVSInstalled = GetModuleHandle("AdvancedVehicleSirens.asi");
             bool EarShot = GetModuleHandle("EarShot.asi");
             bool PedFuncs = GetModuleHandle("PedFuncs.asi");
+            bool GrinchTrainer = GetModuleHandle("GrinchTrainerSA.asi");
 
             InitLogFile();
 
@@ -129,6 +131,16 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
                 MessageBox(RsGlobal.ps->window, str.c_str(), "GraphicsTweaker Found!", MB_OK);
                 gConfig.WriteBoolean("MISC", "ShowGraphicsTweakerWarning", false);
             }
+
+            if (GrinchTrainer)
+            {
+                gLogger->info("GrinchTrainerSA found. Registering...");
+            }
+        };
+
+        Events::processScriptsEvent += []()
+        {
+            TrainerInit();
         };
         FeatureMgr::Initialize();
     }

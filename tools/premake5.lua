@@ -65,12 +65,12 @@ project "ModelExtras"
         symbols "On"
         links { 
             "plugin_d.lib",
-            "bass",
+            "GrinchTrainerSA",
         }
 
     filter "configurations:Release"
         optimize "On"
         links { 
             "plugin.lib",
-            "bass",
+            "GrinchTrainerSA",
         }

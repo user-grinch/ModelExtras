@@ -10,6 +10,13 @@
 #include <rwcore.h>
 #include <rpworld.h>
 
+// flags
+bool gbGlobalIndicatorLights = false;
+bool gbGlobalReverseLights = false;
+float gfGlobalCoronaSize = 0.3f;
+int gGlobalCoronaIntensity = 220;
+int gGlobalShadowIntensity = 220;
+
 bool IsNightTime()
 {
 	return CClock::GetIsTimeInRange(20, 7);
@@ -17,27 +24,26 @@ bool IsNightTime()
 
 unsigned int GetShadowAlphaForDayTime()
 {
-	static int intensity = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalShadowIntensity", 250);
+
 	if (IsNightTime())
 	{
-		return intensity - 5;
+		return std::min(0, gGlobalShadowIntensity - 5);
 	}
 	else
 	{
-		return intensity - 15;
+		return std::min(0, gGlobalShadowIntensity - 15);
 	}
 }
 
 unsigned int GetCoronaAlphaForDayTime()
 {
-	static int intensity = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalCoronaIntensity", 250);
 	if (IsNightTime())
 	{
-		return intensity - 5;
+		return std::min(0, gGlobalCoronaIntensity - 5);
 	}
 	else
 	{
-		return intensity - 15;
+		return std::min(0, gGlobalCoronaIntensity - 15);
 	}
 }
 
@@ -79,8 +85,7 @@ void DrawGlobalLight(CVehicle *pVeh, eDummyPos pos, CRGBA col)
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	Common::RegisterShadow(pVeh, posn, col.r, col.g, col.b, GetShadowAlphaForDayTime(), dummyAngle, 0.0f, "indicator");
-	static float size = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalCoronaSize", 0.3f);
-	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, size);
+	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, gfGlobalCoronaSize);
 }
 
 inline float GetZAngleForPoint(CVector2D const &point)
@@ -137,6 +142,12 @@ void Lights::Initialize()
 		hsl = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_single_long.png")), 255);
 		hts = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_twin_short.png")), 255);
 		htl = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_twin_long.png")), 255);
+
+		gbGlobalIndicatorLights = gConfig.ReadBoolean("VEHICLE_FEATURES", "StandardLights_GlobalIndicatorLights", false);
+		gbGlobalReverseLights = gConfig.ReadBoolean("VEHICLE_FEATURES", "StandardLights_GlobalReverseLights", false);
+		gfGlobalCoronaSize = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalCoronaSize", 0.3f);
+		gGlobalShadowIntensity = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalShadowIntensity", 220);
+		gGlobalCoronaIntensity = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalCoronaIntensity", 250);
 	};
 
 	static FastcallEvent<AddressList<0x6E1A76, H_CALL>, PRIORITY_BEFORE,
@@ -465,15 +476,14 @@ void Lights::Initialize()
 			if (isBike || CModelInfo::IsCarModel(pControlVeh->m_nModelIndex)) {
 				bool isRevlightSupportedByModel = !m_Dummies[pTowedVeh][eLightState::Reverselight].empty();
 
-				bool globalRevlights = gConfig.ReadBoolean("VEHICLE_FEATURES", "StandardLights_GlobalReverseLights", false);
-				bool reverseLightsOn = !isBike && (isRevlightSupportedByModel || globalRevlights)
+				bool reverseLightsOn = !isBike && (isRevlightSupportedByModel || gbGlobalReverseLights)
 					&& pControlVeh->m_nCurrentGear == 0 && (pControlVeh->m_fMovingSpeed >= 0.01f) && pControlVeh->m_pDriver;
 
 				if (reverseLightsOn) {
 					if (isRevlightSupportedByModel) {
 						RenderLights(pTowedVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
 					}
-					else if (globalRevlights) {
+					else if (reverseLightsOn) {
 						DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, { 240, 240, 240, 0 });
 						DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, { 240, 240, 240, 0 });
 					}
@@ -482,21 +492,23 @@ void Lights::Initialize()
 				// taillights/ brakelights
 				if (pControlVeh->m_pDriver && (pControlVeh->m_nRenderLightsFlags || pControlVeh->m_fBreakPedal)) {
 					CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
-					posn.x = 0.0f;
-					posn.y += 0.2f;
 					int r = 250;
 					int g = 0;
 					int b = 0;
 
+					int shadowCnt = 0;
+
 					if (pControlVeh->m_nRenderLightsFlags && pControlVeh->m_fBreakPedal) {
-						RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
-						RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle, false);
-						RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle, false);
-						Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
+						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::Brakelight].size() == 0) {
+							RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle, false);
+							RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle, false);
+						} else {
+							RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
+						}
+						shadowCnt++;
 					}
 					
 					if (IsNightTime()) {
-						// Some models use brakelights as taillights?
 						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::TailLightLeft].size() == 0 
 						&& m_Materials[pTowedVeh->m_nModelIndex][eLightState::TailLightRight].size() == 0) {
 							RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
@@ -504,8 +516,13 @@ void Lights::Initialize()
 							RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle, false);
 							RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle, false);
 						}
+						shadowCnt++;
+					}
 
-						Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, isBike ? "taillight_bike" : "taillight", 1.75f);
+					for (int i = 0; i < shadowCnt; i++) {
+						Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "indicator");
+						posn.x *= -1.0f;
+						Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "indicator");
 					}
 				}
 			}
@@ -513,7 +530,7 @@ void Lights::Initialize()
 
 		// Indicator Lights
 		eLightState state = data.m_nIndicatorState;
-		if (!gConfig.ReadBoolean("VEHICLE_FEATURES", "StandardLights_GlobalIndicatorLights", false) && m_Dummies[pControlVeh].size() == 0 && m_Materials[pControlVeh->m_nModelIndex][state].size() == 0) {
+		if (!gbGlobalIndicatorLights && m_Dummies[pControlVeh].size() == 0 && m_Materials[pControlVeh->m_nModelIndex][state].size() == 0) {
 			return;
 		}
 
@@ -580,7 +597,7 @@ void Lights::Initialize()
 		}
 
 		// global turn lights
-		if (gConfig.ReadBoolean("VEHICLE_FEATURES", "StandardLights_GlobalIndicatorLights", false) &&
+		if (gbGlobalIndicatorLights &&
 			(m_Dummies[pControlVeh][eLightState::IndicatorLeft].size() == 0 || m_Dummies[pControlVeh][eLightState::IndicatorRight].size() == 0)
 			 && (m_Materials[pControlVeh->m_nModelIndex][eLightState::IndicatorLeft].size() == 0 || m_Materials[pControlVeh->m_nModelIndex][eLightState::IndicatorRight].size() == 0))
 		{
