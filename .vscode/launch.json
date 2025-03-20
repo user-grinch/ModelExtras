@@ -5,17 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch SS",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${env:GTA_SS_DIR}/gta_sa.exe",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${env:GTA_SS_DIR}",
-            "environment": [],
-            "console": "internalConsole"
-        },
-        {
             "name": "Launch SA",
             "type": "cppvsdbg",
             "request": "launch",
@@ -23,28 +12,6 @@
             "args": [],
             "stopAtEntry": false,
             "cwd": "${env:GTA_SA_DIR}",
-            "environment": [],
-            "console": "internalConsole"
-        },
-        {
-            "name": "Launch VC",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${env:GTA_VC_DIR}/gta-vc.exe",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${env:GTA_VC_DIR}",
-            "environment": [],
-            "console": "internalConsole"
-        },
-        {
-            "name": "Launch III",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${env:GTA_III_DIR}/Gta3.exe",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${env:GTA_III_DIR}",
             "environment": [],
             "console": "internalConsole"
         },

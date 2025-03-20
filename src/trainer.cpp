@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "GrinchTrainerAPI.h"
+#include "trainer/vehframeview.hpp"
 
 extern bool gbGlobalIndicatorLights;
 extern bool gbGlobalReverseLights;
@@ -14,7 +15,7 @@ void TrainerInit()
     TAPI_ClearWidgets();
     if (TAPI_InitConnect("ModelExtras", TAPI_VERSION) == TReturn_Success)
     {
-        static const char *tabs[] = {"Features", "Vehicles", "Weapons"};
+        static const char *tabs[] = {"Features", "NodeExplorer", "Weapons"};
         static size_t selectedTab = 0;
         TAPI_Spacing(0, 10);
         if (TAPI_Tabs(tabs, 3, &selectedTab) == TReturn_Success)
@@ -37,7 +38,16 @@ void TrainerInit()
 
             if (selectedTab == 1)
             {
-                TAPI_Text("Vehicles TAB");
+                CVehicle *pVeh = FindPlayerVehicle(0, true);
+
+                if (pVeh)
+                {
+                    VehicleFrameView::Render(pVeh);
+                }
+                else
+                {
+                    TAPI_Text("Player must be inside a vehicle");
+                }
             }
 
             if (selectedTab == 2)

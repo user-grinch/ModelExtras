@@ -1,0 +1,86 @@
+{
+    "Clutch": {
+        "Offset": 0
+    },
+    "GearLever": {
+        "Offset": 0
+    },
+    "FrontBrake": {
+        "MaxRotation": 360.0
+    },
+    "RearBrake": {
+        "MaxRotation": 360.0
+    },
+    "RPMmeter": {
+        "MaxRPM": 200,
+        "MaxRotation": 270
+    },
+    "Odometer": {
+        "KPH": true,
+        "Digital": true,
+        "Kilometers": true
+    },
+    "Speedometer": {
+        "MaxSpeed": 200,
+        "MaxRotation": 270,
+        "KPH": true
+    },
+    "Lights": {
+        "indicator_lr": {
+            "Color": {
+                "R": 0,
+                "G": 255,
+                "B": 0
+            },
+            "CoronaSize": 0.5,
+            "Type": "non-directional",
+            "Parent": "rear-bumper",
+            "Shadow": {
+                "Offset": 10,
+                "Rotation": 45
+            }
+        },
+        "indicator_lf": {
+            "Color": {
+                "R": 0,
+                "G": 0,
+                "B": 255
+            },
+            "CoronaSize": 0.5,
+            "Type": "directional",
+            "Parent": "front-bumper",
+            "Shadow": {
+                "Offset": 10,
+                "Rotation": -45
+            }
+        },
+        "indicator_rf": {
+            "Color": {
+                "R": 0,
+                "G": 255,
+                "B": 0
+            },
+            "CoronaSize": 0.5,
+            "Type": "inversed-directional",
+            "Parent": "front-bumper",
+            "Shadow": {
+                "Offset": 10,
+                "Rotation": 45
+            }
+        },
+        "indicator_rr": {
+            "Color": {
+                "R": 0,
+                "G": 0,
+                "B": 255
+            },
+            "CoronaSize": 0.5,
+            "Type": "inversed-directional",
+            "Parent": "rear-bumper",
+            "Shadow": {
+                "Offset": 10,
+                "Rotation": -45
+            }
+        }
+    }
+}

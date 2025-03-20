@@ -1,0 +1,33 @@
+#Mad_Driver (Mad_Driver10) Color Settings file for IVF 2.1.1
+#Vehicle: Nissan 240SX SE '91
+
+vehicle_id 558
+num_colors 12
+
+#exterior colors
+9 10 13		    # 0 Super Black
+235 237 231		# 1 Super White
+135 8 13		# 2 Aztek Red
+105 23 29		# 3 Chery Red Pearl
+164 181 175		# 4 Silver Green Pearl
+62 64 63		# 5 Charcoal Metallic
+175 173 164		# 6 Sandstone Beige Metallic
+137 143 154		# 7 Misty Blue Metallic
+110 108 113		# 8 Gray Amethyst Pearl
+24 28 40		# 9 Midnight Blue Pearl
+
+#interior colors
+52 52 50		# 10 Grey Velour
+169 169 171		# 11 Black Velour
+
+num_variations 8
+
+#Body Interior N/A N/A
+2 11 0 0
+9 10 0 0
+0 11 0 0 
+1 10 0 0
+4 11 0 0
+5 10 0 0
+6 11 0 0
+7 10 0 0
