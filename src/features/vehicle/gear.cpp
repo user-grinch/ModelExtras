@@ -6,10 +6,8 @@
 
 #define LOAD_3D_AUDIO_STREAM 0x0AC1
 #define SET_PLAY_3D_AUDIO_STREAM_AT_COORDS 0x0AC2
-#define IS_AUDIO_STREAM_PLAYING 0x2500
-#define SET_AUDIO_STREAM_PROGRESS 0x2508
-#define SET_AUDIO_STREAM_TYPE 0x250A
 #define SET_AUDIO_STREAM_STATE 0x0AAD
+#define GET_AUDIO_STREAM_STATE 0x0AB9
 
 void Clutch::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 {
@@ -191,11 +189,11 @@ void GearSound::Process(void *ptr, RwFrame *frame, eModelEntityType type)
     }
     if (data.m_nCurGear != pVeh->m_nCurrentGear)
     {
-        if (data.hUpAudio && !plugin::Command<IS_AUDIO_STREAM_PLAYING>(data.hUpAudio))
+        int state = -1;
+        plugin::Command<GET_AUDIO_STREAM_STATE>(data.hUpAudio, &state);
+        if (data.hUpAudio && state != 1) // not playing
         {
-            plugin::Command<SET_AUDIO_STREAM_PROGRESS>(data.hUpAudio, 0.0f);
             CVector pos = pVeh->GetPosition();
-            plugin::Command<SET_AUDIO_STREAM_TYPE>(data.hUpAudio, 1);
             plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(data.hUpAudio, pos.x, pos.y, pos.z);
             plugin::Command<SET_AUDIO_STREAM_STATE>(data.hUpAudio, 1);
         }

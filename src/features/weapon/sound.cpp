@@ -9,18 +9,16 @@
 
 #define LOAD_3D_AUDIO_STREAM 0x0AC1
 #define SET_PLAY_3D_AUDIO_STREAM_AT_COORDS 0x0AC2
-#define IS_AUDIO_STREAM_PLAYING 0x2500
-#define SET_AUDIO_STREAM_PROGRESS 0x2508
-#define SET_AUDIO_STREAM_TYPE 0x250A
 #define SET_AUDIO_STREAM_STATE 0x0AAD
+#define GET_AUDIO_STREAM_STATE 0x0AB9
 
 void WeaponSoundSystem::PlayAudioStream(StreamHandle handle, CPed *pPed)
 {
-    if (handle && !plugin::Command<IS_AUDIO_STREAM_PLAYING>(handle))
+    int state = -1;
+    plugin::Command<GET_AUDIO_STREAM_STATE>(handle, &state);
+    if (handle && state != 1) // not playing
     {
-        plugin::Command<SET_AUDIO_STREAM_PROGRESS>(handle, 0.0f);
         CVector pos = pPed->GetPosition();
-        plugin::Command<SET_AUDIO_STREAM_TYPE>(handle, 1);
         plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, pos.x, pos.y, pos.z);
         plugin::Command<SET_AUDIO_STREAM_STATE>(handle, 1);
     }

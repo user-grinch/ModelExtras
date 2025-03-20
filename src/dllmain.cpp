@@ -76,8 +76,8 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 
             if (!cleo)
             {
-                MessageBox(RsGlobal.ps->window, "CLEO Library 5.0 or above required!", "ModelExtras", MB_OK);
-                gLogger->error("CLEO Library 5.0 or above required!");
+                MessageBox(RsGlobal.ps->window, "CLEO Library 4.4 or above is required!", "ModelExtras", MB_OK);
+                gLogger->error("CLEO Library 4.4 or above is required!");
             }
         };
 
