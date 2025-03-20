@@ -27,11 +27,11 @@ unsigned int GetShadowAlphaForDayTime()
 
 	if (IsNightTime())
 	{
-		return std::min(0, gGlobalShadowIntensity - 5);
+		return std::max(0, gGlobalShadowIntensity - 5);
 	}
 	else
 	{
-		return std::min(0, gGlobalShadowIntensity - 15);
+		return std::max(0, gGlobalShadowIntensity - 15);
 	}
 }
 
@@ -39,11 +39,11 @@ unsigned int GetCoronaAlphaForDayTime()
 {
 	if (IsNightTime())
 	{
-		return std::min(0, gGlobalCoronaIntensity - 5);
+		return std::max(0, gGlobalCoronaIntensity - 5);
 	}
 	else
 	{
-		return std::min(0, gGlobalCoronaIntensity - 15);
+		return std::max(0, gGlobalCoronaIntensity - 15);
 	}
 }
 

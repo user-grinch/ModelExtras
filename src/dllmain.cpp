@@ -132,7 +132,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
                 gConfig.WriteBoolean("MISC", "ShowGraphicsTweakerWarning", false);
             }
 
-            if (GrinchTrainer)
+            if (GrinchTrainer && gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))
             {
                 gLogger->info("GrinchTrainerSA found. Registering...");
                 Events::processScriptsEvent += []()
