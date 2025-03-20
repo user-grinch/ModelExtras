@@ -135,13 +135,13 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
             if (GrinchTrainer)
             {
                 gLogger->info("GrinchTrainerSA found. Registering...");
+                Events::processScriptsEvent += []()
+                {
+                    TrainerInit();
+                };
             }
         };
 
-        Events::processScriptsEvent += []()
-        {
-            TrainerInit();
-        };
         FeatureMgr::Initialize();
     }
     return TRUE;

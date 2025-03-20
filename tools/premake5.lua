@@ -15,10 +15,6 @@ workspace "ModelExtras"
     location "../build"
     targetdir "../build/bin"
 
-    linkoptions {
-        "/SAFESEH:NO",
-    }
-
 project "ModelExtras"
     kind "SharedLib"
     targetextension ".asi"
@@ -32,12 +28,9 @@ project "ModelExtras"
 
     defines { 
         "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING",
-        "IS_PLATFORM_WIN" ,
         "_CRT_SECURE_NO_WARNINGS",
         "_CRT_NON_CONFORMING_SWPRINTFS",
-        "_DX9_SDK_INSTALLED",
         "PLUGIN_SGV_10US",
-        "_GTA_",
         "GTASA",
         "RW"
     }
@@ -59,16 +52,24 @@ project "ModelExtras"
         "../lib/"
     }
 
+    links {
+        "delayimp",
+        "GrinchTrainerSA",
+    }
+
+    linkoptions { 
+        "/SAFESEH:NO",
+        "/DELAYLOAD:GrinchTrainerSA.asi"
+    }
+
     filter "configurations:Debug"
         symbols "On"
         links { 
             "plugin_d.lib",
-            "GrinchTrainerSA",
         }
 
     filter "configurations:Release"
         optimize "On"
         links { 
             "plugin.lib",
-            "GrinchTrainerSA",
         }
