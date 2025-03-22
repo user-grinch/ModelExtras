@@ -7,42 +7,37 @@
 #include <RenderWare.h>
 #include "defines.h"
 
+static CVehicle *pCurrentVeh = nullptr;
 PlateFeature LicensePlate;
 extern bool IsNightTime();
 extern bool IsEngineOff(CVehicle *pVeh);
 
-bool lightState = false;
-RpMaterial *__cdecl CCustomCarPlateMgr_SetupClump(RpAtomic *clump, void *plateText, char plateType)
-{
-    return NULL;
-}
-
 void PlateFeature::Initialize()
 {
-    CVehicleModelInfo
-        plugin::patch::SetPointer(0xC3EF60, LicensePlate.m_Plates[DAY_SF]);
-    plugin::patch::SetPointer(0xC3EF64, LicensePlate.m_Plates[DAY_LV]);
-    plugin::patch::SetPointer(0xC3EF68, LicensePlate.m_Plates[DAY_LS]);
-    plugin::patch::SetPointer(0xC3EF5C, &pCharSetTex);
-    plugin::patch::SetPointer(0x6FDEE5, &pCharSetTex);
-    plugin::patch::SetChar(0x6FDF47, rwFILTERLINEARMIPLINEAR);
+    // RpMaterial *__cdecl CCustomCarPlateMgr::SetupMaterialPlatebackTexture(RpMaterial *material, char plateType)
+    plugin::patch::PutRetn(0x6FDE50);
     plugin::patch::ReplaceFunction(0x6FD500, CCustomCarPlateMgr_Initialise);
     plugin::patch::ReplaceFunction(0x6FD720, CCustomCarPlateMgr_Shudown);
-    plugin::patch::ReplaceFunction(0x6FDE50, CCustomCarPlateMgr_SetupMaterialPlatebackTexture);
     plugin::patch::ReplaceFunction(0x6FDEA0, CCustomCarPlateMgr_CreatePlateTexture);
-    // plugin::patch::ReplaceFunctionCall(0x4C949E, CCustomCarPlateMgr_SetupClump);
-    // plugin::Events::vehicleRenderEvent.before += [this](CVehicle* pVeh) {
-    //     bool hasDriver = (pVeh->m_pDriver != nullptr);
-    //     bool curState = hasDriver ? IsNightTime() : false;
 
-    //     auto& data = vehData.Get(pVeh);
-    //     if (data.m_bNightTexture != curState || !data.m_bInit) {
-    //         CVehicleModelInfo* pInfo = (CVehicleModelInfo*)CModelInfo::GetModelInfo(pVeh->m_nModelIndex);
-    //         lightState = data.m_bNightTexture = curState;
-    //         CCustomCarPlateMgr::SetupClump(pVeh->m_pRwClump, pInfo->m_szPlateText, pInfo->m_nPlateType);
-    //         data.m_bInit = true;
-    //     }
-    //     };
+    plugin::Events::vehicleRenderEvent += [](CVehicle *pVeh)
+    {
+        pCurrentVeh = pVeh;
+        RpClumpForAllAtomics(pVeh->m_pRwClump, [](RpAtomic *atomic, void *data)
+                             {
+        if (atomic->geometry) {
+            RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *mat, void *data) {
+                if (mat && mat->texture) {
+                    if ( !_stricmp("carpback", mat->texture->name) )
+                    {
+                        CCustomCarPlateMgr_SetupMaterialPlatebackTexture(mat, -1);
+                    }
+                }
+                return mat;
+            }, NULL);
+        }
+        return atomic; }, NULL);
+    };
 }
 
 void __cdecl PlateFeature::CCustomCarPlateMgr_Shudown()
@@ -99,7 +94,7 @@ RpMaterial *__cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
             plateType = CWeather::WeatherRegion > 2 && CWeather::WeatherRegion <= 4;
     }
 
-    if (IsNightTime())
+    if (IsNightTime() && !IsEngineOff(pCurrentVeh) && pCurrentVeh->m_pDriver)
     {
         material->surfaceProps.ambient = AMBIENT_ON_VAL;
         RpMaterialSetTexture(material, m_Plates[plateType + 3]);
