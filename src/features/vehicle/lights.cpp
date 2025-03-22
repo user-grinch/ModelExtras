@@ -22,6 +22,11 @@ bool IsNightTime()
 	return CClock::GetIsTimeInRange(20, 7);
 }
 
+bool IsEngineOff(CVehicle *pVeh)
+{
+	return !pVeh->m_nVehicleFlags.bEngineOn || pVeh->m_nVehicleFlags.bEngineBroken;
+}
+
 unsigned int GetShadowAlphaForDayTime()
 {
 
@@ -380,7 +385,7 @@ void Lights::Initialize()
 		}
 		VehData& data = m_VehData.Get(pControlVeh);
 
-		if (pControlVeh->m_fHealth == 0) { // TODO
+		if (pControlVeh->m_fHealth == 0 || IsEngineOff(pControlVeh)) { // TODO
 			return;
 		}
 
@@ -490,15 +495,14 @@ void Lights::Initialize()
 				}
 
 				// taillights/ brakelights
-				if (pControlVeh->m_pDriver && (pControlVeh->m_nRenderLightsFlags || pControlVeh->m_fBreakPedal)) {
+				if (pControlVeh->m_pDriver) {
 					CVector posn = reinterpret_cast<CVehicleModelInfo*>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[1];
 					int r = 250;
 					int g = 0;
 					int b = 0;
 
 					int shadowCnt = 0;
-
-					if (pControlVeh->m_nRenderLightsFlags && pControlVeh->m_fBreakPedal) {
+					if (pControlVeh->m_fBreakPedal) {
 						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::Brakelight].size() == 0) {
 							RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle, false);
 							RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle, false);
@@ -768,6 +772,11 @@ void Lights::EnableMaterial(VehicleMaterial *material)
 {
 	if (material && material->Material)
 	{
+		if (material->Material->surfaceProps.ambient == AMBIENT_ON_VAL && material->Material->texture == material->TextureActive)
+		{
+			return; // skip if enabled already
+		}
+
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int *>(&material->Material->surfaceProps.ambient)));
 		material->Material->surfaceProps.ambient = AMBIENT_ON_VAL;
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->texture), *reinterpret_cast<unsigned int *>(&material->Material->texture)));

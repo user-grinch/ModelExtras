@@ -14,6 +14,7 @@ bool VehicleSiren::GetSirenState()
 };
 
 unsigned int GetShadowAlphaForDayTime();
+bool IsEngineOff(CVehicle *pVeh);
 
 char __fastcall Sirens::hkUsesSiren(CVehicle *ptr)
 {
@@ -737,6 +738,11 @@ void Sirens::Initialize()
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
 		if (!modelData.contains(model)) {
+			return;
+		}
+
+		if (IsEngineOff(vehicle)) {
+			vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
 			return;
 		}
 
