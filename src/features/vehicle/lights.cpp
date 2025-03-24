@@ -518,6 +518,13 @@ void Lights::Initialize()
 						} else {
 							RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
 						}
+						
+						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::STTLightLeft].size() != 0) {
+							RenderLights(pTowedVeh, eLightState::STTLightLeft, vehicleAngle, cameraAngle, false);
+						}
+						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::STTLightRight].size() != 0) {
+							RenderLights(pTowedVeh, eLightState::STTLightRight, vehicleAngle, cameraAngle, false);
+						}
 						shadowCnt++;
 					}
 					
@@ -529,6 +536,13 @@ void Lights::Initialize()
 							RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle, false);
 							RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle, false);
 						}
+
+						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::STTLightLeft].size() != 0) {
+							RenderLights(pTowedVeh, eLightState::STTLightLeft, vehicleAngle, cameraAngle, false);
+						}
+						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::STTLightRight].size() != 0) {
+							RenderLights(pTowedVeh, eLightState::STTLightRight, vehicleAngle, cameraAngle, false);
+						}
 						shadowCnt++;
 					}
 
@@ -536,29 +550,6 @@ void Lights::Initialize()
 						Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "indicator");
 						posn.x *= -1.0f;
 						Common::RegisterShadow(pTowedVeh, posn, r, g, b, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "indicator");
-					}
-				}
-
-				// STT Stop Brake
-				if (pControlVeh->m_pDriver && data.m_nIndicatorState != eLightState::IndicatorBoth) {
-					auto renderLight = [&](){
-						if (data.m_nIndicatorState != eLightState::IndicatorLeft
-						&& m_Materials[pTowedVeh->m_nModelIndex][eLightState::STTLightLeft].size() != 0) {
-							RenderLights(pTowedVeh, eLightState::STTLightLeft, vehicleAngle, cameraAngle);
-						}
-
-						if (data.m_nIndicatorState != eLightState::IndicatorRight
-						&& m_Materials[pTowedVeh->m_nModelIndex][eLightState::STTLightRight].size() != 0) {
-							RenderLights(pTowedVeh, eLightState::STTLightRight, vehicleAngle, cameraAngle);
-						}
-					};
-
-					if (pControlVeh->m_fBreakPedal) {
-						renderLight();
-					}
-					
-					if (IsNightTime()) {
-						renderLight();
 					}
 				}
 			}
