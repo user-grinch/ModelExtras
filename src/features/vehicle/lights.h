@@ -21,6 +21,8 @@ enum class eLightState
 	FogLightRight,
 	SideLightLeft,
 	SideLightRight,
+	STTLightLeft,
+	STTLightRight,
 
 	IndicatorLeft,
 	IndicatorRight,
