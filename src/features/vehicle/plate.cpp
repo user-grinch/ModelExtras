@@ -66,12 +66,12 @@ bool __cdecl PlateFeature::CCustomCarPlateMgr_Initialise()
     pCharSetTex->raster->stride = 512;
 
     // Don't add .dds extension!
-    m_Plates[DAY_LV] = Util::LoadDDSTextureCB(dirPath, "plateback3");
-    m_Plates[DAY_LS] = Util::LoadDDSTextureCB(dirPath, "plateback2");
+    m_Plates[DAY_LS] = Util::LoadDDSTextureCB(dirPath, "plateback3");
+    m_Plates[DAY_LV] = Util::LoadDDSTextureCB(dirPath, "plateback2");
     m_Plates[DAY_SF] = Util::LoadDDSTextureCB(dirPath, "plateback1");
 
-    m_Plates[NIGHT_LV] = Util::LoadDDSTextureCB(dirPath, "plateback3_l");
-    m_Plates[NIGHT_LS] = Util::LoadDDSTextureCB(dirPath, "plateback2_l");
+    m_Plates[NIGHT_LS] = Util::LoadDDSTextureCB(dirPath, "plateback3_l");
+    m_Plates[NIGHT_LV] = Util::LoadDDSTextureCB(dirPath, "plateback2_l");
     m_Plates[NIGHT_SF] = Util::LoadDDSTextureCB(dirPath, "plateback1_l");
 
     for (int i = 0; i < ePlateType::TOTAL_SZ; i++)
@@ -88,10 +88,12 @@ RpMaterial *__cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
 {
     if (plateType == -1)
     {
-        if (CWeather::WeatherRegion == 1)
-            plateType = 2;
+        if (CWeather::WeatherRegion == WEATHER_REGION_LA)
+            plateType = DAY_LS;
+        else if (CWeather::WeatherRegion == WEATHER_REGION_SF)
+            plateType = DAY_SF;
         else
-            plateType = CWeather::WeatherRegion > 2 && CWeather::WeatherRegion <= 4;
+            plateType = DAY_LV;
     }
 
     if (IsNightTime() && !IsEngineOff(pCurrentVeh) && pCurrentVeh->m_pDriver)
