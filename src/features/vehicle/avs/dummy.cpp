@@ -77,13 +77,13 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
 
     if (type == eDummyPos::MiddleLeft)
     {
-        ShdwPosition.x -= 2 * offSetVal / 10.0f;
+        ShdwPosition.x -= 2 * offSetVal / 10.0f + 1.25f;
         Angle = 90 - angleVal;
     }
 
     if (type == eDummyPos::MiddleRight)
     {
-        ShdwPosition.x += 2 * offSetVal / 10.0f;
+        ShdwPosition.x += 2 * offSetVal / 10.0f + 1.25f;
         Angle = 270 - angleVal;
     }
 
