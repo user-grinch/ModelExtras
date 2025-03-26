@@ -1,26 +1,57 @@
 #include "pch.h"
 #include "datamgr.h"
 #include <string>
+#include <CModelInfo.h>
 
-void DataMgr::Init() {
+bool is_number(const std::string &s)
+{
+    return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
+}
+
+void DataMgr::Init()
+{
     std::string path = MOD_DATA_PATH("data/");
-    
-    for (const auto& e : std::filesystem::directory_iterator(path)) {
-        if (e.is_regular_file() && e.path().extension() == ".json") {
+
+    for (const auto &e : std::filesystem::directory_iterator(path))
+    {
+        if (e.is_regular_file() && e.path().extension() == ".json")
+        {
             std::string filename = e.path().filename().string();
-            int key = std::stoi(e.path().stem().string());
+            std::string key = e.path().stem().string();
+            int model = 0;
+
+            if (is_number(key))
+            {
+                model = std::stoi(key);
+            }
+            else
+            {
+                if (!CModelInfo::GetModelInfo((char *)key.c_str(), &model))
+                {
+                    continue; // invalid skip it
+                }
+            }
+
+            if (model == 0)
+            {
+                continue; // skip it
+            }
+
             std::ifstream file(e.path());
-            try {
-                data[key] = nlohmann::json::parse(file);
+            try
+            {
+                data[model] = nlohmann::json::parse(file);
                 LOG_VERBOSE("Successfully registered file '{}'", e.path().filename().string());
             }
-            catch (const nlohmann::json::parse_error& ex) {
+            catch (const nlohmann::json::parse_error &ex)
+            {
                 gLogger->error("Failed to parse JSON in file '{}': {}", e.path().string(), ex.what());
             }
         }
     }
 }
 
-nlohmann::json& DataMgr::Get(int model) {
+nlohmann::json &DataMgr::Get(int model)
+{
     return data[model];
 }

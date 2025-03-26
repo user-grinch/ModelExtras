@@ -505,6 +505,7 @@ void Sirens::RegisterMaterial(CVehicle *vehicle, RpMaterial *material)
 };
 
 extern int ImVehFt_EmlToJson(const std::string &emlPath);
+extern bool is_number(const std::string &s);
 
 void Sirens::ParseConfig()
 {
@@ -537,7 +538,24 @@ void Sirens::ParseConfig()
 
 		try
 		{
-			int model = std::stoi(file);
+			int model = 0;
+			if (is_number(file))
+			{
+				model = std::stoi(file);
+			}
+			else
+			{
+				if (!CModelInfo::GetModelInfo((char *)file.c_str(), &model))
+				{
+					continue; // invalid skip it
+				}
+			}
+
+			if (model == 0)
+			{
+				continue; // skip
+			}
+
 			nlohmann::json _json = nlohmann::json::parse(infile);
 			CurrentModel = model;
 
