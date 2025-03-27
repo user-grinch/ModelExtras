@@ -32,7 +32,7 @@ unsigned int GetShadowAlphaForDayTime()
 
 	if (IsNightTime())
 	{
-		return std::max(0, gGlobalShadowIntensity - 5);
+		return std::max(0, gGlobalShadowIntensity);
 	}
 	else
 	{
@@ -44,7 +44,7 @@ unsigned int GetCoronaAlphaForDayTime()
 {
 	if (IsNightTime())
 	{
-		return std::max(0, gGlobalCoronaIntensity - 5);
+		return std::max(0, gGlobalCoronaIntensity);
 	}
 	else
 	{
@@ -272,7 +272,7 @@ void Lights::Initialize()
 	VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *frame, std::string name, bool parent)
 									{
 		eLightState state = eLightState::None;
-		RwRGBA col{ 255, 255, 255, 128 };
+		RwRGBA col{ 255, 255, 255, 220 };
 
 		std::smatch match;
 		if (std::regex_search(name, match, std::regex("^fogl(ight)?_([lr]).*$"))) {
@@ -324,7 +324,7 @@ void Lights::Initialize()
 
 				if (!exists) {
 					LOG_VERBOSE("Registering {} for {}", name, pVeh->m_nModelIndex);
-					m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, parent, rot, { 255, 128, 0, 128 }));
+					m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, parent, rot, { 255, 128, 0, 220 }));
 					return;
 				}
 			}
@@ -676,7 +676,7 @@ void Lights::Initialize()
 
 					bool isRear = (e->Type == eDummyPos::RearLeft || e->Type == eDummyPos::RearRight);
 					EnableDummy((int)pControlVeh + 42 + id++, e, isRear ? pTowedVeh : pControlVeh);
-					Common::RegisterShadow(isRear ? pTowedVeh : pControlVeh, e->ShdwPosition, e->Color.r, e->Color.g, e->Color.b, GetShadowAlphaForDayTime(), e->Angle, e->CurrentAngle, "indicator");
+					Common::RegisterShadow(isRear ? pTowedVeh : pControlVeh, e->ShdwPosition, e->Color.r, e->Color.g, e->Color.b, e->Color.a, e->Angle, e->CurrentAngle, "indicator");
 				}
 
 				for (auto e : m_Materials[pControlVeh->m_nModelIndex][matState]) {
@@ -732,7 +732,7 @@ void Lights::RenderLights(CVehicle *pVeh, eLightState state, float vehicleAngle,
 
 		if (shadows)
 		{
-			Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.r, e->Color.g, e->Color.b, GetShadowAlphaForDayTime(), e->Angle, e->CurrentAngle, texture, sz);
+			Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color.r, e->Color.g, e->Color.b, e->Color.a, e->Angle, e->CurrentAngle, texture, sz);
 		}
 	}
 

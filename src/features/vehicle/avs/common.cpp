@@ -49,13 +49,13 @@ void Common::RegisterCoronaWithAngle(CVehicle *pVeh, int coronaID, CVector posn,
     {
         float adjustedAngle = diameter - differenceAngle;
         float multiplier = adjustedAngle / InertiaAngle;
-        alpha = static_cast<uchar>(std::clamp(alphaFloat * multiplier, 0.0f, 255.0f));
+        alpha = static_cast<uchar>(std::clamp(alphaFloat * multiplier, 0.0f, (float)alpha));
     }
     else if (differenceAngle > (360.0f - diameter) - InertiaAngle)
     {
         float adjustedAngle = InertiaAngle - (differenceAngle - ((360.0f - diameter) - InertiaAngle));
         float multiplier = adjustedAngle / InertiaAngle;
-        alpha = static_cast<uchar>(std::clamp(alphaFloat * multiplier, 0.0f, 255.0f));
+        alpha = static_cast<uchar>(std::clamp(alphaFloat * multiplier, 0.0f, (float)alpha));
     }
 
     RegisterCorona(pVeh, coronaID, posn, red, green, blue, alpha, size);

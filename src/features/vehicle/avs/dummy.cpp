@@ -34,6 +34,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
                 Color.r = lights["Color"].value("R", Color.r);
                 Color.g = lights["Color"].value("G", Color.g);
                 Color.b = lights["Color"].value("B", Color.b);
+                Color.a = lights["Color"].value("A", Color.a);
             }
 
             Size = lights.value("CoronaSize", Size);

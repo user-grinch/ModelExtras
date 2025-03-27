@@ -13,7 +13,6 @@ bool VehicleSiren::GetSirenState()
 	return (Mute == false) ? (vehicle->m_nVehicleFlags.bSirenOrAlarm) : (true);
 };
 
-unsigned int GetShadowAlphaForDayTime();
 bool IsEngineOff(CVehicle *pVeh);
 
 char __fastcall Sirens::hkUsesSiren(CVehicle *ptr)
@@ -1030,7 +1029,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 		}
 
 		Common::RegisterCoronaWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position,
-										material->Color.red, material->Color.green, material->Color.blue, GetShadowAlphaForDayTime(),
+										material->Color.red, material->Color.green, material->Color.blue, material->Color.alpha,
 										dummyAngle, material->Radius, material->Size);
 	}
 	else
@@ -1046,7 +1045,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 		unsigned char alpha = static_cast<char>((static_cast<float>(material->Color.alpha) * -1) * material->InertiaMultiplier);
 
 		Common::RegisterShadow(vehicle, pos, material->Color.red, material->Color.green, material->Color.blue,
-							   GetShadowAlphaForDayTime(), dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, material->Shadow.Size, material->Shadow.Offset, nullptr);
+							   material->Color.alpha, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, material->Shadow.Size, material->Shadow.Offset, nullptr);
 	}
 };
 
