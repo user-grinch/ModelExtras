@@ -23,6 +23,9 @@ enum class eLightState
 	SideLightRight,
 	STTLightLeft,
 	STTLightRight,
+	NABrakeLightLeft,
+	NABrakeLightRight,
+	SpotLight,
 
 	IndicatorLeft,
 	IndicatorRight,

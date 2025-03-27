@@ -4,41 +4,50 @@
 #include <CCoronas.h>
 #include "defines.h"
 
-void SpotLight::Process(void* ptr, RwFrame* pFrame, eModelEntityType type) {
-	CVehicle* pVeh = static_cast<CVehicle*>(ptr);
-	VehData& data = vehData.Get(pVeh);
+void SpotLight::Process(void *ptr, RwFrame *pFrame, eModelEntityType type)
+{
+	CVehicle *pVeh = static_cast<CVehicle *>(ptr);
+	VehData &data = vehData.Get(pVeh);
 
-	if (!data.bInit) {
-		if (!bHooksInjected) {
-			Events::vehicleRenderEvent += [](CVehicle* pVeh) {
+	if (!data.bInit)
+	{
+		if (!bHooksInjected)
+		{
+			Events::vehicleRenderEvent += [](CVehicle *pVeh)
+			{
 				OnVehicleRender(pVeh);
-				};
+			};
 
-			Events::drawingEvent += []() {
+			Events::drawingEvent += []()
+			{
 				OnHudRender();
-				};
+			};
 			pSpotlightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("/textures/spotlight.png")));
 			bHooksInjected = true;
 		}
-		VehData& data = vehData.Get(pVeh);
+		VehData &data = vehData.Get(pVeh);
 		data.pFrame = pFrame;
 		data.bInit = true;
 	}
 }
 
-void SpotLight::OnHudRender() {
-	CVehicle* pVeh = FindPlayerVehicle(-1, false);
+void SpotLight::OnHudRender()
+{
+	CVehicle *pVeh = FindPlayerVehicle(-1, false);
 
-	if (!pVeh) {
+	if (!pVeh)
+	{
 		return;
 	}
 
-	VehData& data = vehData.Get(pVeh);
+	VehData &data = vehData.Get(pVeh);
 
 	static size_t prev = 0;
-	if (KeyPressed(VK_B)) {
+	if (KeyPressed(VK_B))
+	{
 		size_t now = CTimer::m_snTimeInMilliseconds;
-		if (now - prev > 500.0f) {
+		if (now - prev > 500.0f)
+		{
 
 			data.bEnabled = !data.bEnabled;
 			prev = now;
@@ -67,11 +76,12 @@ void SpotLight::OnHudRender() {
 	data.pFrame->modelling.up.z = matrix.up.z;
 
 	float vehicleHeading = pVeh->GetHeading() * 180.0f / 3.14f;
-	RwFrameRotate(data.pFrame, (RwV3d*)0x008D2E18, vehicleHeading, rwCOMBINEPRECONCAT);
+	RwFrameRotate(data.pFrame, (RwV3d *)0x008D2E18, vehicleHeading, rwCOMBINEPRECONCAT);
 };
 
-void SpotLight::OnVehicleRender(CVehicle* pVeh) {
-	VehData& data = vehData.Get(pVeh);
+void SpotLight::OnVehicleRender(CVehicle *pVeh)
+{
+	VehData &data = vehData.Get(pVeh);
 	if (!data.bEnabled || data.pFrame == nullptr)
 		return;
 
@@ -81,40 +91,9 @@ void SpotLight::OnVehicleRender(CVehicle* pVeh) {
 
 	CMatrix matrix = CMatrix(new RwMatrix(data.pFrame->modelling), true);
 
-	matrix.pos += ((RwFrame*)data.pFrame->object.parent)->modelling.pos;
-
-	float vehicleAngle = vehicleHeading * 180.0f / 3.14f;
-
-	float cameraAngle = cameraHeading * 180.0f / 3.14f;
-
-	float differenceAngle = ((cameraAngle > vehicleAngle) ? (cameraAngle - vehicleAngle) : (vehicleAngle - cameraAngle));
-
-	// if (differenceAngle > 90.0f && differenceAngle < 270.0f) {
-	CVector position = CVector(matrix.pos);
-
-	CCoronas::RegisterCorona(reinterpret_cast<unsigned int>(pVeh) + 49, pVeh, 255, 255, 255, 100, position,
-		0.3f, 300.0f, eCoronaType::CORONATYPE_SHINYSTAR, eCoronaFlareType::FLARETYPE_NONE, false, false, 0, 90.0f, false, 1.0f, 0, 50.0f, false, true);
-// }
+	matrix.pos += ((RwFrame *)data.pFrame->object.parent)->modelling.pos;
 
 	matrix.RotateZ(vehicleHeading);
-
-	/*CShadows::StoreShadowToBeRendered(SHADOW_DEFAULT, VehicleTextures::Spotlight, new CVector(Vehicle->GetPosition()),
-		0.0f, 2.0f, 0.0f, 2.0f,
-		1,
-		255, 255, 255,
-		160.0f, false, 1.0f, new CRealTimeShadow(), true);*/
-
-	/*CShadows::StoreCarLightShadow(Vehicle, reinterpret_cast<unsigned int>(Vehicle) + 25, VehicleTextures::Spotlight, &Vehicle->GetPosition(),
-		2.0f, 0.0f, 0.0f, 2.0f,
-		128, 128, 128, 0.0f);*/
-
-	/*CVector Pos = CModelInfo__ms_modelInfoPtrs[Vehicle->m_nModelIndex]->m_pColModel->m_boundBox.m_vecMin;
-
-	CVector center = Vehicle->TransformFromObjectSpace(CVector(0.0f, 0.0f, 0.0f));
-
-	CVector up = Vehicle->TransformFromObjectSpace(CVector(0.0f, -Pos.y - 0.5f, 0.0f)) - center;
-	CVector right = Vehicle->TransformFromObjectSpace(CVector(Pos.x + 0.2f, 0.0f, 0.0f)) - center;
-	CShadows::StoreShadowToBeRendered(2, VehicleTextures::Spotlight, &center, up.x, up.y, right.x, right.y, 255, 128, 128, 128, 2.0f, false, 1.0f, 0, true);*/
 
 	pVeh->DoHeadLightReflectionSingle(matrix, 1);
 };
