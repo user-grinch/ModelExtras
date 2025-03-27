@@ -272,7 +272,7 @@ void Lights::Initialize()
 	VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *frame, std::string name, bool parent)
 									{
 		eLightState state = eLightState::None;
-		RwRGBA col{ 255, 255, 255, 220 };
+		RwRGBA col{ 255, 255, 255, 200 };
 
 		std::smatch match;
 		if (std::regex_search(name, match, std::regex("^fogl(ight)?_([lr]).*$"))) {
@@ -324,7 +324,7 @@ void Lights::Initialize()
 
 				if (!exists) {
 					LOG_VERBOSE("Registering {} for {}", name, pVeh->m_nModelIndex);
-					m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, parent, rot, { 255, 128, 0, 220 }));
+					m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, parent, rot, { 255, 128, 0, 200 }));
 					return;
 				}
 			}
