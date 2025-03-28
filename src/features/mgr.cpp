@@ -21,6 +21,8 @@
 #include "vehicle/plate.h"
 #include "vehicle/carcols.h"
 #include "datamgr.h"
+#include "audiomgr.h"
+#include "vehicle/soundeffects.h"
 
 void InitLogFile();
 
@@ -100,6 +102,7 @@ void FeatureMgr::Initialize()
     };
 
     InitLogFile();
+    AudioMgr::Initialize();
 
     // Common Section
     LOG_NO_LEVEL("\nCommon Features->");
@@ -230,6 +233,12 @@ void FeatureMgr::Initialize()
     {
         Sirens::Initialize();
         LOG_NO_LEVEL("  SirenLights");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "SoundEffects", false))
+    {
+        SoundEffects::Initialize();
+        LOG_NO_LEVEL("  SoundEffects");
     }
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "SpotLights", false))

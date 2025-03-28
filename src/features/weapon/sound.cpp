@@ -1,36 +1,9 @@
 #include "pch.h"
 #include "sound.h"
-
 #include <plugin.h>
-#include <CModelInfo.h>
 #include <CAEAudioHardware.h>
 #include <CAEPedAudioEntity.h>
-#include <extensions/ScriptCommands.h>
-
-#define LOAD_AUDIO_STREAM 0x0AAC
-#define SET_PLAY_3D_AUDIO_STREAM_AT_COORDS 0x0AC2
-#define SET_AUDIO_STREAM_STATE 0x0AAD
-#define GET_AUDIO_STREAM_STATE 0x0AB9
-#define REMOVE_AUDIO_STREAM 0x0AAE
-
-void WeaponSoundSystem::PlayAudioStream(std::string *path, CPed *pPed)
-{
-    if (!path || !pPed)
-    {
-        return;
-    }
-
-    CVector pos = pPed->GetPosition();
-    StreamHandle handle = NULL;
-    plugin::Command<LOAD_AUDIO_STREAM>(path->c_str(), &handle);
-    if (!handle)
-    {
-        LOG_VERBOSE("Failed to load weapon sound '{}'", *path);
-    }
-    plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, pos.x, pos.y, pos.z);
-    plugin::Command<SET_AUDIO_STREAM_STATE>(handle, 1);
-    m_NeedToFree.push_back(handle);
-}
+#include "../audiomgr.h"
 
 std::string *WeaponSoundSystem::FindAudio(eWeaponType weaponType, const std::string &&audioType)
 {
@@ -108,32 +81,6 @@ void WeaponSoundSystem::Initialize()
         SearchWeaponSounds(PLUGIN_PATH((char *)"EarShot/"));
     };
 
-    plugin::Events::processScriptsEvent += []
-    {
-        static size_t prev = 0;
-        size_t cur = CTimer::m_snTimeInMilliseconds;
-
-        if (cur - prev > 5000)
-        {
-            for (auto it = m_NeedToFree.begin(); it != m_NeedToFree.end();)
-            {
-                int state = -1;
-                plugin::Command<GET_AUDIO_STREAM_STATE>(*it, &state);
-                if (state == -1 || state == 2)
-                {
-                    plugin::Command<REMOVE_AUDIO_STREAM>(*it);
-                    it = m_NeedToFree.erase(it);
-                }
-                else
-                {
-                    ++it;
-                }
-            }
-
-            prev = cur;
-        };
-    };
-
     plugin::ThiscallEvent<plugin::AddressList<0x4DFAC6, plugin::H_CALL, 0x4E6A3D, plugin::H_CALL>, plugin::PRIORITY_BEFORE, plugin::ArgPick4N<CAEWeaponAudioEntity *, 0, eWeaponType, 1, CPhysical *, 2, int, 3>, void(CAEWeaponAudioEntity *, eWeaponType, CPhysical *, int)>
         CAEWeaponAudioEntity_WeaponFireEvent;
 
@@ -142,7 +89,7 @@ void WeaponSoundSystem::Initialize()
         if (pAudioEnt && pAudioEnt->m_pPed)
         {
             std::string *path = WeaponSoundSystem::FindAudio(weaponType, "shoot");
-            PlayAudioStream(path, pAudioEnt->m_pPed);
+            AudioMgr::LoadAndPlay(path, pAudioEnt->m_pPed);
             plugin::patch::SetRaw(0x504F80, path ? (char *)"\xC2\x0C\x00" : (char *)"\x8B\x44\x24", 3);
         }
     };
@@ -161,7 +108,7 @@ void WeaponSoundSystem::Initialize()
             {
                 if (unk != 0x93) // SKIP AE_WEAPON_RELOAD_B
                 {
-                    PlayAudioStream(path, pAudioEnt->m_pPed);
+                    AudioMgr::LoadAndPlay(path, pAudioEnt->m_pPed);
                 }
             }
             plugin::patch::SetRaw(0x503690, path ? (char *)"\xC2\x0C\x00" : (char *)"\x51\x53\x55", 3);
@@ -178,7 +125,7 @@ void WeaponSoundSystem::Initialize()
         if (pAudioEnt && pAudioEnt->m_pPed)
         {
             std::string *path = WeaponSoundSystem::FindAudio(weaponType, "projectile");
-            PlayAudioStream(path, pAudioEnt->m_pPed);
+            AudioMgr::LoadAndPlay(path, pAudioEnt->m_pPed);
             plugin::patch::SetRaw(0x4DF060, path ? (char *)"\xC2\x0C\x00" : (char *)"\x8B\x44\x24", 3);
         }
     };
@@ -194,7 +141,7 @@ void WeaponSoundSystem::Initialize()
         {
             eWeaponType weaponType = pAudioEnt->m_pPed->m_aWeapons[pAudioEnt->m_pPed->m_nActiveWeaponSlot].m_eWeaponType;
             std::string *path = WeaponSoundSystem::FindAudio(weaponType, "hit");
-            PlayAudioStream(path, pAudioEnt->m_pPed);
+            AudioMgr::LoadAndPlay(path, pAudioEnt->m_pPed);
             plugin::patch::SetRaw(0x4E1CC0, path ? (char *)"\xC2\x14\x00" : (char *)"\x83\xEC\x14", 3);
         }
     };
@@ -209,7 +156,7 @@ void WeaponSoundSystem::Initialize()
         {
             eWeaponType weaponType = pAudioEnt->m_pPed->m_aWeapons[pAudioEnt->m_pPed->m_nActiveWeaponSlot].m_eWeaponType;
             std::string *path = WeaponSoundSystem::FindAudio(weaponType, "swing");
-            PlayAudioStream(path, pAudioEnt->m_pPed);
+            AudioMgr::LoadAndPlay(path, pAudioEnt->m_pPed);
             plugin::patch::SetRaw(0x4E1A40, path ? (char *)"\xC2\x0C\x00" : (char *)"\x83\xEC\x08", 3);
         }
     };
