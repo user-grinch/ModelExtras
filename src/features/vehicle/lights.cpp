@@ -306,7 +306,7 @@ void Lights::Initialize()
 		else if (std::regex_search(name, match, std::regex("^nabrakelight?_([lr]).*$"))) {
 			state = (toupper(match.str(1)[0]) == 'L') ? eLightState::NABrakeLightLeft : eLightState::NABrakeLightRight;
 		}
-		else if (std::regex_search(name, match, std::regex("/^spotlight_light.*$/gm"))) {
+		else if (std::regex_search(name, match, std::regex("^spotlight_light.*$/gm"))) {
 			state = eLightState::SpotLight;
 		}
 		else if (std::regex_search(name, std::regex("^light_em"))) {
