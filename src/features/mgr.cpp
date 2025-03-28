@@ -234,7 +234,8 @@ void FeatureMgr::Initialize()
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "SpotLights", false))
     {
-        m_FunctionTable["spotlight_dummy"] = SpotLight::Process;
+        SpotLights::Initialize();
+        m_FunctionTable["spotlight_dummy"] = SpotLights::Process;
         LOG_NO_LEVEL("  Spotlights");
     }
 

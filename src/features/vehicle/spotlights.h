@@ -2,23 +2,26 @@
 #include <plugin.h>
 #include <vector>
 
-class SpotLight{
+class SpotLights
+{
 public:
-	static inline RwTexture* pSpotlightTex = nullptr;
-	static inline bool bHooksInjected = false;
+	static inline RwTexture *pSpotlightTex = nullptr;
 
-	struct VehData {
-		RwFrame* pFrame = nullptr;
+	struct VehData
+	{
+		RwFrame *pFrame = nullptr;
 		bool bEnabled = false, bInit = false;
 
-		VehData(CVehicle *){}
+		VehData(CVehicle *) {}
 	};
 	static inline VehicleExtendedData<VehData> vehData;
 
-	static void FindNodesRecursive(RwFrame* frame, CVehicle* vehicle);
+	static void FindNodesRecursive(RwFrame *frame, CVehicle *vehicle);
 	static void OnHudRender();
 	static void OnVehicleRender(CVehicle *pVeh);
 
 public:
-	static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
+	static void Initialize();
+	static bool IsEnabled(CVehicle *pVeh);
+	static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
 };

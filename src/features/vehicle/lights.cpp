@@ -9,6 +9,7 @@
 #include <CAudioEngine.h>
 #include <rwcore.h>
 #include <rpworld.h>
+#include <spotlights.h>
 
 // flags
 bool gbGlobalIndicatorLights = false;
@@ -305,6 +306,9 @@ void Lights::Initialize()
 		else if (std::regex_search(name, match, std::regex("^nabrakelight?_([lr]).*$"))) {
 			state = (toupper(match.str(1)[0]) == 'L') ? eLightState::NABrakeLightLeft : eLightState::NABrakeLightRight;
 		}
+		else if (std::regex_search(name, match, std::regex("/^spotlight_light.*$/gm"))) {
+			state = eLightState::SpotLight;
+		}
 		else if (std::regex_search(name, std::regex("^light_em"))) {
 			state = eLightState::AllDayLight;
 			col = { 0, 0, 0, 0 }; // Make invisible
@@ -464,6 +468,12 @@ void Lights::Initialize()
 				}
 			}
 
+			if (SpotLights::IsEnabled(pControlVeh)) {
+				if (m_Materials[pControlVeh->m_nModelIndex][eLightState::SpotLight].size() != 0) {
+					RenderLights(pControlVeh, eLightState::SpotLight, vehicleAngle, cameraAngle, false);
+				}
+			}
+ 
 			if (IsNightTime()) {
 				if (m_Materials[pControlVeh->m_nModelIndex][eLightState::Nightlight].size() != 0) {
 					RenderLights(pControlVeh, eLightState::Nightlight, vehicleAngle, cameraAngle);
@@ -542,6 +552,20 @@ void Lights::Initialize()
 							RenderLights(pTowedVeh, eLightState::STTLightRight, vehicleAngle, cameraAngle);
 						}
 
+						if (indState != eLightState::IndicatorBoth) {
+							if (indState != eLightState::IndicatorLeft) {
+								if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::NABrakeLightLeft].size() != 0) {
+									RenderLights(pTowedVeh, eLightState::NABrakeLightLeft, vehicleAngle, cameraAngle);
+								}
+							}
+
+							if (indState != eLightState::IndicatorRight) {
+								if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::NABrakeLightRight].size() != 0) {
+									RenderLights(pTowedVeh, eLightState::NABrakeLightRight, vehicleAngle, cameraAngle);
+								}
+							}
+						}
+
 						if (drawShadow) {
 							shadowCnt++;
 						}
@@ -563,20 +587,6 @@ void Lights::Initialize()
 						}
 						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::STTLightRight].size() != 0) {
 							RenderLights(pTowedVeh, eLightState::STTLightRight, vehicleAngle, cameraAngle);
-						}
-
-						if (indState != eLightState::IndicatorBoth) {
-							if (indState != eLightState::IndicatorLeft) {
-								if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::NABrakeLightLeft].size() != 0) {
-									RenderLights(pTowedVeh, eLightState::NABrakeLightLeft, vehicleAngle, cameraAngle);
-								}
-							}
-
-							if (indState != eLightState::IndicatorRight) {
-								if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::NABrakeLightRight].size() != 0) {
-									RenderLights(pTowedVeh, eLightState::NABrakeLightRight, vehicleAngle, cameraAngle);
-								}
-							}
 						}
 						
 						if (drawShadow){

@@ -14,14 +14,9 @@
 
 void WeaponSoundSystem::PlayAudioStream(StreamHandle handle, CPed *pPed)
 {
-    int state = -1;
-    plugin::Command<GET_AUDIO_STREAM_STATE>(handle, &state);
-    if (handle && state != 1) // not playing
-    {
-        CVector pos = pPed->GetPosition();
-        plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, pos.x, pos.y, pos.z);
-        plugin::Command<SET_AUDIO_STREAM_STATE>(handle, 1);
-    }
+    CVector pos = pPed->GetPosition();
+    plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, pos.x, pos.y, pos.z);
+    plugin::Command<SET_AUDIO_STREAM_STATE>(handle, 1);
 }
 
 StreamHandle WeaponSoundSystem::FindAudio(eWeaponType weaponType, std::string audioType)

@@ -189,14 +189,9 @@ void GearSound::Process(void *ptr, RwFrame *frame, eModelEntityType type)
     }
     if (data.m_nCurGear != pVeh->m_nCurrentGear)
     {
-        int state = -1;
-        plugin::Command<GET_AUDIO_STREAM_STATE>(data.hUpAudio, &state);
-        if (data.hUpAudio && state != 1) // not playing
-        {
-            CVector pos = pVeh->GetPosition();
-            plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(data.hUpAudio, pos.x, pos.y, pos.z);
-            plugin::Command<SET_AUDIO_STREAM_STATE>(data.hUpAudio, 1);
-        }
+        CVector pos = pVeh->GetPosition();
+        plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(data.hUpAudio, pos.x, pos.y, pos.z);
+        plugin::Command<SET_AUDIO_STREAM_STATE>(data.hUpAudio, 1);
         data.m_nCurGear = pVeh->m_nCurrentGear;
     }
 }
