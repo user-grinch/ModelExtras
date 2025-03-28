@@ -157,7 +157,13 @@ void WeaponSoundSystem::Initialize()
         if (pAudioEnt && pAudioEnt->m_pPed)
         {
             std::string *path = WeaponSoundSystem::FindAudio(weaponType, "reload");
-            PlayAudioStream(path, pAudioEnt->m_pPed);
+            if (path)
+            {
+                if (unk != 0x93) // SKIP AE_WEAPON_RELOAD_B
+                {
+                    PlayAudioStream(path, pAudioEnt->m_pPed);
+                }
+            }
             plugin::patch::SetRaw(0x503690, path ? (char *)"\xC2\x0C\x00" : (char *)"\x51\x53\x55", 3);
         }
     };
