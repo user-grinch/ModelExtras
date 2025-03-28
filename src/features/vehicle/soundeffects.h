@@ -8,6 +8,7 @@ private:
     struct VehData
     {
         bool m_bEngineState = false;
+        bool m_bIndicatorState = false;
 
         VehData(CVehicle *) {}
     };

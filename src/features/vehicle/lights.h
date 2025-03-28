@@ -62,5 +62,11 @@ private:
 	static void EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle);
 
 public:
+	static inline bool indicatorsDelay;
+
 	static void Initialize();
+	static bool IsIndicatorOn(CVehicle *pVeh)
+	{
+		return indicatorsDelay && m_VehData.Get(pVeh).m_nIndicatorState != eLightState::IndicatorNone;
+	}
 };
