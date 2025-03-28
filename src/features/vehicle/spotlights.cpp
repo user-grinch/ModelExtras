@@ -28,7 +28,10 @@ void SpotLights::Initialize()
 	{
 		OnHudRender();
 	};
-	pSpotlightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("/textures/spotlight.png")));
+	Events::initGameEvent += []()
+	{
+		pSpotlightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("/textures/spotlight.png")));
+	};
 }
 
 bool SpotLights::IsEnabled(CVehicle *pVeh)

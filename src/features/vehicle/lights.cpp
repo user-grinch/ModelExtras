@@ -9,7 +9,7 @@
 #include <CAudioEngine.h>
 #include <rwcore.h>
 #include <rpworld.h>
-#include <spotlights.h>
+#include "spotlights.h"
 
 // flags
 bool gbGlobalIndicatorLights = false;
