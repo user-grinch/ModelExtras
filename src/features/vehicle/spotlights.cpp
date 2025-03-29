@@ -61,7 +61,7 @@ void SpotLights::OnHudRender()
 		}
 	}
 
-	if (!plugin::KeyPressed(0x02))
+	if (!plugin::KeyPressed(0x02) || !data.pFrame)
 		return;
 
 	float heading = TheCamera.GetHeading();
