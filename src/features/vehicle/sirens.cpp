@@ -7,6 +7,7 @@
 #include <rpworld.h>
 #include "defines.h"
 #include "lights.h"
+#include "../audiomgr.h"
 
 bool VehicleSiren::GetSirenState()
 {
@@ -648,71 +649,80 @@ void Sirens::Initialize()
 		{
 			return;
 		}
-		if (KeyPressed(VK_L))
+
+		static size_t prev = 0;
+		size_t now = CTimer::m_snTimeInMilliseconds;
+
+		if (now - prev > 300.0f)
 		{
-			int model = vehicle->m_nModelIndex;
-
-			if (!modelData.contains(model))
-				return;
-
-			int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-
-			if (!vehicleData.contains(index))
-				return;
-
-			vehicleData[index]->Mute = !vehicleData[index]->Mute;
-
-			if (vehicleData[index]->Mute)
-				vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
-		}
-
-		if (KeyPressed(VK_R))
-		{
-			int model = vehicle->m_nModelIndex;
-
-			if (!modelData.contains(model))
-				return;
-
-			int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-
-			if (!vehicleData.contains(index))
-				return;
-
-			if (!vehicleData[index]->GetSirenState())
-				return;
-
-			if (modelData[model]->States.size() == 0)
-				return;
-
-			int addition = (plugin::KeyPressed(0x10)) ? (-1) : (1);
-
-			vehicleData[index]->State += addition;
-
-			if (vehicleData[index]->State == modelData[model]->States.size())
-				vehicleData[index]->State = 0;
-
-			if (vehicleData[index]->State == -1)
-				vehicleData[index]->State = modelData[model]->States.size() - 1;
-
-			while (modelData[model]->States[vehicleData[index]->State]->Paintjob != -1 && modelData[model]->States[vehicleData[index]->State]->Paintjob != vehicle->GetRemapIndex())
+			if (KeyPressed(VK_L))
 			{
-				vehicleData[index]->State += (plugin::KeyPressed(0x10)) ? (-1) : (1);
+				int model = vehicle->m_nModelIndex;
+
+				if (!modelData.contains(model))
+					return;
+
+				int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
+
+				if (!vehicleData.contains(index))
+					return;
+
+				vehicleData[index]->Mute = !vehicleData[index]->Mute;
+
+				if (vehicleData[index]->Mute)
+					vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+
+				AudioMgr::PlayClickSound();
+			}
+
+			if (KeyPressed(VK_R))
+			{
+				int model = vehicle->m_nModelIndex;
+
+				if (!modelData.contains(model))
+					return;
+
+				int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
+
+				if (!vehicleData.contains(index))
+					return;
+
+				if (!vehicleData[index]->GetSirenState())
+					return;
+
+				if (modelData[model]->States.size() == 0)
+					return;
+
+				int addition = (plugin::KeyPressed(0x10)) ? (-1) : (1);
+
+				vehicleData[index]->State += addition;
 
 				if (vehicleData[index]->State == modelData[model]->States.size())
-				{
 					vehicleData[index]->State = 0;
 
-					break;
-				}
-				else if (vehicleData[index]->State == -1)
-				{
+				if (vehicleData[index]->State == -1)
 					vehicleData[index]->State = modelData[model]->States.size() - 1;
 
-					break;
+				while (modelData[model]->States[vehicleData[index]->State]->Paintjob != -1 && modelData[model]->States[vehicleData[index]->State]->Paintjob != vehicle->GetRemapIndex())
+				{
+					vehicleData[index]->State += (plugin::KeyPressed(0x10)) ? (-1) : (1);
+
+					if (vehicleData[index]->State == modelData[model]->States.size())
+					{
+						vehicleData[index]->State = 0;
+
+						break;
+					}
+					else if (vehicleData[index]->State == -1)
+					{
+						vehicleData[index]->State = modelData[model]->States.size() - 1;
+
+						break;
+					}
 				}
 			}
+			prev = now;
 		}
-
 		for (int number = 0; number < 9; number++)
 		{
 			if (KeyPressed(VK_1 + number))

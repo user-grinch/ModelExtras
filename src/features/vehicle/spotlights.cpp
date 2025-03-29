@@ -3,6 +3,12 @@
 #include <CCamera.h>
 #include <CCoronas.h>
 #include "defines.h"
+#include "util.h"
+#include <CWorld.h>
+#include <extensions/ScriptCommands.h>
+#include <extensions/scripting/ScriptCommandNames.h>
+
+#define VK_RMB 0x02
 
 void SpotLights::Process(void *ptr, RwFrame *pFrame, eModelEntityType type)
 {
@@ -61,29 +67,14 @@ void SpotLights::OnHudRender()
 		}
 	}
 
-	if (!plugin::KeyPressed(0x02) || !data.pFrame)
+	if (!plugin::KeyPressed(VK_RMB) || !data.pFrame)
+	{
 		return;
+	}
 
-	float heading = TheCamera.GetHeading();
-
-	CMatrix matrix;
-
-	matrix = TheCamera.m_mCameraMatrix;
-
-	data.pFrame->modelling.at.x = matrix.at.x;
-	data.pFrame->modelling.at.y = matrix.at.y;
-	data.pFrame->modelling.at.z = matrix.at.z;
-
-	data.pFrame->modelling.right.x = matrix.right.x;
-	data.pFrame->modelling.right.y = matrix.right.y;
-	data.pFrame->modelling.right.z = matrix.right.z;
-
-	data.pFrame->modelling.up.x = matrix.up.x;
-	data.pFrame->modelling.up.y = matrix.up.y;
-	data.pFrame->modelling.up.z = matrix.up.z;
-
-	float vehicleHeading = pVeh->GetHeading() * 180.0f / 3.14f;
-	RwFrameRotate(data.pFrame, (RwV3d *)0x008D2E18, vehicleHeading, rwCOMBINEPRECONCAT);
+	data.pFrame->modelling = *(RwMatrix *)&TheCamera.m_mCameraMatrix;
+	float heading = pVeh->GetHeading() * 180.0f / 3.14f;
+	Util::SetFrameRotationZ(data.pFrame, heading);
 };
 
 void SpotLights::OnVehicleRender(CVehicle *pVeh)
@@ -92,15 +83,34 @@ void SpotLights::OnVehicleRender(CVehicle *pVeh)
 	if (!data.bEnabled || data.pFrame == nullptr)
 		return;
 
-	float cameraHeading = TheCamera.GetHeading();
-
 	float vehicleHeading = pVeh->GetHeading();
-
-	CMatrix matrix = CMatrix(new RwMatrix(data.pFrame->modelling), true);
-
+	CMatrix matrix = *(CMatrix *)&data.pFrame->modelling;
 	matrix.pos += ((RwFrame *)data.pFrame->object.parent)->modelling.pos;
-
 	matrix.RotateZ(vehicleHeading);
 
 	pVeh->DoHeadLightReflectionSingle(matrix, 1);
+	RwV3d offset{0, 0, 0}, target, src;
+	CVector vehPos = pVeh->GetPosition();
+	RwV3dTransformPoint(&src, &offset, &data.pFrame->modelling);
+	RwV3dTransformPoint(&target, &offset, (RwMatrix *)&matrix);
+
+	// target.x += vehPos.x;
+	// target.y += vehPos.y;
+	// target.z += vehPos.z;
+	// src.x += vehPos.x;
+	// src.y += vehPos.y;
+	// src.z += vehPos.z;
+
+	bool flag;
+	CEntity *pEnt;
+	target.z = CWorld::FindGroundZFor3DCoord(target.x, target.y, target.z + 20, &flag, &pEnt);
+	static int searchLight = NULL;
+
+	if (searchLight != NULL)
+	{
+		plugin::Command<plugin::Commands::DELETE_SEARCHLIGHT>(searchLight);
+		searchLight = NULL;
+		// plugin::Command<plugin::Commands::CREATE_SEARCHLIGHT>(-2025.600342, 176.275925, 48.843737, -2025.600342, 176.275925, 38.843737, 10.0, 1.0, &searchLight);
+	}
+	plugin::Command<plugin::Commands::CREATE_SEARCHLIGHT>(target.x, target.y, target.z, src.x, src.y, src.z, 1.0, 0.05, &searchLight);
 };

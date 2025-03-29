@@ -21,5 +21,6 @@ public:
     static void Initialize();
     static StreamHandle Load(std::string *pPath);
     static void Play(StreamHandle handle, CEntity *pEntity);
+    static void PlayClickSound();
     static void LoadAndPlay(std::string *path, CEntity *pPed);
 };

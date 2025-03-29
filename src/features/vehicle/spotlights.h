@@ -11,7 +11,6 @@ public:
 	{
 		RwFrame *pFrame = nullptr;
 		bool bEnabled = false, bInit = false;
-
 		VehData(CVehicle *) {}
 	};
 	static inline VehicleExtendedData<VehData> vehData;

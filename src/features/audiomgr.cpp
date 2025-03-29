@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "audiomgr.h"
 #include <extensions/ScriptCommands.h>
+#include <CAudioEngine.h>
 
 #define LOAD_AUDIO_STREAM 0x0AAC
 #define SET_PLAY_3D_AUDIO_STREAM_AT_COORDS 0x0AC2
@@ -35,6 +36,11 @@ void AudioMgr::Initialize()
             prev = cur;
         };
     };
+}
+
+void AudioMgr::PlayClickSound()
+{
+    AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_ON, 10.0, 1.0);
 }
 
 StreamHandle AudioMgr::Load(std::string *pPath)

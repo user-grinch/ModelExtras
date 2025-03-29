@@ -6,10 +6,10 @@
 #include <CShadows.h>
 #include <eVehicleClass.h>
 #include <CCutsceneMgr.h>
-#include <CAudioEngine.h>
 #include <rwcore.h>
 #include <rpworld.h>
 #include "spotlights.h"
+#include "../audiomgr.h"
 
 // flags
 bool gbGlobalIndicatorLights = false;
@@ -378,7 +378,7 @@ void Lights::Initialize()
 					VehData &data = m_VehData.Get(pVeh);
 					data.m_bFogLightsOn = !data.m_bFogLightsOn;
 					prev = now;
-					AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_ON, 10.0, 1.0);
+					AudioMgr::PlayClickSound();
 				}
 			}
 
@@ -390,7 +390,7 @@ void Lights::Initialize()
 					VehData &data = m_VehData.Get(pVeh);
 					data.m_bLongLightsOn = !data.m_bLongLightsOn;
 					prev = now;
-					AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_ON, 10.0, 1.0);
+					AudioMgr::PlayClickSound();
 				}
 			}
 		}
