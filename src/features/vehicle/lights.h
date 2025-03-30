@@ -60,6 +60,7 @@ private:
 	static void RenderLights(CVehicle *vehicle, eLightState state, float vehicleAngle, float cameraAngle, bool shadows = true, std::string texture = "indicator", float sz = 1.0f);
 	static void EnableMaterial(VehicleMaterial *material);
 	static void EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle);
+	static void RenderLightsNew(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightState state, bool shadows = true, std::string texture = "indicator", float sz = 1.0f);
 
 public:
 	static inline bool indicatorsDelay;

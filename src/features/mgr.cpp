@@ -23,6 +23,7 @@
 #include "datamgr.h"
 #include "audiomgr.h"
 #include "vehicle/soundeffects.h"
+#include "vehicle/spoiler.h"
 
 void InitLogFile();
 
@@ -255,6 +256,8 @@ void FeatureMgr::Initialize()
         m_FunctionTable["x_body_state"] = BodyState::Process;
         LOG_NO_LEVEL("  BodyStateVariation");
     }
+
+    m_FunctionTable["movspoiler"] = Spoiler::Process;
 
     if (gConfig.ReadBoolean("WEAPON_FEATURES", "CustomSounds", false))
     {

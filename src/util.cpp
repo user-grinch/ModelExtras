@@ -4,6 +4,11 @@
 #include <regex>
 #include <CWeaponInfo.h>
 
+float Util::GetVehicleSpeed(CVehicle *pVeh)
+{
+    return pVeh->m_vecMoveSpeed.Magnitude2D() * 50.0f;
+}
+
 std::string Util::GetRegexVal(const std::string &src, const std::string &&ptrn, const std::string &&def)
 {
     std::smatch match;
@@ -100,6 +105,13 @@ float Util::GetMatrixRotationZ(RwMatrix *matrix)
     while (angle < 0.0)
         angle += 360.0;
     return angle;
+}
+
+void Util::ResetMatrixRotations(RwMatrix *matrix)
+{
+    matrix->right = {1.0f, 0.0f, 0.0f};
+    matrix->up = {0.0f, 1.0f, 0.0f};
+    matrix->at = {0.0f, 0.0f, 1.0f};
 }
 
 void Util::SetMatrixRotationX(RwMatrix *matrix, float angle)
@@ -345,7 +357,7 @@ float Util::GetVehicleSpeedRealistic(CVehicle *vehicle)
     }
     else
     {
-        return (vehicle->m_vecMoveSpeed.Magnitude() * 50.0f) * 3.6f;
+        return (Util::GetVehicleSpeed(vehicle)) * 3.6f;
     }
     wheelSpeed /= 2.45f;   // tweak based on distance (manually testing)
     wheelSpeed *= -186.0f; // tweak based on km/h

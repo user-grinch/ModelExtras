@@ -2,6 +2,7 @@
 #include "soundeffects.h"
 #include "lights.h"
 #include "eVehicleClass.h"
+#include "util.h"
 
 std::vector<int> ValidForReverseSound = {};
 
@@ -26,13 +27,13 @@ void SoundEffects::Initialize()
         static bool bIndicatorSounds = gConfig.ReadBoolean("VEHICLE_FEATURES", "SoundEffects_GlobalIndicatorSound", false);
         static bool bAirbreakSounds = gConfig.ReadBoolean("VEHICLE_FEATURES", "SoundEffects_GlobalAirbreakSound", false);
 
+        auto &data = vehData.Get(pVeh);
+        float speed = Util::GetVehicleSpeed(pVeh);
+        int model = pVeh->m_nModelIndex;
+        bool isBigVeh = std::find(ValidForReverseSound.begin(), ValidForReverseSound.end(), pVeh->m_nModelIndex) != ValidForReverseSound.end();
+
         if (pVeh == FindPlayerVehicle(0, false))
         {
-            auto &data = vehData.Get(pVeh);
-            float speed = pVeh->m_vecMoveSpeed.Magnitude2D() * 50.0f;
-            int model = pVeh->m_nModelIndex;
-            bool isBigVeh = std::find(ValidForReverseSound.begin(), ValidForReverseSound.end(), pVeh->m_nModelIndex) != ValidForReverseSound.end();
-
             if (bEngineSounds)
             {
                 bool isValid = !CModelInfo::IsPlaneModel(model) && !CModelInfo::IsBmxModel(model) && !CModelInfo::IsHeliModel(model) && !CModelInfo::IsBoatModel(model);
@@ -75,35 +76,34 @@ void SoundEffects::Initialize()
                     data.m_bIndicatorState = state;
                 }
             }
-
-            if (bAirbreakSounds)
+        }
+        if (bAirbreakSounds)
+        {
+            bool state = pVeh->m_fBreakPedal;
+            if (isBigVeh && state != data.m_bAirbreakState)
             {
-                bool state = pVeh->m_fBreakPedal;
-                if (isBigVeh && state != data.m_bAirbreakState)
-                {
-                    static std::string path = MOD_DATA_PATH("audio/effects/air_break.wav");
-                    static StreamHandle handle = NULL;
-                    handle = AudioMgr::Load(&path);
+                static std::string path = MOD_DATA_PATH("audio/effects/air_break.wav");
+                static StreamHandle handle = NULL;
+                handle = AudioMgr::Load(&path);
 
-                    if (speed > 10.0f)
-                    {
-                        AudioMgr::Play(handle, pVeh);
-                    }
-                    data.m_bAirbreakState = state;
+                if (speed > 10.0f)
+                {
+                    AudioMgr::Play(handle, pVeh);
                 }
+                data.m_bAirbreakState = state;
             }
+        }
 
-            if (bReverseSounds)
+        if (bReverseSounds)
+        {
+            static std::string path = MOD_DATA_PATH("audio/effects/reverse.wav");
+            if (isBigVeh && pVeh->m_nCurrentGear == 0 && pVeh->m_nVehicleFlags.bEngineOn && !pVeh->m_nVehicleFlags.bEngineBroken && speed >= 3.0f)
             {
-                static std::string path = MOD_DATA_PATH("audio/effects/reverse.wav");
-                if (isBigVeh && pVeh->m_nCurrentGear == 0 && pVeh->m_nVehicleFlags.bEngineOn && !pVeh->m_nVehicleFlags.bEngineBroken && speed >= 3.0f)
+                if (m_hReverse == NULL)
                 {
-                    if (m_hReverse == NULL)
-                    {
-                        m_hReverse = AudioMgr::Load(&path);
-                    }
-                    AudioMgr::Play(m_hReverse, pVeh);
+                    m_hReverse = AudioMgr::Load(&path);
                 }
+                AudioMgr::Play(m_hReverse, pVeh);
             }
         }
     };

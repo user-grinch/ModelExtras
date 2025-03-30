@@ -421,13 +421,13 @@ void Lights::Initialize()
 			float vehicleAngle = (pControlVeh->GetHeading() * 180.0f) / 3.14f;
 			float cameraAngle = (TheCamera.GetHeading() * 180.0f) / 3.14f;
 
-			RenderLights(pControlVeh, eLightState::AllDayLight, vehicleAngle, cameraAngle);
+			RenderLightsNew(pControlVeh, pTowedVeh, eLightState::AllDayLight);
 
 			if (IsNightTime()) {
-				RenderLights(pControlVeh, eLightState::Nightlight, vehicleAngle, cameraAngle);
+				RenderLightsNew(pControlVeh, pTowedVeh, eLightState::Nightlight);
 			}
 			else {
-				RenderLights(pControlVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
+				RenderLightsNew(pControlVeh, pTowedVeh, eLightState::Daylight);
 			}
 
 			bool leftOk = true;
@@ -445,13 +445,13 @@ void Lights::Initialize()
 					posn.x = 0.0f;
 					posn.y += 4.2f;
 					Common::RegisterShadow(pControlVeh, posn, 225, 225, 225, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "foglight_twin", 2.0f);
-					RenderLights(pControlVeh, eLightState::FogLightLeft, vehicleAngle, cameraAngle, false, "foglight_single", 1.0f);
-					RenderLights(pControlVeh, eLightState::FogLightRight, vehicleAngle, cameraAngle, false, "foglight_single", 1.0f);
+					RenderLightsNew(pControlVeh, pTowedVeh, eLightState::FogLightLeft, false, "foglight_single", 1.0f);
+					RenderLightsNew(pControlVeh, pTowedVeh, eLightState::FogLightRight, false, "foglight_single", 1.0f);
 				}
 				else if (leftOk || rightOk) {
 					posn.x = leftOk ? -0.5f : 0.5f;
 					posn.y += 3.2f;
-					RenderLights(pControlVeh, leftOk ? eLightState::FogLightLeft : eLightState::FogLightRight, vehicleAngle, cameraAngle, false, "foglight_single", 1.0f);
+					RenderLightsNew(pControlVeh, pTowedVeh, leftOk ? eLightState::FogLightLeft : eLightState::FogLightRight, false, "foglight_single", 1.0f);
 					Common::RegisterShadow(pControlVeh, posn, 225, 225, 225, GetShadowAlphaForDayTime(), 180.0f, 0.0f, "foglight_single", 1.2f);
 				}
 			}
@@ -459,53 +459,53 @@ void Lights::Initialize()
 			if (pControlVeh->m_nVehicleFlags.bLightsOn || !pControlVeh->ms_forceVehicleLightsOff) {
 				VehData& data = m_VehData.Get(pControlVeh);
 				if (leftOk && m_Materials[pControlVeh->m_nModelIndex][eLightState::FrontLightLeft].size() != 0) {
-					RenderLights(pControlVeh, eLightState::FrontLightLeft, vehicleAngle, cameraAngle);
+					RenderLightsNew(pControlVeh, pTowedVeh, eLightState::FrontLightLeft);
 				}
 
 				if (rightOk && m_Materials[pControlVeh->m_nModelIndex][eLightState::FrontLightRight].size() != 0) {
-					RenderLights(pControlVeh, eLightState::FrontLightRight, vehicleAngle, cameraAngle);
+					RenderLightsNew(pControlVeh, pTowedVeh, eLightState::FrontLightRight);
 				}
 			}
 
 			if (SpotLights::IsEnabled(pControlVeh)) {
 				if (m_Materials[pControlVeh->m_nModelIndex][eLightState::SpotLight].size() != 0) {
-					RenderLights(pControlVeh, eLightState::SpotLight, vehicleAngle, cameraAngle, false);
+					RenderLightsNew(pControlVeh, pTowedVeh, eLightState::SpotLight, false);
 				}
 			}
  
 			if (IsNightTime()) {
 				if (m_Materials[pControlVeh->m_nModelIndex][eLightState::Nightlight].size() != 0) {
-					RenderLights(pControlVeh, eLightState::Nightlight, vehicleAngle, cameraAngle);
+					RenderLightsNew(pControlVeh, pTowedVeh, eLightState::Nightlight);
 				}
 
 				if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::Nightlight].size() != 0) {
-					RenderLights(pTowedVeh, eLightState::Nightlight, vehicleAngle, cameraAngle);
+					RenderLightsNew(pControlVeh, pTowedVeh, eLightState::Nightlight);
 				}
 
 				if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::SideLightLeft].size() != 0) {
-					RenderLights(pTowedVeh, eLightState::SideLightLeft, vehicleAngle, cameraAngle);
+					RenderLightsNew(pControlVeh, pTowedVeh, eLightState::SideLightLeft);
 				}
 
 				if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::SideLightRight].size() != 0) {
-					RenderLights(pTowedVeh, eLightState::SideLightRight, vehicleAngle, cameraAngle);
+					RenderLightsNew(pControlVeh, pTowedVeh, eLightState::SideLightRight);
 				}
 			}
 			else {
 				if (m_Materials[pControlVeh->m_nModelIndex][eLightState::Daylight].size() != 0) {
-					RenderLights(pControlVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
+					RenderLightsNew(pControlVeh, pTowedVeh, eLightState::Daylight);
 				}
 
 				if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::Daylight].size() != 0) {
-					RenderLights(pTowedVeh, eLightState::Daylight, vehicleAngle, cameraAngle);
+					RenderLightsNew(pControlVeh, pTowedVeh, eLightState::Daylight);
 				}
 			}
 
 			if (m_Materials[pControlVeh->m_nModelIndex][eLightState::AllDayLight].size() != 0) {
-				RenderLights(pControlVeh, eLightState::AllDayLight, vehicleAngle, cameraAngle);
+				RenderLightsNew(pControlVeh, pTowedVeh, eLightState::AllDayLight);
 			}
 
 			if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::AllDayLight].size() != 0) {
-				RenderLights(pTowedVeh, eLightState::AllDayLight, vehicleAngle, cameraAngle);
+				RenderLightsNew(pControlVeh, pTowedVeh, eLightState::AllDayLight);
 			}
 
 			bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
@@ -517,7 +517,7 @@ void Lights::Initialize()
 
 				if (reverseLightsOn) {
 					if (isRevlightSupportedByModel) {
-						RenderLights(pTowedVeh, eLightState::Reverselight, vehicleAngle, cameraAngle);
+						RenderLightsNew(pControlVeh, pTowedVeh, eLightState::Reverselight);
 					}
 					else if (reverseLightsOn) {
 						DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, { 240, 240, 240, 0 });
@@ -536,31 +536,31 @@ void Lights::Initialize()
 					if (pControlVeh->m_fBreakPedal) {
 						bool drawShadow = false;
 						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::TailLightLeft].size() != 0) {
-							RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle, false);
-							RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle, false);
+							RenderLightsNew(pControlVeh, pTowedVeh, eLightState::TailLightLeft, false);
+							RenderLightsNew(pControlVeh, pTowedVeh, eLightState::TailLightRight, false);
 							drawShadow = true;
 						} else if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::Brakelight].size() != 0) {
-							RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
+							RenderLightsNew(pControlVeh, pTowedVeh, eLightState::Brakelight, false);
 							drawShadow = true;
 						}
 						
 						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::STTLightLeft].size() != 0) {
-							RenderLights(pTowedVeh, eLightState::STTLightLeft, vehicleAngle, cameraAngle);
+							RenderLightsNew(pControlVeh, pTowedVeh, eLightState::STTLightLeft);
 						}
 						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::STTLightRight].size() != 0) {
-							RenderLights(pTowedVeh, eLightState::STTLightRight, vehicleAngle, cameraAngle);
+							RenderLightsNew(pControlVeh, pTowedVeh, eLightState::STTLightRight);
 						}
 
 						if (indState != eLightState::IndicatorBoth) {
 							if (indState != eLightState::IndicatorLeft) {
 								if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::NABrakeLightLeft].size() != 0) {
-									RenderLights(pTowedVeh, eLightState::NABrakeLightLeft, vehicleAngle, cameraAngle);
+									RenderLightsNew(pControlVeh, pTowedVeh, eLightState::NABrakeLightLeft);
 								}
 							}
 
 							if (indState != eLightState::IndicatorRight) {
 								if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::NABrakeLightRight].size() != 0) {
-									RenderLights(pTowedVeh, eLightState::NABrakeLightRight, vehicleAngle, cameraAngle);
+									RenderLightsNew(pControlVeh, pTowedVeh, eLightState::NABrakeLightRight);
 								}
 							}
 						}
@@ -573,19 +573,19 @@ void Lights::Initialize()
 					if (IsNightTime()) {
 						bool drawShadow = false;
 						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::Brakelight].size() != 0) {
-							RenderLights(pTowedVeh, eLightState::Brakelight, vehicleAngle, cameraAngle, false);
+							RenderLightsNew(pControlVeh, pTowedVeh, eLightState::Brakelight, false);
 							drawShadow = true;
 						} else if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::TailLightLeft].size() != 0) {
-							RenderLights(pTowedVeh, eLightState::TailLightLeft, vehicleAngle, cameraAngle, false);
-							RenderLights(pTowedVeh, eLightState::TailLightRight, vehicleAngle, cameraAngle, false);
+							RenderLightsNew(pControlVeh, pTowedVeh, eLightState::TailLightLeft, false);
+							RenderLightsNew(pControlVeh, pTowedVeh, eLightState::TailLightRight, false);
 							drawShadow = true;
 						}
 
 						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::STTLightLeft].size() != 0) {
-							RenderLights(pTowedVeh, eLightState::STTLightLeft, vehicleAngle, cameraAngle);
+							RenderLightsNew(pControlVeh, pTowedVeh, eLightState::STTLightLeft);
 						}
 						if (m_Materials[pTowedVeh->m_nModelIndex][eLightState::STTLightRight].size() != 0) {
-							RenderLights(pTowedVeh, eLightState::STTLightRight, vehicleAngle, cameraAngle);
+							RenderLightsNew(pControlVeh, pTowedVeh, eLightState::STTLightRight);
 						}
 						
 						if (drawShadow){
@@ -669,50 +669,6 @@ void Lights::Initialize()
 			return;
 		}
 
-		int id = 0;
-		auto indicatorProcess = [&](eLightState matState) {
-			bool FrontDisabled = false;
-			bool RearDisabled = false;
-			bool MidDisabled = false;
-
-			for (auto e : m_Dummies[pControlVeh][matState]) {
-				if (e->PartType != eParentType::Unknown && IsBumperOrWingDamaged(pControlVeh, e->PartType)) {
-					if ((e->Type == eDummyPos::FrontLeft || e->Type == eDummyPos::FrontRight)) {
-						FrontDisabled = true;
-					}
-					if ((e->Type == eDummyPos::MiddleLeft || e->Type == eDummyPos::MiddleRight)) {
-						MidDisabled = true;
-					}
-					if ((e->Type == eDummyPos::RearLeft || e->Type == eDummyPos::RearRight)) {
-						RearDisabled = true;
-					}
-					continue;
-				}
-
-				bool isRear = (e->Type == eDummyPos::RearLeft || e->Type == eDummyPos::RearRight);
-				EnableDummy((int)pControlVeh + 42 + id++, e, isRear ? pTowedVeh : pControlVeh);
-				Common::RegisterShadow(isRear ? pTowedVeh : pControlVeh, e->ShdwPosition, e->Color.r, e->Color.g, e->Color.b, e->Color.a, e->Angle, e->CurrentAngle, "indicator");
-			}
-
-			for (auto e : m_Materials[pControlVeh->m_nModelIndex][matState]) {
-				if (e->Pos == eDummyPos::RearLeft || e->Pos == eDummyPos::RearRight) continue; // Skip rear
-				if ((FrontDisabled && (e->Pos == eDummyPos::FrontLeft || e->Pos == eDummyPos::FrontRight))
-				|| RearDisabled && (e->Pos == eDummyPos::RearLeft || e->Pos == eDummyPos::RearRight)
-				|| MidDisabled && (e->Pos == eDummyPos::MiddleLeft || e->Pos == eDummyPos::MiddleRight)) {
-					continue;
-				}
-				EnableMaterial(e);
-			}
-
-			if (!RearDisabled) {
-				for (auto e : m_Materials[pTowedVeh->m_nModelIndex][matState]) {
-					if ((e->Pos == eDummyPos::RearLeft || e->Pos == eDummyPos::RearRight) && !RearDisabled) {
-						EnableMaterial(e);
-					}
-				}
-			}
-		};
-
 		// global turn lights
 		if (gbGlobalIndicatorLights &&
 			(
@@ -744,23 +700,84 @@ void Lights::Initialize()
 		}
 		else {
 			if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorLeft) {
-				indicatorProcess(eLightState::IndicatorLeft);
-				indicatorProcess(eLightState::STTLightLeft);
+				RenderLightsNew(pControlVeh, pTowedVeh, eLightState::IndicatorLeft);
+				RenderLightsNew(pControlVeh, pTowedVeh, eLightState::STTLightLeft);
 			}
 
 			if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorRight) {
-				indicatorProcess(eLightState::IndicatorRight);
-				indicatorProcess(eLightState::STTLightRight);
+				RenderLightsNew(pControlVeh, pTowedVeh, eLightState::IndicatorRight);
+				RenderLightsNew(pControlVeh, pTowedVeh, eLightState::STTLightRight);
 			}
 		}
 		if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorLeft) {
-			indicatorProcess(eLightState::NABrakeLightLeft);
+			RenderLightsNew(pControlVeh, pTowedVeh, eLightState::NABrakeLightLeft);
 		}
 
 		if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorRight) {
-			indicatorProcess(eLightState::NABrakeLightRight);
+			RenderLightsNew(pControlVeh, pTowedVeh, eLightState::NABrakeLightRight);
 		} });
 };
+
+void Lights::RenderLightsNew(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightState state, bool shadows, std::string texture, float sz)
+{
+	bool FrontDisabled = false;
+	bool RearDisabled = false;
+	bool MidDisabled = false;
+	int id = static_cast<int>(state) * 10000;
+	for (auto e : m_Dummies[pControlVeh][state])
+	{
+		if (e->PartType != eParentType::Unknown && IsBumperOrWingDamaged(pControlVeh, e->PartType))
+		{
+			if ((e->Type == eDummyPos::FrontLeft || e->Type == eDummyPos::FrontRight))
+			{
+				FrontDisabled = true;
+			}
+			if ((e->Type == eDummyPos::MiddleLeft || e->Type == eDummyPos::MiddleRight))
+			{
+				MidDisabled = true;
+			}
+			if ((e->Type == eDummyPos::RearLeft || e->Type == eDummyPos::RearRight))
+			{
+				RearDisabled = true;
+			}
+			continue;
+		}
+
+		bool isRear = (e->Type == eDummyPos::RearLeft || e->Type == eDummyPos::RearRight);
+		EnableDummy((int)pControlVeh + 42 + id++, e, isRear ? pTowedVeh : pControlVeh);
+
+		if (shadows)
+		{
+			Common::RegisterShadow(isRear ? pTowedVeh : pControlVeh, e->ShdwPosition, e->Color.r, e->Color.g, e->Color.b, e->Color.a, e->Angle, e->CurrentAngle, texture, sz);
+		}
+	}
+
+	for (auto e : m_Materials[pControlVeh->m_nModelIndex][state])
+	{
+		// Skip rear, pTowedVeh will handle it
+		if (e->Pos == eDummyPos::RearLeft || e->Pos == eDummyPos::RearRight)
+		{
+			continue;
+		}
+
+		if ((FrontDisabled && (e->Pos == eDummyPos::FrontLeft || e->Pos == eDummyPos::FrontRight)) || RearDisabled && (e->Pos == eDummyPos::RearLeft || e->Pos == eDummyPos::RearRight) || MidDisabled && (e->Pos == eDummyPos::MiddleLeft || e->Pos == eDummyPos::MiddleRight))
+		{
+			continue;
+		}
+		EnableMaterial(e);
+	}
+
+	if (!RearDisabled)
+	{
+		for (auto e : m_Materials[pTowedVeh->m_nModelIndex][state])
+		{
+			if ((e->Pos == eDummyPos::RearLeft || e->Pos == eDummyPos::RearRight) && !RearDisabled)
+			{
+				EnableMaterial(e);
+			}
+		}
+	}
+}
 
 void Lights::RenderLights(CVehicle *pVeh, eLightState state, float vehicleAngle, float cameraAngle, bool shadows, std::string texture, float sz)
 {
