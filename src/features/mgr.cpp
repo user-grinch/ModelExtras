@@ -186,10 +186,17 @@ void FeatureMgr::Initialize()
         m_FunctionTable["x_rpm"] = m_FunctionTable["fc_rpm"] = m_FunctionTable["tahook"] = RpmMeter::Process;
         LOG_NO_LEVEL("  AnimatedRpmMeter");
     }
+
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AnimatedSpeedMeter", false))
     {
         m_FunctionTable["x_sm"] = m_FunctionTable["fc_sm"] = m_FunctionTable["speedook"] = SpeedMeter::Process;
         LOG_NO_LEVEL("  AnimatedSpeedMeter");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AnimatedSpoiler", false))
+    {
+        m_FunctionTable["movspoiler"] = Spoiler::Process;
+        LOG_NO_LEVEL("  AnimatedSpoiler");
     }
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "GearChangeSounds", false))
@@ -256,8 +263,6 @@ void FeatureMgr::Initialize()
         m_FunctionTable["x_body_state"] = BodyState::Process;
         LOG_NO_LEVEL("  BodyStateVariation");
     }
-
-    m_FunctionTable["movspoiler"] = Spoiler::Process;
 
     if (gConfig.ReadBoolean("WEAPON_FEATURES", "CustomSounds", false))
     {
