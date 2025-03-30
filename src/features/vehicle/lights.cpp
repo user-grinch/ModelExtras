@@ -10,6 +10,7 @@
 #include <rpworld.h>
 #include "spotlights.h"
 #include "../audiomgr.h"
+#include <CWeather.h>
 
 // flags
 bool gbGlobalIndicatorLights = false;
@@ -161,22 +162,24 @@ void Lights::Initialize()
 
 	DoHeadLightEvent += [](CVehicle *pVeh, int b)
 	{
+		bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
 		VehData &data = m_VehData.Get(pVeh);
 		if (data.m_bLongLightsOn)
 		{
 			plugin::patch::SetPointer(0x6E1693, htl); // Twin
 			plugin::patch::SetPointer(0x6E151D, hsl); // Single
 			headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_LONG;
-			patch::SetFloat(0x6E0CA6, HEADLIGHT_CORONA_SIZE_LONG); // HeadLightCoronaSize
-			patch::SetUInt(0x6E0DEE, HEADLIGHT_CORONA_ALPHA_LONG); // HeadLightCoronaAlpha
+			patch::SetFloat(0x6E0CA6, isFoggy ? 1.5f * HEADLIGHT_CORONA_SIZE_LONG : HEADLIGHT_CORONA_SIZE_LONG); // HeadLightCoronaSize
+			patch::SetUInt(0x6E0DEE, HEADLIGHT_CORONA_ALPHA_LONG);												 // HeadLightCoronaAlpha
 		}
 		else
 		{
 			plugin::patch::SetPointer(0x6E1693, hts); // Twin
 			plugin::patch::SetPointer(0x6E151D, hss); // Single
 			headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_SHORT;
-			patch::SetFloat(0x6E0CA6, HEADLIGHT_CORONA_SIZE_SHORT);
-			patch::SetUInt(0x6E0DEE, HEADLIGHT_CORONA_ALPHA_SHORT); // HeadLightCoronaAlpha
+			patch::SetFloat(0x6E0CA6, isFoggy ? 1.5f * HEADLIGHT_CORONA_SIZE_SHORT : HEADLIGHT_CORONA_SIZE_SHORT);
+
+			patch::SetUInt(0x6E0DEE, isFoggy ? HEADLIGHT_CORONA_ALPHA_LONG : HEADLIGHT_CORONA_ALPHA_SHORT); // HeadLightCoronaAlpha
 		}
 	};
 
