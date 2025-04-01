@@ -9,7 +9,8 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
 {
     CurrentAngle = 0.0f;
     Frame = frame;
-    Position = {frame->modelling.pos.x, frame->modelling.pos.y, frame->modelling.pos.z};
+    CVector pos = pVeh->GetPosition();
+    Position = {Frame->ltm.pos.x - pos.x, Frame->ltm.pos.y - pos.y, Frame->ltm.pos.z - pos.z};
     ShdwPosition = Position;
     hasParent = parent;
     Color = color;
@@ -112,4 +113,18 @@ int VehicleDummy::ReadHex(char a, char b)
     b = (b <= '9') ? b - '0' : (b & 0x7) + 9;
 
     return (a << 4) + b;
+}
+
+void VehicleDummy::Update(CVehicle *pVeh)
+{
+    CMatrix &vehMatrix = *(CMatrix *)pVeh->GetMatrix();
+    CVector pos = pVeh->GetPosition();
+    CVector dummyPos = Frame->ltm.pos;
+    CVector offset = dummyPos - pos;
+
+    // Transform to local space using the transpose of the rotation matrix
+    Position.x = vehMatrix.right.x * offset.x + vehMatrix.right.y * offset.y + vehMatrix.right.z * offset.z;
+    Position.y = vehMatrix.up.x * offset.x + vehMatrix.up.y * offset.y + vehMatrix.up.z * offset.z;
+    Position.z = vehMatrix.at.x * offset.x + vehMatrix.at.y * offset.y + vehMatrix.at.z * offset.z;
+    ShdwPosition = Position;
 }

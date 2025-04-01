@@ -58,4 +58,6 @@ public:
         ResetAngle();
         AddAngle(angle);
     }
+
+    void Update(CVehicle *pVeh);
 };
