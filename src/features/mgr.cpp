@@ -29,6 +29,8 @@ void InitLogFile();
 
 void FeatureMgr::Initialize()
 {
+    // Nop frame collasping
+    plugin::patch::Nop(0x4C8E53, 5);
 
     plugin::Events::initGameEvent += []()
     {
@@ -42,7 +44,7 @@ void FeatureMgr::Initialize()
 
     plugin::Events::vehicleSetModelEvent += VehicleMaterials::OnModelSet;
 
-    Events::vehicleRenderEvent.before += [](CVehicle *pVeh)
+    Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
     {
         Add(static_cast<void *>(pVeh), (RwFrame *)pVeh->m_pRwClump->object.parent, eModelEntityType::Vehicle);
         Process(static_cast<void *>(pVeh), eModelEntityType::Vehicle);
