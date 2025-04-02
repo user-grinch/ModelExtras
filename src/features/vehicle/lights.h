@@ -17,8 +17,7 @@ enum class eLightState
 	AllDayLight,
 	Daylight,
 	Nightlight,
-	FogLightLeft,
-	FogLightRight,
+	FogLight,
 	SideLightLeft,
 	SideLightRight,
 	STTLightLeft,
@@ -57,10 +56,13 @@ private:
 	static inline VehicleExtendedData<VehData> m_VehData;
 
 	static void RegisterMaterial(CVehicle *vehicle, RpMaterial *material, eLightState state, CRGBA col, eDummyPos pos = eDummyPos::None);
-	static void RenderLights(CVehicle *vehicle, eLightState state, float vehicleAngle, float cameraAngle, bool shadows = true, std::string texture = "indicator", float sz = 1.0f);
 	static void EnableMaterial(VehicleMaterial *material);
 	static void EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle);
-	static void RenderLightsNew(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightState state, bool shadows = true, std::string texture = "indicator", float sz = 1.0f);
+	static void RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightState state, bool shadows = true, std::string texture = "indicator", CVector2D sz = {1.0f, 1.0f}, CVector2D offset = {0.0f, 0.0f});
+
+	// Helper functions
+	static bool IsDummyAvail(CVehicle *pVeh, eLightState state);
+	static bool IsMatAvail(CVehicle *pVeh, eLightState state);
 
 public:
 	static inline bool indicatorsDelay;

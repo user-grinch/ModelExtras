@@ -1054,8 +1054,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 		pos.x += (pos.x > 0 ? 1.2f : -1.2f); // FIX ME!!!
 		unsigned char alpha = static_cast<char>((static_cast<float>(material->Color.alpha) * -1) * material->InertiaMultiplier);
 
-		Common::RegisterShadow(vehicle, pos, material->Color.red, material->Color.green, material->Color.blue,
-							   material->Color.alpha, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, material->Shadow.Size, material->Shadow.Offset, nullptr);
+		Common::RegisterShadow(vehicle, pos, *(CRGBA *)&material->Color, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
 	}
 };
 

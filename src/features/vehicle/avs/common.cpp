@@ -70,9 +70,9 @@ RwTexture *Common::GetTexture(std::string texture)
     return Textures[texture];
 };
 
-void Common::RegisterShadow(CVehicle *pVeh, CVector position, unsigned char red, unsigned char green, unsigned char blue, unsigned int alpha, float angle, float currentAngle, const std::string &shadwTexName, float shdwSz, float shdwOffset, RwTexture *pTexture)
+void Common::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float angle, float currentAngle, const std::string &shadwTexName, CVector2D shdwSz, CVector2D shdwOffset, RwTexture *pTexture)
 {
-    if (shdwSz == 0.0f || !gConfig.ReadBoolean("VEHICLE_FEATURES", "LightShadows", false))
+    if (shdwSz.x == 0.0f || shdwSz.y == 0.0f || !gConfig.ReadBoolean("VEHICLE_FEATURES", "LightShadows", false))
     {
         return;
     }
@@ -80,20 +80,20 @@ void Common::RegisterShadow(CVehicle *pVeh, CVector position, unsigned char red,
     float ground = CWorld::FindGroundZFor3DCoord(position.x, position.y, position.z, nullptr, nullptr);
     CVector center = pVeh->TransformFromObjectSpace(
         CVector(
-            position.x + (shdwOffset * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-            position.y + ((1.2f + shdwOffset) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+            position.x + shdwOffset.x,
+            position.y + shdwOffset.y,
             ground + 0.5f));
 
     float fAngle = pVeh->GetHeading() + (((angle + currentAngle) + 180.0f) * 3.14f / 180.0f);
 
     CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
     CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-    up *= shdwSz;
-    right *= shdwSz;
+    up *= shdwSz.x;
+    right *= shdwSz.y;
 
     CShadows::StoreShadowToBeRendered(2, (pTexture != NULL ? pTexture : Common::GetTexture(shadwTexName)), &center,
                                       up.x, up.y,
                                       right.x, right.y,
-                                      alpha, red, green, blue,
+                                      col.a, col.r, col.g, col.b,
                                       2.0f, false, 1.0f, 0, true);
 };

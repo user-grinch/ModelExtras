@@ -15,15 +15,17 @@ private:
 public:
     RwFrame *Frame;
     CRGBA Color = {255, 255, 255, 128};
-    CVector Position, ShdwPosition;
+    CVector Position;
     eDummyPos Type;
     LightType LightType = LightType::NonDirectional;
     eParentType PartType = eParentType::Unknown;
     float Size;
     float Angle;
     float CurrentAngle = 0.0f;
-    bool hasShadow = false;
-    bool indicatorTaillightMode = false;
+
+    CVector ShdwPosition;
+    CVector2D shdwOffSet = {1.0f, 1.0f};
+    CVector2D shdowSize = {1.0f, 1.0f};
 
     VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, bool parent, eDummyPos type = eDummyPos::None, RwRGBA color = {255, 255, 255, 128});
 

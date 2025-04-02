@@ -16,7 +16,6 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
     Color = color;
     Type = type;
     Size = 0.6f;
-    float offSetVal = 0.0f;
     float angleVal = 0.0f;
 
     // Calculate the angle based on the frame's orientation
@@ -45,8 +44,8 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
             if (lights.contains("Shadow"))
             {
                 auto &shadow = lights["Shadow"];
-                hasShadow = shadow.value("Enabled", false);
-                offSetVal = shadow.value("Offset", 0.0f);
+                shdwOffSet = {shadow.value("OffsetX", 1.0f), shadow.value("OffsetY", 1.0f)};
+                shdowSize = {shadow.value("SizeX", 1.0f), shadow.value("SizeY", 1.0f)};
                 angleVal = shadow.value("Rotation", 0.0f);
             }
         }
@@ -67,37 +66,31 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
     }
     if (type == eDummyPos::FrontLeft)
     {
-        ShdwPosition.x -= offSetVal / 10.0f;
         Angle = 0 - angleVal;
     }
 
     if (type == eDummyPos::FrontRight)
     {
-        ShdwPosition.x += offSetVal / 10.0f;
         Angle = 0 - angleVal;
     }
 
     if (type == eDummyPos::MiddleLeft)
     {
-        ShdwPosition.x -= 2 * offSetVal / 10.0f + 1.25f;
         Angle = 90 - angleVal;
     }
 
     if (type == eDummyPos::MiddleRight)
     {
-        ShdwPosition.x += 2 * offSetVal / 10.0f + 1.25f;
         Angle = 270 - angleVal;
     }
 
     if (type == eDummyPos::RearLeft)
     {
-        ShdwPosition.x += -offSetVal / 10.0f;
         Angle = 180 - angleVal;
     }
 
     if (type == eDummyPos::RearRight)
     {
-        ShdwPosition.x += offSetVal / 10.0f;
         Angle = 180 - angleVal;
     }
 
@@ -122,7 +115,7 @@ void VehicleDummy::Update(CVehicle *pVeh)
     CVector dummyPos = Frame->ltm.pos;
     CVector offset = dummyPos - pos;
 
-    // Transform to local space using the transpose of the rotation matrix
+    // Transform to local space using  transpose of the rotation matrix
     Position.x = vehMatrix.right.x * offset.x + vehMatrix.right.y * offset.y + vehMatrix.right.z * offset.z;
     Position.y = vehMatrix.up.x * offset.x + vehMatrix.up.y * offset.y + vehMatrix.up.z * offset.z;
     Position.z = vehMatrix.at.x * offset.x + vehMatrix.at.y * offset.y + vehMatrix.at.z * offset.z;

@@ -8,6 +8,7 @@
 #define SET_AUDIO_STREAM_STATE 0x0AAD
 #define GET_AUDIO_STREAM_STATE 0x0AB9
 #define REMOVE_AUDIO_STREAM 0x0AAE
+#define SET_AUDIO_STREAM_VOLUME 0x0ABC
 
 void AudioMgr::Initialize()
 {
@@ -72,6 +73,7 @@ void AudioMgr::Play(StreamHandle handle, CEntity *pEntity)
     if (state != eAudioStreamState::Playing)
     {
         CVector pos = pEntity->GetPosition();
+        plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f);
         plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, pos.x, pos.y, pos.z);
         plugin::Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
     }
