@@ -117,6 +117,7 @@ inline bool IsBumperOrWingDamaged(CVehicle *pVeh, eParentType part)
 unsigned int HEADLIGHT_SHADOW_ALPHA = 240;
 float HEADLIGHT_SHADOW_WIDTH_BIKE = 2.75f;
 float HEADLIGHT_SHADOW_WIDTH = 240;
+
 float HEADLIGHT_SHADOW_WIDTH_SHORT = 8.0f;
 float HEADLIGHT_SHADOW_WIDTH_LONG = 8.0f;
 
@@ -130,7 +131,8 @@ float HEADLIGHT_CORONA_ALPHA_LONG = 255;
 void Lights::Initialize()
 {
 	static float headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_SHORT;
-
+	patch::SetFloat(0x6E167E, 180.0f);
+	patch::SetFloat(0x6E154F, 180.0f);
 	patch::SetPointer(0x6E16A3, &headlightTexWidth);
 	patch::SetPointer(0x6E1537, &headlightTexWidth);
 	patch::SetPointer(0x6E1548, &HEADLIGHT_SHADOW_WIDTH_BIKE);
