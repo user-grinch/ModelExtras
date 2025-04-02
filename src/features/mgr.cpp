@@ -24,6 +24,7 @@
 #include "audiomgr.h"
 #include "vehicle/soundeffects.h"
 #include "vehicle/spoiler.h"
+#include "vehicle/backfire.h"
 
 void InitLogFile();
 
@@ -199,6 +200,15 @@ void FeatureMgr::Initialize()
     {
         m_FunctionTable["movspoiler"] = Spoiler::Process;
         LOG_NO_LEVEL("  AnimatedSpoiler");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "BackfireEffect", false))
+    {
+        plugin::Events::vehicleRenderEvent.before += [](CVehicle *vehicle)
+        {
+            BackFireEffect::Process(vehicle, nullptr, eModelEntityType::Vehicle);
+        };
+        LOG_NO_LEVEL("  BackfireEffect");
     }
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "GearChangeSounds", false))
