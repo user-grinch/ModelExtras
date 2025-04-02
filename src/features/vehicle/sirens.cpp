@@ -780,7 +780,7 @@ void Sirens::Initialize()
 		int model = vehicle->m_nModelIndex;
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
 
-		if (!modelData.contains(model) || vehicle->m_nOverrideLights == eLightOverride::ForceLightsOff || vehicle->ms_forceVehicleLightsOff) {
+		if (!vehicle->GetIsOnScreen() || !modelData.contains(model) || vehicle->m_nOverrideLights == eLightOverride::ForceLightsOff || vehicle->ms_forceVehicleLightsOff) {
 			return;
 		}
 

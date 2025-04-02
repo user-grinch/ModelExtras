@@ -3,6 +3,7 @@
 #include "datamgr.h"
 #include <extensions/ScriptCommands.h>
 #include <extensions/scripting/ScriptCommandNames.h>
+#include "../audiomgr.h"
 
 enum eVehicleDummies
 {
@@ -30,6 +31,10 @@ void BackFireEffect::BackFireFX(CVehicle *pVeh, float x, float y, float z)
     int handle = NULL;
     plugin::Command<Commands::CREATE_FX_SYSTEM_ON_CAR_WITH_DIRECTION>("GUNFLASH", CPools::GetVehicleRef(pVeh), x, y, z, 0.0f, -25.0f, 0.0f, 1, &handle);
     plugin::Command<Commands::PLAY_AND_KILL_FX_SYSTEM>(handle);
+
+    static std::string path = MOD_DATA_PATH("audio/effects/backfire.wav");
+    static StreamHandle hAudio = AudioMgr::Load(&path);
+    AudioMgr::Play(hAudio, pVeh);
 }
 
 void BackFireEffect::BackFireSingle(CVehicle *pVeh)
@@ -57,10 +62,14 @@ void BackFireEffect::BackFireMulti(CVehicle *pVeh)
     int num = plugin::RandomNumberInRange(0, 3) - 1;
 
     BackFireSingle(pVeh);
+    VehData &data = vehData.Get(pVeh);
     if (num > 0)
     {
-        VehData &data = vehData.Get(pVeh);
         data.m_nleftFires = num;
+    }
+    else
+    {
+        data.m_nleftFires = 0;
     }
 }
 
@@ -69,7 +78,7 @@ void BackFireEffect::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 {
     CVehicle *pVeh = static_cast<CVehicle *>(ptr);
 
-    if (pVeh != FindPlayerVehicle(-1, false) || pVeh->m_nVehicleFlags.bIsBig || pVeh->m_nVehicleFlags.bIsVan || pVeh->m_nVehicleFlags.bIsBus || pVeh->m_nVehicleFlags.bIsRCVehicle)
+    if (!pVeh->GetIsOnScreen() || pVeh->m_nVehicleFlags.bIsBig || pVeh->m_nVehicleFlags.bIsVan || pVeh->m_nVehicleFlags.bIsBus || pVeh->m_nVehicleFlags.bIsRCVehicle)
     {
         return;
     }
@@ -88,29 +97,33 @@ void BackFireEffect::Process(void *ptr, RwFrame *frame, eModelEntityType type)
             BackFireSingle(pVeh);
         }
 
-        if (flag)
+        // handle multi
+        static size_t prevTimer = 0, prevTimer2 = 0;
+        size_t timer = CTimer::m_snTimeInMilliseconds;
+
+        if (timer - prevTimer2 > 500)
         {
-            if (acclPadel < 100)
+            if (flag)
             {
-                BackFireMulti(pVeh);
-                flag = false;
-            }
-        }
-        else
-        {
-            if (acclPadel == 128)
-            {
-                if (pVeh->m_nVehicleFlags.bEngineOn)
+                if (acclPadel < 100)
                 {
                     BackFireMulti(pVeh);
+                    flag = false;
                 }
-                flag = true;
             }
+            else
+            {
+                if (acclPadel == 128)
+                {
+                    if (pVeh->m_nVehicleFlags.bEngineOn)
+                    {
+                        BackFireMulti(pVeh);
+                    }
+                    flag = true;
+                }
+            }
+            prevTimer2 = timer;
         }
-
-        // handle multi
-        static size_t prevTimer = 0;
-        size_t timer = CTimer::m_snTimeInMilliseconds;
 
         if (timer - prevTimer > 750)
         {
