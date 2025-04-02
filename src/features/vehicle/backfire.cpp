@@ -4,25 +4,7 @@
 #include <extensions/ScriptCommands.h>
 #include <extensions/scripting/ScriptCommandNames.h>
 #include "../audiomgr.h"
-
-enum eVehicleDummies
-{
-    LIGHT_FRONT_MAIN = 0,
-    LIGHT_REAR_MAIN,
-    LIGHT_FRONT_SECONDARY,
-    LIGHT_REAR_SECONDARY,
-    SEAT_FRONT,
-    SEAT_REAR,
-    EXHAUST,
-    ENGINE,
-    GAS_CAP,
-    TRAILER_ATTACH,
-    HAND_REST,
-    EXHAUST_SECONDARY,
-    WING_AIRTRAIL,
-    VEH_GUN,
-    VEHICLE_DUMMY_COUNT,
-};
+#include "../../enums/vehdummy.h"
 
 static bool flag = false;
 
@@ -33,7 +15,11 @@ void BackFireEffect::BackFireFX(CVehicle *pVeh, float x, float y, float z)
     plugin::Command<Commands::PLAY_AND_KILL_FX_SYSTEM>(handle);
 
     static std::string path = MOD_DATA_PATH("audio/effects/backfire.wav");
-    static StreamHandle hAudio = AudioMgr::Load(&path);
+    static StreamHandle hAudio = NULL;
+    if (hAudio == NULL)
+    {
+        hAudio = AudioMgr::Load(&path);
+    }
     AudioMgr::Play(hAudio, pVeh);
 }
 
@@ -101,7 +87,7 @@ void BackFireEffect::Process(void *ptr, RwFrame *frame, eModelEntityType type)
         static size_t prevTimer = 0, prevTimer2 = 0;
         size_t timer = CTimer::m_snTimeInMilliseconds;
 
-        if (timer - prevTimer2 > 500)
+        if (timer - prevTimer2 > 100)
         {
             if (flag)
             {

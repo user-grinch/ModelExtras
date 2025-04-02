@@ -208,3 +208,10 @@ build/obj/Win32/Release/ModelExtras.tlog/ModelExtras.lastbuildstate
 resource/ModelExtras.asi
 archive/ModelExtras.7z
 archive/ModelExtras.7z
+archive/ModelExtras.7z
+build/obj/Win32/Debug/audiomgr.obj
+build/obj/Win32/Debug/backfire.obj
+build/obj/Win32/Debug/soundeffects.obj
+build/obj/Win32/Release/audiomgr.obj
+build/obj/Win32/Release/backfire.obj
+build/obj/Win32/Release/soundeffects.obj

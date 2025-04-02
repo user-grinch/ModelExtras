@@ -77,6 +77,6 @@ public:
 	static void Initialize();
 	static bool IsIndicatorOn(CVehicle *pVeh)
 	{
-		return indicatorsDelay && m_VehData.Get(pVeh).m_nIndicatorState != eLightState::IndicatorNone;
+		return (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) && indicatorsDelay && m_VehData.Get(pVeh).m_nIndicatorState != eLightState::IndicatorNone;
 	}
 };
