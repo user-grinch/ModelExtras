@@ -80,8 +80,8 @@ public:
     float Inertia = 0.0f;
     float InertiaMultiplier = 1.0f;
     float Radius = 180.0f;
-    RwRGBA Color = {255, 255, 255, 255};
-    RwRGBA DefaultColor = {255, 255, 255, 255};
+    CRGBA Color = {255, 255, 255, 255};
+    CRGBA DefaultColor = {255, 255, 255, 255};
     VehicleSirenDiffuse Diffuse;
     int ColorCount = 0;
     uint64_t ColorTime = 0;
@@ -130,7 +130,7 @@ public:
 
     void ResetColor(uint64_t time)
     {
-        Color = {DefaultColor.red, DefaultColor.green, DefaultColor.blue, DefaultColor.alpha};
+        Color = DefaultColor;
         ColorCount = 0;
         ColorTime = time;
     }

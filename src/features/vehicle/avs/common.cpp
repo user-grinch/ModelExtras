@@ -6,14 +6,14 @@
 #include <CShadows.h>
 #include <CWorld.h>
 
-void Common::RegisterCorona(CVehicle *pVeh, int coronaID, CVector pos, uchar red, uchar green, uchar blue, uchar alpha, float size)
+void Common::RegisterCorona(CVehicle *pVeh, int coronaID, CVector pos, CRGBA col, float size)
 {
     if (!gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false))
     {
         return;
     }
 
-    CCoronas::RegisterCorona(coronaID, pVeh, red, green, blue, alpha, pos,
+    CCoronas::RegisterCorona(coronaID, pVeh, col.r, col.g, col.b, col.a, pos,
                              size * CORONA_SZ_MUL, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
 };
 
@@ -26,7 +26,7 @@ float Common::NormalizeAngle(float angle)
     return angle;
 }
 
-void Common::RegisterCoronaWithAngle(CVehicle *pVeh, int coronaID, CVector posn, uchar red, uchar green, uchar blue, uchar alpha, float angle, float radius, float size)
+void Common::RegisterCoronaWithAngle(CVehicle *pVeh, int coronaID, CVector posn, CRGBA col, float angle, float radius, float size)
 {
     constexpr float RAD_TO_DEG = 180.0f / 3.141592653589793f;
 
@@ -43,22 +43,22 @@ void Common::RegisterCoronaWithAngle(CVehicle *pVeh, int coronaID, CVector posn,
     if (differenceAngle < diameter || differenceAngle > (360.0f - diameter))
         return;
 
-    float alphaFloat = static_cast<float>(alpha);
+    float alphaFloat = static_cast<float>(col.a);
 
     if (differenceAngle < diameter + InertiaAngle)
     {
         float adjustedAngle = diameter - differenceAngle;
         float multiplier = adjustedAngle / InertiaAngle;
-        alpha = static_cast<uchar>(std::clamp(alphaFloat * multiplier, 0.0f, (float)alpha));
+        col.a = static_cast<uchar>(std::clamp(alphaFloat * multiplier, 0.0f, (float)col.a));
     }
     else if (differenceAngle > (360.0f - diameter) - InertiaAngle)
     {
         float adjustedAngle = InertiaAngle - (differenceAngle - ((360.0f - diameter) - InertiaAngle));
         float multiplier = adjustedAngle / InertiaAngle;
-        alpha = static_cast<uchar>(std::clamp(alphaFloat * multiplier, 0.0f, (float)alpha));
+        col.a = static_cast<uchar>(std::clamp(alphaFloat * multiplier, 0.0f, (float)col.a));
     }
 
-    RegisterCorona(pVeh, coronaID, posn, red, green, blue, alpha, size);
+    RegisterCorona(pVeh, coronaID, posn, col, size);
 }
 
 RwTexture *Common::GetTexture(std::string texture)

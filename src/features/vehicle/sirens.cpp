@@ -154,18 +154,18 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 		if (json["color"].is_object())
 		{
 			if (json["color"].contains("red"))
-				Color.red = json["color"]["red"];
+				Color.r = json["color"]["red"];
 
 			if (json["color"].contains("green"))
-				Color.green = json["color"]["green"];
+				Color.g = json["color"]["green"];
 
 			if (json["color"].contains("blue"))
-				Color.blue = json["color"]["blue"];
+				Color.b = json["color"]["blue"];
 
 			if (json["color"].contains("alpha"))
-				Color.alpha = json["color"]["alpha"];
+				Color.a = json["color"]["alpha"];
 
-			DefaultColor = {Color.red, Color.green, Color.blue, Color.alpha};
+			DefaultColor = Color;
 		}
 		else
 			gLogger->error("Model " + std::to_string(Sirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", color property is not an object!");
@@ -976,9 +976,9 @@ void Sirens::EnableMaterial(VehicleMaterial *material, VehicleSirenMaterial *mat
 	{
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->color), *reinterpret_cast<unsigned int *>(&material->Material->color)));
 
-		material->Material->color.red = mat->Color.red;
-		material->Material->color.green = mat->Color.green;
-		material->Material->color.blue = mat->Color.blue;
+		material->Material->color.red = mat->Color.r;
+		material->Material->color.green = mat->Color.g;
+		material->Material->color.blue = mat->Color.b;
 
 		if (mat->Diffuse.Transparent)
 			material->Material->color.alpha = 255;
@@ -999,7 +999,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 	position.y = dummy->Position.y;
 	position.z = dummy->Position.z;
 	dummy->Update(vehicle);
-	unsigned char alpha = material->Color.alpha;
+	unsigned char alpha = material->Color.a;
 
 	if (material->PatternTotal != 0 && material->Inertia != 0.0f)
 	{
@@ -1057,20 +1057,19 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 		}
 
 		Common::RegisterCoronaWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position,
-										material->Color.red, material->Color.green, material->Color.blue, material->Color.alpha,
+										material->Color,
 										dummyAngle, material->Radius, material->Size);
 	}
 	else
 	{
-		Common::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position, material->Color.red,
-							   material->Color.green, material->Color.blue, material->Color.alpha, material->Size);
+		Common::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position, material->Color, material->Size);
 	}
 
 	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren)
 	{
 		CVector pos = position;
 		pos.x += (pos.x > 0 ? 1.2f : -1.2f); // FIX ME!!!
-		unsigned char alpha = static_cast<char>((static_cast<float>(material->Color.alpha) * -1) * material->InertiaMultiplier);
+		unsigned char alpha = static_cast<char>((static_cast<float>(material->Color.a) * -1) * material->InertiaMultiplier);
 
 		Common::RegisterShadow(vehicle, pos, *(CRGBA *)&material->Color, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
 	}

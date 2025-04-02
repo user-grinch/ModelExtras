@@ -42,7 +42,7 @@ unsigned char GetShadowAlphaForDayTime()
 	}
 }
 
-unsigned int GetCoronaAlphaForDayTime()
+unsigned char GetCoronaAlphaForDayTime()
 {
 	if (IsNightTime())
 	{
@@ -92,7 +92,7 @@ void DrawGlobalLight(CVehicle *pVeh, eDummyPos pos, CRGBA col)
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	CRGBA color = {col.r, col.g, col.b, GetShadowAlphaForDayTime()};
 	Common::RegisterShadow(pVeh, posn, color, dummyAngle, 0.0f, "indicator");
-	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, col.r, col.g, col.b, GetCoronaAlphaForDayTime(), dummyAngle, 0.3f, gfGlobalCoronaSize);
+	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, {col.r, col.g, col.b, GetCoronaAlphaForDayTime()}, dummyAngle, 0.3f, gfGlobalCoronaSize);
 }
 
 inline float GetZAngleForPoint(CVector2D const &point)
@@ -744,13 +744,11 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh)
 	{
 		if (dummy->LightType == LightType::NonDirectional)
 		{
-			Common::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color.r, dummy->Color.g, dummy->Color.b,
-								   dummy->Color.a, dummy->Size);
+			Common::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->Size);
 		}
 		else
 		{
-			Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color.r, dummy->Color.g, dummy->Color.b,
-											dummy->Color.a, dummy->Angle + (dummy->LightType == LightType::Inversed ? 180.0f : 0.0f), 180.0f, dummy->Size);
+			Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->Angle + (dummy->LightType == LightType::Inversed ? 180.0f : 0.0f), 180.0f, dummy->Size);
 		}
 	}
 };
