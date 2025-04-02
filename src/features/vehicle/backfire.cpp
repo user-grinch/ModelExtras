@@ -82,7 +82,7 @@ void BackFireEffect::Process(void *ptr, RwFrame *frame, eModelEntityType type)
         float speed = Util::GetVehicleSpeed(pVeh);
         unsigned char acclPadel = *(unsigned char *)((int)pVeh + 0x966);
 
-        if (pVeh->m_pDriver && nitroActivated && gchanging == 0 && rpm != 65535 && rpm > 100.0f && speed > 5.0f)
+        if (pVeh->m_pDriver && gchanging == 0 && rpm != 65535 && rpm > 100.0f && speed > 5.0f)
         {
             BackFireSingle(pVeh);
         }
@@ -115,7 +115,7 @@ void BackFireEffect::Process(void *ptr, RwFrame *frame, eModelEntityType type)
             prevTimer2 = timer;
         }
 
-        if (timer - prevTimer > 750)
+        if (timer - prevTimer > 50)
         {
             if (data.m_nleftFires > 0)
             {
