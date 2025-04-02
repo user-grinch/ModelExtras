@@ -24,7 +24,7 @@ public:
     float CurrentAngle = 0.0f;
 
     CVector ShdwPosition;
-    CVector2D shdwOffSet = {1.0f, 1.0f};
+    CVector2D shdwOffSet = {0.0f, 0.0f};
     CVector2D shdowSize = {1.0f, 1.0f};
 
     VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, bool parent, eDummyPos type = eDummyPos::None, RwRGBA color = {255, 255, 255, 128});

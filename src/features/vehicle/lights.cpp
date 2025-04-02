@@ -429,7 +429,7 @@ void Lights::Initialize()
 			}
 
 			if (data.m_bFogLightsOn) {
-				RenderLights(pControlVeh, pTowedVeh, eLightState::FogLight, true, "foglight", {1.5f, 2.0f}, {0.0f, 2.0f});
+				RenderLights(pControlVeh, pTowedVeh, eLightState::FogLight, true, "foglight", {1.5f, 1.5f}, {0.0f, -3.0f});
 			}
 
 			if (pControlVeh->m_nVehicleFlags.bLightsOn) {
@@ -545,7 +545,7 @@ void Lights::Initialize()
 		}
 
 		// Indicator Lights
-		if (!gbGlobalIndicatorLights && !IsDummyAvail(indState) && !IsMatAvail(indState)) {
+		if (!gbGlobalIndicatorLights && !IsDummyAvail(pControlVeh, indState) && !IsMatAvail(pControlVeh, indState)) {
 			return;
 		}
 
@@ -689,6 +689,7 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightStat
 			}
 
 			bool isRear = (e->Type == eDummyPos::RearLeft || e->Type == eDummyPos::RearRight);
+			e->Update(pControlVeh);
 			EnableDummy((int)pControlVeh + 42 + id++, e, isRear ? pTowedVeh : pControlVeh);
 
 			if (shadows)
@@ -739,7 +740,6 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh)
 {
 	if (gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false))
 	{
-		dummy->Update(pVeh);
 		if (dummy->LightType == LightType::NonDirectional)
 		{
 			Common::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color.r, dummy->Color.g, dummy->Color.b,

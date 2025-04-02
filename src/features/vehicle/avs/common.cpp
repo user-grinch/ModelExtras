@@ -80,8 +80,8 @@ void Common::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float a
     float ground = CWorld::FindGroundZFor3DCoord(position.x, position.y, position.z, nullptr, nullptr);
     CVector center = pVeh->TransformFromObjectSpace(
         CVector(
-            position.x + shdwOffset.x,
-            position.y + shdwOffset.y,
+            position.x + (shdwOffset.x * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+            position.y + ((1.2f + shdwOffset.y) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
             ground + 0.5f));
 
     float fAngle = pVeh->GetHeading() + (((angle + currentAngle) + 180.0f) * 3.14f / 180.0f);

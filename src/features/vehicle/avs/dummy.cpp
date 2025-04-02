@@ -44,7 +44,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
             if (lights.contains("Shadow"))
             {
                 auto &shadow = lights["Shadow"];
-                shdwOffSet = {shadow.value("OffsetX", 1.0f), shadow.value("OffsetY", 1.0f)};
+                shdwOffSet = {shadow.value("OffsetX", 0.0f), shadow.value("OffsetY", 0.0f)};
                 shdowSize = {shadow.value("SizeX", 1.0f), shadow.value("SizeY", 1.0f)};
                 angleVal = shadow.value("Rotation", 0.0f);
             }
