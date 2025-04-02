@@ -297,7 +297,7 @@ void Lights::Initialize()
 		else if (std::regex_search(name, std::regex("^light_day"))) {
 			state = eLightState::Daylight;
 		}
-		else if (std::regex_search(name, std::regex("^light_night"))) {
+		else if (std::regex_search(name, std::regex("^light_nigh"))) {
 			state = eLightState::Nightlight;
 		}
 		else if (std::regex_search(name, match, std::regex("^sidelight?_([lr]).*$"))) {
