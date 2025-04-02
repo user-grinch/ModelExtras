@@ -33,6 +33,13 @@ enum class eLightState
 	Total,
 };
 
+enum eLightOverride
+{
+	NoOverride,
+	ForceLightsOff,
+	ForceLightsOn,
+};
+
 class Lights
 {
 private:

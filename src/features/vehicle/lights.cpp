@@ -411,6 +411,11 @@ void Lights::Initialize()
 		if (pControlVeh->m_pTractor) {
 			pTowedVeh = pControlVeh->m_pTractor;
 		}
+
+		if (pControlVeh->m_nOverrideLights == eLightOverride::ForceLightsOff || pControlVeh->ms_forceVehicleLightsOff) {
+			return;
+		}
+
 		VehData& data = m_VehData.Get(pControlVeh);
 		eLightState indState = data.m_nIndicatorState;
 
@@ -518,7 +523,7 @@ void Lights::Initialize()
 						}
 					}
 					
-					if (IsNightTime()) {
+					if (IsNightTime() || pControlVeh->m_nOverrideLights == eLightOverride::ForceLightsOn) {
 						bool drawShadow = false;
 						if (IsMatAvail(pTowedVeh, eLightState::Brakelight)) {
 							RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, false);
