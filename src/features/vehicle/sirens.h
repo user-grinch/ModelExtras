@@ -9,7 +9,8 @@
 #include "avs/materials.h"
 #include "enums/lighttype.h"
 
-enum class VehicleSirenStates {
+enum class VehicleSirenStates
+{
     Off = 0,
     On,
     Mute
@@ -17,18 +18,21 @@ enum class VehicleSirenStates {
 
 #define DEFAULT_SIREN_SHADOW "round"
 
-struct VehicleSirenShadow {
+struct VehicleSirenShadow
+{
     float Size = 0.0f;
     std::string Type = DEFAULT_SIREN_SHADOW;
     float Offset = 0.0f;
 };
 
-struct VehicleSirenDiffuse {
+struct VehicleSirenDiffuse
+{
     bool Color = false;
     bool Transparent = false;
 };
 
-class VehicleSirenRotator {
+class VehicleSirenRotator
+{
 public:
     int Direction = 0;
     int Type = 0;
@@ -37,8 +41,10 @@ public:
     float Offset = 0.0f;
     float Radius = 360.0f;
 
-    VehicleSirenRotator(nlohmann::json json) {
-        if (json.contains("direction")) {
+    VehicleSirenRotator(nlohmann::json json)
+    {
+        if (json.contains("direction"))
+        {
             if (json["direction"] == "clockwise")
                 Direction = 0;
             else if (json["direction"] == "counter-clockwise")
@@ -47,7 +53,8 @@ public:
                 Direction = 2;
         }
 
-        if (json.contains("type")) {
+        if (json.contains("type"))
+        {
             if (json["type"] == "linear")
                 Type = 0;
             else if (json["type"] == "ease")
@@ -65,15 +72,16 @@ public:
     }
 };
 
-class VehicleSirenMaterial {
+class VehicleSirenMaterial
+{
 public:
     bool Validate = false;
     float Size = 0.6f;
     float Inertia = 0.0f;
     float InertiaMultiplier = 1.0f;
     float Radius = 180.0f;
-    RwRGBA Color = { 255, 255, 255, 255 };
-    RwRGBA DefaultColor = { 255, 255, 255, 255 };
+    RwRGBA Color = {255, 255, 255, 255};
+    RwRGBA DefaultColor = {255, 255, 255, 255};
     VehicleSirenDiffuse Diffuse;
     int ColorCount = 0;
     uint64_t ColorTime = 0;
@@ -89,16 +97,18 @@ public:
     uint64_t Delay = 0;
     LightType Type = LightType::Directional;
     bool ImVehFt = false;
-    VehicleSirenRotator* Rotator;
+    VehicleSirenRotator *Rotator;
     VehicleSirenShadow Shadow;
 
     VehicleSirenMaterial(std::string state, int material, nlohmann::json json);
 
-    bool UpdateMaterial(uint64_t time) {
+    bool UpdateMaterial(uint64_t time)
+    {
         if (Pattern.size() == 0)
             return false;
 
-        if ((time - PatternTime) > Pattern[PatternCount]) {
+        if ((time - PatternTime) > Pattern[PatternCount])
+        {
             PatternTime = time;
             PatternCount++;
             State = !State;
@@ -109,7 +119,8 @@ public:
         return false;
     }
 
-    void ResetMaterial(uint64_t time) {
+    void ResetMaterial(uint64_t time)
+    {
         PatternCount = 0;
         PatternTime = time;
         State = StateDefault;
@@ -117,28 +128,31 @@ public:
         ResetColor(time);
     }
 
-    void ResetColor(uint64_t time) {
-        Color = { DefaultColor.red, DefaultColor.green, DefaultColor.blue, DefaultColor.alpha };
+    void ResetColor(uint64_t time)
+    {
+        Color = {DefaultColor.red, DefaultColor.green, DefaultColor.blue, DefaultColor.alpha};
         ColorCount = 0;
         ColorTime = time;
     }
 };
 
-class VehicleSirenState {
+class VehicleSirenState
+{
 public:
     bool Validate = false;
     std::string Name;
     int Paintjob = -1;
-    std::map<int, VehicleSirenMaterial*> Materials;
+    std::map<int, VehicleSirenMaterial *> Materials;
 
     VehicleSirenState(std::string state, nlohmann::json json);
 };
 
-class VehicleSirenData {
+class VehicleSirenData
+{
 public:
     bool Validate = false;
-    std::map<int, std::vector<VehicleMaterial*>> Materials;
-    std::vector<VehicleSirenState*> States;
+    std::map<int, std::vector<VehicleMaterial *>> Materials;
+    std::vector<VehicleSirenState *> States;
     bool isImVehFtSiren = false;
 
     VehicleSirenData(nlohmann::json json);
@@ -147,42 +161,46 @@ public:
     static inline std::map<std::string, nlohmann::json> ReferenceColors;
 };
 
-class VehicleSiren {
+class VehicleSiren
+{
 public:
     int State = 0;
     bool Mute = false;
     uint64_t Delay = 0;
-    std::map<int, std::vector<VehicleDummy*>> Dummies;
+    std::map<int, std::vector<VehicleDummy *>> Dummies;
     bool SirenState = false;
     bool Trailer = false;
 
-    VehicleSiren(CVehicle* _vehicle);
+    VehicleSiren(CVehicle *_vehicle);
 
     bool GetSirenState();
 
-    int GetCurrentState() {
+    int GetCurrentState()
+    {
         return State;
     }
 
 private:
-    CVehicle* vehicle;
+    CVehicle *vehicle;
 };
 
-class Sirens {
+class Sirens
+{
 public:
     static void Initialize();
     static inline int CurrentModel = -1;
 
 private:
-    static inline std::map<int, VehicleSiren*> vehicleData;
-    static inline std::map<int, VehicleSirenData*> modelData;
-    static inline std::map<int, std::vector<VehicleDummy*>> modelRotators;
+    static inline std::map<int, VehicleSiren *> vehicleData;
+    static inline std::map<int, VehicleSirenData *> modelData;
+    static inline std::map<int, std::vector<VehicleDummy *>> modelRotators;
 
-    static char __fastcall hkUsesSiren(CVehicle* ptr);
-    static void hkRegisterCorona(unsigned int id, CEntity* attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const& posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay);
+    static char __fastcall hkUsesSiren(CVehicle *ptr);
+    static void hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const &posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay);
+    static void __cdecl hkAddPointLights(uint8_t type, CVector point, CVector dir, float range, float red, float green, float blue, uint8_t fogEffect, bool bCastsShadowFromPlayerCarAndPed, CEntity *castingEntity);
 
     static void ParseConfig();
-    static void RegisterMaterial(CVehicle* vehicle, RpMaterial* material);
-    static void EnableMaterial(VehicleMaterial* material, VehicleSirenMaterial* mat, uint64_t time);
-    static void EnableDummy(int id, VehicleDummy* dummy, CVehicle* vehicle, VehicleSirenMaterial* material, eCoronaFlareType type, uint64_t time);
+    static void RegisterMaterial(CVehicle *vehicle, RpMaterial *material);
+    static void EnableMaterial(VehicleMaterial *material, VehicleSirenMaterial *mat, uint64_t time);
+    static void EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time);
 };

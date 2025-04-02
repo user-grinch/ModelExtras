@@ -8,6 +8,7 @@
 #include "defines.h"
 #include "lights.h"
 #include "../audiomgr.h"
+#include <CPointLights.h>
 
 bool VehicleSiren::GetSirenState()
 {
@@ -24,6 +25,21 @@ char __fastcall Sirens::hkUsesSiren(CVehicle *ptr)
 		return true;
 	}
 	return ptr->IsLawEnforcementVehicle();
+}
+
+static CVehicle *pCurrentVeh = nullptr;
+void __fastcall hkVehiclePreRender(CVehicle *ptr)
+{
+	pCurrentVeh = ptr;
+	plugin::CallMethod<0x6D6480>(ptr);
+}
+
+void __cdecl Sirens::hkAddPointLights(uint8_t type, CVector point, CVector dir, float range, float red, float green, float blue, uint8_t fogEffect, bool bCastsShadowFromPlayerCarAndPed, CEntity *castingEntity)
+{
+	if (!pCurrentVeh || !Sirens::modelData.contains(pCurrentVeh->m_nModelIndex))
+	{
+		CPointLights::AddLight(type, point, dir, range, red, green, blue, fogEffect, bCastsShadowFromPlayerCarAndPed, castingEntity);
+	}
 }
 
 VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nlohmann::json json)
@@ -917,6 +933,8 @@ void Sirens::Initialize()
 		} });
 
 	patch::ReplaceFunctionCall(0x6D8492, hkUsesSiren);
+	patch::ReplaceFunctionCall(0x6AB80F, hkAddPointLights);
+	patch::ReplaceFunctionCall(0x6AAB71, hkVehiclePreRender);
 
 	Events::initGameEvent += []
 	{
