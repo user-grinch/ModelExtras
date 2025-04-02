@@ -57,25 +57,34 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
 
         if (prmPos != std::string::npos)
         {
-            if (prmPos + 12 >= name.size())
+            constexpr size_t requiredLength = 13;
+            if (prmPos + requiredLength > name.size())
             {
-                gLogger->warn("Model {} has issue with node `{}`", pVeh->m_nModelIndex, name);
+                gLogger->warn("Model {} has issue with node `{}`: insufficient length", pVeh->m_nModelIndex, name);
             }
 
-            Color.r = VehicleDummy::ReadHex(name[prmPos + 4], name[prmPos + 5]);
-            Color.g = VehicleDummy::ReadHex(name[prmPos + 6], name[prmPos + 7]);
-            Color.b = VehicleDummy::ReadHex(name[prmPos + 8], name[prmPos + 9]);
+            try
+            {
+                Color.r = VehicleDummy::ReadHex(name.at(prmPos + 4), name.at(prmPos + 5));
+                Color.g = VehicleDummy::ReadHex(name.at(prmPos + 6), name.at(prmPos + 7));
+                Color.b = VehicleDummy::ReadHex(name.at(prmPos + 8), name.at(prmPos + 9));
 
-            Type = static_cast<eDummyPos>(name[prmPos + 10] - '0');
-            Size = static_cast<float>(name[prmPos + 11] - '0') / 10.0f;
-            if (Size < 0.0f)
-            {
-                Size = 0.0f;
+                LightType = static_cast<eLightType>(std::stoi(std::string(1, name.at(prmPos + 10))));
+                Size = static_cast<float>(std::stoi(std::string(1, name.at(prmPos + 11)))) / 10.0f;
+                if (Size < 0.0f)
+                {
+                    Size = 0.0f;
+                }
+                float shadowValue = static_cast<float>(std::stoi(std::string(1, name.at(prmPos + 12)))) / 7.5f;
+                shdowSize = {shadowValue, shadowValue};
+                if (shdowSize.x < 0.0f || shdowSize.y < 0.0f)
+                {
+                    shdowSize = {0.0f, 0.0f};
+                }
             }
-            shdowSize = {static_cast<float>(name[prmPos + 12] - '0') / 7.5f, static_cast<float>(name[prmPos + 12] - '0') / 7.5f};
-            if (shdowSize.x < 0.0f || shdowSize.y < 0.0f)
+            catch (const std::exception &e)
             {
-                shdowSize = {0.0f, 0.0f};
+                gLogger->error("Exception while parsing node `{}` for model {}: {}", name, pVeh->m_nModelIndex, e.what());
             }
         }
     }
@@ -135,4 +144,14 @@ void VehicleDummy::Update(CVehicle *pVeh)
     Position.y = vehMatrix.up.x * offset.x + vehMatrix.up.y * offset.y + vehMatrix.up.z * offset.z;
     Position.z = vehMatrix.at.x * offset.x + vehMatrix.at.y * offset.y + vehMatrix.at.z * offset.z;
     ShdwPosition = Position;
+
+    if (Type == eDummyPos::MiddleLeft)
+    {
+        ShdwPosition.x -= 1.25f;
+    }
+
+    if (Type == eDummyPos::MiddleRight)
+    {
+        ShdwPosition.x += 1.25f;
+    }
 }

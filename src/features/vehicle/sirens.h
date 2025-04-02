@@ -95,7 +95,7 @@ public:
     int PatternTotal = 0;
     uint64_t PatternTime = 0;
     uint64_t Delay = 0;
-    LightType Type = LightType::Directional;
+    eLightType Type = eLightType::Directional;
     bool ImVehFt = false;
     VehicleSirenRotator *Rotator;
     VehicleSirenShadow Shadow;

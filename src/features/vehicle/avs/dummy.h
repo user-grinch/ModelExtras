@@ -17,7 +17,7 @@ public:
     CRGBA Color = {255, 255, 255, 100};
     CVector Position;
     eDummyPos Type;
-    LightType LightType = LightType::NonDirectional;
+    eLightType LightType = eLightType::NonDirectional;
     eParentType PartType = eParentType::Unknown;
     float Size;
     float Angle;

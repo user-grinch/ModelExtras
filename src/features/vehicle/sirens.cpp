@@ -292,14 +292,14 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 		if (json["type"].is_string())
 		{
 			if (json["type"] == "directional")
-				Type = LightType::Directional;
+				Type = eLightType::Directional;
 			else if (json["type"] == "non-directional")
-				Type = LightType::NonDirectional;
+				Type = eLightType::NonDirectional;
 			else if (json["type"] == "inversed-directional")
-				Type = LightType::Inversed;
+				Type = eLightType::Inversed;
 			else if (json["type"] == "rotator")
 			{
-				Type = LightType::Rotator;
+				Type = eLightType::Rotator;
 
 				if (json.contains("rotator"))
 				{
@@ -829,7 +829,7 @@ void Sirens::Initialize()
 		for (auto& mat : state->Materials) {
 			if (mat.second->Delay != 0) {
 				if (time - vehicleData[index]->Delay < mat.second->Delay) {
-					if (mat.second->Type == LightType::Rotator) {
+					if (mat.second->Type == eLightType::Rotator) {
 						if ((time - mat.second->Rotator->TimeElapse) > mat.second->Rotator->Time) {
 							mat.second->Rotator->TimeElapse = time;
 
@@ -869,7 +869,7 @@ void Sirens::Initialize()
 					}
 				}
 			}
-			else if (mat.second->Type == LightType::Rotator) {
+			else if (mat.second->Type == eLightType::Rotator) {
 				uint64_t elapsed = time - mat.second->Rotator->TimeElapse;
 				if (elapsed > mat.second->Rotator->Time) {
 					mat.second->Rotator->TimeElapse = time;
@@ -1010,11 +1010,11 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 		alpha = static_cast<char>(alphaFloat * material->InertiaMultiplier);
 	}
 
-	if (material->Type != LightType::NonDirectional)
+	if (material->Type != eLightType::NonDirectional)
 	{
 		float dummyAngle = dummy->Angle;
 
-		if (material->Type == LightType::Rotator)
+		if (material->Type == eLightType::Rotator)
 		{
 			uint64_t elapsed = time - material->Rotator->TimeElapse;
 
@@ -1045,7 +1045,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 			while (dummyAngle < 0.0f)
 				dummyAngle += 360.0f;
 		}
-		else if (material->Type == LightType::Inversed)
+		else if (material->Type == eLightType::Inversed)
 		{
 			dummyAngle -= 180.0f;
 		}

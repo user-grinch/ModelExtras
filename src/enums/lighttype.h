@@ -1,26 +1,26 @@
 #pragma once
 
-enum class LightType
+enum class eLightType
 {
     Directional,
-    NonDirectional,
     Inversed,
+    NonDirectional,
     Rotator
 };
 
-inline LightType GetLightType(std::string dir)
+inline eLightType GetLightType(std::string dir)
 {
     if (dir == "directional")
     {
-        return LightType::Directional;
+        return eLightType::Directional;
     }
     else if (dir == "rotator")
     {
-        return LightType::Rotator;
+        return eLightType::Rotator;
     }
     else if (dir == "inversed-directional")
     {
-        return LightType::Inversed;
+        return eLightType::Inversed;
     }
-    return LightType::NonDirectional;
+    return eLightType::NonDirectional;
 }

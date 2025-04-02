@@ -747,13 +747,13 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh)
 {
 	if (gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false))
 	{
-		if (dummy->LightType == LightType::NonDirectional)
+		if (dummy->LightType == eLightType::NonDirectional)
 		{
 			Common::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->Size);
 		}
 		else
 		{
-			Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->Angle + (dummy->LightType == LightType::Inversed ? 180.0f : 0.0f), 180.0f, dummy->Size);
+			Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->Angle + (dummy->LightType == eLightType::Inversed ? 180.0f : 0.0f), 180.0f, dummy->Size);
 		}
 	}
 };
