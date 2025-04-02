@@ -10,9 +10,13 @@ static bool flag = false;
 
 void BackFireEffect::BackFireFX(CVehicle *pVeh, float x, float y, float z)
 {
-    int handle = NULL;
-    plugin::Command<Commands::CREATE_FX_SYSTEM_ON_CAR_WITH_DIRECTION>("GUNFLASH", CPools::GetVehicleRef(pVeh), x, y, z, 0.0f, -25.0f, 0.0f, 1, &handle);
-    plugin::Command<Commands::PLAY_AND_KILL_FX_SYSTEM>(handle);
+    static int handle = NULL;
+
+    if (handle == NULL)
+    {
+        plugin::Command<Commands::CREATE_FX_SYSTEM_ON_CAR_WITH_DIRECTION>("GUNFLASH", CPools::GetVehicleRef(pVeh), x, y, z, 0.0f, -25.0f, 0.0f, 1, &handle);
+    }
+    plugin::Command<Commands::PLAY_FX_SYSTEM>(handle);
 
     static std::string path = MOD_DATA_PATH("audio/effects/backfire.wav");
     static StreamHandle hAudio = NULL;

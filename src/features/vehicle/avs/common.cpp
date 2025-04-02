@@ -95,5 +95,5 @@ void Common::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float a
                                       up.x, up.y,
                                       right.x, right.y,
                                       col.a, col.r, col.g, col.b,
-                                      2.0f, false, 1.0f, 0, true);
+                                      2.0f, false, 1.0f, 0, false);
 };
