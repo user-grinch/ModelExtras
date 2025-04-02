@@ -14,7 +14,7 @@ private:
 
 public:
     RwFrame *Frame;
-    CRGBA Color = {255, 255, 255, 128};
+    CRGBA Color = {255, 255, 255, 100};
     CVector Position;
     eDummyPos Type;
     LightType LightType = LightType::NonDirectional;

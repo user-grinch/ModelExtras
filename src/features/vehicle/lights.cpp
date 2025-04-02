@@ -92,7 +92,7 @@ void DrawGlobalLight(CVehicle *pVeh, eDummyPos pos, CRGBA col)
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	CRGBA color = {col.r, col.g, col.b, GetShadowAlphaForDayTime()};
 	Common::RegisterShadow(pVeh, posn, color, dummyAngle, 0.0f, "indicator");
-	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, {col.r, col.g, col.b, GetCoronaAlphaForDayTime()}, dummyAngle, 0.3f, gfGlobalCoronaSize);
+	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, {col.r, col.g, col.b, GetCoronaAlphaForDayTime()}, dummyAngle, 180.0f, gfGlobalCoronaSize);
 }
 
 inline float GetZAngleForPoint(CVector2D const &point)
