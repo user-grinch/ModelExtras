@@ -54,14 +54,29 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
     {
         // Legacy support for ImVehFt vehicles
         size_t prmPos = name.find("_prm");
-        if (prmPos != std::string::npos && prmPos + 11 <= name.size())
+
+        if (prmPos != std::string::npos)
         {
+            if (prmPos + 12 >= name.size())
+            {
+                gLogger->warn("Model {} has issue with node `{}`", pVeh->m_nModelIndex, name);
+            }
+
             Color.r = VehicleDummy::ReadHex(name[prmPos + 4], name[prmPos + 5]);
             Color.g = VehicleDummy::ReadHex(name[prmPos + 6], name[prmPos + 7]);
             Color.b = VehicleDummy::ReadHex(name[prmPos + 8], name[prmPos + 9]);
 
             Type = static_cast<eDummyPos>(name[prmPos + 10] - '0');
             Size = static_cast<float>(name[prmPos + 11] - '0') / 10.0f;
+            if (Size < 0.0f)
+            {
+                Size = 0.0f;
+            }
+            shdowSize = {static_cast<float>(name[prmPos + 12] - '0') / 7.5f, static_cast<float>(name[prmPos + 12] - '0') / 7.5f};
+            if (shdowSize.x < 0.0f || shdowSize.y < 0.0f)
+            {
+                shdowSize = {0.0f, 0.0f};
+            }
         }
     }
     if (type == eDummyPos::FrontLeft)
