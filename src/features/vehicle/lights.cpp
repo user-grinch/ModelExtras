@@ -680,22 +680,22 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightStat
 		{
 			if (e->PartType != eParentType::Unknown && IsBumperOrWingDamaged(pControlVeh, e->PartType))
 			{
-				if ((e->Type == eDummyPos::FrontLeft || e->Type == eDummyPos::FrontRight))
+				if ((e->DummyType == eDummyPos::FrontLeft || e->DummyType == eDummyPos::FrontRight))
 				{
 					FrontDisabled = true;
 				}
-				if ((e->Type == eDummyPos::MiddleLeft || e->Type == eDummyPos::MiddleRight))
+				if ((e->DummyType == eDummyPos::MiddleLeft || e->DummyType == eDummyPos::MiddleRight))
 				{
 					MidDisabled = true;
 				}
-				if ((e->Type == eDummyPos::RearLeft || e->Type == eDummyPos::RearRight))
+				if ((e->DummyType == eDummyPos::RearLeft || e->DummyType == eDummyPos::RearRight))
 				{
 					RearDisabled = true;
 				}
 				continue;
 			}
 
-			bool isRear = (e->Type == eDummyPos::RearLeft || e->Type == eDummyPos::RearRight);
+			bool isRear = (e->DummyType == eDummyPos::RearLeft || e->DummyType == eDummyPos::RearRight);
 			e->Update(pControlVeh);
 			EnableDummy((int)pControlVeh + 42 + id++, e, isRear ? pTowedVeh : pControlVeh);
 

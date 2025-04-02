@@ -16,7 +16,7 @@ public:
     RwFrame *Frame;
     CRGBA Color = {255, 255, 255, 100};
     CVector Position;
-    eDummyPos Type;
+    eDummyPos DummyType = eDummyPos::None;
     eLightType LightType = eLightType::NonDirectional;
     eParentType PartType = eParentType::Unknown;
     float Size;

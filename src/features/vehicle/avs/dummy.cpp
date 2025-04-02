@@ -14,7 +14,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
     ShdwPosition = Position;
     hasParent = parent;
     Color = color;
-    Type = type;
+    DummyType = type;
     Size = 0.6f;
     float angleVal = 0.0f;
 
@@ -145,12 +145,12 @@ void VehicleDummy::Update(CVehicle *pVeh)
     Position.z = vehMatrix.at.x * offset.x + vehMatrix.at.y * offset.y + vehMatrix.at.z * offset.z;
     ShdwPosition = Position;
 
-    if (Type == eDummyPos::MiddleLeft)
+    if (DummyType == eDummyPos::MiddleLeft)
     {
         ShdwPosition.x -= 1.25f;
     }
 
-    if (Type == eDummyPos::MiddleRight)
+    if (DummyType == eDummyPos::MiddleRight)
     {
         ShdwPosition.x += 1.25f;
     }
