@@ -88,8 +88,8 @@ void Common::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float a
 
     CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
     CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-    up *= shdwSz.x;
-    right *= shdwSz.y;
+    up *= shdwSz.y;
+    right *= shdwSz.x;
 
     CShadows::StoreShadowToBeRendered(2, (pTexture != NULL ? pTexture : Common::GetTexture(shadwTexName)), &center,
                                       up.x, up.y,

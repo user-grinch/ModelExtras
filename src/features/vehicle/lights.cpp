@@ -431,7 +431,7 @@ void Lights::Initialize()
 			}
 
 			if (data.m_bFogLightsOn) {
-				RenderLights(pControlVeh, pTowedVeh, eLightState::FogLight, true, "foglight", {1.5f, 1.5f}, {0.0f, -3.0f});
+				RenderLights(pControlVeh, pTowedVeh, eLightState::FogLight, true, "foglight", {1.5f, 2.0f}, {0.0f, -3.5f});
 			}
 
 			if (pControlVeh->m_nVehicleFlags.bLightsOn) {
@@ -538,9 +538,9 @@ void Lights::Initialize()
 					}
 					
 					for (int i = 0; i < shadowCnt; i++) {
-						Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, "indicator");
+						Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, "indicator", {1.5f, 2.25f}, {0.0f, 1.0});
 						posn.x *= -1.0f;
-						Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, "indicator");
+						Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, "indicator", {1.5f, 2.25f}, {0.0f, 1.0});
 					}
 				}
 			}
