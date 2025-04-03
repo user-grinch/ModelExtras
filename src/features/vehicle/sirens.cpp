@@ -324,7 +324,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 			{
 				if (json["shadow"]["size"].is_number())
 				{
-					Shadow.Size = json["size"];
+					Shadow.Size = json["shadow"]["size"] / 5.0f;
 				}
 				else
 				{
@@ -631,7 +631,7 @@ void Sirens::Initialize()
 
 		if (std::regex_search(name, match, pattern)) {
 			int id = std::stoi(match[2]);
-			vehicleData[index]->Dummies[id].push_back(new VehicleDummy(vehicle, frame, name, parent, eDummyPos::None));
+			vehicleData[index]->Dummies[id].push_back(new VehicleDummy(vehicle, frame, name, eDummyPos::None));
 		} });
 
 	plugin::Events::vehicleCtorEvent += [](CVehicle *vehicle)
@@ -994,10 +994,6 @@ void Sirens::EnableMaterial(VehicleMaterial *material, VehicleSirenMaterial *mat
 void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time)
 {
 	CVector position = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
-	std::string name = GetFrameNodeName(dummy->Frame);
-	position.x = dummy->Position.x;
-	position.y = dummy->Position.y;
-	position.z = dummy->Position.z;
 	dummy->Update(vehicle);
 	unsigned char alpha = material->Color.a;
 
@@ -1056,23 +1052,21 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 			dummyAngle -= 180.0f;
 		}
 
-		Common::RegisterCoronaWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position,
+		Common::RegisterCoronaWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, dummy->Position,
 										material->Color,
 										dummyAngle, material->Radius, material->Size);
 	}
 	else
 	{
-		Common::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, position, material->Color, material->Size);
+		Common::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, dummy->Position, material->Color, material->Size);
 	}
 
+	CVector dummyPos = dummy->Position;
 	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren)
 	{
-		CVector pos = position;
-		pos.x += (pos.x > 0 ? 1.2f : -1.2f); // FIX ME!!!
-		unsigned char alpha = static_cast<char>((static_cast<float>(material->Color.a) * -1) * material->InertiaMultiplier);
-
-		Common::RegisterShadow(vehicle, pos, *(CRGBA *)&material->Color, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
+		dummyPos.x += (dummyPos.x > 0 ? 1.2f : -1.2f); // FIX ME!!!
 	}
+	Common::RegisterShadow(vehicle, dummy->Position, *(CRGBA *)&material->Color, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
 };
 
 VehicleSiren::VehicleSiren(CVehicle *_vehicle)

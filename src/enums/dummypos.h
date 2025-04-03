@@ -1,13 +1,13 @@
 #pragma once
 
-enum class eDummyPos {
+enum class eDummyPos
+{
     None,
     Front,
     Rear,
     Left,
     Right,
-    MiddleLeft,
-    MiddleRight,
+
     FrontLeft,
     RearLeft,
     FrontRight,

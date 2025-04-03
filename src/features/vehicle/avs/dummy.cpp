@@ -5,17 +5,22 @@
 #include "datamgr.h"
 #include "enums/dummypos.h"
 
-VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, bool parent, eDummyPos type, RwRGBA color)
+int ReadHex(char a, char b)
 {
-    CurrentAngle = 0.0f;
+    a = (a <= '9') ? a - '0' : (a & 0x7) + 9;
+    b = (b <= '9') ? b - '0' : (b & 0x7) + 9;
+
+    return (a << 4) + b;
+}
+
+VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDummyPos type, CRGBA color)
+{
     Frame = frame;
     CVector pos = pVeh->GetPosition();
     Position = {Frame->ltm.pos.x - pos.x, Frame->ltm.pos.y - pos.y, Frame->ltm.pos.z - pos.z};
     ShdwPosition = Position;
-    hasParent = parent;
     Color = color;
     DummyType = type;
-    Size = 0.6f;
     float angleVal = 0.0f;
 
     // Calculate the angle based on the frame's orientation
@@ -37,7 +42,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
                 Color.a = lights["Color"].value("A", Color.a);
             }
 
-            Size = lights.value("CoronaSize", Size);
+            coronaSize = lights.value("CoronaSize", coronaSize);
             PartType = eParentTypeFromString(lights.value("Parent", ""));
             LightType = GetLightType(lights.value("Type", "directional"));
 
@@ -54,37 +59,62 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
     {
         // Legacy support for ImVehFt vehicles
         size_t prmPos = name.find("_prm");
-
         if (prmPos != std::string::npos)
         {
-            constexpr size_t requiredLength = 13;
-            if (prmPos + requiredLength > name.size())
+            if (prmPos + 9 < name.size())
             {
-                gLogger->warn("Model {} has issue with node `{}`: insufficient length", pVeh->m_nModelIndex, name);
+                Color.r = ReadHex(name[prmPos + 4], name[prmPos + 5]);
+                Color.g = ReadHex(name[prmPos + 6], name[prmPos + 7]);
+                Color.b = ReadHex(name[prmPos + 8], name[prmPos + 9]);
+            }
+            else
+            {
+                gLogger->warn("Model {} has issue with node `{}`: invalid color format", pVeh->m_nModelIndex, name);
             }
 
-            try
+            if (prmPos + 10 < name.size())
             {
-                Color.r = VehicleDummy::ReadHex(name.at(prmPos + 4), name.at(prmPos + 5));
-                Color.g = VehicleDummy::ReadHex(name.at(prmPos + 6), name.at(prmPos + 7));
-                Color.b = VehicleDummy::ReadHex(name.at(prmPos + 8), name.at(prmPos + 9));
+                LightType = static_cast<eLightType>(name[prmPos + 10] - '0');
+            }
+            else
+            {
+                gLogger->warn("Model {} has issue with node `{}`: invalid light type", pVeh->m_nModelIndex, name);
+            }
 
-                LightType = static_cast<eLightType>(std::stoi(std::string(1, name.at(prmPos + 10))));
-                Size = static_cast<float>(std::stoi(std::string(1, name.at(prmPos + 11)))) / 10.0f;
-                if (Size < 0.0f)
+            if (prmPos + 11 < name.size())
+            {
+                coronaSize = static_cast<float>(name[prmPos + 11] - '0') / 10.0f;
+                if (coronaSize < 0.0f)
                 {
-                    Size = 0.0f;
+                    coronaSize = 0.0f;
                 }
-                float shadowValue = static_cast<float>(std::stoi(std::string(1, name.at(prmPos + 12)))) / 7.5f;
+            }
+            else
+            {
+                gLogger->warn("Model {} has issue with node `{}`: invalid corona size", pVeh->m_nModelIndex, name);
+            }
+
+            if (prmPos + 12 < name.size())
+            {
+                float shadowValue = static_cast<float>(name[prmPos + 12] - '0') / 7.5f;
                 shdowSize = {shadowValue, shadowValue};
                 if (shdowSize.x < 0.0f || shdowSize.y < 0.0f)
                 {
                     shdowSize = {0.0f, 0.0f};
                 }
             }
-            catch (const std::exception &e)
+            else
             {
-                gLogger->error("Exception while parsing node `{}` for model {}: {}", name, pVeh->m_nModelIndex, e.what());
+                gLogger->warn("Model {} has issue with node `{}`: invalid shadow size", pVeh->m_nModelIndex, name);
+            }
+        }
+
+        else
+        {
+            // Make indicator lights directional by default
+            if (name.find("turnl_") != std::string::npos || name.find("indicator_") != std::string::npos)
+            {
+                LightType = eLightType::Directional;
             }
         }
     }
@@ -98,16 +128,6 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
         Angle = 0 - angleVal;
     }
 
-    if (type == eDummyPos::MiddleLeft)
-    {
-        Angle = 90 - angleVal;
-    }
-
-    if (type == eDummyPos::MiddleRight)
-    {
-        Angle = 270 - angleVal;
-    }
-
     if (type == eDummyPos::RearLeft)
     {
         Angle = 180 - angleVal;
@@ -118,18 +138,20 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, boo
         Angle = 180 - angleVal;
     }
 
+    if (type == eDummyPos::Left)
+    {
+        Angle = 90 - angleVal;
+    }
+
+    if (type == eDummyPos::Right)
+    {
+        Angle = 270 - angleVal;
+    }
+
     if (type == eDummyPos::Rear)
     {
         Angle = 180 - angleVal;
     }
-}
-
-int VehicleDummy::ReadHex(char a, char b)
-{
-    a = (a <= '9') ? a - '0' : (a & 0x7) + 9;
-    b = (b <= '9') ? b - '0' : (b & 0x7) + 9;
-
-    return (a << 4) + b;
 }
 
 void VehicleDummy::Update(CVehicle *pVeh)
@@ -145,12 +167,12 @@ void VehicleDummy::Update(CVehicle *pVeh)
     Position.z = vehMatrix.at.x * offset.x + vehMatrix.at.y * offset.y + vehMatrix.at.z * offset.z;
     ShdwPosition = Position;
 
-    if (DummyType == eDummyPos::MiddleLeft)
+    if (DummyType == eDummyPos::Left)
     {
         ShdwPosition.x -= 1.25f;
     }
 
-    if (DummyType == eDummyPos::MiddleRight)
+    if (DummyType == eDummyPos::Right)
     {
         ShdwPosition.x += 1.25f;
     }

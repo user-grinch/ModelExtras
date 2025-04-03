@@ -63,9 +63,9 @@ int ImVehFt_EmlToJson(const std::string &emlPath)
         }
 
         std::istringstream iss(line);
-        int id, parent, type, shadow, switches, starting;
+        int id, parent, type, switches, starting;
         int red, green, blue, alpha;
-        float size, flash;
+        float size, flash, shadow;
         std::string tempColor;
 
         if (!(iss >> id >> parent))
@@ -118,7 +118,7 @@ int ImVehFt_EmlToJson(const std::string &emlPath)
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["color"] = {{"red", red}, {"green", green}, {"blue", blue}, {"alpha", alpha}};
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["state"] = starting;
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["pattern"] = pattern;
-        jsonData["states"]["1. ModelExtras"][std::to_string(id)]["shadow"]["size"] = shadow;
+        jsonData["states"]["1. ModelExtras"][std::to_string(id)]["shadow"]["size"] = shadow / 17.5f;
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["inertia"] = flash / 100.0f;
         jsonData["states"]["1. ModelExtras"][std::to_string(id)]["type"] = ((type == 0) ? "directional" : ((type == 1) ? "inversed-directional" : "non-directional"));
 
