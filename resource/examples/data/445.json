@@ -1,4 +1,10 @@
 {
+    "Metadata": {
+        "Author": "Grinch_",
+        "Desc": "Lamborghini Aventador SVJ",
+        "CreationTime": "2023-10-01",
+        "MinVer": 10600
+    },
     "Clutch": {
         "Offset": 0
     },

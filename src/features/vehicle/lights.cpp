@@ -541,14 +541,6 @@ void Lights::Initialize()
 				// taillights/ brakelights
 				if (pControlVeh->m_pDriver)
 				{
-					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
-					CRGBA col = {250, 0, 0, GetShadowAlphaForDayTime()};
-
-					if (isBike)
-					{
-						posn.x = 0.0f;
-					}
-
 					int shadowCnt = 0;
 					if (pControlVeh->m_fBreakPedal)
 					{
@@ -597,6 +589,14 @@ void Lights::Initialize()
 
 						RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft);
 						RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight);
+					}
+
+					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
+					CRGBA col = {250, 0, 0, GetShadowAlphaForDayTime()};
+
+					if (isBike)
+					{
+						posn.x = 0.0f;
 					}
 
 					for (int i = 0; i < shadowCnt; i++)
