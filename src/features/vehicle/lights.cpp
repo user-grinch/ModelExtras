@@ -17,8 +17,8 @@
 bool gbGlobalIndicatorLights = false;
 bool gbGlobalReverseLights = false;
 float gfGlobalCoronaSize = 0.3f;
-int gGlobalCoronaIntensity = 220;
-int gGlobalShadowIntensity = 220;
+int gGlobalCoronaIntensity = 80;
+int gGlobalShadowIntensity = 80;
 
 bool IsNightTime()
 {
@@ -286,7 +286,7 @@ void Lights::Initialize()
 	VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *frame, std::string name, bool parent)
 									{
 		eLightState state = eLightState::None;
-		RwRGBA col{255, 255, 255, 200};
+		RwRGBA col{255, 255, 255, GetCoronaAlphaForDayTime()};
 		eDummyPos dummyPos = eDummyPos::None;
 		std::smatch match;
 		if (std::regex_search(name, match, std::regex("^fogl(ight)?_([lr]).*$")))
@@ -297,6 +297,11 @@ void Lights::Initialize()
 		else if (std::regex_search(name, std::regex(R"(^rev.*\s*_[lr].*$)")))
 		{
 			state = eLightState::Reverselight;
+			dummyPos = eDummyPos::Rear;
+		}
+		else if (std::regex_search(name, std::regex(R"(^breakl.*\s*_[lr].*$)")))
+		{
+			state = eLightState::Brakelight;
 			dummyPos = eDummyPos::Rear;
 		}
 		else if (std::regex_search(name, std::regex("^light_day")))
@@ -358,7 +363,7 @@ void Lights::Initialize()
 		{
 			std::string stateStr = match.str(2);
 			state = (toupper(stateStr[0]) == 'L') ? eLightState::IndicatorLeft : eLightState::IndicatorRight;
-			col = {255, 128, 0, 200};
+			col = {255, 128, 0, GetCoronaAlphaForDayTime()};
 
 			if (toupper(stateStr[1]) == 'F')
 			{
@@ -526,7 +531,7 @@ void Lights::Initialize()
 					{
 						RenderLights(pControlVeh, pTowedVeh, eLightState::Reverselight);
 					}
-					else if (reverseLightsOn)
+					else 
 					{
 						DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, {240, 240, 240, 0});
 						DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, {240, 240, 240, 0});
