@@ -49,10 +49,10 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 {
     if (nReason == DLL_PROCESS_ATTACH)
     {
-        if (gConfig.ReadBoolean("MISC", "ShowDonationPopup", true))
+        if (gConfig.ReadBoolean("CONFIG", "ShowDonationPopup", true))
         {
             ShowDonationWindow();
-            gConfig.WriteBoolean("MISC", "ShowDonationPopup", false);
+            gConfig.WriteBoolean("CONFIG", "ShowDonationPopup", false);
         }
 
         gVerboseLogging = gConfig.ReadBoolean("CONFIG", "VerboseLogging", false);
@@ -104,7 +104,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
                 return;
             }
 
-            if (gConfig.ReadBoolean("MISC", "ShowIncompatibleWarning", true) && (ImVehFtInstalled || ImVehFtFixInstalled || AVSInstalled || EarShot))
+            if (gConfig.ReadBoolean("CONFIG", "ShowIncompatibleWarning", true) && (ImVehFtInstalled || ImVehFtFixInstalled || AVSInstalled || EarShot))
             {
                 std::string str = "ModelExtras contain the functions of these plugins,\n\n";
 
@@ -123,13 +123,13 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
                 MessageBox(RsGlobal.ps->window, str.c_str(), "Incompatible plugins found!", MB_OK);
             }
 
-            if (gConfig.ReadBoolean("MISC", "ShowGraphicsTweakerWarning", true))
+            if (gConfig.ReadBoolean("CONFIG", "ShowGraphicsTweakerWarning", true))
             {
                 std::string str = "Using GraphicsTweaker may result in visual anomalies.\n\n";
                 str += "Set these values to following to avoid issues,\n";
                 str += "1. MultAmbientNight = 1.0\n2. MultColorFilterNight = 1.0\n";
                 MessageBox(RsGlobal.ps->window, str.c_str(), "GraphicsTweaker Found!", MB_OK);
-                gConfig.WriteBoolean("MISC", "ShowGraphicsTweakerWarning", false);
+                gConfig.WriteBoolean("CONFIG", "ShowGraphicsTweakerWarning", false);
             }
 
             if (GrinchTrainer && gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))
