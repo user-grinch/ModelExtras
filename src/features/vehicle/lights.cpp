@@ -524,12 +524,14 @@ void Lights::Initialize()
 				bool isRevlightSupportedByModel = IsMatAvail(pTowedVeh, eLightState::Reverselight);
 
 				bool reverseLightsOn = !isBike && (isRevlightSupportedByModel || gbGlobalReverseLights) && pControlVeh->m_nCurrentGear == 0 && (pControlVeh->m_fMovingSpeed >= 0.01f) && pControlVeh->m_pDriver;
-
+				std::string shdwName = (isBike ? "taillight_bike" : "taillight");
+				CVector2D shdwOff = {0.0f, (isBike ? 0.5f : 1.0f)};
+				CVector2D shdwSz = {1.5f, 2.25f};
 				if (reverseLightsOn)
 				{
 					if (isRevlightSupportedByModel)
 					{
-						RenderLights(pControlVeh, pTowedVeh, eLightState::Reverselight);
+						RenderLights(pControlVeh, pTowedVeh, eLightState::Reverselight, true, shdwName, shdwSz, shdwOff);
 					}
 					else 
 					{
@@ -539,72 +541,67 @@ void Lights::Initialize()
 				}
 
 				// taillights/ brakelights
-				if (pControlVeh->m_pDriver)
+				int shadowCnt = 0;
+				if (pControlVeh->m_fBreakPedal)
 				{
-					int shadowCnt = 0;
-					if (pControlVeh->m_fBreakPedal)
+					if (IsMatAvail(pTowedVeh, eLightState::Brakelight))
 					{
-						if (IsMatAvail(pTowedVeh, eLightState::Brakelight))
-						{
-							RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, false);
-							shadowCnt++;
-						}
-						else if (IsMatAvail(pTowedVeh, eLightState::TailLightLeft) || IsMatAvail(pTowedVeh, eLightState::TailLightRight))
-						{
-							RenderLights(pControlVeh, pTowedVeh, eLightState::TailLightLeft, false);
-							RenderLights(pControlVeh, pTowedVeh, eLightState::TailLightRight, false);
-							shadowCnt++;
-						}
-
-						RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft);
-						RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight);
-
-						if (indState != eLightState::IndicatorBoth)
-						{
-							if (indState != eLightState::IndicatorLeft)
-							{
-								RenderLights(pControlVeh, pTowedVeh, eLightState::NABrakeLightLeft);
-							}
-
-							if (indState != eLightState::IndicatorRight)
-							{
-								RenderLights(pControlVeh, pTowedVeh, eLightState::NABrakeLightRight);
-							}
-						}
+						RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, true, shdwName, shdwSz, shdwOff);
+					}
+					else if (IsMatAvail(pTowedVeh, eLightState::TailLightLeft) || IsMatAvail(pTowedVeh, eLightState::TailLightRight))
+					{
+						RenderLights(pControlVeh, pTowedVeh, eLightState::TailLightLeft, false);
+						RenderLights(pControlVeh, pTowedVeh, eLightState::TailLightRight, false);
+						shadowCnt++;
 					}
 
-					if (IsNightTime() || pControlVeh->m_nOverrideLights == eLightOverride::ForceLightsOn)
+					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft, true, shdwName, shdwSz, shdwOff);
+					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight, true, shdwName, shdwSz, shdwOff);
+
+					if (indState != eLightState::IndicatorBoth)
 					{
-						if (IsMatAvail(pTowedVeh, eLightState::TailLightLeft) || IsMatAvail(pTowedVeh, eLightState::TailLightRight))
+						if (indState != eLightState::IndicatorLeft)
 						{
-							RenderLights(pControlVeh, pTowedVeh, eLightState::TailLightLeft, false);
-							RenderLights(pControlVeh, pTowedVeh, eLightState::TailLightRight, false);
-							shadowCnt++;
-						}
-						else if (IsMatAvail(pTowedVeh, eLightState::Brakelight))
-						{
-							RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, false);
-							shadowCnt++;
+							RenderLights(pControlVeh, pTowedVeh, eLightState::NABrakeLightLeft, true, shdwName, shdwSz, shdwOff);
 						}
 
-						RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft);
-						RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight);
+						if (indState != eLightState::IndicatorRight)
+						{
+							RenderLights(pControlVeh, pTowedVeh, eLightState::NABrakeLightRight, true, shdwName, shdwSz, shdwOff);
+						}
 					}
+				}
 
-					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
-					CRGBA col = {250, 0, 0, GetShadowAlphaForDayTime()};
-
-					if (isBike)
+				if (IsNightTime() || pControlVeh->m_nOverrideLights == eLightOverride::ForceLightsOn)
+				{
+					if (IsMatAvail(pTowedVeh, eLightState::TailLightLeft) || IsMatAvail(pTowedVeh, eLightState::TailLightRight))
 					{
-						posn.x = 0.0f;
+						RenderLights(pControlVeh, pTowedVeh, eLightState::TailLightLeft, false);
+						RenderLights(pControlVeh, pTowedVeh, eLightState::TailLightRight, false);
+						shadowCnt++;
+					}
+					else if (IsMatAvail(pTowedVeh, eLightState::Brakelight))
+					{
+						RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, true, shdwName, shdwSz, shdwOff);
 					}
 
-					for (int i = 0; i < shadowCnt; i++)
-					{
-						Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, (isBike ? "taillight_bike" : "indicator"), {1.5f, 2.25f}, {0.0f, (isBike ? 0.5f : 1.0f)});
-						posn.x *= -1.0f;
-						Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, (isBike ? "taillight_bike" : "indicator"), {1.5f, 2.25f}, {0.0f, (isBike ? 0.5f : 1.0f)});
-					}
+					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft, true, shdwName, shdwSz, shdwOff);
+					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight, true, shdwName, shdwSz, shdwOff);
+				}
+
+				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
+				CRGBA col = {250, 0, 0, GetShadowAlphaForDayTime()};
+
+				if (isBike)
+				{
+					posn.x = 0.0f;
+				}
+
+				for (int i = 0; i < shadowCnt; i++)
+				{
+					Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, shdwName, shdwSz, shdwOff);
+					posn.x *= -1.0f;
+					Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, shdwName, shdwSz, shdwOff);
 				}
 			}
 		}

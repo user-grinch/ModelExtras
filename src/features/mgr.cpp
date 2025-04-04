@@ -256,7 +256,7 @@ void FeatureMgr::Initialize()
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "RotatingSteeringWheel", false))
     {
-        m_FunctionTable["steer"] = SteerWheel::Process;
+        m_FunctionTable["f_steer"] = SteerWheel::Process;
         m_FunctionTable["steering_dummy"] = SteerWheel::Process;
         LOG_NO_LEVEL("  RotatingSteeringWheel");
     }

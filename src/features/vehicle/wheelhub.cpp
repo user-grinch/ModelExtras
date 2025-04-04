@@ -113,7 +113,7 @@ void WheelHub::FindNodes(RwFrame *frame, void *ptr)
 void WheelHub::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 {
     CVehicle *pVeh = static_cast<CVehicle *>(ptr);
-
+    std::string name = GetFrameNodeName(frame);
     // Fix crash during airport cutscene
     if (!pVeh || !pVeh->GetIsOnScreen() || CCutsceneMgr::ms_running)
     {
