@@ -117,7 +117,7 @@ void BackFireEffect::Process(void *ptr, RwFrame *frame, eModelEntityType type)
             prevTimer2 = timer;
         }
 
-        if (timer - prevTimer > 50)
+        if (timer - prevTimer > 200)
         {
             if (data.m_nleftFires > 0)
             {

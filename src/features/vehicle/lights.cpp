@@ -523,7 +523,7 @@ void Lights::Initialize()
 			{
 				bool isRevlightSupportedByModel = IsMatAvail(pTowedVeh, eLightState::Reverselight);
 
-				bool reverseLightsOn = !isBike && (isRevlightSupportedByModel || gbGlobalReverseLights) && pControlVeh->m_nCurrentGear == 0 && (pControlVeh->m_fMovingSpeed >= 0.01f) && pControlVeh->m_pDriver;
+				bool reverseLightsOn = !isBike && (isRevlightSupportedByModel || gbGlobalReverseLights) && pControlVeh->m_nCurrentGear == 0 && (Util::GetVehicleSpeed(pControlVeh) >= 0.001f) && pControlVeh->m_pDriver;
 				std::string shdwName = (isBike ? "taillight_bike" : "taillight");
 				CVector2D shdwOff = {0.0f, (isBike ? 0.5f : 1.0f)};
 				CVector2D shdwSz = {1.5f, 2.25f};
@@ -572,7 +572,7 @@ void Lights::Initialize()
 					}
 				}
 
-				if (IsNightTime() || pControlVeh->m_nOverrideLights == eLightOverride::ForceLightsOn)
+				if (IsNightTime() || pControlVeh->m_nOverrideLights == eLightOverride::ForceLightsOn || pControlVeh->m_nVehicleFlags.bLightsOn)
 				{
 					if (IsMatAvail(pTowedVeh, eLightState::TailLightLeft) || IsMatAvail(pTowedVeh, eLightState::TailLightRight))
 					{
