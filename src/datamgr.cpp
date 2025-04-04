@@ -41,15 +41,18 @@ void DataMgr::Init()
             try
             {
                 data[model] = nlohmann::json::parse(file);
-                if (data[model].contains("Metadata"))
+                if (gConfig.ReadBoolean("CONFIG", "ModelVersionCheck", true))
                 {
-                    auto &info = data[model]["Metadata"];
-                    int ver = info.value("MinVer", MOD_VERSION_NUMBER);
-                    if (ver > MOD_VERSION_NUMBER)
+                    if (data[model].contains("Metadata"))
                     {
-                        std::string text = std::format("Model {} requires version [{}] but [{}] is installed.", model, ver, MOD_VERSION_NUMBER);
-                        MessageBox(RsGlobal.ps->window, text.c_str(), "ModelExtras version mismatch!", MB_OK);
-                        gLogger->warn(text);
+                        auto &info = data[model]["Metadata"];
+                        int ver = info.value("MinVer", MOD_VERSION_NUMBER);
+                        if (ver > MOD_VERSION_NUMBER)
+                        {
+                            std::string text = std::format("Model {} requires version [{}] but [{}] is installed.", model, ver, MOD_VERSION_NUMBER);
+                            MessageBox(RsGlobal.ps->window, text.c_str(), "ModelExtras version mismatch!", MB_OK);
+                            gLogger->warn(text);
+                        }
                     }
                 }
                 LOG_VERBOSE("Successfully registered file '{}'", e.path().filename().string());

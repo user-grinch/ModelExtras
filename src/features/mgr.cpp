@@ -26,6 +26,8 @@
 #include "vehicle/spoiler.h"
 #include "vehicle/backfire.h"
 
+#include <CMessages.h>
+
 void InitLogFile();
 
 void FeatureMgr::Initialize()
@@ -107,6 +109,29 @@ void FeatureMgr::Initialize()
 
     InitLogFile();
     AudioMgr::Initialize();
+
+    // Common Section
+    LOG_NO_LEVEL("\nCore->");
+    if (gConfig.ReadBoolean("CONFIG", "ModelVersionCheck", true))
+    {
+        Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
+        {
+            auto &jsonData = DataMgr::Get(model);
+            if (jsonData.contains("Metadata"))
+            {
+                auto &info = jsonData["Metadata"];
+                int ver = info.value("MinVer", MOD_VERSION_NUMBER);
+                if (ver > MOD_VERSION_NUMBER)
+                {
+                    static std::string text;
+                    text = std::format("Model {} requires ModelExtras v{} but v{} is installed.", model, ver, MOD_VERSION_NUMBER);
+                    CMessages::AddMessageWithString((char *)text.c_str(), 5000, false, NULL, true);
+                    gLogger->warn(text);
+                }
+            }
+        };
+        LOG_NO_LEVEL("  ModelVersionCheck");
+    }
 
     // Common Section
     LOG_NO_LEVEL("\nCommon Features->");
