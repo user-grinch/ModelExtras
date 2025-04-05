@@ -1,6 +1,11 @@
 #include "pch.h"
 #include "features/mgr.h"
 
+#include <extensions/ScriptCommands.h>
+#include <extensions/scripting/ScriptCommandNames.h>
+
+#define GET_SCRIPT_STRUCT_NAMED 0xAAA
+
 extern void ShowDonationWindow();
 extern void TrainerInit();
 
@@ -64,7 +69,6 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
             bool fxFuncs = GetModuleHandle("FxsFuncs.asi");
             bool ola = GetModuleHandle("III.VC.SA.LimitAdjuster.asi");
             bool fla = GetModuleHandle("$fastman92limitAdjuster.asi");
-            bool gtweaker = GetModuleHandle("GraphicsTweaker.SA.asi");
             bool cleo = GetModuleHandle("CLEO.asi");
 
             if ((fxFuncs && !(ola || fla)))
@@ -85,12 +89,25 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 
         Events::initGameEvent += []()
         {
+            bool CLEOInstalled = GetModuleHandle("CLEO.asi");
             bool ImVehFtInstalled = GetModuleHandle("ImVehFt.asi");
             bool ImVehFtFixInstalled = GetModuleHandle("ImVehFtFix.asi");
             bool AVSInstalled = GetModuleHandle("AdvancedVehicleSirens.asi");
             bool EarShot = GetModuleHandle("EarShot.asi");
+            bool gtweaker = GetModuleHandle("GraphicsTweaker.SA.asi");
             bool PedFuncs = GetModuleHandle("PedFuncs.asi");
             bool GrinchTrainer = GetModuleHandle("GrinchTrainerSA.asi");
+            bool BackFireZAZInstalled = false;
+            bool BackFireJDRInstalled = false;
+
+            if (CLEOInstalled)
+            {
+                int script = NULL;
+                plugin::Command<GET_SCRIPT_STRUCT_NAMED>("IFLAME", &script);
+                BackFireZAZInstalled = script != NULL;
+                plugin::Command<GET_SCRIPT_STRUCT_NAMED>("Backfir", &script);
+                BackFireJDRInstalled = script != NULL;
+            }
 
             InitLogFile();
 
@@ -106,7 +123,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
                 return;
             }
 
-            if (gConfig.ReadBoolean("CONFIG", "ShowIncompatibleWarning", true) && (ImVehFtInstalled || ImVehFtFixInstalled || AVSInstalled || EarShot))
+            if (gConfig.ReadBoolean("CONFIG", "ShowIncompatibleWarning", true) && (BackFireJDRInstalled || BackFireZAZInstalled || ImVehFtInstalled || ImVehFtFixInstalled || AVSInstalled || EarShot))
             {
                 std::string str = "ModelExtras contain the functions of these plugins,\n\n";
 
@@ -120,20 +137,25 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
                     str += "- EarShot.asi\n";
                 if (PedFuncs)
                     str += "- PedFuncs.asi\n";
+                if (BackFireZAZInstalled)
+                    str += "- Back-fire.cs by ZAZ\n";
+                if (BackFireJDRInstalled)
+                    str += "- Backfire - ALS.cs by Junior-Djjr\n";
 
-                str += "\nIt is recommanded to remove them to ensure proper gameplay.";
+                str += "\nRemove them to continue playing the game.";
                 MessageBox(RsGlobal.ps->window, str.c_str(), "Incompatible plugins found!", MB_OK);
                 gLogger->error(str);
                 exit(EXIT_FAILURE);
             }
 
-            if (gConfig.ReadBoolean("CONFIG", "ShowGraphicsTweakerWarning", true))
+            if (gtweaker && gConfig.ReadBoolean("CONFIG", "ShowGraphicsTweakerWarning", true))
             {
                 std::string str = "Using GraphicsTweaker may result in visual anomalies.\n\n";
                 str += "Set these values to following to avoid issues,\n";
                 str += "1. MultAmbientNight = 1.0\n2. MultColorFilterNight = 1.0\n";
+                str += "\n\nSet ShowGraphicsTweakerWarning=False in ModelExtras.ini to remove this popup.\n";
                 MessageBox(RsGlobal.ps->window, str.c_str(), "GraphicsTweaker Found!", MB_OK);
-                gConfig.WriteBoolean("CONFIG", "ShowGraphicsTweakerWarning", false);
+                gLogger->error(str);
             }
 
             if (GrinchTrainer && gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))

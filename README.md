@@ -51,6 +51,14 @@ ModelExtras adds additional functionality to peds, weapons, and vehicle componen
 - Nora
 - KaiQ
 
+## 🧑‍🤝‍🧑 Testers
+- Caner Karaca
+- Crowdigger
+- Damix
+- KaiQ
+- Kaoru Tanamachi
+- Zeneric
+
 ## 💖 Donators
 - Agha
 - berrymuffin

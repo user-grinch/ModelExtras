@@ -4,20 +4,14 @@
 #include "eVehicleClass.h"
 #include "util.h"
 
-std::vector<int> ValidForReverseSound = {};
+std::vector<int> ValidForReverseSound;
 
 void SoundEffects::Initialize()
 {
     plugin::Events::initGameEvent += []()
     {
         std::string line = gConfig.ReadString("TABLE", "SoundEffects_BigVehicleModels", "");
-        std::stringstream ss(line);
-        while (ss.good())
-        {
-            std::string model;
-            getline(ss, model, ',');
-            ValidForReverseSound.push_back(std::stoi(model));
-        }
+        Util::GetModelsFromIni(line, ValidForReverseSound);
     };
 
     plugin::Events::vehicleRenderEvent += [](CVehicle *pVeh)

@@ -58,6 +58,19 @@ void BackFireEffect::BackFireMulti(CVehicle *pVeh)
     }
 }
 
+std::vector<int> ValidModels = {};
+bool onlySelected = false;
+
+void BackFireEffect::Initialize(RwFrame *frame, CEntity *pVeh)
+{
+    plugin::Events::initGameEvent += []()
+    {
+        std::string line = gConfig.ReadString("TABLE", "BackFireEffect_VehicleModels", "");
+        onlySelected = gConfig.ReadBoolean("VEHICLE_FEATURES", "BackfireEffect_OnlySelectedModels", true);
+        Util::GetModelsFromIni(line, ValidModels);
+    };
+}
+
 // Inspired by Junior's https://www.mixmods.com.br/2016/06/backfire-als-v2-5-mod-estalar-escapamento/
 void BackFireEffect::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 {
@@ -67,6 +80,14 @@ void BackFireEffect::Process(void *ptr, RwFrame *frame, eModelEntityType type)
     {
         return;
     }
+
+    bool isValidVeh = std::find(ValidModels.begin(), ValidModels.end(), pVeh->m_nModelIndex) != ValidModels.end();
+
+    if (!isValidVeh && onlySelected)
+    {
+        return;
+    }
+
     VehData &data = vehData.Get(pVeh);
 
     if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE || pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE)

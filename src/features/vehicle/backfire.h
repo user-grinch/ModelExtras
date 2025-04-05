@@ -18,6 +18,6 @@ protected:
   static void BackFireMulti(CVehicle *pVeh);
 
 public:
-  static inline void Initialize(RwFrame *frame, CEntity *pVeh);
+  static void Initialize(RwFrame *frame, CEntity *pVeh);
   static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
 };

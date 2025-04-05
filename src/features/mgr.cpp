@@ -229,6 +229,7 @@ void FeatureMgr::Initialize()
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "BackfireEffect", false))
     {
+        BackFireEffect::Initialize(NULL, NULL);
         plugin::Events::vehicleRenderEvent.before += [](CVehicle *vehicle)
         {
             BackFireEffect::Process(vehicle, nullptr, eModelEntityType::Vehicle);

@@ -49,4 +49,6 @@ public:
   static RwTexture *LoadDDSTextureCB(const char *path, const char *name);
   static RwTexture *LoadPNGTextureCB(const char *path, const char *name);
   static RwTexture *LoadBMPTextureCB(const char *path, const char *name);
+
+  static void GetModelsFromIni(std::string &line, std::vector<int> &vec);
 };

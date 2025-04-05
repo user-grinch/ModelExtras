@@ -545,3 +545,14 @@ RwTexture *Util::LoadPNGTextureCB(const char *path, const char *name)
 
     return texture;
 }
+
+void Util::GetModelsFromIni(std::string &line, std::vector<int> &vec)
+{
+    std::stringstream ss(line);
+    while (ss.good())
+    {
+        std::string model;
+        getline(ss, model, ',');
+        vec.push_back(std::stoi(model));
+    }
+}
