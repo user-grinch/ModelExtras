@@ -6,6 +6,10 @@
 
 std::vector<int> ValidForReverseSound;
 
+#define ANIMGROUP_TRUCK 2
+#define ANIMGROUP_BUS 15
+#define ANIMGROUP_COACH 16
+
 void SoundEffects::Initialize()
 {
     plugin::Events::initGameEvent += []()
@@ -24,7 +28,11 @@ void SoundEffects::Initialize()
         auto &data = vehData.Get(pVeh);
         float speed = Util::GetVehicleSpeed(pVeh);
         int model = pVeh->m_nModelIndex;
-        bool isBigVeh = std::find(ValidForReverseSound.begin(), ValidForReverseSound.end(), pVeh->m_nModelIndex) != ValidForReverseSound.end();
+
+        int animGroup = pVeh->m_pHandlingData->m_nAnimGroup;
+        bool isAllowed = pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE &&
+                         (animGroup == ANIMGROUP_TRUCK || animGroup == ANIMGROUP_BUS || animGroup == ANIMGROUP_COACH);
+        bool isBigVeh = isAllowed || std::find(ValidForReverseSound.begin(), ValidForReverseSound.end(), pVeh->m_nModelIndex) != ValidForReverseSound.end();
 
         if (pVeh == FindPlayerVehicle(0, false))
         {
@@ -72,36 +80,49 @@ void SoundEffects::Initialize()
             }
         }
 
-        if (bAirbreakSounds && isBigVeh)
+        CVector vehPos = pVeh->GetPosition();
+        CVector camPos = TheCamera.GetPosition();
+
+        float dist = DistanceBetweenPoints(vehPos, camPos);
+        if (dist < 80.0f)
         {
-            float pedal = pVeh->m_fBreakPedal;
-            static float val = 0.0f;
-
-            if (speed > 10.0f)
+            if (bAirbreakSounds && isBigVeh)
             {
-                val = std::max(val, pedal);
-            }
+                float pedal = pVeh->m_fBreakPedal;
+                static float val = 0.0f;
 
-            if (pedal <= 0.05f && val != NULL)
-            {
-                static std::string path = MOD_DATA_PATH("audio/effects/air_break.wav");
-                static StreamHandle handle = NULL;
-                handle = AudioMgr::Load(&path);
-                AudioMgr::Play(handle, pVeh, val / 4.0f);
-                val = NULL;
-            }
-        }
-
-        if (bReverseSounds)
-        {
-            static std::string path = MOD_DATA_PATH("audio/effects/reverse.wav");
-            if (isBigVeh && pVeh->m_nCurrentGear == 0 && pVeh->m_nVehicleFlags.bEngineOn && !pVeh->m_nVehicleFlags.bEngineBroken && speed >= 3.0f)
-            {
-                if (m_hReverse == NULL)
+                if (speed > 10.0f)
                 {
-                    m_hReverse = AudioMgr::Load(&path);
+                    val = std::max(val, pedal);
+
+                    if (pedal >= 0.5f)
+                    {
+                        data.m_fBrakePressure += pedal * 0.02f;
+                    }
                 }
-                AudioMgr::Play(m_hReverse, pVeh);
+
+                if (pedal <= 0.05f && val != NULL)
+                {
+                    static std::string path = MOD_DATA_PATH("audio/effects/air_break.wav");
+                    static StreamHandle handle = NULL;
+                    handle = AudioMgr::Load(&path);
+                    AudioMgr::Play(handle, pVeh, data.m_fBrakePressure);
+                    val = NULL;
+                    data.m_fBrakePressure = 0.0f;
+                }
+            }
+
+            if (bReverseSounds)
+            {
+                static std::string path = MOD_DATA_PATH("audio/effects/reverse.wav");
+                if (isBigVeh && pVeh->m_nCurrentGear == 0 && pVeh->m_nVehicleFlags.bEngineOn && !pVeh->m_nVehicleFlags.bEngineBroken && speed >= 3.0f)
+                {
+                    if (m_hReverse == NULL)
+                    {
+                        m_hReverse = AudioMgr::Load(&path);
+                    }
+                    AudioMgr::Play(m_hReverse, pVeh);
+                }
             }
         }
     };
