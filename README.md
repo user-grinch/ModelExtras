@@ -52,7 +52,9 @@ ModelExtras adds additional functionality to peds, weapons, and vehicle componen
 - KaiQ
 
 ## 💖 Donators
+- Agha
 - berrymuffin
+- blackOS
 - Boris Ilincic
 - Damix
 - Dustin Eastwood

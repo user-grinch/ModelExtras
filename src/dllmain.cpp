@@ -7,7 +7,9 @@ extern void TrainerInit();
 std::vector<std::string> donators = {
     "Agha",
     "berrymuffin",
-    "Damian Jurkiewicz",
+    "blackOS"
+    "Boris Ilincic",
+    "Damix",
     "Dustin Eastwood",
     "Dwolf98",
     "Francisco Flores",
