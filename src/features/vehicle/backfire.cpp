@@ -19,14 +19,7 @@ void BackFireEffect::BackFireFX(CVehicle *pVeh, float x, float y, float z)
     }
 
     plugin::Command<Commands::PLAY_AND_KILL_FX_SYSTEM>(handle);
-
-    static std::string path = MOD_DATA_PATH("audio/effects/backfire.wav");
-    static StreamHandle hAudio = NULL;
-    if (hAudio == NULL)
-    {
-        hAudio = AudioMgr::Load(&path);
-    }
-    AudioMgr::Play(hAudio, pVeh);
+    plugin::Command<Commands::ADD_ONE_OFF_SOUND>(0.0f, 0.0f, 0.0f, 1131);
 }
 
 void BackFireEffect::BackFireSingle(CVehicle *pVeh)
