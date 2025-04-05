@@ -301,10 +301,7 @@ void Lights::Initialize()
 		{
 			state = eLightState::Brakelight;
 			dummyPos = eDummyPos::Rear;
-
 			col = {240, 0, 0, GetCoronaAlphaForDayTime()};
-			// Push it as a taillight too
-			m_Dummies[pVeh][eLightState::TailLight].push_back(new VehicleDummy(pVeh, frame, name, dummyPos, col));
 		}
 		else if (std::regex_search(name, std::regex("^light_day")))
 		{
@@ -531,7 +528,7 @@ void Lights::Initialize()
 				std::string shdwName = (isBike ? "taillight_bike" : "taillight");
 				CVector2D shdwOff = {0.0f, (isBike ? 0.5f : 1.0f)};
 
-				CVector2D shdwSz = {1.25f, 2.0f};
+				CVector2D shdwSz = {1.0f, 1.5f};
 				if (reverseLightsOn)
 				{
 					if (isRevlightSupportedByModel)
@@ -551,11 +548,12 @@ void Lights::Initialize()
 				{
 					if (IsMatAvail(pTowedVeh, eLightState::Brakelight))
 					{
-						RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, true, shdwName, shdwSz, shdwOff);
+						RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, false);
+						shadowCnt++;
 					}
 					else if (IsMatAvail(pTowedVeh, eLightState::TailLight))
 					{
-						RenderLights(pControlVeh, pTowedVeh, eLightState::TailLight, true, shdwName, shdwSz, shdwOff);
+						RenderLights(pControlVeh, pTowedVeh, eLightState::TailLight, false);
 						shadowCnt++;
 					}
 
@@ -580,33 +578,37 @@ void Lights::Initialize()
 				{
 					if (IsMatAvail(pTowedVeh, eLightState::TailLight))
 					{
-						RenderLights(pControlVeh, pTowedVeh, eLightState::TailLight, true, shdwName, shdwSz, shdwOff);
+						RenderLights(pControlVeh, pTowedVeh, eLightState::TailLight, false);
 						shadowCnt++;
 					}
 					else if (IsMatAvail(pTowedVeh, eLightState::Brakelight))
 					{
-						RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, true, shdwName, shdwSz, shdwOff);
+						RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, false);
+						shadowCnt++;
 					}
 
 					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft, true, shdwName, shdwSz, shdwOff);
 					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight, true, shdwName, shdwSz, shdwOff);
 				}
 
-				if (!IsDummyAvail(pTowedVeh, eLightState::Brakelight)) {
-					CRGBA col = {250, 0, 0, GetShadowAlphaForDayTime()};
-					CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
+				CRGBA col = {250, 0, 0, GetShadowAlphaForDayTime()};
 
-					if (isBike)
-					{
-						posn.x = 0.0f;
-					}
+				// use the brakelight color if available
+				if (IsDummyAvail(pTowedVeh, eLightState::Brakelight)) {
+					col = m_Dummies[pTowedVeh][eLightState::Brakelight][0]->Color;
+				}
+				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
 
-					for (int i = 0; i < shadowCnt; i++)
-					{
-						Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, shdwName, shdwSz, shdwOff);
-						posn.x *= -1.0f;
-						Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, shdwName, shdwSz, shdwOff);
-					}
+				if (isBike)
+				{
+					posn.x = 0.0f;
+				}
+
+				for (int i = 0; i < shadowCnt; i++)
+				{
+					Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, shdwName, shdwSz, shdwOff);
+					posn.x *= -1.0f;
+					Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, shdwName, shdwSz, shdwOff);
 				}
 			}
 			}
