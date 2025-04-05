@@ -5,6 +5,7 @@
 #include <extensions/scripting/ScriptCommandNames.h>
 #include "../audiomgr.h"
 #include "../../enums/vehdummy.h"
+#include <CCamera.h>
 
 static bool flag = false;
 
@@ -19,7 +20,14 @@ void BackFireEffect::BackFireFX(CVehicle *pVeh, float x, float y, float z)
     }
 
     plugin::Command<Commands::PLAY_AND_KILL_FX_SYSTEM>(handle);
-    plugin::Command<Commands::ADD_ONE_OFF_SOUND>(0.0f, 0.0f, 0.0f, 1131);
+
+    CVector vehPos = pVeh->GetPosition();
+    CVector camPos = TheCamera.GetPosition();
+
+    if (DistanceBetweenPoints(vehPos, camPos) < 80.0f)
+    {
+        plugin::Command<Commands::ADD_ONE_OFF_SOUND>(0.0f, 0.0f, 0.0f, 1131);
+    }
 }
 
 void BackFireEffect::BackFireSingle(CVehicle *pVeh)
