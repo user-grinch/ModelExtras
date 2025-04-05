@@ -10,8 +10,7 @@ enum class eLightState
 	None,
 	FrontLightLeft,
 	FrontLightRight,
-	TailLightLeft,
-	TailLightRight,
+	TailLight,
 	Reverselight,
 	Brakelight,
 	AllDayLight,
@@ -77,6 +76,6 @@ public:
 	static void Initialize();
 	static bool IsIndicatorOn(CVehicle *pVeh)
 	{
-		return (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) && indicatorsDelay && m_VehData.Get(pVeh).m_nIndicatorState != eLightState::IndicatorNone;
+		return (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) && indicatorsDelay && m_VehData.Get(pVeh).m_nIndicatorState != eLightState::IndicatorNone && pVeh->m_nOverrideLights != eLightOverride::ForceLightsOff;
 	}
 };
