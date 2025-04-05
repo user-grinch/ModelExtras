@@ -20,7 +20,8 @@ private:
 public:
     static void Initialize();
     static StreamHandle Load(std::string *pPath);
-    static void Play(StreamHandle handle, CEntity *pEntity);
+    static void SetVolume(StreamHandle handle, float volume);
+    static void Play(StreamHandle handle, CEntity *pEntity, float volume = 1.0f);
     static void PlayClickSound();
     static void LoadAndPlay(std::string *path, CEntity *pPed);
 };

@@ -60,7 +60,12 @@ StreamHandle AudioMgr::Load(std::string *pPath)
     return handle;
 }
 
-void AudioMgr::Play(StreamHandle handle, CEntity *pEntity)
+void AudioMgr::SetVolume(StreamHandle handle, float volume)
+{
+    plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume);
+}
+
+void AudioMgr::Play(StreamHandle handle, CEntity *pEntity, float volume)
 {
     if (!handle)
     {
@@ -73,7 +78,7 @@ void AudioMgr::Play(StreamHandle handle, CEntity *pEntity)
     if (state != eAudioStreamState::Playing)
     {
         CVector pos = pEntity->GetPosition();
-        plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f);
+        plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume);
         plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, pos.x, pos.y, pos.z);
         plugin::Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
     }

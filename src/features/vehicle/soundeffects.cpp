@@ -71,20 +71,24 @@ void SoundEffects::Initialize()
                 }
             }
         }
-        if (bAirbreakSounds)
+
+        if (bAirbreakSounds && isBigVeh)
         {
-            bool state = pVeh->m_fBreakPedal;
-            if (isBigVeh && state != data.m_bAirbreakState)
+            float pedal = pVeh->m_fBreakPedal;
+            static float val = 0.0f;
+
+            if (speed > 10.0f)
+            {
+                val = std::max(val, pedal);
+            }
+
+            if (pedal <= 0.05f && val != NULL)
             {
                 static std::string path = MOD_DATA_PATH("audio/effects/air_break.wav");
                 static StreamHandle handle = NULL;
                 handle = AudioMgr::Load(&path);
-
-                if (speed > 10.0f)
-                {
-                    AudioMgr::Play(handle, pVeh);
-                }
-                data.m_bAirbreakState = state;
+                AudioMgr::Play(handle, pVeh, val / 4.0f);
+                val = NULL;
             }
         }
 
