@@ -39,18 +39,17 @@ void FeatureMgr::Initialize()
     {
         DataMgr::Init();
     };
-    plugin::Events::vehicleRenderEvent.before += [](CVehicle *vehicle)
+    plugin::Events::vehicleRenderEvent.before += [](CVehicle *pVeh)
     {
         VehicleMaterials::RestoreMaterials();
-        VehicleMaterials::OnRender(vehicle);
+        VehicleMaterials::OnRender(pVeh);
+        Process(static_cast<void *>(pVeh), eModelEntityType::Vehicle);
     };
-
-    plugin::Events::vehicleSetModelEvent += VehicleMaterials::OnModelSet;
 
     Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
     {
+        VehicleMaterials::OnModelSet(pVeh, model);
         Add(static_cast<void *>(pVeh), (RwFrame *)pVeh->m_pRwClump->object.parent, eModelEntityType::Vehicle);
-        Process(static_cast<void *>(pVeh), eModelEntityType::Vehicle);
     };
 
     Events::vehicleDtorEvent += [](CVehicle *pVeh)

@@ -661,7 +661,7 @@ void Sirens::Initialize()
 	Events::processScriptsEvent += []()
 	{
 		CVehicle *vehicle = FindPlayerVehicle(-1, false);
-		if (!vehicle)
+		if (!vehicle || vehicle->m_nOverrideLights == eLightOverride::ForceLightsOff)
 		{
 			return;
 		}

@@ -302,6 +302,7 @@ void Lights::Initialize()
 			state = eLightState::Brakelight;
 			dummyPos = eDummyPos::Rear;
 
+			col = {240, 0, 0, GetCoronaAlphaForDayTime()};
 			// Push it as a taillight too
 			m_Dummies[pVeh][eLightState::TailLight].push_back(new VehicleDummy(pVeh, frame, name, dummyPos, col));
 		}
@@ -338,6 +339,7 @@ void Lights::Initialize()
 				state = eLightState::STTLightRight;
 				dummyPos = eDummyPos::Right;
 			}
+			col = {240, 0, 0, GetCoronaAlphaForDayTime()};
 		}
 		else if (std::regex_search(name, match, std::regex("^nabrakelight?_([lr]).*$")))
 		{
@@ -351,6 +353,7 @@ void Lights::Initialize()
 				state = eLightState::NABrakeLightRight;
 				dummyPos = eDummyPos::Right;
 			}
+			col = {240, 0, 0, GetCoronaAlphaForDayTime()};
 		}
 		else if (std::regex_search(name, match, std::regex("^spotlight_light.*$")))
 		{
@@ -528,7 +531,7 @@ void Lights::Initialize()
 				std::string shdwName = (isBike ? "taillight_bike" : "taillight");
 				CVector2D shdwOff = {0.0f, (isBike ? 0.5f : 1.0f)};
 
-				CVector2D shdwSz = {1.5f, 2.25f};
+				CVector2D shdwSz = {1.25f, 2.0f};
 				if (reverseLightsOn)
 				{
 					if (isRevlightSupportedByModel)
@@ -577,7 +580,7 @@ void Lights::Initialize()
 				{
 					if (IsMatAvail(pTowedVeh, eLightState::TailLight))
 					{
-						RenderLights(pControlVeh, pTowedVeh, eLightState::TailLight);
+						RenderLights(pControlVeh, pTowedVeh, eLightState::TailLight, true, shdwName, shdwSz, shdwOff);
 						shadowCnt++;
 					}
 					else if (IsMatAvail(pTowedVeh, eLightState::Brakelight))
@@ -746,8 +749,8 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightStat
 	bool MidDisabled = false;
 	int id = static_cast<int>(state) * 10000;
 
-	offset.x /= sz.x;
-	offset.y /= sz.y;
+	offset.x /= sz.x * 0.8f;
+	offset.y /= sz.y * 0.8f;
 
 	if (IsDummyAvail(pControlVeh, state))
 	{
