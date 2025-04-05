@@ -125,14 +125,14 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
                 exit(EXIT_FAILURE);
             }
 
-            // if (gConfig.ReadBoolean("CONFIG", "ShowGraphicsTweakerWarning", true))
-            // {
-            //     std::string str = "Using GraphicsTweaker may result in visual anomalies.\n\n";
-            //     str += "Set these values to following to avoid issues,\n";
-            //     str += "1. MultAmbientNight = 1.0\n2. MultColorFilterNight = 1.0\n";
-            //     MessageBox(RsGlobal.ps->window, str.c_str(), "GraphicsTweaker Found!", MB_OK);
-            //     gConfig.WriteBoolean("CONFIG", "ShowGraphicsTweakerWarning", false);
-            // }
+            if (gConfig.ReadBoolean("CONFIG", "ShowGraphicsTweakerWarning", true))
+            {
+                std::string str = "Using GraphicsTweaker may result in visual anomalies.\n\n";
+                str += "Set these values to following to avoid issues,\n";
+                str += "1. MultAmbientNight = 1.0\n2. MultColorFilterNight = 1.0\n";
+                MessageBox(RsGlobal.ps->window, str.c_str(), "GraphicsTweaker Found!", MB_OK);
+                gConfig.WriteBoolean("CONFIG", "ShowGraphicsTweakerWarning", false);
+            }
 
             if (GrinchTrainer && gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))
             {

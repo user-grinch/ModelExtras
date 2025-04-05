@@ -542,7 +542,7 @@ void Lights::Initialize()
 
 				// taillights/ brakelights
 				int shadowCnt = 0;
-				if (pControlVeh->m_fBreakPedal)
+				if (pControlVeh->m_fBreakPedal && pControlVeh->m_pDriver)
 				{
 					if (IsMatAvail(pTowedVeh, eLightState::Brakelight))
 					{
