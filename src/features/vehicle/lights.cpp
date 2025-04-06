@@ -11,6 +11,7 @@
 #include "spotlights.h"
 #include "../audiomgr.h"
 #include <CWeather.h>
+#include <CCoronas.h>
 #include "../../enums/vehdummy.h"
 
 // flags
@@ -23,6 +24,11 @@ int gGlobalShadowIntensity = 80;
 bool IsNightTime()
 {
 	return CClock::GetIsTimeInRange(20, 7);
+}
+
+bool IsTailLightOn(CVehicle *pVeh)
+{
+	return IsNightTime() || pVeh->m_nOverrideLights == eLightOverride::ForceLightsOn || pVeh->m_nVehicleFlags.bLightsOn;
 }
 
 bool IsEngineOff(CVehicle *pVeh)
@@ -129,8 +135,26 @@ float HEADLIGHT_CORONA_SIZE_LONG = 0.115f;
 int HEADLIGHT_CORONA_ALPHA_SHORT = 230;
 int HEADLIGHT_CORONA_ALPHA_LONG = 255;
 
+void __cdecl Lights::hkTailLightCCoronas_RegisterCorona(uint32_t id, CVehicle *pVeh, uint8_t r, uint8_t g, uint8_t b, uint8_t a, CVector *pos, float size, float range, int coronaType, uint8_t flareType, uint8_t reflectionType, bool checkObstacles, int bUsesTrails, float fNormalAngle, bool bNeonFade, float fPullTowardsCam, bool bFullBrightAtStart, float fadeSpeed, bool bOnlyFromBelow, bool bWhiteCore)
+{
+	if (pVeh->m_nOverrideLights == eLightOverride::ForceLightsOff)
+	{
+		return;
+	}
+
+	bool breakLightInstalled = IsDummyAvail(pVeh, eLightState::Brakelight);
+
+	if (!breakLightInstalled || IsTailLightOn(pVeh))
+	{
+		pos->y -= 0.05f;
+		Common::RegisterCorona(pVeh, id, *pos, {r, g, b, GetCoronaAlphaForDayTime()}, size * 1.5f);
+	}
+}
+
 void Lights::Initialize()
 {
+	patch::ReplaceFunctionCall(0x6E1A2D, hkTailLightCCoronas_RegisterCorona);
+
 	static float headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_SHORT;
 	patch::SetFloat(0x6E167E, 180.0f);
 	patch::SetFloat(0x6E154F, 180.0f);
@@ -574,7 +598,7 @@ void Lights::Initialize()
 					}
 				}
 
-				if (IsNightTime() || pControlVeh->m_nOverrideLights == eLightOverride::ForceLightsOn || pControlVeh->m_nVehicleFlags.bLightsOn)
+				if (IsTailLightOn(pControlVeh))
 				{
 					if (IsMatAvail(pTowedVeh, eLightState::TailLight))
 					{
