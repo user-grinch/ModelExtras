@@ -1,6 +1,7 @@
 #pragma once
 
-enum VirtualKey {
+enum VirtualKey
+{
     VK_UNKNOWN = 0x00,
     VK_BACKSPACE = 0x08,
     VK_ENTER = 0x0D,

@@ -431,7 +431,8 @@ void Lights::Initialize()
 		if (pVeh && pVeh->m_nOverrideLights != eLightOverride::ForceLightsOff)
 		{
 			static size_t prev = 0;
-			if (KeyPressed(VK_J) && IsMatAvail(pVeh, eLightState::FogLight))
+			static uint32_t fogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", VK_J);
+			if (KeyPressed(fogLightKey) && IsMatAvail(pVeh, eLightState::FogLight))
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
@@ -443,7 +444,8 @@ void Lights::Initialize()
 				}
 			}
 
-			if (KeyPressed(VK_G))
+			static uint32_t longLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", VK_G);
+			if (KeyPressed(longLightKey))
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
@@ -651,24 +653,29 @@ void Lights::Initialize()
 			if (pControlVeh->m_pDriver == FindPlayerPed() &&
 				(pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE))
 			{
-				if (KeyPressed(VK_SHIFT))
+				static uint32_t indicatorNoneKey = gConfig.ReadInteger("KEYS", "IndicatorLightNoneKey", VK_SHIFT);
+				static uint32_t indicatorLeftKey = gConfig.ReadInteger("KEYS", "IndicatorLightLeftKey", VK_Z);
+				static uint32_t indicatorRightKey = gConfig.ReadInteger("KEYS", "IndicatorLightRightKey", VK_C);
+				static uint32_t indicatorBothKey = gConfig.ReadInteger("KEYS", "IndicatorLightBothKey", VK_X);
+
+				if (KeyPressed(indicatorNoneKey))
 				{
 					data.m_nIndicatorState = eLightState::IndicatorNone;
 					delay = 0;
 					indicatorsDelay = false;
 				}
 
-				if (KeyPressed(VK_Z))
+				if (KeyPressed(indicatorLeftKey))
 				{
 					data.m_nIndicatorState = eLightState::IndicatorLeft;
 				}
 
-				if (KeyPressed(VK_C))
+				if (KeyPressed(indicatorRightKey))
 				{
 					data.m_nIndicatorState = eLightState::IndicatorRight;
 				}
 
-				if (KeyPressed(VK_X))
+				if (KeyPressed(indicatorBothKey))
 				{
 					data.m_nIndicatorState = eLightState::IndicatorBoth;
 				}

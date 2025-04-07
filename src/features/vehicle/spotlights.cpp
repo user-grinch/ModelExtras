@@ -57,7 +57,8 @@ void SpotLights::OnHudRender()
 	VehData &data = vehData.Get(pVeh);
 
 	static size_t prev = 0;
-	if (KeyPressed(VK_B))
+	static uint32_t key = gConfig.ReadInteger("KEYS", "SpotLightKey", VK_B);
+	if (KeyPressed(key))
 	{
 		size_t now = CTimer::m_snTimeInMilliseconds;
 		if (now - prev > 500.0f)

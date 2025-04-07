@@ -671,7 +671,8 @@ void Sirens::Initialize()
 
 		if (now - prev > 300.0f)
 		{
-			if (KeyPressed(VK_L))
+			static uint32_t sirenKey = gConfig.ReadInteger("KEYS", "SirenLightKey", VK_L);
+			if (KeyPressed(sirenKey))
 			{
 				int model = vehicle->m_nModelIndex;
 
