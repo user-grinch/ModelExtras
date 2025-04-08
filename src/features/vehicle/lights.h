@@ -24,6 +24,7 @@ enum class eLightState
 	NABrakeLightLeft,
 	NABrakeLightRight,
 	SpotLight,
+	StrobeLight,
 
 	IndicatorLeft,
 	IndicatorRight,

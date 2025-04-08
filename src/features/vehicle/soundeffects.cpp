@@ -106,7 +106,7 @@ void SoundEffects::Initialize()
                     static std::string path = MOD_DATA_PATH("audio/effects/air_break.wav");
                     static StreamHandle handle = NULL;
                     handle = AudioMgr::Load(&path);
-                    AudioMgr::Play(handle, pVeh, data.m_fBrakePressure);
+                    AudioMgr::PlayOnVehicle(handle, pVeh, data.m_fBrakePressure);
                     val = NULL;
                     data.m_fBrakePressure = 0.0f;
                 }
@@ -121,7 +121,7 @@ void SoundEffects::Initialize()
                     {
                         m_hReverse = AudioMgr::Load(&path);
                     }
-                    AudioMgr::Play(m_hReverse, pVeh);
+                    AudioMgr::PlayOnVehicle(m_hReverse, pVeh);
                 }
             }
         }

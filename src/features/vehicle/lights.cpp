@@ -265,6 +265,9 @@ void Lights::Initialize()
 		else if (col.r == 255 && col.g == 200 && col.b == 7) {
 			RegisterMaterial(vehicle, material, eLightState::SpotLight, col);
 		}
+		else if (col.r == 255 && col.g == 199) { // 1-255 reserved
+			RegisterMaterial(vehicle, material, eLightState::StrobeLight, col);
+		}
 
 		// Indicator Lights
 		if (col.b == 0) {
@@ -311,6 +314,7 @@ void Lights::Initialize()
 		RwRGBA col{255, 255, 255, GetCoronaAlphaForDayTime()};
 		eDummyPos dummyPos = eDummyPos::None;
 		std::smatch match;
+		size_t dummyIdx = 0;
 		if (std::regex_search(name, match, std::regex("^fogl(ight)?_([lr]).*$")))
 		{
 			state = eLightState::FogLight;
@@ -334,6 +338,13 @@ void Lights::Initialize()
 		else if (std::regex_search(name, std::regex("^light_nigh")))
 		{
 			state = eLightState::Nightlight;
+		}
+		else if (std::regex_search(name, match, std::regex(R"(^strobe_light(\d*)?)")))
+		{
+			if (match.str(1).size() != 0) {
+				dummyIdx = match.str(1)[0] - '0';
+			}
+			state = eLightState::StrobeLight;
 		}
 		else if (std::regex_search(name, match, std::regex("^sidelight?_([lr]).*$")))
 		{
@@ -408,7 +419,7 @@ void Lights::Initialize()
 			return;
 		}
 
-		m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, dummyPos, col)); });
+		m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx)); });
 
 	// Events::processScriptsEvent += []()
 	// {
@@ -491,6 +502,7 @@ void Lights::Initialize()
 			CAutomobile *pAutoMobile = reinterpret_cast<CAutomobile *>(pControlVeh);
 
 			RenderLights(pControlVeh, pTowedVeh, eLightState::AllDayLight);
+			RenderLights(pControlVeh, pTowedVeh, eLightState::StrobeLight);
 
 			if (IsNightTime())
 			{
@@ -785,6 +797,8 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightStat
 	offset.x /= sz.x * 0.8f;
 	offset.y /= sz.y * 0.8f;
 
+	bool lightState[256] = {true};
+
 	if (IsDummyAvail(pControlVeh, state))
 	{
 		for (auto e : m_Dummies[pControlVeh][state])
@@ -804,6 +818,22 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightStat
 					RearDisabled = true;
 				}
 				continue;
+			}
+
+			if (state == eLightState::StrobeLight)
+			{
+				size_t timer = CTimer::m_snTimeInMilliseconds;
+				if (timer - e->strobeLightTimer > e->strobeDelay)
+				{
+					e->strobeLightOn = !e->strobeLightOn;
+					e->strobeLightTimer = timer;
+				}
+
+				if (!e->strobeLightOn)
+				{
+					lightState[e->DummyIdx] = false;
+					continue;
+				}
 			}
 
 			bool isRear = (e->DummyType == eDummyPos::RearLeft || e->DummyType == eDummyPos::RearRight);
@@ -831,6 +861,12 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightStat
 			{
 				continue;
 			}
+
+			if (state == eLightState::StrobeLight && !lightState[e->Color.b])
+			{
+				continue;
+			}
+
 			EnableMaterial(e);
 		}
 	}
@@ -839,6 +875,11 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightStat
 	{
 		for (auto e : m_Materials[pTowedVeh->m_nModelIndex][state])
 		{
+			if (state == eLightState::StrobeLight && !lightState[e->Color.b])
+			{
+				continue;
+			}
+
 			if ((e->Pos == eDummyPos::RearLeft || e->Pos == eDummyPos::RearRight) && !RearDisabled)
 			{
 				EnableMaterial(e);

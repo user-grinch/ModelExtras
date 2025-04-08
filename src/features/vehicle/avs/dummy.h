@@ -16,6 +16,7 @@ public:
     float Angle = 0.0f;
     float CurrentAngle = 0.0f;
 
+    size_t DummyIdx = 0;
     eDummyPos DummyType = eDummyPos::None;
     eLightType LightType = eLightType::NonDirectional;
     eParentType PartType = eParentType::Unknown;
@@ -24,7 +25,11 @@ public:
     CVector2D shdwOffSet = {0.0f, 0.0f};
     CVector2D shdowSize = {1.0f, 1.0f};
 
-    VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDummyPos type = eDummyPos::None, CRGBA color = {255, 255, 255, 128});
+    size_t strobeLightOn = false;
+    size_t strobeLightTimer = 0;
+    size_t strobeDelay = 1000;
+
+    VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDummyPos type = eDummyPos::None, CRGBA color = {255, 255, 255, 128}, size_t dummyIdx = 0);
 
     void ResetAngle()
     {

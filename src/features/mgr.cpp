@@ -39,8 +39,24 @@ void FeatureMgr::Initialize()
     {
         DataMgr::Init();
     };
-    plugin::Events::vehicleRenderEvent.before += [](CVehicle *pVeh)
+
+    static ThiscallEvent<AddressList<0x6D0E89, H_JUMP>, PRIORITY_BEFORE, ArgPickN<CVehicle *, 0>, void(CVehicle *)> vehRenderEvent;
+    static ThiscallEvent<AddressList<0x5343B2, H_CALL>, PRIORITY_AFTER, ArgPickN<CVehicle *, 0>, void(CVehicle *)> heliRenderEvent;
+
+    vehRenderEvent.before += [](CVehicle *pVeh)
     {
+        VehicleMaterials::RestoreMaterials();
+        VehicleMaterials::OnRender(pVeh);
+        Process(static_cast<void *>(pVeh), eModelEntityType::Vehicle);
+    };
+
+    heliRenderEvent.after += [](CVehicle *pVeh)
+    {
+        if (!CModelInfo::IsHeliModel(pVeh->m_nModelIndex))
+        {
+            return;
+        }
+
         VehicleMaterials::RestoreMaterials();
         VehicleMaterials::OnRender(pVeh);
         Process(static_cast<void *>(pVeh), eModelEntityType::Vehicle);

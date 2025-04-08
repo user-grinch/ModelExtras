@@ -13,7 +13,7 @@ int ReadHex(char a, char b)
     return (a << 4) + b;
 }
 
-VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDummyPos type, CRGBA color)
+VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDummyPos type, CRGBA color, size_t dummyIdx)
 {
     Frame = frame;
     CVector pos = pVeh->GetPosition();
@@ -21,6 +21,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
     ShdwPosition = Position;
     Color = color;
     DummyType = type;
+    DummyIdx = dummyIdx;
     float angleVal = 0.0f;
 
     // Calculate the angle based on the frame's orientation
@@ -52,6 +53,12 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
                 shdwOffSet = {shadow.value("OffsetX", 0.0f), shadow.value("OffsetY", 0.0f)};
                 shdowSize = {shadow.value("SizeX", 1.0f), shadow.value("SizeY", 1.0f)};
                 angleVal = shadow.value("Rotation", 0.0f);
+            }
+
+            // Only for StrobeLights
+            if (lights.contains("StrobeDelay"))
+            {
+                strobeDelay = lights.value("StrobeDelay", 1000);
             }
         }
     }
