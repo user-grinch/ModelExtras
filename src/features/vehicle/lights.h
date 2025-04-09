@@ -4,6 +4,7 @@
 #include "avs/dummy.h"
 #include "avs/materials.h"
 #include "enums/lighttype.h"
+#include "enums/lightoverride.h"
 
 enum class eLightState
 {
@@ -31,13 +32,6 @@ enum class eLightState
 	IndicatorBoth,
 	IndicatorNone,
 	Total,
-};
-
-enum eLightOverride
-{
-	NoOverride,
-	ForceLightsOff,
-	ForceLightsOn,
 };
 
 class Lights

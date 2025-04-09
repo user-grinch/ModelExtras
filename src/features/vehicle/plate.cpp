@@ -6,6 +6,7 @@
 #include <rpworld.h>
 #include <RenderWare.h>
 #include "defines.h"
+#include "../../enums/lightoverride.h"
 
 static CVehicle *pCurrentVeh = nullptr;
 PlateFeature LicensePlate;
@@ -96,7 +97,7 @@ RpMaterial *__cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
             plateType = DAY_LV;
     }
 
-    if (IsNightTime() && !IsEngineOff(pCurrentVeh))
+    if (IsNightTime() && !IsEngineOff(pCurrentVeh) && pCurrentVeh->m_nOverrideLights != eLightOverride::ForceLightsOff || pCurrentVeh->m_nOverrideLights == eLightOverride::ForceLightsOn)
     {
         material->surfaceProps.ambient = AMBIENT_ON_VAL;
         RpMaterialSetTexture(material, m_Plates[plateType + 3]);

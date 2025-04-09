@@ -99,7 +99,7 @@ void AudioMgr::PlayOnVehicle(StreamHandle handle, CVehicle *pVeh, float volume)
     if (state != eAudioStreamState::Playing)
     {
         plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume);
-        plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_CAR>(CPools::GetVehicleRef(pVeh));
+        plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_CAR>(handle, CPools::GetVehicleRef(pVeh));
         plugin::Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
     }
 }
@@ -117,7 +117,7 @@ void AudioMgr::LoadAndPlayOnVehicle(std::string *pPath, CVehicle *pVeh)
     {
         LOG_VERBOSE("Failed to load sound '{}'", *pPath);
     }
-    plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_CAR>(CPools::GetVehicleRef(pVeh));
+    plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_CAR>(handle, CPools::GetVehicleRef(pVeh));
     plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f);
     plugin::Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
     m_NeedToFree.push_back(handle);
