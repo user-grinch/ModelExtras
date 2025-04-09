@@ -489,6 +489,10 @@ void Lights::Initialize()
 			return;
 		}
 
+		if (pControlVeh->m_nOverrideLights == eLightOverride::ForceLightsOn) {
+			pControlVeh->m_nVehicleFlags.bLightsOn = true;
+		}
+
 		VehData &data = m_VehData.Get(pControlVeh);
 		eLightState indState = data.m_nIndicatorState;
 
@@ -631,11 +635,13 @@ void Lights::Initialize()
 
 				CRGBA col = {250, 0, 0, GetShadowAlphaForDayTime()};
 
-				// use the brakelight color if available
+				
+				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
+				// use the brakelight color & pos if available
 				if (IsDummyAvail(pTowedVeh, eLightState::Brakelight)) {
 					col = m_Dummies[pTowedVeh][eLightState::Brakelight][0]->Color;
+					posn = m_Dummies[pTowedVeh][eLightState::Brakelight][0]->Position;
 				}
-				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
 
 				if (isBike)
 				{
