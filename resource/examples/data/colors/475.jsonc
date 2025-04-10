@@ -1,0 +1,181 @@
+{
+    "carcols": {
+        "colors": [
+            {
+                "blue": 15,
+                "green": 15,
+                "red": 15
+            },
+            {
+                "blue": 221,
+                "green": 237,
+                "red": 236
+            },
+            {
+                "blue": 128,
+                "green": 123,
+                "red": 116
+            },
+            {
+                "blue": 36,
+                "green": 18,
+                "red": 245
+            },
+            {
+                "blue": 140,
+                "green": 121,
+                "red": 68
+            },
+            {
+                "blue": 223,
+                "green": 205,
+                "red": 183
+            },
+            {
+                "blue": 66,
+                "green": 240,
+                "red": 253
+            },
+            {
+                "blue": 118,
+                "green": 101,
+                "red": 87
+            },
+            {
+                "blue": 141,
+                "green": 107,
+                "red": 79
+            },
+            {
+                "blue": 115,
+                "green": 77,
+                "red": 43
+            },
+            {
+                "blue": 67,
+                "green": 44,
+                "red": 31
+            },
+            {
+                "blue": 142,
+                "green": 136,
+                "red": 99
+            },
+            {
+                "blue": 104,
+                "green": 128,
+                "red": 111
+            },
+            {
+                "blue": 69,
+                "green": 95,
+                "red": 71
+            },
+            {
+                "blue": 51,
+                "green": 60,
+                "red": 49
+            },
+            {
+                "blue": 144,
+                "green": 203,
+                "red": 218
+            },
+            {
+                "blue": 48,
+                "green": 116,
+                "red": 158
+            },
+            {
+                "blue": 86,
+                "green": 135,
+                "red": 158
+            },
+            {
+                "blue": 177,
+                "green": 191,
+                "red": 203
+            },
+            {
+                "blue": 104,
+                "green": 134,
+                "red": 150
+            },
+            {
+                "blue": 58,
+                "green": 75,
+                "red": 87
+            },
+            {
+                "blue": 40,
+                "green": 39,
+                "red": 105
+            },
+            {
+                "blue": 44,
+                "green": 42,
+                "red": 161
+            },
+            {
+                "blue": 95,
+                "green": 90,
+                "red": 122
+            },
+            {
+                "blue": 28,
+                "green": 29,
+                "red": 57
+            }
+        ],
+        "variations": [
+            {
+                "primary": 12,
+                "quaternary": 0,
+                "secondary": 0,
+                "tertiary": 0
+            },
+            {
+                "primary": 16,
+                "quaternary": 0,
+                "secondary": 1,
+                "tertiary": 0
+            },
+            {
+                "primary": 2,
+                "quaternary": 0,
+                "secondary": 0,
+                "tertiary": 0
+            },
+            {
+                "primary": 9,
+                "quaternary": 0,
+                "secondary": 1,
+                "tertiary": 0
+            },
+            {
+                "primary": 13,
+                "quaternary": 0,
+                "secondary": 0,
+                "tertiary": 0
+            },
+            {
+                "primary": 5,
+                "quaternary": 0,
+                "secondary": 0,
+                "tertiary": 0
+            },
+            {
+                "primary": 3,
+                "quaternary": 0,
+                "secondary": 1,
+                "tertiary": 0
+            },
+            {
+                "primary": 6,
+                "quaternary": 0,
+                "secondary": 0,
+                "tertiary": 0
+            }
+        ]
+    }
+}

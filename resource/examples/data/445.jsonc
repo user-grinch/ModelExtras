@@ -1,0 +1,325 @@
+{
+    "metadata": {
+        "author": "Grinch_",
+        "desc": "Lamborghini Aventador SVJ",
+        "creationtime": "2023-10-01",
+        "minver": 10600
+    },
+    "clutch": {
+        "offset": 0
+    },
+    "gearlever": {
+        "offset": 0
+    },
+    "frontbrake": {
+        "maxrotation": 360.0
+    },
+    "rearbrake": {
+        "maxrotation": 360.0
+    },
+    "rpmmeter": {
+        "maxrpm": 200,
+        "maxrotation": 270
+    },
+    "odometer": {
+        "kph": true,
+        "digital": true,
+    },
+    "speedmeter": {
+        "maxspeed": 200,
+        "maxrotation": 270,
+        "kph": true
+    },
+    "lights": {
+        "indicator_lr": {
+            "color": {
+                "red": 0,
+                "green": 255,
+                "blue": 0,
+                "alpha": 255
+            },
+            "coronasize": 0.5,
+            "type": "non-directional",
+            "parent": "rear-bumper",
+            "shadow": {
+                "offset": 10,
+                "rotation": 45
+            }
+        },
+        "indicator_lf": {
+            "color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 255
+            },
+            "coronasize": 0.5,
+            "type": "directional",
+            "parent": "front-bumper",
+            "shadow": {
+                "offset": 10,
+                "rotation": -45
+            }
+        },
+        "indicator_rf": {
+            "color": {
+                "red": 0,
+                "green": 255,
+                "blue": 0,
+                "alpha": 255
+            },
+            "coronasize": 0.5,
+            "type": "inversed-directional",
+            "parent": "front-bumper",
+            "shadow": {
+                "offset": 10,
+                "rotation": 45
+            }
+        },
+        "indicator_rr": {
+            "color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 255
+            },
+            "coronasize": 0.5,
+            "type": "inversed-directional",
+            "parent": "rear-bumper",
+            "shadow": {
+                "offset": 10,
+                "rotation": -45
+            }
+        }
+    },
+    "sirens": {
+        "references": {
+            "colors": { // Defines a set of named colors with RGBA values
+                "red": {
+                    "red": 248,
+                    "green": 95,
+                    "blue": 95,
+                    "alpha": 160
+                },
+                "white": {
+                    "red": 255,
+                    "green": 255,
+                    "blue": 255,
+                    "alpha": 160
+                },
+                "yellow": {
+                    "red": 255,
+                    "green": 149,
+                    "blue": 0,
+                    "alpha": 160
+                },
+                "blueTint": {
+                    "red": 98,
+                    "green": 156,
+                    "blue": 236,
+                    "alpha": 160
+                },
+                "lightblue": {
+                    "red": 52,
+                    "green": 255,
+                    "blue": 221,
+                    "alpha": 160
+                }
+            },
+            "myReference": { // Defines a reusable myReference object
+                "size": 0.3, // Defines the size of the rotator
+                "state": 1, // Initial state of the rotator
+                "type": "rotator", // Type identifier
+                "inertia": 1, // Defines how smoothly it rotates
+                "rotator": {
+                    "type": "linear" // Specifies the rotation type
+                }
+            }
+        },
+        "states": {
+            // Defines each siren group, you can rotate between which group is active using hotkeys
+            "FirstGroup": { // Defines group 1 of sirens, can be named anything
+                // These siren numbers need to match the dummies inside the model
+                "1": {
+                    "color": "lightblue", // Uses predefined color
+                    "reference": "myReference", // References the myReference definition
+                    "rotator": {
+                        "time": 800
+                    } // Defines rotation speed
+                },
+                "2": {
+                    "color": "lightblue",
+                    "size": 0.3,
+                    "inertia": 1.5, // Higher inertia for smoother transitions
+                    "state": 1, // Active state
+                    "pattern": [
+                        300,
+                        300
+                    ] // Defines the blink pattern (in milliseconds)
+                },
+                "3": {
+                    "color": "white",
+                    "reference": "myReference",
+                    "rotator": {
+                        "direction": 0,
+                        "radius": 70.0, // Defines rotation radius
+                        "offset": -35.0, // Offset angle
+                        "time": 600 // Time duration for one full cycle
+                    }
+                },
+                "4": {
+                    "color": "blueTint",
+                    "size": 0.3,
+                    "state": 1,
+                    "pattern": [
+                        50,
+                        50,
+                        50,
+                        50,
+                        50,
+                        300,
+                        50,
+                        50,
+                        50,
+                        50,
+                        50,
+                        300
+                    ] // Complex blink pattern
+                },
+            },
+            "Group 2": { // This is a totally separate group 
+                "15": {
+                    "size": 0.4,
+                    "color": {
+                        "red": 255,
+                        "green": 255,
+                        "blue": 255,
+                        "alpha": 255
+                    },
+                    "shadow": {
+                        "offset": 0.0,
+                        "size": 1.0,
+                        "type": 11
+                    },
+                    "state": 1,
+                    "pattern": []
+                },
+                "16": {
+                    "size": 0.4,
+                    "color": {
+                        "red": 255,
+                        "green": 255,
+                        "blue": 255,
+                        "alpha": 255
+                    },
+                    "shadow": {
+                        "offset": 0.0,
+                        "size": 1.0,
+                        "type": 11
+                    },
+                    "state": 1,
+                    "pattern": []
+                }
+            }
+        }
+    },
+    "carcols": {
+        "colors": [
+            {
+                "blue": 1,
+                "green": 1,
+                "red": 1
+            },
+            {
+                "blue": 75,
+                "green": 76,
+                "red": 44
+            },
+            {
+                "blue": 19,
+                "green": 26,
+                "red": 175
+            },
+            {
+                "blue": 255,
+                "green": 254,
+                "red": 255
+            },
+            {
+                "blue": 60,
+                "green": 48,
+                "red": 48
+            },
+            {
+                "blue": 197,
+                "green": 201,
+                "red": 202
+            },
+            {
+                "blue": 195,
+                "green": 211,
+                "red": 234
+            },
+            {
+                "blue": 100,
+                "green": 137,
+                "red": 159
+            },
+            {
+                "blue": 36,
+                "green": 38,
+                "red": 32
+            }
+        ],
+        "variations": [
+            {
+                "primary": 0,
+                "quaternary": 0,
+                "secondary": 0,
+                "tertiary": 6
+            },
+            {
+                "primary": 1,
+                "quaternary": 0,
+                "secondary": 0,
+                "tertiary": 8
+            },
+            {
+                "primary": 2,
+                "quaternary": 0,
+                "secondary": 0,
+                "tertiary": 7
+            },
+            {
+                "primary": 3,
+                "quaternary": 0,
+                "secondary": 0,
+                "tertiary": 8
+            },
+            {
+                "primary": 4,
+                "quaternary": 0,
+                "secondary": 0,
+                "tertiary": 6
+            },
+            {
+                "primary": 5,
+                "quaternary": 0,
+                "secondary": 0,
+                "tertiary": 8
+            },
+            {
+                "primary": 2,
+                "quaternary": 0,
+                "secondary": 2,
+                "tertiary": 8
+            },
+            {
+                "primary": 5,
+                "quaternary": 0,
+                "secondary": 5,
+                "tertiary": 6
+            }
+        ]
+    }
+}
