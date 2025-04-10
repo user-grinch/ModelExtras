@@ -35,15 +35,15 @@ void OdoMeter::Process(void *ptr, RwFrame *frame, eModelEntityType type)
         data.m_nPrevRot = 1234 + rand() % (57842 - 1234);
 
         auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-        if (jsonData.contains("Odometer"))
+        if (jsonData.contains("odometer"))
         {
-            if (jsonData["Odometer"].contains("KPH"))
+            if (jsonData["odometer"].contains("kph"))
             {
-                data.m_fMul = jsonData["Odometer"]["KPH"].get<bool>() ? 100 : 1;
+                data.m_fMul = jsonData["odometer"]["kph"].get<bool>() ? 100 : 1;
             }
-            if (jsonData["Odometer"].contains("Digital"))
+            if (jsonData["odometer"].contains("digital"))
             {
-                data.m_bDigital = jsonData["Odometer"]["Digital"].get<bool>();
+                data.m_bDigital = jsonData["odometer"]["digital"].get<bool>();
             }
         }
         data.m_bInitialized = true;
@@ -91,15 +91,15 @@ void RpmMeter::Process(void *ptr, RwFrame *frame, eModelEntityType type)
         data.m_nMaxRpm = std::stoi(Util::GetRegexVal(name, ".*m([0-9]+).*", "100"));
         data.m_fMaxRotation = std::stof(Util::GetRegexVal(name, ".*r([0-9]+).*", "100"));
         auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-        if (jsonData.contains("RPMMater"))
+        if (jsonData.contains("rpmmeter"))
         {
-            if (jsonData["RPMMater"].contains("MaxRPM"))
+            if (jsonData["rpmmeter"].contains("maxrpm"))
             {
-                data.m_nMaxRpm = jsonData["RPMMater"].value("MaxRPM", 100.0f);
+                data.m_nMaxRpm = jsonData["rpmmeter"].value("maxrpm", 100.0f);
             }
-            if (jsonData["RPMMater"].contains("MaxRotation"))
+            if (jsonData["rpmmeter"].contains("maxrotation"))
             {
-                data.m_fMaxRotation = jsonData["RPMMater"].value("MaxRotation", 100.0f);
+                data.m_fMaxRotation = jsonData["rpmmeter"].value("maxrotation", 100.0f);
             }
         }
         data.m_bInitialized = true;
@@ -139,19 +139,19 @@ void SpeedMeter::Process(void *ptr, RwFrame *frame, eModelEntityType type)
         data.m_fMaxRotation = std::stof(Util::GetRegexVal(name, ".*r([0-9]+).*", "100"));
 
         auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-        if (jsonData.contains("SpeedMeter"))
+        if (jsonData.contains("speedmeter"))
         {
-            if (jsonData["SpeedMeter"].contains("KPH"))
+            if (jsonData["speedmeter"].contains("kph"))
             {
-                data.m_fMul = jsonData["Odometer"]["KPH"].get<bool>() ? 100 : 1;
+                data.m_fMul = jsonData["speedmeter"]["kph"].get<bool>() ? 100 : 1;
             }
-            if (jsonData["SpeedMeter"].contains("MaxSpeed"))
+            if (jsonData["speedmeter"].contains("maxspeed"))
             {
-                data.m_nMaxSpeed = jsonData["SpeedMeter"].value("MaxSpeed", 100.0f);
+                data.m_nMaxSpeed = jsonData["speedmeter"].value("maxspeed", 100.0f);
             }
-            if (jsonData["SpeedMeter"].contains("MaxRotation"))
+            if (jsonData["speedmeter"].contains("maxrotation"))
             {
-                data.m_fMaxRotation = jsonData["SpeedMeter"].value("MaxRotation", 100.0f);
+                data.m_fMaxRotation = jsonData["speedmeter"].value("maxrotation", 100.0f);
             }
         }
 

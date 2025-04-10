@@ -28,37 +28,37 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
     Angle = Common::NormalizeAngle(CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f);
 
     auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-    if (jsonData.contains("Lights"))
+    if (jsonData.contains("lights"))
     {
         std::string newName = name.substr(0, name.find("_prm"));
-        if (jsonData["Lights"].contains(newName.c_str()))
+        if (jsonData["lights"].contains(newName.c_str()))
         {
-            auto &lights = jsonData["Lights"][newName.c_str()];
+            auto &lights = jsonData["lights"][newName.c_str()];
 
-            if (lights.contains("Color"))
+            if (lights.contains("color"))
             {
-                Color.r = lights["Color"].value("R", Color.r);
-                Color.g = lights["Color"].value("G", Color.g);
-                Color.b = lights["Color"].value("B", Color.b);
-                Color.a = lights["Color"].value("A", Color.a);
+                Color.r = lights["color"].value("red", Color.r);
+                Color.g = lights["color"].value("green", Color.g);
+                Color.b = lights["color"].value("blue", Color.b);
+                Color.a = lights["color"].value("alpha", Color.a);
             }
 
-            coronaSize = lights.value("CoronaSize", coronaSize);
-            PartType = eParentTypeFromString(lights.value("Parent", ""));
-            LightType = GetLightType(lights.value("Type", "directional"));
+            coronaSize = lights.value("coronasize", coronaSize);
+            PartType = eParentTypeFromString(lights.value("parent", ""));
+            LightType = GetLightType(lights.value("type", "directional"));
 
-            if (lights.contains("Shadow"))
+            if (lights.contains("shadow"))
             {
-                auto &shadow = lights["Shadow"];
-                shdwOffSet = {shadow.value("OffsetX", 0.0f), shadow.value("OffsetY", 0.0f)};
-                shdowSize = {shadow.value("SizeX", 1.0f), shadow.value("SizeY", 1.0f)};
-                angleVal = shadow.value("Rotation", 0.0f);
+                auto &shadow = lights["shadow"];
+                shdwOffSet = {shadow.value("offsetx", 0.0f), shadow.value("offsety", 0.0f)};
+                shdowSize = {shadow.value("sizex", 1.0f), shadow.value("sizey", 1.0f)};
+                angleVal = shadow.value("rot", 0.0f);
             }
 
             // Only for StrobeLights
-            if (lights.contains("StrobeDelay"))
+            if (lights.contains("strobedelay"))
             {
-                strobeDelay = lights.value("StrobeDelay", 1000);
+                strobeDelay = lights.value("strobedelay", 1000);
             }
         }
     }

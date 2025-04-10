@@ -19,9 +19,9 @@ void Clutch::Process(void *ptr, RwFrame *frame, eModelEntityType type)
     {
         data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
         auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-        if (jsonData.contains("Clutch") && jsonData["Clutch"].contains("Offset"))
+        if (jsonData.contains("clutch") && jsonData["clutch"].contains("offset"))
         {
-            data.m_nCurOffset = jsonData["Clutch"].value("Offset", 0.0f);
+            data.m_nCurOffset = jsonData["clutch"].value("offset", 0.0f);
         }
         data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nCurOffset / 10));
         data.m_bInitialized = true;
@@ -106,9 +106,9 @@ void GearLever::Process(void *ptr, RwFrame *frame, eModelEntityType type)
             data.m_nCurOffset = std::stoi(Util::GetRegexVal(name, ".*_o(-?[0-9]+).*", "0"));
         }
         auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-        if (jsonData.contains("GearLever") && jsonData["GearLever"].contains("Offset"))
+        if (jsonData.contains("gearlever") && jsonData["gearlever"].contains("offset"))
         {
-            data.m_nCurOffset = jsonData["GearLever"].value("Offset", 0.0f);
+            data.m_nCurOffset = jsonData["gearlever"].value("offset", 0.0f);
         }
         data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nCurOffset / 10));
         data.m_bInitialized = true;
@@ -179,9 +179,9 @@ void GearSound::Process(void *ptr, RwFrame *frame, eModelEntityType type)
     {
         std::string fileName = Util::GetRegexVal(name, "x_gs_(.*$)", "");
         auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-        if (jsonData.contains("GearSound") && jsonData["GearSound"].contains("Name"))
+        if (jsonData.contains("gearsound") && jsonData["gearsound"].contains("name"))
         {
-            fileName = jsonData["GearSound"].value("Name", 0.0f);
+            fileName = jsonData["gearsound"].value("name", 0.0f);
         }
         std::string upPath = MOD_DATA_PATH_S(std::format("audio/gear/{}.wav", fileName));
         plugin::Command<LOAD_3D_AUDIO_STREAM>(upPath.c_str(), &data.hUpAudio);

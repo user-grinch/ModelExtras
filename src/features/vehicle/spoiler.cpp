@@ -11,11 +11,11 @@ void Spoiler::Initialize(void *ptr, RwFrame *pFrame, eModelEntityType type)
     data.m_Spoilers[name].m_nTime = std::stof(Util::GetRegexVal(name, "_([^_]*)$", "3000"));
 
     auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-    if (jsonData["Spoilers"].contains(name))
+    if (jsonData["spoilers"].contains(name))
     {
-        data.m_Spoilers[name].m_fRotation = jsonData["Spoilers"][name].value("Rotation", 30.0f);
-        data.m_Spoilers[name].m_nTime = jsonData["Spoilers"][name].value("Time", 3000);
-        data.m_Spoilers[name].m_nTriggerSpeed = jsonData["Spoilers"][name].value("TriggerSpeed", 20);
+        data.m_Spoilers[name].m_fRotation = jsonData["spoilers"][name].value("rotation", 30.0f);
+        data.m_Spoilers[name].m_nTime = jsonData["spoilers"][name].value("time", 3000);
+        data.m_Spoilers[name].m_nTriggerSpeed = jsonData["spoilers"][name].value("triggerspeed", 20);
     }
     else
     {

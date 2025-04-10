@@ -76,10 +76,10 @@ void DataMgr::Parse()
                 data[model] = nlohmann::json::parse(file, NULL, true, true);
                 if (gConfig.ReadBoolean("CONFIG", "ModelVersionCheck", true))
                 {
-                    if (data[model].contains("Metadata"))
+                    if (data[model].contains("metadata"))
                     {
-                        auto &info = data[model]["Metadata"];
-                        int ver = info.value("MinVer", MOD_VERSION_NUMBER);
+                        auto &info = data[model]["metadata"];
+                        int ver = info.value("minver", MOD_VERSION_NUMBER);
                         if (ver > MOD_VERSION_NUMBER)
                         {
                             std::string text = std::format("Model {} requires version [{}] but [{}] is installed.", model, ver, MOD_VERSION_NUMBER);
