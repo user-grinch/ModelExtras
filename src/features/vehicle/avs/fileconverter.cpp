@@ -1,7 +1,7 @@
 #include "pch.h"
 #include <sstream>
 
-int ImVehFt_ReadColor(std::string input)
+int Helper_ImVehFtReadColor(std::string input)
 {
     if (input.length() == 3)
     {
@@ -14,15 +14,70 @@ int ImVehFt_ReadColor(std::string input)
     return color;
 };
 
-int Convert_EmlToJsonc(const std::string &emlPath)
+bool Helper_MoveToBackup(const std::string &src)
 {
-    std::ifstream infile(emlPath);
+    std::string backupDir = MOD_DATA_PATH("data\\backup\\");
+    std::filesystem::create_directories(backupDir);
 
+    std::filesystem::path source(src);
+    std::filesystem::path destination = backupDir + source.filename().string();
+    try
+    {
+        std::filesystem::rename(source, destination);
+    }
+    catch (const std::filesystem::filesystem_error &e)
+    {
+        gLogger->error("Failed to move {} to backup: {}", src, e.what());
+        return false;
+    }
+
+    return true;
+}
+
+bool Helper_OpenFile(const std::string &path, std::ifstream &infile, const std::string &logPrefix)
+{
+    infile.open(path);
     if (!infile)
     {
-        gLogger->warn("EML2JSONC: Failed to open {}", emlPath);
-        return -1;
+        gLogger->warn("{}: Failed to open {}", logPrefix, path);
+        return false;
     }
+    return true;
+}
+
+bool Helper_CreateFile(const std::string &path, std::ofstream &outfile, const std::string &logPrefix)
+{
+    outfile.open(path);
+    if (!outfile)
+    {
+        gLogger->error("{}: Failed to create {}", logPrefix, path);
+        return false;
+    }
+    return true;
+}
+
+void Helper_LoadPrepJson(const std::string &path, nlohmann::json &jsonData, const std::string &logPrefix, const std::string &clearKey)
+{
+    if (std::filesystem::exists(path))
+    {
+        std::ifstream temp(path);
+        jsonData = nlohmann::json::parse(temp, NULL, true, true);
+        temp.close();
+
+        gLogger->warn("{}: Merging with {}", logPrefix, path);
+        if (jsonData.contains(clearKey))
+        {
+            gLogger->warn("{}: {} already contains {}, replacing...", logPrefix, path, clearKey);
+            jsonData[clearKey] = {};
+        }
+    }
+}
+
+int Convert_EmlToJsonc(const std::string &emlPath)
+{
+    std::ifstream infile;
+    if (!Helper_OpenFile(emlPath, infile, "EML2JSONC"))
+        return -1;
 
     std::string line;
     int model = -1;
@@ -30,52 +85,31 @@ int Convert_EmlToJsonc(const std::string &emlPath)
     while (std::getline(infile, line))
     {
         if (line.empty() || line[0] == '#')
-        {
             continue;
-        }
-
         std::istringstream iss(line);
         if (!(iss >> model))
         {
             gLogger->warn("EML2JSONC: Failed to parse model ID from {}", emlPath);
             return -1;
         }
-
         break;
     }
 
     std::string jsonPath = MOD_DATA_PATH("data\\") + std::to_string(model) + ".jsonc";
     nlohmann::json jsonData;
-
-    if (std::filesystem::exists(jsonPath))
-    {
-        jsonData = nlohmann::json::parse(jsonPath, NULL, true, true);
-        gLogger->warn("EML2JSONC: Merging {} with {}", emlPath, jsonPath);
-
-        if (jsonData.contains("Sirens"))
-        {
-            gLogger->warn("EML2JSONC: {} file already contains siren data, replacing...", jsonPath);
-            jsonData["Sirens"] = {};
-        }
-    }
+    Helper_LoadPrepJson(jsonPath, jsonData, "EML2JSONC", "Sirens");
 
     jsonData["Sirens"]["ImVehFt"] = true;
-    jsonData["Sirens"]["states"] = {};
-    jsonData["Sirens"]["states"]["1. ModelExtras"] = {};
+    auto &extras = jsonData["Sirens"]["states"]["1. ModelExtras"];
 
-    std::ofstream outfile(jsonPath);
-    if (!outfile)
-    {
-        gLogger->error("Failed to create .jsonc file");
+    std::ofstream outfile;
+    if (!Helper_CreateFile(jsonPath, outfile, "EML2JSONC"))
         return -1;
-    }
 
     while (std::getline(infile, line))
     {
         if (line.empty() || line[0] == '#')
-        {
             continue;
-        }
 
         std::istringstream iss(line);
         int id, parent, type, switches, starting;
@@ -85,23 +119,18 @@ int Convert_EmlToJsonc(const std::string &emlPath)
 
         if (!(iss >> id >> parent))
             continue;
-
         if (!(iss >> tempColor))
             continue;
-        red = ImVehFt_ReadColor(tempColor);
-
+        red = Helper_ImVehFtReadColor(tempColor);
         if (!(iss >> tempColor))
             continue;
-        green = ImVehFt_ReadColor(tempColor);
-
+        green = Helper_ImVehFtReadColor(tempColor);
         if (!(iss >> tempColor))
             continue;
-        blue = ImVehFt_ReadColor(tempColor);
-
+        blue = Helper_ImVehFtReadColor(tempColor);
         if (!(iss >> tempColor))
             continue;
-        alpha = ImVehFt_ReadColor(tempColor);
-
+        alpha = Helper_ImVehFtReadColor(tempColor);
         if (!(iss >> type >> size >> shadow >> flash))
             continue;
         if (!(iss >> switches >> starting))
@@ -109,18 +138,16 @@ int Convert_EmlToJsonc(const std::string &emlPath)
 
         std::vector<uint64_t> pattern;
         uint64_t count = 0;
-
-        for (int index = 0; index < switches; index++)
+        for (int i = 0; i < switches; i++)
         {
-            std::string string;
-            if (!(iss >> string))
+            std::string t;
+            if (!(iss >> t))
                 continue;
-            uint64_t milliseconds = std::stoi(string) - count;
-            count += milliseconds;
-
-            if (milliseconds == 0)
+            uint64_t ms = std::stoi(t) - count;
+            count += ms;
+            if (ms == 0)
                 continue;
-            pattern.push_back(milliseconds);
+            pattern.push_back(ms);
         }
 
         if (count == 0 || count > 64553)
@@ -129,40 +156,24 @@ int Convert_EmlToJsonc(const std::string &emlPath)
             pattern.clear();
         }
 
-        jsonData["Sirens"]["states"]["1. ModelExtras"][std::to_string(id)]["size"] = size;
-        jsonData["Sirens"]["states"]["1. ModelExtras"][std::to_string(id)]["color"] = {{"red", red}, {"green", green}, {"blue", blue}, {"alpha", alpha}};
-        jsonData["Sirens"]["states"]["1. ModelExtras"][std::to_string(id)]["state"] = starting;
-        jsonData["Sirens"]["states"]["1. ModelExtras"][std::to_string(id)]["pattern"] = pattern;
-        jsonData["Sirens"]["states"]["1. ModelExtras"][std::to_string(id)]["shadow"]["size"] = shadow / 17.5f;
-        jsonData["Sirens"]["states"]["1. ModelExtras"][std::to_string(id)]["inertia"] = flash / 100.0f;
-        jsonData["Sirens"]["states"]["1. ModelExtras"][std::to_string(id)]["type"] = ((type == 0) ? "directional" : ((type == 1) ? "inversed-directional" : "non-directional"));
-
-        // This is the only way ffs
+        auto &state = extras[std::to_string(id)];
+        state["size"] = size;
+        state["color"] = {{"red", red}, {"green", green}, {"blue", blue}, {"alpha", alpha}};
+        state["state"] = starting;
+        state["pattern"] = pattern;
+        state["shadow"]["size"] = shadow / 17.5f;
+        state["inertia"] = flash / 100.0f;
+        state["type"] = type == 0 ? "directional" : (type == 1 ? "inversed-directional" : "non-directional");
         if (type == 0)
-        {
-            jsonData["Sirens"]["states"]["1. ModelExtras"][std::to_string(id)]["rot"] = 180.0f;
-        }
+            state["rot"] = 180.0f;
     }
 
     infile.close();
     outfile << jsonData.dump(4);
     outfile.close();
 
-    std::string backupDir = MOD_DATA_PATH("data\\backup\\");
-    std::filesystem::create_directories(backupDir);
-
-    std::filesystem::path source(emlPath);
-    std::filesystem::path destination = backupDir + source.filename().string();
-    try
-    {
-        std::filesystem::rename(source, destination);
-    }
-    catch (const std::filesystem::filesystem_error &e)
-    {
-        gLogger->error("Failed to move {} to backup: {}", emlPath, e.what());
+    if (!Helper_MoveToBackup(emlPath))
         return -1;
-    }
-
     gLogger->info("Successfully converted {} to {}", emlPath, jsonPath);
     return model;
 }
@@ -170,48 +181,90 @@ int Convert_EmlToJsonc(const std::string &emlPath)
 void Convert_JsonToJsonc(const std::string &inPath)
 {
     std::string outPath = inPath + "c";
-
-    std::ifstream infile(inPath);
-    if (!infile)
-    {
-        gLogger->error("JSON2JSONC: Failed to open {}", inPath);
+    std::ifstream infile;
+    if (!Helper_OpenFile(inPath, infile, "JSON2JSONC"))
         return;
-    }
 
-    std::ofstream outfile(outPath);
-    if (!outfile)
-    {
-        gLogger->error("JSON2JSONC: Failed to create {}", outPath);
+    nlohmann::json jsonData;
+    Helper_LoadPrepJson(outPath, jsonData, "JSON2JSONC", "Sirens");
+
+    std::ofstream outfile;
+    if (!Helper_CreateFile(outPath, outfile, "JSON2JSONC"))
         return;
-    }
 
-    nlohmann::json inData, outData;
-    inData = nlohmann::json::parse(infile);
-
-    if (outData.contains("Sirens"))
-    {
-        gLogger->warn("JSON2JSONC: {} file already contains siren data, replacing...", outPath);
-        outData["Sirens"] = {};
-    }
-
-    outData["Sirens"] = inData;
-    outfile << outData.dump(4);
+    jsonData["Sirens"] = nlohmann::json::parse(infile);
     infile.close();
+    outfile << jsonData.dump(4);
     outfile.close();
-    std::string backupDir = MOD_DATA_PATH("data\\backup\\");
-    std::filesystem::create_directories(backupDir);
 
-    std::filesystem::path source(inPath);
-    std::filesystem::path destination = backupDir + source.filename().string();
-    try
-    {
-        std::filesystem::rename(source, destination);
-    }
-    catch (const std::filesystem::filesystem_error &e)
-    {
-        gLogger->error("Failed to move {} to backup: {}", inPath, e.what());
+    if (!Helper_MoveToBackup(inPath))
         return;
+    gLogger->info("Successfully converted {} to {}", inPath, outPath);
+}
+
+int Convert_IvfcToJsonc(const std::string &inPath)
+{
+    std::ifstream infile;
+    if (!Helper_OpenFile(inPath, infile, "IVFC2JSONC"))
+        return -1;
+
+    std::string line;
+    int model = -1;
+    while (std::getline(infile, line))
+    {
+        if (line.empty() || line[0] == '#')
+            continue;
+        if (line.rfind("vehicle_id", 0) == 0)
+        {
+            std::istringstream iss(line);
+            std::string key;
+            iss >> key >> model;
+            break;
+        }
     }
 
+    std::string outPath = MOD_DATA_PATH("data\\") + std::to_string(model) + ".jsonc";
+    nlohmann::json jsonData;
+    Helper_LoadPrepJson(outPath, jsonData, "IVFC2JSONC", "Carcols");
+
+    std::ofstream outfile;
+    if (!Helper_CreateFile(outPath, outfile, "IVFC2JSONC"))
+        return -1;
+
+    bool parsingColors = false, parsingVariations = false;
+    while (std::getline(infile, line))
+    {
+        if (line.empty() || line[0] == '#')
+            continue;
+
+        if (line.starts_with("num_colors"))
+            parsingColors = true, parsingVariations = false;
+        else if (line.starts_with("num_variations"))
+            parsingColors = false, parsingVariations = true;
+        else if (model != -1)
+        {
+            std::istringstream iss(line);
+            if (parsingColors)
+            {
+                int r, g, b;
+                if (iss >> r >> g >> b)
+                    jsonData["Carcols"]["Colors"].push_back({{"Red", r}, {"Green", g}, {"Blue", b}});
+            }
+            else if (parsingVariations)
+            {
+                int a, b, c, d;
+                if (iss >> a >> b >> c >> d)
+                    jsonData["Carcols"]["Variation"].push_back({{"Primary", a}, {"Secondary", b}, {"Tertiary", c}, {"Quaternary", d}});
+            }
+        }
+    }
+
+    infile.close();
+    outfile << jsonData.dump(4);
+    outfile.close();
+
+    if (!Helper_MoveToBackup(inPath))
+        return -1;
     gLogger->info("Successfully converted {} to {}", inPath, outPath);
+    return model;
 }

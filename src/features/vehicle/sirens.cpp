@@ -522,6 +522,7 @@ void Sirens::RegisterMaterial(CVehicle *vehicle, RpMaterial *material)
 
 extern int Convert_EmlToJsonc(const std::string &inPath);
 extern void Convert_JsonToJsonc(const std::string &inPath);
+extern int Convert_IvfcToJsonc(const std::string &inPath);
 extern bool is_number(const std::string &s);
 
 void Sirens::ParseConfig()
@@ -535,7 +536,7 @@ void Sirens::ParseConfig()
 		std::string file = p.path().stem().string();
 		std::string ext = p.path().extension().string();
 
-		if (ext != ".eml" && ext != ".json" && ext != ".jsonc")
+		if (ext != ".eml" && ext != ".json" && ext != ".jsonc" && ext != ".ivfc")
 			continue;
 
 		if (ext == ".eml")
@@ -551,6 +552,16 @@ void Sirens::ParseConfig()
 		else if (ext == ".json")
 		{
 			Convert_JsonToJsonc(fullPath);
+			ext = ".jsonc";
+		}
+		else if (ext == ".ivfc")
+		{
+			int model = Convert_IvfcToJsonc(fullPath);
+			if (model == -1)
+			{
+				continue;
+			}
+			file = std::to_string(model);
 			ext = ".jsonc";
 		}
 
