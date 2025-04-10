@@ -2,13 +2,46 @@
 #include "datamgr.h"
 #include <string>
 #include <CModelInfo.h>
+#include "features/vehicle/sirens.h"
+#include "features/vehicle/carcols.h"
 
 bool is_number(const std::string &s)
 {
     return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
 }
 
+extern int Convert_EmlToJsonc(const std::string &inPath);
+extern void Convert_JsonToJsonc(const std::string &inPath);
+extern int Convert_IvfcToJsonc(const std::string &inPath);
+
 void DataMgr::Init()
+{
+    Convert();
+    Parse();
+}
+
+void DataMgr::Convert()
+{
+    std::string path = std::string(MOD_DATA_PATH("data/"));
+    for (auto &p : std::filesystem::directory_iterator(path))
+    {
+        std::string filePath = p.path().string();
+        if (filePath.ends_with(".eml"))
+        {
+            Convert_EmlToJsonc(filePath);
+        }
+        else if (filePath.ends_with(".json"))
+        {
+            Convert_JsonToJsonc(filePath);
+        }
+        else if (filePath.ends_with(".ivfc"))
+        {
+            Convert_IvfcToJsonc(filePath);
+        }
+    }
+}
+
+void DataMgr::Parse()
 {
     std::string path = MOD_DATA_PATH("data/");
 
@@ -55,6 +88,9 @@ void DataMgr::Init()
                         }
                     }
                 }
+
+                Sirens::Parse(data[model], model);
+                IVFCarcolsFeature::Parse(data[model], model);
                 LOG_VERBOSE("Successfully registered file '{}'", e.path().filename().string());
             }
             catch (const nlohmann::json::parse_error &ex)

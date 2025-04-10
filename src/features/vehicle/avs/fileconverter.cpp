@@ -99,8 +99,8 @@ int Convert_EmlToJsonc(const std::string &emlPath)
     nlohmann::json jsonData;
     Helper_LoadPrepJson(jsonPath, jsonData, "EML2JSONC", "Sirens");
 
-    jsonData["Sirens"]["ImVehFt"] = true;
-    auto &extras = jsonData["Sirens"]["states"]["1. ModelExtras"];
+    jsonData["sirens"]["imvehft"] = true;
+    auto &extras = jsonData["sirens"]["states"]["1. modelextras"];
 
     std::ofstream outfile;
     if (!Helper_CreateFile(jsonPath, outfile, "EML2JSONC"))
@@ -192,7 +192,7 @@ void Convert_JsonToJsonc(const std::string &inPath)
     if (!Helper_CreateFile(outPath, outfile, "JSON2JSONC"))
         return;
 
-    jsonData["Sirens"] = nlohmann::json::parse(infile);
+    jsonData["sirens"] = nlohmann::json::parse(infile);
     infile.close();
     outfile << jsonData.dump(4);
     outfile.close();
@@ -248,13 +248,13 @@ int Convert_IvfcToJsonc(const std::string &inPath)
             {
                 int r, g, b;
                 if (iss >> r >> g >> b)
-                    jsonData["Carcols"]["Colors"].push_back({{"Red", r}, {"Green", g}, {"Blue", b}});
+                    jsonData["carcols"]["colors"].push_back({{"red", r}, {"green", g}, {"blue", b}});
             }
             else if (parsingVariations)
             {
                 int a, b, c, d;
                 if (iss >> a >> b >> c >> d)
-                    jsonData["Carcols"]["Variation"].push_back({{"Primary", a}, {"Secondary", b}, {"Tertiary", c}, {"Quaternary", d}});
+                    jsonData["carcols"]["variations"].push_back({{"primary", a}, {"secondary", b}, {"tertiary", c}, {"quaternary", d}});
             }
         }
     }

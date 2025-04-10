@@ -190,6 +190,8 @@ public:
     static void Initialize();
     static inline int CurrentModel = -1;
 
+    static void Parse(const nlohmann::json &data, int model);
+
 private:
     static inline std::map<int, VehicleSiren *> vehicleData;
     static inline std::map<int, VehicleSirenData *> modelData;
@@ -199,7 +201,6 @@ private:
     static void hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const &posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay);
     static void __cdecl hkAddPointLights(uint8_t type, CVector point, CVector dir, float range, float red, float green, float blue, uint8_t fogEffect, bool bCastsShadowFromPlayerCarAndPed, CEntity *castingEntity);
 
-    static void ParseConfig();
     static void RegisterMaterial(CVehicle *vehicle, RpMaterial *material);
     static void EnableMaterial(VehicleMaterial *material, VehicleSirenMaterial *mat, uint64_t time);
     static void EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time);

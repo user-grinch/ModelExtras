@@ -9,26 +9,28 @@
 #include <filesystem>
 #include <unordered_map>
 
-struct ColorSet {
+struct ColorSet
+{
     CRGBA primary, secondary, tert, quart;
 };
 
-class IVFCarcolsFeature : public IFeature {
+class IVFCarcolsFeature : public IFeature
+{
 private:
-    struct VehData {
+    struct VehData
+    {
         bool m_bPri = false, m_bSec = false, m_bTer = false, m_bQuat = false;
         ColorSet m_Colors;
-        VehData(CVehicle* pVeh) {}
+        VehData(CVehicle *pVeh) {}
         ~VehData() {}
     };
 
     static inline VehicleExtendedData<VehData> ExData;
     static inline std::unordered_map<int, std::vector<ColorSet>> variations;
 
-    static void parseFiles();
-
 public:
     void Initialize();
+    static void Parse(const nlohmann::json &data, int model);
 };
 
 extern IVFCarcolsFeature IVFCarcols;

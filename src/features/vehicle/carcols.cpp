@@ -7,11 +7,11 @@
 IVFCarcolsFeature IVFCarcols;
 extern bool IsNightTime();
 
-void IVFCarcolsFeature::Initialize() {
-    parseFiles();
-
-    static CVehicle* pCurVehicle;
-    injector::MakeInline<0x4C838D, 0x4C83AA>([](injector::reg_pack& regs) {
+void IVFCarcolsFeature::Initialize()
+{
+    static CVehicle *pCurVehicle;
+    injector::MakeInline<0x4C838D, 0x4C83AA>([](injector::reg_pack &regs)
+                                             {
         RpMaterial* pMat = (RpMaterial*)regs.eax;
         CRGBA color = *(CRGBA*)&pMat->color;
         color.a = 0;
@@ -79,82 +79,42 @@ void IVFCarcolsFeature::Initialize() {
             pMat->color.red = CVehicleModelInfo::ms_vehicleColourTable[id].r;
             pMat->color.green = CVehicleModelInfo::ms_vehicleColourTable[id].g;
             pMat->color.blue = CVehicleModelInfo::ms_vehicleColourTable[id].b;
-        }
-    });
+        } });
 
-    injector::MakeInline<0x6D6617, 0x6D661C>([](injector::reg_pack& regs) {
+    injector::MakeInline<0x6D6617, 0x6D661C>([](injector::reg_pack &regs)
+                                             {
         pCurVehicle = (CVehicle*)regs.esi;
         CVehicleModelInfo* pInfo = (CVehicleModelInfo*)CModelInfo::GetModelInfo(pCurVehicle->m_nModelIndex);
         // CVehicle *__cdecl CVehicleModelInfo::SetupLightFlags(CVehicle *vehicle)
-        plugin::Call<0x4C8C90>(pCurVehicle);
-    });
+        plugin::Call<0x4C8C90>(pCurVehicle); });
 }
 
-void IVFCarcolsFeature::parseFiles() {
-    std::string filePath = MOD_DATA_PATH("colors/");
-    if (std::filesystem::exists(filePath) && std::filesystem::is_directory(filePath)) {
-        for (const auto& entry : std::filesystem::directory_iterator(filePath)) {
-            if (entry.is_regular_file() && entry.path().extension() == ".ivfc") {
-                std::vector<CRGBA> colors;
-                std::ifstream file(entry.path());
-                if (!file) {
-                    return;
-                }
+void IVFCarcolsFeature::Parse(const nlohmann::json &data, int model)
+{
+    if (data.contains("carcols"))
+    {
+        auto &cols = data["carcols"]["colors"];
+        auto &var = data["carcols"]["variations"];
 
-                std::string line;
-                int currentVehicleId = -1;
-                bool parsingColors = false, parsingVariations = false;
+        for (auto &e : var)
+        {
+            int pIdx = e.value("primary", 0);
+            int sIdx = e.value("secondary", 0);
+            int tIdx = e.value("tertiary", 0);
+            int qIdx = e.value("quaternary", 0);
 
-                while (std::getline(file, line)) {
-                    size_t commentPos = line.find('#');
-                    if (commentPos != std::string::npos) {
-                        line = line.substr(0, commentPos);
-                    }
+            auto &pCol = cols.at(pIdx);
+            auto &sCol = cols.at(sIdx);
+            auto &tCol = cols.at(tIdx);
+            auto &qCol = cols.at(qIdx);
 
-                    line = std::regex_replace(line, std::regex("^\\s+|\\s+$"), "");
-                    if (line.empty()) continue;
+            CRGBA primaryColor = CRGBA(pCol["red"], pCol["green"], pCol["blue"], 255);
+            CRGBA secondaryColor = CRGBA(sCol["red"], sCol["green"], sCol["blue"], 255);
+            CRGBA tertiaryColor = CRGBA(tCol["red"], tCol["green"], tCol["blue"], 255);
+            CRGBA quaternaryColor = CRGBA(qCol["red"], qCol["green"], qCol["blue"], 255);
 
-                    std::istringstream iss(line);
-
-                    if (line.rfind("vehicle_id", 0) == 0) {
-                        std::string key;
-                        iss >> key >> currentVehicleId;
-                    }
-                    else if (line.starts_with("num_colors")) {
-                        parsingColors = true;
-                        parsingVariations = false;
-                    }
-                    else if (line.starts_with("num_variations")) {
-                        parsingColors = false;
-                        parsingVariations = true;
-                    }
-                    else if (currentVehicleId != -1) {
-                        if (parsingColors) {
-                            int r, g, b;
-                            if (iss >> r >> g >> b) {
-                                colors.emplace_back(r, g, b);
-                            }
-                        }
-                        else if (parsingVariations) {
-                            std::vector<int> variation;
-                            int value;
-                            while (iss >> value) {
-                                variation.push_back(value);
-                            }
-                            if (!variation.empty() && variation.size() >= 3) {
-                                CRGBA primary = colors[variation[0]];
-                                CRGBA secondary = colors[variation[1]];
-                                CRGBA tertiary = colors[variation[2]];
-                                CRGBA quart = colors[variation[3]];
-
-                                variations[currentVehicleId].push_back({
-                                    primary, secondary, tertiary, quart
-                                });
-                            }
-                        }
-                    }
-                }
-            }
+            variations[model]
+                .push_back({primaryColor, secondaryColor, tertiaryColor, quaternaryColor});
         }
     }
 }

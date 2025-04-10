@@ -10,5 +10,6 @@ private:
 public:
     static void Init();
     static void Parse();
+    static void Convert();
     static nlohmann::json &Get(int model);
 };

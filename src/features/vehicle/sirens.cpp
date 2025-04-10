@@ -395,10 +395,10 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 			gLogger->error("Model " + std::to_string(Sirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", inertia property is not an acceptable number!");
 	}
 
-	if (json.contains("ImVehFt"))
+	if (json.contains("imvehft"))
 	{
-		if (json["ImVehFt"].is_boolean() || json["ImVehFt"].is_number())
-			ImVehFt = json["ImVehFt"];
+		if (json["imvehft"].is_boolean() || json["imvehft"].is_number())
+			ImVehFt = json["imvehft"];
 		else
 			gLogger->error("Model " + std::to_string(Sirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", ImVehFt property is not a boolean or number!");
 	}
@@ -525,96 +525,24 @@ extern void Convert_JsonToJsonc(const std::string &inPath);
 extern int Convert_IvfcToJsonc(const std::string &inPath);
 extern bool is_number(const std::string &s);
 
-void Sirens::ParseConfig()
+void Sirens::Parse(const nlohmann::json &data, int model)
 {
-	std::string path = std::string(MOD_DATA_PATH("data/"));
-	std::map<int, nlohmann::json> tempData;
-
-	for (auto &p : std::filesystem::directory_iterator(path))
+	if (data.contains("sirens"))
 	{
-		std::string fullPath = p.path().string();
-		std::string file = p.path().stem().string();
-		std::string ext = p.path().extension().string();
+		CurrentModel = model;
+		modelData[CurrentModel] = new VehicleSirenData(data["sirens"]);
+		modelData[CurrentModel]->isImVehFtSiren = data["sirens"].contains("imvehft") && data["sirens"]["imvehft"];
 
-		if (ext != ".eml" && ext != ".json" && ext != ".jsonc" && ext != ".ivfc")
-			continue;
-
-		if (ext == ".eml")
+		if (!modelData[CurrentModel]->Validate)
 		{
-			int model = Convert_EmlToJsonc(fullPath);
-			if (model == -1)
-			{
-				continue;
-			}
-			file = std::to_string(model);
-			ext = ".jsonc";
+			gLogger->error("Failed to read siren configuration, cannot configure JSON manifest!");
+			modelData.erase(CurrentModel);
 		}
-		else if (ext == ".json")
-		{
-			Convert_JsonToJsonc(fullPath);
-			ext = ".jsonc";
-		}
-		else if (ext == ".ivfc")
-		{
-			int model = Convert_IvfcToJsonc(fullPath);
-			if (model == -1)
-			{
-				continue;
-			}
-			file = std::to_string(model);
-			ext = ".jsonc";
-		}
-
-		gLogger->info("Reading {}{}", file, ext);
-		std::ifstream infile(path + file + ext);
-		try
-		{
-			int model = 0;
-			if (is_number(file))
-			{
-				model = std::stoi(file);
-			}
-			else
-			{
-				if (!CModelInfo::GetModelInfo((char *)file.c_str(), &model))
-				{
-					continue; // invalid skip it
-				}
-			}
-
-			if (model == 0)
-			{
-				continue; // skip
-			}
-
-			nlohmann::json _json = nlohmann::json::parse(infile);
-			CurrentModel = model;
-
-			modelData[CurrentModel] = new VehicleSirenData(_json["Sirens"]);
-			modelData[CurrentModel]->isImVehFtSiren = _json["Sirens"].contains("ImVehFt") && _json["Sirens"]["ImVehFt"];
-
-			if (!modelData[CurrentModel]->Validate)
-			{
-				gLogger->error("Failed to read siren configuration, cannot configure JSON manifest!");
-				modelData.erase(CurrentModel);
-			}
-		}
-		catch (...)
-		{
-			gLogger->error("Failed parsing {}{}", file, ext);
-			continue;
-		}
-		infile.close();
 	}
 }
 
 void Sirens::Initialize()
 {
-	Events::initGameEvent += []()
-	{
-		ParseConfig();
-	};
-
 	VehicleMaterials::Register([](CVehicle *vehicle, RpMaterial *material, CRGBA col)
 							   {
 		if (modelData.contains(vehicle->m_nModelIndex)
