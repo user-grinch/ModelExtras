@@ -520,38 +520,42 @@ void Sirens::RegisterMaterial(CVehicle *vehicle, RpMaterial *material)
 	}
 };
 
-extern int ImVehFt_EmlToJson(const std::string &emlPath);
+extern int Convert_EmlToJsonc(const std::string &inPath);
+extern void Convert_JsonToJsonc(const std::string &inPath);
 extern bool is_number(const std::string &s);
 
 void Sirens::ParseConfig()
 {
-	std::string path = std::string(MOD_DATA_PATH("data/sirens/"));
+	std::string path = std::string(MOD_DATA_PATH("data/"));
 	std::map<int, nlohmann::json> tempData;
 
 	for (auto &p : std::filesystem::directory_iterator(path))
 	{
+		std::string fullPath = p.path().string();
 		std::string file = p.path().stem().string();
 		std::string ext = p.path().extension().string();
 
-		if (ext != ".eml" && ext != ".json")
+		if (ext != ".eml" && ext != ".json" && ext != ".jsonc")
 			continue;
 
 		if (ext == ".eml")
 		{
-			std::string emlFile = p.path().string();
-			int model = ImVehFt_EmlToJson(emlFile);
+			int model = Convert_EmlToJsonc(fullPath);
 			if (model == -1)
 			{
 				continue;
 			}
 			file = std::to_string(model);
-			ext = ".json";
+			ext = ".jsonc";
+		}
+		else if (ext == ".json")
+		{
+			Convert_JsonToJsonc(fullPath);
+			ext = ".jsonc";
 		}
 
-		LOG_VERBOSE("Reading sirens/{}{}", file, ext);
+		gLogger->info("Reading {}{}", file, ext);
 		std::ifstream infile(path + file + ext);
-		bool isImVehFt = (ext == ".json");
-
 		try
 		{
 			int model = 0;
@@ -575,8 +579,8 @@ void Sirens::ParseConfig()
 			nlohmann::json _json = nlohmann::json::parse(infile);
 			CurrentModel = model;
 
-			modelData[CurrentModel] = new VehicleSirenData(_json);
-			modelData[CurrentModel]->isImVehFtSiren = _json.contains("ImVehFt") && _json["ImVehFt"];
+			modelData[CurrentModel] = new VehicleSirenData(_json["Sirens"]);
+			modelData[CurrentModel]->isImVehFtSiren = _json["Sirens"].contains("ImVehFt") && _json["Sirens"]["ImVehFt"];
 
 			if (!modelData[CurrentModel]->Validate)
 			{

@@ -14,7 +14,7 @@ void DataMgr::Init()
 
     for (const auto &e : std::filesystem::directory_iterator(path))
     {
-        if (e.is_regular_file() && e.path().extension() == ".json")
+        if (e.is_regular_file() && e.path().extension() == ".jsonc")
         {
             std::string filename = e.path().filename().string();
             std::string key = e.path().stem().string();
@@ -40,7 +40,7 @@ void DataMgr::Init()
             std::ifstream file(e.path());
             try
             {
-                data[model] = nlohmann::json::parse(file);
+                data[model] = nlohmann::json::parse(file, NULL, true, true);
                 if (gConfig.ReadBoolean("CONFIG", "ModelVersionCheck", true))
                 {
                     if (data[model].contains("Metadata"))
