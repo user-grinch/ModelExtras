@@ -187,8 +187,7 @@ void FeatureMgr::Initialize()
 
     if (gConfig.ReadBoolean("BIKE_FEATURES", "RotatingHandleBar", false))
     {
-        m_FunctionTable["forks_front"] = HandleBar::AddSource;
-        m_FunctionTable["handlebars"] = HandleBar::Process;
+        HandleBar::Initialize();
         LOG_NO_LEVEL("  RotatingHandleBar");
     }
 
@@ -238,7 +237,7 @@ void FeatureMgr::Initialize()
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AnimatedSpoiler", false))
     {
-        m_FunctionTable["movspoiler"] = Spoiler::Process;
+        Spoiler::Initialize();
         LOG_NO_LEVEL("  AnimatedSpoiler");
     }
 
@@ -272,15 +271,13 @@ void FeatureMgr::Initialize()
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "RotatingSteeringWheel", false))
     {
-        m_FunctionTable["f_steer"] = SteerWheel::Process;
-        m_FunctionTable["steering_dummy"] = SteerWheel::Process;
+        SteerWheel::Initialize();
         LOG_NO_LEVEL("  RotatingSteeringWheel");
     }
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "RotatingWheelHubs", false))
     {
-        m_FunctionTable["hub_"] = WheelHub::Process;
-        m_FunctionTable["wheel_"] = WheelHub::Process;
+        WheelHub::Initialize();
         LOG_NO_LEVEL("  RotatingWheelHubs");
     }
 

@@ -1,24 +1,23 @@
 #pragma once
 #include <plugin.h>
-#include "../../interface/ifeature.hpp"
-#include <vector>
 
 class WheelHub
 {
 protected:
   struct VehData
   {
-    bool m_bInit = false;
-    RwFrame *wheelrf = NULL, *wheelrm = NULL, *wheelrb = NULL, *wheellf = NULL, *wheellm = NULL, *wheellb = NULL;
-    RwFrame *hubrf = NULL, *hubrm = NULL, *hubrb = NULL, *hublf = NULL, *hublm = NULL, *hublb = NULL;
+    RwFrame *m_pWRF = NULL, *m_pWRM = NULL, *m_pWRR = NULL;
+    RwFrame *m_pWLF = NULL, *m_pWLM = NULL, *m_pWLR = NULL;
+
+    RwFrame *m_pHRF = NULL, *m_pHRM = NULL, *m_pHRR = NULL;
+    RwFrame *m_pHLF = NULL, *m_pHLM = NULL, *m_pHLR = NULL;
 
     VehData(CVehicle *pVeh) {}
     ~VehData() {}
   };
 
   static inline VehicleExtendedData<VehData> xData;
-  static void FindNodes(RwFrame *frame, void *pEntity);
 
 public:
-  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
+  static void Initialize();
 };

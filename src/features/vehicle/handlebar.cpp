@@ -1,20 +1,34 @@
 #include "pch.h"
 #include "handlebar.h"
+#include "avs/materials.h"
 #define TARGET_NODE "handlebars"
 #define SOURCE_NODE "forks_front"
 
-void HandleBar::AddSource(void* ptr, RwFrame* frame, eModelEntityType type) {
-    CVehicle* pVeh = static_cast<CVehicle*>(ptr);
-    VehData& data = xData.Get(pVeh);
-    data.m_pSource = frame;
-}
+void HandleBar::Initialize()
+{
+    VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
+                                    { 
+        auto &data = xData.Get(pVeh); 
 
-void HandleBar::Process(void* ptr, RwFrame* frame, eModelEntityType type) {
-    CVehicle* pVeh = static_cast<CVehicle*>(ptr);
+        if (name == "forks_front") {
+            data.m_pOrigin = pFrame;
+        } else  if (name == "handlebars") {
+            data.m_pTarget = pFrame;
+        } });
 
-    VehData& data = xData.Get(pVeh);
-    if (data.m_pSource) {
-        float rot = Util::GetMatrixRotationZ(&data.m_pSource->modelling);
-        Util::SetMatrixRotationZ(&frame->modelling, rot);
-    }
+    VehicleMaterials::RegisterRender([](CVehicle *pVeh)
+                                     {
+        if (!pVeh || !pVeh->GetIsOnScreen())
+        {
+            return;
+        }
+
+        VehData &data = xData.Get(pVeh); 
+        if (!data.m_pOrigin || !data.m_pTarget) {
+            return;
+        }
+
+        float rot = Util::GetMatrixRotationZ(&data.m_pOrigin->modelling);
+        Util::ResetMatrixRotations(&data.m_pTarget->modelling);
+        Util::SetMatrixRotationZ(&data.m_pTarget->modelling, rot); });
 }

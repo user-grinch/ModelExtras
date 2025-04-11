@@ -115,7 +115,7 @@ void BackFireEffect::Process(void *ptr, RwFrame *frame, eModelEntityType type)
         static size_t prevTimer = 0, prevTimer2 = 0;
         size_t timer = CTimer::m_snTimeInMilliseconds;
 
-        if (timer - prevTimer2 > 100)
+        if (timer - prevTimer2 > 100 && rpm != 65535)
         {
             if (flag)
             {

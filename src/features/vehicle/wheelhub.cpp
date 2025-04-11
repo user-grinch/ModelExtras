@@ -1,143 +1,47 @@
 #include "pch.h"
 #include "wheelhub.h"
 #include <CCutsceneMgr.h>
+#include "avs/materials.h"
 
 void UpdateRotation(RwFrame *ori, RwFrame *tar)
 {
     if (ori && tar)
     {
-        // pos.y -= 0.02f;
-        // RwFrameGetMatrix(tar)->pos = pos;
         float oriRot = Util::GetMatrixRotationZ(&ori->modelling);
         Util::SetMatrixRotationZ(&tar->modelling, oriRot);
     }
 }
 
-void WheelHub::FindNodes(RwFrame *frame, void *ptr)
+void WheelHub::Initialize()
 {
-    if (frame)
-    {
-        CVehicle *pVeh = static_cast<CVehicle *>(ptr);
-        std::string name = GetFrameNodeName(frame);
+    VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
+                                    {
+        VehData& data = xData.Get(pVeh);
+        if (name == "wheel_rf_dummy") data.m_pWRF = pFrame;
+        else if (name == "wheel_rm_dummy") data.m_pWRM = pFrame;
+        else if (name == "wheel_rr_dummy") data.m_pWRR = pFrame;
+        else if (name == "wheel_lf_dummy") data.m_pWLF = pFrame;
+        else if (name == "wheel_lm_dummy") data.m_pWLM = pFrame;
+        else if (name == "wheel_lr_dummy") data.m_pWLR = pFrame;
+        else if (name == "hub_rf") data.m_pHRF = pFrame;
+        else if (name == "hub_rm") data.m_pHRM = pFrame;
+        else if (name == "hub_rb") data.m_pHRR = pFrame;
+        else if (name == "hub_lf") data.m_pHLF = pFrame;
+        else if (name == "hub_lm") data.m_pHLM = pFrame;
+        else if (name == "hub_lb") data.m_pHLR = pFrame; });
 
-        VehData &data = xData.Get(pVeh);
-        std::smatch match;
-        if (std::regex_search(name, match, std::regex("wheel_([a-zA-Z]{2})_dummy")))
+    VehicleMaterials::RegisterRender([](CVehicle *pVeh)
+                                     {
+        if (!pVeh || !pVeh->GetIsOnScreen() || CCutsceneMgr::ms_running)
         {
-            std::string str = match[1].str();
-            char first = std::tolower(str[0]);
-            char second = std::tolower(str[1]);
-
-            if (first == 'r')
-            {
-                if (second == 'f')
-                {
-                    data.wheelrf = frame;
-                }
-                else if (second == 'm')
-                {
-                    data.wheelrm = frame;
-                }
-                else if (second == 'b')
-                {
-                    data.wheelrb = frame;
-                }
-            }
-            else if (first == 'l')
-            {
-                if (second == 'f')
-                {
-                    data.wheellf = frame;
-                }
-                else if (second == 'm')
-                {
-                    data.wheellm = frame;
-                }
-                else if (second == 'b')
-                {
-                    data.wheellb = frame;
-                }
-            }
+            return;
         }
 
-        if (std::regex_search(name, match, std::regex("hub_([a-zA-Z]{2})")))
-        {
-            std::string str = match[1].str();
-            char first = std::tolower(str[0]);
-            char second = std::tolower(str[1]);
-
-            if (first == 'r')
-            {
-                if (second == 'f')
-                {
-                    data.hubrf = frame;
-                }
-                else if (second == 'm')
-                {
-                    data.hubrm = frame;
-                }
-                else if (second == 'b')
-                {
-                    data.hubrb = frame;
-                }
-            }
-            else if (first == 'l')
-            {
-                if (second == 'f')
-                {
-                    data.hublf = frame;
-                }
-                else if (second == 'm')
-                {
-                    data.hublm = frame;
-                }
-                else if (second == 'b')
-                {
-                    data.hublb = frame;
-                }
-            }
-        }
-
-        if (RwFrame *newFrame = frame->child)
-        {
-            FindNodes(newFrame, ptr);
-        }
-        if (RwFrame *newFrame = frame->next)
-        {
-            FindNodes(newFrame, ptr);
-        }
-    }
-    return;
-}
-
-void WheelHub::Process(void *ptr, RwFrame *frame, eModelEntityType type)
-{
-    CVehicle *pVeh = static_cast<CVehicle *>(ptr);
-    std::string name = GetFrameNodeName(frame);
-    // Fix crash during airport cutscene
-    if (!pVeh || !pVeh->GetIsOnScreen() || CCutsceneMgr::ms_running)
-    {
-        return;
-    }
-
-    VehData *pData = &xData.Get(pVeh);
-
-    // Fix crash during airport cutscene
-    if (!pData)
-    {
-        return;
-    }
-
-    if (!pData->m_bInit)
-    {
-        FindNodes(frame, ptr);
-        pData->m_bInit = true;
-    }
-
-    UpdateRotation(pData->wheellf, pData->hublf);
-    UpdateRotation(pData->wheellm, pData->hublm);
-    UpdateRotation(pData->wheellb, pData->hublb);
-    UpdateRotation(pData->wheelrf, pData->hubrf);
-    UpdateRotation(pData->wheelrm, pData->hubrm);
-    UpdateRotation(pData->wheelrb, pData->hubrb);
+        VehData& data = xData.Get(pVeh);
+        UpdateRotation(data.m_pWRF, data.m_pHRF);
+        UpdateRotation(data.m_pWRM, data.m_pHRM);
+        UpdateRotation(data.m_pWRR, data.m_pHRR);
+        UpdateRotation(data.m_pWLF, data.m_pHLF);
+        UpdateRotation(data.m_pWLM, data.m_pHLM);
+        UpdateRotation(data.m_pWLR, data.m_pHLR); });
 }

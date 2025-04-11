@@ -1,59 +1,64 @@
 #include "pch.h"
 #include "spoiler.h"
 #include "datamgr.h"
+#include "avs/materials.h"
 
-void Spoiler::Initialize(void *ptr, RwFrame *pFrame, eModelEntityType type)
+void Spoiler::Initialize()
 {
-    CVehicle *pVeh = static_cast<CVehicle *>(ptr);
-    VehData &data = vehData.Get(pVeh);
-    std::string name = GetFrameNodeName(pFrame);
-    data.m_Spoilers[name].m_fRotation = std::stof(Util::GetRegexVal(name, "_(.*?)_", "30.0"));
-    data.m_Spoilers[name].m_nTime = std::stof(Util::GetRegexVal(name, "_([^_]*)$", "3000"));
+    VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
+                                    {
+        if (!name.starts_with("movspoiler")) {
+            return;
+        }
+        
+        VehData &data = xData.Get(pVeh);
+        SpoilerData spoilerData;
+        spoilerData.m_fRotation = std::stof(Util::GetRegexVal(name, "_(.*?)_", "30.0"));
+        spoilerData.m_nTime = std::stof(Util::GetRegexVal(name, "_([^_]*)$", "3000"));
+        spoilerData.m_pFrame = pFrame;
 
-    auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-    if (jsonData["spoilers"].contains(name))
-    {
-        data.m_Spoilers[name].m_fRotation = jsonData["spoilers"][name].value("rotation", 30.0f);
-        data.m_Spoilers[name].m_nTime = jsonData["spoilers"][name].value("time", 3000);
-        data.m_Spoilers[name].m_nTriggerSpeed = jsonData["spoilers"][name].value("triggerspeed", 20);
-    }
-    else
-    {
-        data.m_Spoilers[name].m_nTriggerSpeed = 20;
-    }
-    data.m_Spoilers[name].m_fCurrentRotation = 0.0f;
-}
+        auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
+        if (jsonData["spoilers"].contains(name))
+        {
+            spoilerData.m_fRotation = jsonData["spoilers"][name].value("rotation", 30.0f);
+            spoilerData.m_nTime = jsonData["spoilers"][name].value("time", 3000);
+            spoilerData.m_nTriggerSpeed = jsonData["spoilers"][name].value("triggerspeed", 20);
+        }
+        else
+        {
+            spoilerData.m_nTriggerSpeed = 20;
+        }
+        spoilerData.m_fCurrentRotation = 0.0f; 
+        data.m_Spoilers.push_back(spoilerData); });
 
-void Spoiler::Process(void *ptr, RwFrame *pFrame, eModelEntityType type)
-{
-    CVehicle *pVeh = static_cast<CVehicle *>(ptr);
-    if (!pVeh)
-        return;
+    VehicleMaterials::RegisterRender([](CVehicle *pVeh)
+                                     {
+        if (!pVeh || !pVeh->GetIsOnScreen())
+        {
+            return;
+        }
 
-    VehData &data = vehData.Get(pVeh);
-    std::string name = GetFrameNodeName(pFrame);
+        VehData &data = xData.Get(pVeh); 
+        if (data.m_Spoilers.size() == 0) {
+            return;
+        }
 
-    if (!data.m_bInit)
-    {
-        Initialize(ptr, pFrame, type);
-        data.m_bInit = true;
-    }
+        for (auto& e: data.m_Spoilers) {
+            bool isEnabled = Util::GetVehicleSpeed(pVeh) > e.m_nTriggerSpeed;
 
-    bool isEnabled = Util::GetVehicleSpeed(pVeh) > data.m_Spoilers[name].m_nTriggerSpeed;
+            float targetAngle = isEnabled ? -e.m_fRotation : 0.0f;
+            float totalTime = std::max(1.0f, static_cast<float>(e.m_nTime));
 
-    float targetAngle = isEnabled ? -data.m_Spoilers[name].m_fRotation : 0.0f;
-    float totalTime = std::max(1.0f, static_cast<float>(data.m_Spoilers[name].m_nTime));
+            float transitionSpeed = (isEnabled ? 10.0f : 15.0f) / totalTime;
 
-    // Make down anim faster
-    float transitionSpeed = (isEnabled ? 5.0f : 10.0f) / totalTime;
+            // Smoothing
+            float t = 1.0f - std::exp(-transitionSpeed * CTimer::ms_fTimeStep);
 
-    // Smoothing
-    float t = 1.0f - std::exp(-transitionSpeed * CTimer::ms_fTimeStep);
+            e.m_fCurrentRotation =
+            e.m_fCurrentRotation * (1.0f - t) + targetAngle * t;
 
-    data.m_Spoilers[name].m_fCurrentRotation =
-        data.m_Spoilers[name].m_fCurrentRotation * (1.0f - t) + targetAngle * t;
-
-    Util::ResetMatrixRotations(&pFrame->modelling);
-    Util::SetMatrixRotationX(&pFrame->modelling, data.m_Spoilers[name].m_fCurrentRotation);
-    RwMatrixUpdate(&pFrame->modelling);
+            Util::ResetMatrixRotations(&e.m_pFrame->modelling);
+            Util::SetMatrixRotationX(&e.m_pFrame->modelling, e.m_fCurrentRotation);
+            RwMatrixUpdate(&e.m_pFrame->modelling);
+        } });
 }
