@@ -990,12 +990,6 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 			dummyAngle -= 180.0f;
 		}
 
-		// Fix, probably gonna fk me later again
-		if (modelData[vehicle->m_nModelIndex]->isImVehFtSiren)
-		{
-			dummyAngle -= 180.0f;
-		}
-
 		Common::RegisterCoronaWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, dummy->Position,
 										material->Color,
 										dummyAngle, material->Radius, material->Size);
