@@ -7,24 +7,18 @@
 #include <CWorld.h>
 #include <extensions/ScriptCommands.h>
 #include <extensions/scripting/ScriptCommandNames.h>
+#include "avs/materials.h"
 
 #define VK_RMB 0x02
 
-void SpotLights::Process(void *ptr, RwFrame *pFrame, eModelEntityType type)
-{
-	CVehicle *pVeh = static_cast<CVehicle *>(ptr);
-	VehData &data = vehData.Get(pVeh);
-
-	if (!data.bInit)
-	{
-		VehData &data = vehData.Get(pVeh);
-		data.pFrame = pFrame;
-		data.bInit = true;
-	}
-}
-
 void SpotLights::Initialize()
 {
+
+	VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
+									{
+        VehData& data = vehData.Get(pVeh);
+        if (name == "spotlight_dummy") data.pFrame = pFrame; });
+
 	Events::vehicleRenderEvent += [](CVehicle *pVeh)
 	{
 		OnVehicleRender(pVeh);
