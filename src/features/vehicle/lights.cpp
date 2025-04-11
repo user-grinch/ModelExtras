@@ -639,8 +639,14 @@ void Lights::Initialize()
 				CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
 				// use the brakelight color & pos if available
 				if (IsDummyAvail(pTowedVeh, eLightState::Brakelight)) {
-					col = m_Dummies[pTowedVeh][eLightState::Brakelight][0]->Color;
-					posn = m_Dummies[pTowedVeh][eLightState::Brakelight][0]->Position;
+					auto& e =  m_Dummies[pTowedVeh][eLightState::Brakelight][0];
+					col = e->Color;
+					posn = e->Position;
+					if (e->shdwTex != "") {
+						shdwName = e->shdwTex;
+						shdwSz = e->shdowSize;
+						shdwOff = e->shdwOffSet;
+					}
 				}
 
 				if (isBike)
@@ -848,6 +854,7 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightStat
 
 			if (shadows)
 			{
+				texture = (e->shdwTex == "") ? texture : e->shdwTex;
 				Common::RegisterShadow(isRear ? pTowedVeh : pControlVeh, e->ShdwPosition, e->Color, e->Angle, e->CurrentAngle, texture, {sz.x * e->shdowSize.x, sz.y * e->shdowSize.y}, {offset.x + e->shdwOffSet.x, offset.y + e->shdwOffSet.y});
 			}
 		}

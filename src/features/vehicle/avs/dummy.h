@@ -21,6 +21,7 @@ public:
     eLightType LightType = eLightType::NonDirectional;
     eParentType PartType = eParentType::Unknown;
 
+    std::string shdwTex = "";
     CVector ShdwPosition;
     CVector2D shdwOffSet = {0.0f, 0.0f};
     CVector2D shdowSize = {1.0f, 1.0f};

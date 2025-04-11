@@ -53,6 +53,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
                 shdwOffSet = {shadow.value("offsetx", 0.0f), shadow.value("offsety", 0.0f)};
                 shdowSize = {shadow.value("sizex", 1.0f), shadow.value("sizey", 1.0f)};
                 angleVal = shadow.value("rotation", 0.0f);
+                shdwTex = shadow.value("texture", "");
             }
 
             // Only for StrobeLights
