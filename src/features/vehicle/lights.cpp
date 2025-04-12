@@ -594,24 +594,15 @@ void Lights::Initialize()
 			}
 
 			// taillights/ brakelights
-			CRGBA col = {250, 0, 0, GetShadowAlphaForDayTime()};
-			CVector left = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
-			CVector right = left;
-			right.x *= -1;
-			int shadowCnt = 0;
 			if (pControlVeh->m_fBreakPedal && pControlVeh->m_pDriver)
 			{
 				if (IsMatAvail(pTowedVeh, eLightState::Brakelight))
 				{
-					RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, false);
-					shadowCnt++;
+					RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, true, shdwName, shdwSz, shdwOff);
 				}
 				else if (IsMatAvail(pTowedVeh, eLightState::TailLight))
 				{
-					RenderLights(pControlVeh, pTowedVeh, eLightState::TailLight, false);
-					Common::RegisterCoronaWithAngle(pTowedVeh, 123498, left, col, 180.0f, 180.0f, 0.35f);
-					Common::RegisterCoronaWithAngle(pTowedVeh, 123499, right, col, 180.0f, 180.0f, 0.35f);
-					shadowCnt++;
+					RenderLights(pControlVeh, pTowedVeh, eLightState::TailLight, true, shdwName, shdwSz, shdwOff);
 				}
 
 				RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft, true, shdwName, shdwSz, shdwOff);
@@ -631,52 +622,19 @@ void Lights::Initialize()
 				}
 			}
 
-
 			if (IsTailLightOn(pControlVeh))
 			{
 				if (IsMatAvail(pTowedVeh, eLightState::TailLight))
 				{
-					RenderLights(pControlVeh, pTowedVeh, eLightState::TailLight, false);
-					
-
-					Common::RegisterCoronaWithAngle(pTowedVeh, 123498, left, col, 180.0f, 180.0f, 0.35f);
-					Common::RegisterCoronaWithAngle(pTowedVeh, 123499, right, col, 180.0f, 180.0f, 0.35f);
-					shadowCnt++;
+					RenderLights(pControlVeh, pTowedVeh, eLightState::TailLight, true, shdwName, shdwSz, shdwOff);
 				}
 				else if (IsMatAvail(pTowedVeh, eLightState::Brakelight))
 				{
-					RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, false);
-					shadowCnt++;
+					RenderLights(pControlVeh, pTowedVeh, eLightState::Brakelight, true, shdwName, shdwSz, shdwOff);
 				}
 
 				RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft, true, shdwName, shdwSz, shdwOff);
 				RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight, true, shdwName, shdwSz, shdwOff);
-			}
-
-
-			CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
-			// use the brakelight color & pos if available
-			if (IsDummyAvail(pTowedVeh, eLightState::Brakelight)) {
-				auto& e =  m_Dummies[pTowedVeh][eLightState::Brakelight][0];
-				col = e->Color;
-				posn = e->ShdwPosition;
-				if (e->shdwTex != "") {
-					shdwName = e->shdwTex;
-					shdwSz = e->shdowSize;
-					shdwOff = e->shdwOffSet;
-				}
-			}
-
-			if (isBike)
-			{
-				posn.x = 0.0f;
-			}
-
-			for (int i = 0; i < shadowCnt; i++)
-			{
-				Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, shdwName, shdwSz, shdwOff);
-				posn.x *= -1.0f;
-				Common::RegisterShadow(pTowedVeh, posn, col, 180.0f, 0.0f, shdwName, shdwSz, shdwOff);
 			}
 		}
 
@@ -898,6 +856,22 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightStat
 	if (pControlVeh != pTowedVeh)
 	{
 		RenderLight(pTowedVeh, state, shadows, texture, sz, offset);
+	}
+
+	if (state == eLightState::TailLight)
+	{
+		CRGBA col = {250, 0, 0, GetShadowAlphaForDayTime()};
+		CVector left = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
+		CVector right = left;
+		right.x *= -1;
+		Common::RegisterCoronaWithAngle(pTowedVeh, 123498, left, col, 180.0f, 180.0f, 0.35f);
+		Common::RegisterCoronaWithAngle(pTowedVeh, 123499, right, col, 180.0f, 180.0f, 0.35f);
+
+		if (shadows)
+		{
+			Common::RegisterShadow(pTowedVeh, left, col, 180.0f, 0.0f, texture, sz, offset);
+			Common::RegisterShadow(pTowedVeh, right, col, 180.0f, 0.0f, texture, sz, offset);
+		}
 	}
 }
 
