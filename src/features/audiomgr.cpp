@@ -104,7 +104,7 @@ void AudioMgr::PlayOnVehicle(StreamHandle handle, CVehicle *pVeh, float volume)
     }
 }
 
-void AudioMgr::LoadAndPlayOnVehicle(std::string *pPath, CVehicle *pVeh)
+void AudioMgr::LoadAndPlayOnVehicle(std::string *pPath, CVehicle *pVeh, float volume)
 {
     if (!pPath || !pVeh)
     {
@@ -118,12 +118,12 @@ void AudioMgr::LoadAndPlayOnVehicle(std::string *pPath, CVehicle *pVeh)
         LOG_VERBOSE("Failed to load sound '{}'", *pPath);
     }
     plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_CAR>(handle, CPools::GetVehicleRef(pVeh));
-    plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f);
+    plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume);
     plugin::Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
     m_NeedToFree.push_back(handle);
 }
 
-void AudioMgr::LoadAndPlay(std::string *pPath, CEntity *pEntity)
+void AudioMgr::LoadAndPlay(std::string *pPath, CEntity *pEntity, float volume)
 {
     if (!pPath || !pEntity)
     {
@@ -138,7 +138,7 @@ void AudioMgr::LoadAndPlay(std::string *pPath, CEntity *pEntity)
         LOG_VERBOSE("Failed to load sound '{}'", *pPath);
     }
     plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, pos.x, pos.y, pos.z);
-    plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f);
+    plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume);
     plugin::Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
     m_NeedToFree.push_back(handle);
 }

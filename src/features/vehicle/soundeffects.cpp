@@ -47,11 +47,11 @@ void SoundEffects::Initialize()
                     {
                         if (CModelInfo::IsCarModel(model))
                         {
-                            AudioMgr::LoadAndPlay(&carPath, pVeh);
+                            AudioMgr::LoadAndPlay(&carPath, pVeh, 0.5f);
                         }
                         else
                         {
-                            AudioMgr::LoadAndPlay(&bikePath, pVeh);
+                            AudioMgr::LoadAndPlay(&bikePath, pVeh, 0.5f);
                         }
                     }
                     data.m_bEngineState = pVeh->m_nVehicleFlags.bEngineOn;
@@ -74,11 +74,13 @@ void SoundEffects::Initialize()
                     {
                         hOff = AudioMgr::Load(&offpath);
                     }
-                    AudioMgr::Play(state ? hOn : hOff, pVeh);
+                    AudioMgr::Play(state ? hOn : hOff, pVeh, 0.5f);
                     data.m_bIndicatorState = state;
                 }
             }
         }
+
+        data.m_bEngineState = pVeh->m_nVehicleFlags.bEngineOn;
 
         CVector vehPos = pVeh->GetPosition();
         CVector camPos = TheCamera.GetPosition();
@@ -121,7 +123,7 @@ void SoundEffects::Initialize()
                     {
                         m_hReverse = AudioMgr::Load(&path);
                     }
-                    AudioMgr::PlayOnVehicle(m_hReverse, pVeh);
+                    AudioMgr::PlayOnVehicle(m_hReverse, pVeh, 0.5f);
                 }
             }
         }

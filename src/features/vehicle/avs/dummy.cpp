@@ -13,7 +13,7 @@ int ReadHex(char a, char b)
     return (a << 4) + b;
 }
 
-VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDummyPos type, CRGBA color, size_t dummyIdx)
+VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDummyPos type, CRGBA color, size_t dummyIdx, bool directionalByDef)
 {
     Frame = frame;
     CVector pos = pVeh->GetPosition();
@@ -116,11 +116,9 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
                 gLogger->warn("Model {} has issue with node `{}`: invalid shadow size", pVeh->m_nModelIndex, name);
             }
         }
-
         else
         {
-            // Make indicator lights directional by default
-            if (name.find("turnl_") != std::string::npos || name.find("indicator_") != std::string::npos)
+            if (directionalByDef)
             {
                 LightType = eLightType::Directional;
             }

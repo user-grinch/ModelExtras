@@ -147,7 +147,7 @@ void __cdecl Lights::hkTailLightCCoronas_RegisterCorona(uint32_t id, CVehicle *p
 	if (!breakLightInstalled || IsTailLightOn(pVeh))
 	{
 		pos->y -= 0.05f;
-		Common::RegisterCorona(pVeh, id, *pos, {r, g, b, GetCoronaAlphaForDayTime()}, size * 1.5f);
+		Common::RegisterCorona(pVeh, id, *pos, {r, g, b, GetCoronaAlphaForDayTime()}, size * 3.0f);
 	}
 }
 
@@ -315,21 +315,25 @@ void Lights::Initialize()
 		eDummyPos dummyPos = eDummyPos::None;
 		std::smatch match;
 		size_t dummyIdx = 0;
+		bool directioanlByDef = false;
 		if (std::regex_search(name, match, std::regex("^fogl(ight)?_([lr]).*$")))
 		{
 			state = eLightState::FogLight;
 			dummyPos = eDummyPos::Front;
+			directioanlByDef = true;
 		}
 		else if (std::regex_search(name, std::regex(R"(^rev.*\s*_[lr].*$)")))
 		{
 			state = eLightState::Reverselight;
 			dummyPos = eDummyPos::Rear;
+			directioanlByDef = true;
 		}
 		else if (std::regex_search(name, std::regex(R"(^breakl.*\s*_[lr].*$)")))
 		{
 			state = eLightState::Brakelight;
 			dummyPos = eDummyPos::Rear;
 			col = {240, 0, 0, GetCoronaAlphaForDayTime()};
+			directioanlByDef = true;
 		}
 		else if (std::regex_search(name, std::regex("^light_day")))
 		{
@@ -371,6 +375,7 @@ void Lights::Initialize()
 				state = eLightState::STTLightRight;
 				dummyPos = eDummyPos::Right;
 			}
+			directioanlByDef = true;
 			col = {240, 0, 0, GetCoronaAlphaForDayTime()};
 		}
 		else if (std::regex_search(name, match, std::regex("^nabrakelight?_([lr]).*$")))
@@ -385,6 +390,7 @@ void Lights::Initialize()
 				state = eLightState::NABrakeLightRight;
 				dummyPos = eDummyPos::Right;
 			}
+			directioanlByDef = true;
 			col = {240, 0, 0, GetCoronaAlphaForDayTime()};
 		}
 		else if (std::regex_search(name, match, std::regex("^spotlight_light.*$")))
@@ -413,13 +419,14 @@ void Lights::Initialize()
 			{
 				dummyPos = state == eLightState::IndicatorRight ? eDummyPos::Right : eDummyPos::Left;
 			}
+			directioanlByDef = true;
 		}
 		else
 		{
 			return;
 		}
 
-		m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx)); });
+		m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx, directioanlByDef)); });
 
 	// Events::processScriptsEvent += []()
 	// {
@@ -493,7 +500,9 @@ void Lights::Initialize()
 
 		if (pControlVeh->m_nOverrideLights == eLightOverride::ForceLightsOn) {
 			pControlVeh->m_nVehicleFlags.bLightsOn = true;
-			pControlVeh->m_pTrailer->m_nVehicleFlags.bLightsOn = true;
+			if (pControlVeh->m_pTrailer) {
+				pControlVeh->m_pTrailer->m_nVehicleFlags.bLightsOn = true;
+			}
 		}
 
 		VehData &data = m_VehData.Get(pControlVeh);
@@ -585,6 +594,10 @@ void Lights::Initialize()
 			}
 
 			// taillights/ brakelights
+			CRGBA col = {250, 0, 0, GetShadowAlphaForDayTime()};
+			CVector left = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
+			CVector right = left;
+			right.x *= -1;
 			int shadowCnt = 0;
 			if (pControlVeh->m_fBreakPedal && pControlVeh->m_pDriver)
 			{
@@ -596,6 +609,8 @@ void Lights::Initialize()
 				else if (IsMatAvail(pTowedVeh, eLightState::TailLight))
 				{
 					RenderLights(pControlVeh, pTowedVeh, eLightState::TailLight, false);
+					Common::RegisterCoronaWithAngle(pTowedVeh, 123498, left, col, 180.0f, 180.0f, 0.35f);
+					Common::RegisterCoronaWithAngle(pTowedVeh, 123499, right, col, 180.0f, 180.0f, 0.35f);
 					shadowCnt++;
 				}
 
@@ -616,11 +631,16 @@ void Lights::Initialize()
 				}
 			}
 
+
 			if (IsTailLightOn(pControlVeh))
 			{
 				if (IsMatAvail(pTowedVeh, eLightState::TailLight))
 				{
 					RenderLights(pControlVeh, pTowedVeh, eLightState::TailLight, false);
+					
+
+					Common::RegisterCoronaWithAngle(pTowedVeh, 123498, left, col, 180.0f, 180.0f, 0.35f);
+					Common::RegisterCoronaWithAngle(pTowedVeh, 123499, right, col, 180.0f, 180.0f, 0.35f);
 					shadowCnt++;
 				}
 				else if (IsMatAvail(pTowedVeh, eLightState::Brakelight))
@@ -633,7 +653,6 @@ void Lights::Initialize()
 				RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight, true, shdwName, shdwSz, shdwOff);
 			}
 
-			CRGBA col = {250, 0, 0, GetShadowAlphaForDayTime()};
 
 			CVector posn = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
 			// use the brakelight color & pos if available
@@ -662,7 +681,7 @@ void Lights::Initialize()
 		}
 
 			// Indicator Lights
-			if (!gbGlobalIndicatorLights && !IsDummyAvail(pControlVeh, indState) && !IsMatAvail(pControlVeh, indState))
+			if (!gbGlobalIndicatorLights && !IsDummyAvail(pControlVeh, eLightState::IndicatorLeft) && !IsMatAvail(pControlVeh, eLightState::IndicatorLeft))
 			{
 				return;
 			}
@@ -673,7 +692,7 @@ void Lights::Initialize()
 			}
 
 			if (pControlVeh->m_pDriver == FindPlayerPed() &&
-				(pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE))
+				(pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE || pControlVeh->m_nVehicleSubClass == VEHICLE_QUAD))
 			{
 				static uint32_t indicatorNoneKey = gConfig.ReadInteger("KEYS", "IndicatorLightNoneKey", VK_SHIFT);
 				static uint32_t indicatorLeftKey = gConfig.ReadInteger("KEYS", "IndicatorLightLeftKey", VK_Z);
@@ -740,7 +759,7 @@ void Lights::Initialize()
 				((!IsDummyAvail(pControlVeh, eLightState::IndicatorLeft) && !IsDummyAvail(pControlVeh, eLightState::STTLightLeft)) || (!IsDummyAvail(pControlVeh, eLightState::IndicatorRight) && !IsDummyAvail(pControlVeh, eLightState::STTLightRight))) &&
 				((!IsMatAvail(pControlVeh, eLightState::IndicatorLeft) && !IsMatAvail(pControlVeh, eLightState::STTLightLeft)) || (!IsMatAvail(pControlVeh, eLightState::IndicatorRight) && !IsMatAvail(pControlVeh, eLightState::STTLightRight))))
 			{
-				if ((pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE) &&
+				if ((pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE || pControlVeh->m_nVehicleSubClass == VEHICLE_QUAD) &&
 					(pControlVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE || pControlVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) &&
 					pControlVeh->m_nVehicleFlags.bEngineOn && pControlVeh->m_fHealth > 0 && !pControlVeh->m_nVehicleFlags.bIsDrowning && !pControlVeh->m_pAttachedTo)
 				{
