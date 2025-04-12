@@ -998,12 +998,14 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 		Common::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, dummy->Position, material->Color, material->Size);
 	}
 
-	CVector dummyPos = dummy->Position;
-	// if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren)
-	// {
-	// dummyPos.x += (dummyPos.x > 0 ? 1.2f : -1.2f); // FIX ME!!!
-	// }
-	Common::RegisterShadow(vehicle, dummy->Position, *(CRGBA *)&material->Color, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
+	// FIX ME
+	CVector dummyPos = dummy->ShdwPosition;
+	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren)
+	{
+		dummyPos.x = dummyPos.x * 1.5f;
+		dummyPos.y = dummyPos.y * 1.2f;
+	}
+	Common::RegisterShadow(vehicle, dummyPos, *(CRGBA *)&material->Color, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
 };
 
 VehicleSiren::VehicleSiren(CVehicle *_vehicle)
