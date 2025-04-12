@@ -66,7 +66,7 @@ RwTexture *Common::GetTexture(std::string texture)
     if (Textures.contains(texture) && Textures[texture])
         return Textures[texture];
 
-    Textures[texture] = Util::LoadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str(), 100.0f);
+    Textures[texture] = Util::LoadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str(), 70.0f);
     return Textures[texture];
 };
 
@@ -77,11 +77,11 @@ void Common::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float a
         return;
     }
 
-    float ground = CWorld::FindGroundZFor3DCoord(position.x, position.y, position.z, nullptr, nullptr);
+    float ground = CWorld::FindGroundZFor3DCoord(position.x, position.y, position.z + 100, nullptr, nullptr);
     CVector center = pVeh->TransformFromObjectSpace(
         CVector(
-            position.x + (-2.5f * shdwOffset.x * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-            position.y + ((1.2f + shdwOffset.y) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+            position.x + (shdwSz.x * shdwOffset.x * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+            position.y + (shdwSz.y * (0.5f + shdwOffset.y) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
             ground + 0.5f));
 
     float fAngle = pVeh->GetHeading() + (((angle + currentAngle) + 180.0f) * 3.14f / 180.0f);

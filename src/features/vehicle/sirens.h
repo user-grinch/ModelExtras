@@ -97,8 +97,8 @@ public:
     uint64_t Delay = 0;
     eLightType Type = eLightType::Directional;
     bool ImVehFt = false;
-    VehicleSirenRotator *Rotator;
     VehicleSirenShadow Shadow;
+    VehicleSirenRotator *Rotator;
 
     VehicleSirenMaterial(std::string state, int material, nlohmann::json json);
 

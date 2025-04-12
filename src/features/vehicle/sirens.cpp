@@ -324,7 +324,16 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 			{
 				if (json["shadow"]["size"].is_number())
 				{
-					Shadow.Size = json["shadow"]["size"] / 5.0f;
+					float sz = json["shadow"]["size"];
+					// ModelExtras
+					if (Shadow.Type == "0" || Shadow.Type == DEFAULT_SIREN_SHADOW)
+					{
+						Shadow.Size = sz;
+					}
+					else
+					{
+						Shadow.Size = sz * 2.0f / 5.0f;
+					}
 				}
 				else
 				{
@@ -361,16 +370,6 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 					Shadow.Offset = json["shadow"]["offset"];
 				else
 					gLogger->error("Model " + std::to_string(Sirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", shadow object property offset is not an acceptable number!");
-			}
-
-			// ModelExtras
-			if (Shadow.Type == "0" || Shadow.Type == DEFAULT_SIREN_SHADOW)
-			{
-				Shadow.Size *= 5.0f;
-			}
-			else
-			{
-				Shadow.Size *= 2.0f;
 			}
 		}
 		else
@@ -733,6 +732,7 @@ void Sirens::Initialize()
 			return;
 		}
 
+		bool sirenState = vehicleData[index]->GetSirenState();
 		if (modelRotators.contains(model)) {
 			for (auto& dummy : modelRotators[model]) {
 				dummy->ResetAngle();
@@ -743,7 +743,6 @@ void Sirens::Initialize()
 		if (!vehicleData.contains(index))
 			vehicleData[index] = new VehicleSiren(vehicle);
 
-		bool sirenState = vehicleData[index]->GetSirenState();
 		uint64_t time = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		VehicleSirenState* state = modelData[model]->States[vehicleData[index]->GetCurrentState()];
 		if (vehicleData[index]->SirenState == false && sirenState == true) {
@@ -1000,10 +999,10 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 	}
 
 	CVector dummyPos = dummy->Position;
-	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren)
-	{
-		dummyPos.x += (dummyPos.x > 0 ? 1.2f : -1.2f); // FIX ME!!!
-	}
+	// if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren)
+	// {
+	// dummyPos.x += (dummyPos.x > 0 ? 1.2f : -1.2f); // FIX ME!!!
+	// }
 	Common::RegisterShadow(vehicle, dummy->Position, *(CRGBA *)&material->Color, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
 };
 

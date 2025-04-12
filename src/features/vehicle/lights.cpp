@@ -750,6 +750,7 @@ void Lights::Initialize()
 				return;
 			}
 
+			CVector2D shdwOff = {0.0f,  1.0f};
 			// global turn lights
 			if (gbGlobalIndicatorLights &&
 				((!IsDummyAvail(pControlVeh, eLightState::IndicatorLeft) && !IsDummyAvail(pControlVeh, eLightState::STTLightLeft)) || (!IsDummyAvail(pControlVeh, eLightState::IndicatorRight) && !IsDummyAvail(pControlVeh, eLightState::STTLightRight))) &&
@@ -763,13 +764,13 @@ void Lights::Initialize()
 					{
 						if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorRight)
 						{
-							DrawGlobalLight(pControlVeh, eDummyPos::FrontRight, {255, 128, 0, 0});
-							DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, {255, 128, 0, 0});
+							DrawGlobalLight(pControlVeh, eDummyPos::FrontRight, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOff);
+							DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOff);
 						}
 						if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorLeft)
 						{
-							DrawGlobalLight(pControlVeh, eDummyPos::FrontLeft, {255, 128, 0, 0});
-							DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, {255, 128, 0, 0});
+							DrawGlobalLight(pControlVeh, eDummyPos::FrontLeft, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOff);
+							DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOff);
 						}
 					}
 				}
@@ -778,24 +779,24 @@ void Lights::Initialize()
 			{
 				if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorLeft)
 				{
-					RenderLights(pControlVeh, pTowedVeh, eLightState::IndicatorLeft);
-					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft);
+					RenderLights(pControlVeh, pTowedVeh, eLightState::IndicatorLeft, true, "indicator", {1.0f, 1.0f}, shdwOff);
+					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft, true, "indicator", {1.0f, 1.0f}, shdwOff);
 				}
 
 				if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorRight)
 				{
-					RenderLights(pControlVeh, pTowedVeh, eLightState::IndicatorRight);
-					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight);
+					RenderLights(pControlVeh, pTowedVeh, eLightState::IndicatorRight, true, "indicator", {1.0f, 1.0f}, shdwOff);
+					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight, true, "indicator", {1.0f, 1.0f}, shdwOff);
 				}
 			}
 			if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorLeft)
 			{
-				RenderLights(pControlVeh, pTowedVeh, eLightState::NABrakeLightLeft);
+				RenderLights(pControlVeh, pTowedVeh, eLightState::NABrakeLightLeft, true, "indicator", {1.0f, 1.0f}, shdwOff);
 			}
 
 			if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorRight)
 			{
-				RenderLights(pControlVeh, pTowedVeh, eLightState::NABrakeLightRight);
+				RenderLights(pControlVeh, pTowedVeh, eLightState::NABrakeLightRight, true, "indicator", {1.0f, 1.0f}, shdwOff);
 			} });
 };
 
