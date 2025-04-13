@@ -746,13 +746,13 @@ void Lights::Initialize()
 				if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorLeft)
 				{
 					RenderLights(pControlVeh, pTowedVeh, eLightState::IndicatorLeft, true, "indicator", {1.0f, 1.0f}, shdwOff);
-					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft, true, shdwName, shdwSz, shdwOff);
+					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft, true, shdwName, shdwSz, shdwOff, true);
 				}
 
 				if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorRight)
 				{
 					RenderLights(pControlVeh, pTowedVeh, eLightState::IndicatorRight, true, "indicator", {1.0f, 1.0f}, shdwOff);
-					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight, true, shdwName, shdwSz, shdwOff);
+					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight, true, shdwName, shdwSz, shdwOff, true);
 				}
 			}
 			if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorLeft)
@@ -766,7 +766,7 @@ void Lights::Initialize()
 			} });
 };
 
-void Lights::RenderLight(CVehicle *pVeh, eLightState state, bool shadows, std::string texture, CVector2D sz, CVector2D offset)
+void Lights::RenderLight(CVehicle *pVeh, eLightState state, bool shadows, std::string texture, CVector2D sz, CVector2D offset, bool highlight)
 {
 	bool FrontDisabled = false;
 	bool RearDisabled = false;
@@ -825,7 +825,8 @@ void Lights::RenderLight(CVehicle *pVeh, eLightState state, bool shadows, std::s
 			}
 
 			e->Update(pVeh);
-			EnableDummy((int)pVeh + 42 + id++, e, pVeh);
+
+			EnableDummy((int)pVeh + 42 + id++, e, pVeh, highlight ? 1.5f : 1.0f);
 
 			if (shadows)
 			{
@@ -849,18 +850,18 @@ void Lights::RenderLight(CVehicle *pVeh, eLightState state, bool shadows, std::s
 				continue;
 			}
 
-			EnableMaterial(e);
+			EnableMaterial(e, highlight ? 2.0f : 1.0f);
 		}
 	}
 }
 
-void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightState state, bool shadows, std::string texture, CVector2D sz, CVector2D offset)
+void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightState state, bool shadows, std::string texture, CVector2D sz, CVector2D offset, bool highlight)
 {
-	RenderLight(pControlVeh, state, shadows, texture, sz, offset);
+	RenderLight(pControlVeh, state, shadows, texture, sz, offset, highlight);
 
 	if (pControlVeh != pTowedVeh)
 	{
-		RenderLight(pTowedVeh, state, shadows, texture, sz, offset);
+		RenderLight(pTowedVeh, state, shadows, texture, sz, offset, highlight);
 	}
 
 	if (state == eLightState::TailLight)
@@ -887,32 +888,32 @@ void Lights::RegisterMaterial(CVehicle *pVeh, RpMaterial *material, eLightState 
 	material->color.red = material->color.green = material->color.blue = 255;
 };
 
-void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh)
+void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMul)
 {
 	if (gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false))
 	{
 		if (dummy->LightType == eLightType::NonDirectional)
 		{
-			Common::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->coronaSize);
+			Common::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->coronaSize * szMul);
 		}
 		else
 		{
-			Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->Angle + (dummy->LightType == eLightType::Inversed ? 180.0f : 0.0f), 180.0f, dummy->coronaSize);
+			Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->Angle + (dummy->LightType == eLightType::Inversed ? 180.0f : 0.0f), 180.0f, dummy->coronaSize * szMul);
 		}
 	}
 };
 
-void Lights::EnableMaterial(VehicleMaterial *material)
+void Lights::EnableMaterial(VehicleMaterial *material, float mul)
 {
 	if (material && material->Material)
 	{
-		if (material->Material->surfaceProps.ambient == AMBIENT_ON_VAL && material->Material->texture == material->TextureActive)
+		if (material->Material->surfaceProps.ambient >= AMBIENT_ON_VAL && material->Material->texture == material->TextureActive)
 		{
 			return; // skip if enabled already
 		}
 
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int *>(&material->Material->surfaceProps.ambient)));
-		material->Material->surfaceProps.ambient = AMBIENT_ON_VAL;
+		material->Material->surfaceProps.ambient = AMBIENT_ON_VAL * mul;
 		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->texture), *reinterpret_cast<unsigned int *>(&material->Material->texture)));
 		material->Material->texture = material->TextureActive;
 	}
