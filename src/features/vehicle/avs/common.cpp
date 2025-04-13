@@ -66,7 +66,7 @@ RwTexture *Common::GetTexture(std::string texture)
     if (Textures.contains(texture) && Textures[texture])
         return Textures[texture];
 
-    Textures[texture] = Util::LoadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str(), 40.0f);
+    Textures[texture] = Util::LoadTextureFromFile((MOD_DATA_PATH("textures/") + texture + ".png").c_str(), 70.0f);
     return Textures[texture];
 };
 

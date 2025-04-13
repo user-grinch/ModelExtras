@@ -51,8 +51,10 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
             {
                 auto &shadow = lights["shadow"];
                 shdwOffSet = {shadow.value("offsetx", 0.0f), shadow.value("offsety", 0.0f)};
-                shdowSize = {shadow.value("sizex", 1.0f), shadow.value("sizey", 1.0f)};
-                angleVal = shadow.value("rotation", 0.0f);
+
+                // This needs to be like this
+                shdowSize = {shadow.value("sizey", 1.0f), shadow.value("sizex", 1.0f)};
+                angleVal = shadow.value("angleOffset", 0.0f);
                 shdwTex = shadow.value("texture", "");
             }
 
