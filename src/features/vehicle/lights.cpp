@@ -312,7 +312,7 @@ void Lights::Initialize()
 									{
 		eLightState state = eLightState::None;
 		RwRGBA col{255, 255, 255, GetCoronaAlphaForDayTime()};
-		eDummyPos dummyPos = eDummyPos::None;
+		eDummyPos dummyPos = eDummyPos::Front;
 		std::smatch match;
 		size_t dummyIdx = 0;
 		bool directioanlByDef = false;

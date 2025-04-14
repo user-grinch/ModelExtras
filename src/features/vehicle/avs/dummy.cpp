@@ -25,7 +25,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
     float angleVal = 0.0f;
 
     // Calculate the angle based on the frame's orientation
-    Angle = Common::NormalizeAngle(CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f);
+    // Angle = Common::NormalizeAngle(CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f);
 
     auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
     if (jsonData.contains("lights"))
@@ -54,7 +54,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
 
                 // This needs to be like this
                 shdowSize = {shadow.value("sizey", 1.0f), shadow.value("sizex", 1.0f)};
-                angleVal = shadow.value("angleOffset", 0.0f);
+                angleVal = shadow.value("angleoffset", 0.0f);
                 shdwTex = shadow.value("texture", "");
             }
 
@@ -126,6 +126,12 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
             }
         }
     }
+
+    if (type == eDummyPos::Front)
+    {
+        Angle = 0 - angleVal;
+    }
+
     if (type == eDummyPos::FrontLeft)
     {
         Angle = 0 - angleVal;

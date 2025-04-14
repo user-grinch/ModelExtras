@@ -76,7 +76,7 @@ void Common::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float a
     {
         return;
     }
-
+    CVector vehPos = pVeh->GetPosition();
     CVector center = pVeh->TransformFromObjectSpace(
         CVector(
             position.x + (shdwSz.x * shdwOffset.x * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
@@ -84,6 +84,10 @@ void Common::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float a
             position.z));
 
     center.z = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z + 100, nullptr, nullptr) + 0.5f;
+    if (abs(vehPos.z - center.z) > 5.0f)
+    {
+        return;
+    }
 
     float fAngle = pVeh->GetHeading() + (((angle + currentAngle) + 180.0f) * 3.14f / 180.0f);
 
