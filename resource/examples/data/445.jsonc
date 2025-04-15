@@ -42,8 +42,7 @@
             "type": "non-directional",
             "parent": "rear-bumper",
             "shadow": {
-                "offset": 10,
-                "rotation": 45
+                "angleoffset": 45
             }
         },
         "indicator_lf": {
@@ -57,8 +56,7 @@
             "type": "directional",
             "parent": "front-bumper",
             "shadow": {
-                "offset": 10,
-                "rotation": -45
+                "angleoffset": -45
             }
         },
         "indicator_rf": {
@@ -72,8 +70,9 @@
             "type": "inversed-directional",
             "parent": "front-bumper",
             "shadow": {
-                "offset": 10,
-                "rotation": 45
+                "offsetx": 0,
+                "offsety": 1,
+                "angleoffset": 45
             }
         },
         "indicator_rr": {
@@ -87,8 +86,9 @@
             "type": "inversed-directional",
             "parent": "rear-bumper",
             "shadow": {
-                "offset": 10,
-                "rotation": -45
+                "sizex": 1,
+                "sizey": 1,
+                "angleoffset": -45
             }
         }
     },
