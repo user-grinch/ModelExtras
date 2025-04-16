@@ -125,8 +125,8 @@ unsigned int HEADLIGHT_SHADOW_ALPHA = 240;
 float HEADLIGHT_SHADOW_WIDTH_BIKE = 2.75f;
 float HEADLIGHT_SHADOW_WIDTH = 240;
 
-float HEADLIGHT_SHADOW_WIDTH_SHORT = 8.0f;
-float HEADLIGHT_SHADOW_WIDTH_LONG = 8.0f;
+float HEADLIGHT_SHADOW_WIDTH_SHORT = 7.8f;
+float HEADLIGHT_SHADOW_WIDTH_LONG = 7.8f;
 
 // Coronas
 float HEADLIGHT_CORONA_SIZE_SHORT = 0.075f;
@@ -156,13 +156,13 @@ void Lights::Initialize()
 	patch::ReplaceFunctionCall(0x6E1A2D, hkTailLightCCoronas_RegisterCorona);
 
 	static float headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_SHORT;
-	patch::SetFloat(0x6E167E, 270.0f);
-	patch::SetFloat(0x6E154F, 270.0f);
 	patch::SetPointer(0x6E16A3, &headlightTexWidth);
 	patch::SetPointer(0x6E1537, &headlightTexWidth);
 	patch::SetPointer(0x6E1548, &HEADLIGHT_SHADOW_WIDTH_BIKE);
 	patch::SetPointer(0x70C6CB, &HEADLIGHT_SHADOW_ALPHA);
 	patch::SetPointer(0x70C72D, &HEADLIGHT_SHADOW_ALPHA);
+	// patch::SetFloat(0x872744, 50.0f);
+	// patch::SetFloat(0x70C719, 20.0f);
 	patch::SetUInt(0x6E0CF8, 0xC0); // Decrease inner corona alpha a bit
 
 	static RwTexture *hss = nullptr;
