@@ -25,7 +25,13 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
     float angleVal = 0.0f;
 
     // Calculate the angle based on the frame's orientation
-    // Angle = Common::NormalizeAngle(CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f);
+    Angle = Common::NormalizeAngle(CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f);
+
+    if (Angle != 0.0f)
+    {
+        gLogger->warn("Model {}: Node '{}' has a custom rotation of {}° defined in the model. Overriding predefined values. If this is unintended, reset the rotation to 0.0f.", pVeh->m_nModelIndex, Angle, name);
+        DummyType = eDummyPos::ModelVal;
+    }
 
     auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
     if (jsonData.contains("lights"))

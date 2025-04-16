@@ -3,6 +3,7 @@
 enum class eDummyPos
 {
     None,
+    ModelVal, // Use value provided by model
     Front,
     Rear,
     Left,

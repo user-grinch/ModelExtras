@@ -320,27 +320,6 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 	{
 		if (json["shadow"].is_object())
 		{
-			if (json["shadow"].contains("size"))
-			{
-				if (json["shadow"]["size"].is_number())
-				{
-					float sz = json["shadow"]["size"];
-					// ModelExtras
-					if (Shadow.Type == "0" || Shadow.Type == DEFAULT_SIREN_SHADOW)
-					{
-						Shadow.Size = sz;
-					}
-					else
-					{
-						Shadow.Size = sz * 2.0f / 5.0f;
-					}
-				}
-				else
-				{
-					gLogger->error("Model " + std::to_string(Sirens::CurrentModel) + " has wrong shadow size. Using default value!");
-				}
-			}
-
 			if (json["shadow"].contains("type"))
 			{
 				if (json["shadow"]["type"].is_number())
@@ -361,6 +340,28 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 				else
 				{
 					gLogger->error("Model " + std::to_string(Sirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", shadow object property type is not an acceptable number or string!");
+				}
+			}
+
+			if (json["shadow"].contains("size"))
+			{
+				if (json["shadow"]["size"].is_number())
+				{
+					float sz = json["shadow"]["size"];
+
+					// ModelExtras FIXME
+					if (Shadow.Type == DEFAULT_SIREN_SHADOW)
+					{
+						Shadow.Size = sz;
+					}
+					else
+					{
+						Shadow.Size = sz * 2.0f / 5.0f;
+					}
+				}
+				else
+				{
+					gLogger->error("Model " + std::to_string(Sirens::CurrentModel) + " has wrong shadow size. Using default value!");
 				}
 			}
 
@@ -1000,7 +1001,11 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 
 	// FIX ME
 	CVector dummyPos = dummy->ShdwPosition;
-	if (!modelData[vehicle->m_nModelIndex]->isImVehFtSiren)
+	if (modelData[vehicle->m_nModelIndex]->isImVehFtSiren)
+	{
+		dummyPos.x *= 1.5f;
+	}
+	else
 	{
 		dummyPos.x = dummyPos.x * 1.5f;
 		dummyPos.y = dummyPos.y * 1.2f;

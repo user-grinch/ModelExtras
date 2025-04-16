@@ -156,8 +156,8 @@ void Lights::Initialize()
 	patch::ReplaceFunctionCall(0x6E1A2D, hkTailLightCCoronas_RegisterCorona);
 
 	static float headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_SHORT;
-	patch::SetFloat(0x6E167E, 180.0f);
-	patch::SetFloat(0x6E154F, 180.0f);
+	patch::SetFloat(0x6E167E, 270.0f);
+	patch::SetFloat(0x6E154F, 270.0f);
 	patch::SetPointer(0x6E16A3, &headlightTexWidth);
 	patch::SetPointer(0x6E1537, &headlightTexWidth);
 	patch::SetPointer(0x6E1548, &HEADLIGHT_SHADOW_WIDTH_BIKE);
@@ -312,7 +312,7 @@ void Lights::Initialize()
 									{
 		eLightState state = eLightState::None;
 		RwRGBA col{255, 255, 255, GetCoronaAlphaForDayTime()};
-		eDummyPos dummyPos = eDummyPos::Front;
+		eDummyPos dummyPos = eDummyPos::None;
 		std::smatch match;
 		size_t dummyIdx = 0;
 		bool directioanlByDef = false;
