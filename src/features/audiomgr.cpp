@@ -3,7 +3,7 @@
 #include <extensions/ScriptCommands.h>
 #include <CAudioEngine.h>
 
-#define LOAD_AUDIO_STREAM 0x0AAC
+#define LOAD_3D_AUDIO_STREAM 0x0AC1
 #define SET_PLAY_3D_AUDIO_STREAM_AT_COORDS 0x0AC2
 #define SET_PLAY_3D_AUDIO_STREAM_AT_CHAR 0x0AC4
 #define SET_PLAY_3D_AUDIO_STREAM_AT_CAR 0x0AC5
@@ -54,7 +54,7 @@ StreamHandle AudioMgr::Load(std::string *pPath)
     }
 
     StreamHandle handle = NULL;
-    plugin::Command<LOAD_AUDIO_STREAM>(pPath->c_str(), &handle);
+    plugin::Command<LOAD_3D_AUDIO_STREAM>(pPath->c_str(), &handle);
     if (!handle)
     {
         LOG_VERBOSE("Failed to load sound '{}'", *pPath);
@@ -112,7 +112,7 @@ void AudioMgr::LoadAndPlayOnVehicle(std::string *pPath, CVehicle *pVeh, float vo
     }
 
     StreamHandle handle = NULL;
-    plugin::Command<LOAD_AUDIO_STREAM>(pPath->c_str(), &handle);
+    plugin::Command<LOAD_3D_AUDIO_STREAM>(pPath->c_str(), &handle);
     if (!handle)
     {
         LOG_VERBOSE("Failed to load sound '{}'", *pPath);
@@ -132,7 +132,7 @@ void AudioMgr::LoadAndPlay(std::string *pPath, CEntity *pEntity, float volume)
 
     CVector pos = pEntity->GetPosition();
     StreamHandle handle = NULL;
-    plugin::Command<LOAD_AUDIO_STREAM>(pPath->c_str(), &handle);
+    plugin::Command<LOAD_3D_AUDIO_STREAM>(pPath->c_str(), &handle);
     if (!handle)
     {
         LOG_VERBOSE("Failed to load sound '{}'", *pPath);
