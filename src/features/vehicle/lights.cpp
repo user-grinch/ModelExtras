@@ -338,16 +338,19 @@ void Lights::Initialize()
 		else if (std::regex_search(name, std::regex("^light_day")))
 		{
 			state = eLightState::Daylight;
+			dummyPos = eDummyPos::Front;
 		}
 		else if (std::regex_search(name, std::regex("^light_nigh")))
 		{
 			state = eLightState::Nightlight;
+			dummyPos = eDummyPos::Front;
 		}
 		else if (std::regex_search(name, match, std::regex(R"(^strobe_light(\d*)?)")))
 		{
 			if (match.str(1).size() != 0) {
 				dummyIdx = match.str(1)[0] - '0';
 			}
+			dummyPos = eDummyPos::Front;
 			state = eLightState::StrobeLight;
 		}
 		else if (std::regex_search(name, match, std::regex("^sidelight?_([lr]).*$")))
@@ -400,6 +403,7 @@ void Lights::Initialize()
 		else if (std::regex_search(name, std::regex("^light_allday")))
 		{
 			state = eLightState::AllDayLight;
+			dummyPos = eDummyPos::Front;
 		}
 		else if (std::regex_search(name, match, std::regex("^(turnl_|indicator_)(.{2})")))
 		{
@@ -463,7 +467,7 @@ void Lights::Initialize()
 			}
 
 			static uint32_t longLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", VK_G);
-			if (KeyPressed(longLightKey))
+			if (KeyPressed(longLightKey) && pVeh->m_nVehicleFlags.bLightsOn)
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
@@ -866,15 +870,16 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightStat
 
 	if (state == eLightState::TailLight)
 	{
-		CRGBA col = {250, 0, 0, GetShadowAlphaForDayTime()};
+		CRGBA col = {250, 0, 0, 240};
 		CVector left = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
 		CVector right = left;
 		right.x *= -1;
-		Common::RegisterCoronaWithAngle(pTowedVeh, 123498, left, col, 180.0f, 180.0f, 0.35f);
-		Common::RegisterCoronaWithAngle(pTowedVeh, 123499, right, col, 180.0f, 180.0f, 0.35f);
+		Common::RegisterCoronaWithAngle(pTowedVeh, 123498, left, col, 180.0f, 0.0f, 0.2f);
+		Common::RegisterCoronaWithAngle(pTowedVeh, 123499, right, col, 180.0f, 0.0f, 0.2f);
 
 		if (shadows)
 		{
+			col.a = GetShadowAlphaForDayTime();
 			Common::RegisterShadow(pTowedVeh, left, col, 180.0f, 0.0f, texture, sz, offset);
 			Common::RegisterShadow(pTowedVeh, right, col, 180.0f, 0.0f, texture, sz, offset);
 		}
