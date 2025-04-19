@@ -99,6 +99,9 @@ int Convert_EmlToJsonc(const std::string &emlPath)
     nlohmann::json jsonData;
     Helper_LoadPrepJson(jsonPath, jsonData, "EML2JSONC", "Sirens");
 
+    jsonData["metadata"]["author"] = "Unknown";
+    jsonData["metadata"]["desc"] = "Converted from ImVehFt";
+    jsonData["metadata"]["minver"] = 10600; // First ME Version with support
     jsonData["sirens"]["imvehft"] = true;
     auto &extras = jsonData["sirens"]["states"]["1. modelextras"];
 
@@ -190,6 +193,9 @@ void Convert_JsonToJsonc(const std::string &inPath)
     if (!Helper_CreateFile(outPath, outfile, "JSON2JSONC"))
         return;
 
+    jsonData["metadata"]["author"] = "Unknown";
+    jsonData["metadata"]["desc"] = "Converted from AVS";
+    jsonData["metadata"]["minver"] = 10600; // First ME Version with support
     jsonData["sirens"] = nlohmann::json::parse(infile);
     infile.close();
     outfile << jsonData.dump(4);

@@ -81,18 +81,18 @@ void Common::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float a
         CVector(
             position.x + (shdwOffset.x * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
             position.y + ((0.5f + shdwOffset.y) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-            position.z));
+            position.z + 2.0f));
 
-    center.z = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z + 100, nullptr, nullptr);
+    // center.z = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z + 100, nullptr, nullptr);
 
-    if (CModelInfo::IsHeliModel(pVeh->m_nModelIndex))
-    {
-        center.z += 3.0f; //  Fix shadows going under rooftops
-    }
-    else
-    {
-        center.z += 0.5f;
-    }
+    // if (CModelInfo::IsHeliModel(pVeh->m_nModelIndex))
+    // {
+    //     center.z += 3.0f; //  Fix shadows going under rooftops
+    // }
+    // else
+    // {
+    //     center.z += 0.5f;
+    // }
     if (abs(vehPos.z - center.z) > 15.0f)
     {
         return;

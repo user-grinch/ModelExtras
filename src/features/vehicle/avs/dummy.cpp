@@ -29,7 +29,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
 
     if (Angle != 0.0f)
     {
-        gLogger->warn("Model {}: Node '{}' has a custom rotation of {}° defined in the model. Overriding predefined values. If this is unintended, reset the rotation to 0.0f.", pVeh->m_nModelIndex, Angle, name);
+        gLogger->warn("Model {}: Node '{}' has custom rotation {}°. Overriding defaults. Set to 0.0 if unintended", pVeh->m_nModelIndex, name, Angle);
         DummyType = eDummyPos::ModelVal;
     }
 

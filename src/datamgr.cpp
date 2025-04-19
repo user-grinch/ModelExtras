@@ -43,61 +43,82 @@ void DataMgr::Convert()
 
 void DataMgr::Parse()
 {
-    std::string path = MOD_DATA_PATH("data/");
-
-    for (const auto &e : std::filesystem::directory_iterator(path))
+    auto LoadModelDataFromPath = [&](const std::string &path)
     {
-        if (e.is_regular_file() && e.path().extension() == ".jsonc")
+        for (const auto &e : std::filesystem::recursive_directory_iterator(path))
         {
-            std::string filename = e.path().filename().string();
-            std::string key = e.path().stem().string();
-            int model = 0;
-
-            if (is_number(key))
+            // Skip folders starting with '.'
+            if (e.is_directory())
             {
-                model = std::stoi(key);
+                std::string folderName = e.path().filename().string();
+                if (!folderName.empty() && folderName[0] == '.')
+                    continue;
             }
-            else
+
+            if (e.is_regular_file() && e.path().extension() == ".jsonc")
             {
-                if (!CModelInfo::GetModelInfo((char *)key.c_str(), &model))
+                std::string filename = e.path().filename().string();
+                std::string key = e.path().stem().string();
+                int model = 0;
+
+                if (is_number(key))
                 {
-                    continue; // invalid skip it
+                    model = std::stoi(key);
                 }
-            }
-
-            if (model == 0)
-            {
-                continue; // skip it
-            }
-
-            std::ifstream file(e.path());
-            try
-            {
-                data[model] = nlohmann::json::parse(file, NULL, true, true);
-                if (gConfig.ReadBoolean("CONFIG", "ModelVersionCheck", true))
+                else
                 {
-                    if (data[model].contains("metadata"))
+                    if (!CModelInfo::GetModelInfo((char *)key.c_str(), &model))
+                        continue;
+                }
+
+                if (model == 0)
+                    continue;
+
+                std::ifstream file(e.path());
+                try
+                {
+                    auto jsonData = nlohmann::json::parse(file, nullptr, true, true);
+
+                    if (jsonData.contains("metadata") && jsonData["metadata"].contains("minver"))
                     {
-                        auto &info = data[model]["metadata"];
-                        int ver = info.value("minver", MOD_VERSION_NUMBER);
-                        if (ver > MOD_VERSION_NUMBER)
+                        if (gConfig.ReadBoolean("CONFIG", "ModelVersionCheck", true))
                         {
-                            std::string text = std::format("Model {} requires version [{}] but [{}] is installed.", model, ver, MOD_VERSION_NUMBER);
-                            MessageBox(RsGlobal.ps->window, text.c_str(), "ModelExtras version mismatch!", MB_OK);
-                            gLogger->warn(text);
+                            auto &info = jsonData["metadata"];
+                            int ver = info.value("minver", MOD_VERSION_NUMBER);
+                            if (ver > MOD_VERSION_NUMBER)
+                            {
+                                std::string text = std::format("Model {} requires version [{}] but [{}] is installed.", model, ver, MOD_VERSION_NUMBER);
+                                MessageBox(RsGlobal.ps->window, text.c_str(), "ModelExtras version mismatch!", MB_OK);
+                                gLogger->warn(text);
+                            }
                         }
                     }
-                }
+                    else
+                    {
+                        gLogger->error("Skipping {}. No metadata found!", filename);
+                    }
 
-                Sirens::Parse(data[model], model);
-                IVFCarcolsFeature::Parse(data[model], model);
-                LOG_VERBOSE("Successfully registered file '{}'", e.path().filename().string());
-            }
-            catch (const nlohmann::json::parse_error &ex)
-            {
-                gLogger->error("Failed to parse JSON in file '{}': {}", e.path().string(), ex.what());
+                    data[model] = jsonData;
+
+                    Sirens::Parse(data[model], model);
+                    IVFCarcolsFeature::Parse(data[model], model);
+                    gLogger->info("Successfully registered file '{}'", filename);
+                }
+                catch (const nlohmann::json::parse_error &ex)
+                {
+                    gLogger->error("Failed to parse JSONC in file '{}': {}", e.path().string(), ex.what());
+                }
             }
         }
+    };
+
+    gLogger->info("Loading data files from ModelExtras/data...");
+    LoadModelDataFromPath(MOD_DATA_PATH("data/"));
+    LOG_NO_LEVEL("");
+    if (GetModuleHandle("modloader.asi"))
+    {
+        gLogger->info("Loading data files from modloader...");
+        LoadModelDataFromPath(GAME_PATH((char *)"modloader/"));
     }
 }
 
