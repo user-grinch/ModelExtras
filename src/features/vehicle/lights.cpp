@@ -874,8 +874,8 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightStat
 		CVector left = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
 		CVector right = left;
 		right.x *= -1;
-		Common::RegisterCoronaWithAngle(pTowedVeh, 123498, left, col, 180.0f, 0.0f, 0.2f);
-		Common::RegisterCoronaWithAngle(pTowedVeh, 123499, right, col, 180.0f, 0.0f, 0.2f);
+		Common::RegisterCoronaWithAngle(pTowedVeh, 123498, left, col, 180.0f, 180.0f, 0.2f);
+		Common::RegisterCoronaWithAngle(pTowedVeh, 123499, right, col, 180.0f, 180.0f, 0.2f);
 
 		if (shadows)
 		{
