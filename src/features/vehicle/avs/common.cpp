@@ -33,29 +33,26 @@ void Common::RegisterCoronaWithAngle(CVehicle *pVeh, int coronaID, CVector posn,
     float vehicleAngle = NormalizeAngle(pVeh->GetHeading() * RAD_TO_DEG);
     float cameraAngle = NormalizeAngle(TheCamera.GetHeading() * RAD_TO_DEG);
     float dummyAngle = NormalizeAngle(vehicleAngle + angle);
-    float InertiaAngle = 5.0f;
+    float fadeRange = 20.0f;
+    float cutoff = (radius / 2.0f);
+    float diffAngle = std::fabs(std::fmod(std::fabs(cameraAngle - dummyAngle) + 180.0f, 360.0f) - 180.0f);
 
-    float differenceAngle = std::fmod(std::fabs(cameraAngle - dummyAngle) + 180.0f, 360.0f) - 180.0f;
-    differenceAngle = std::fabs(differenceAngle);
-
-    float diameter = (radius / 2.0f);
-
-    if (differenceAngle < diameter || differenceAngle > (360.0f - diameter))
+    if (diffAngle < cutoff || diffAngle > (360.0f - cutoff))
+    {
         return;
-
-    float alphaFloat = static_cast<float>(col.a);
-
-    if (differenceAngle < diameter + InertiaAngle)
-    {
-        float adjustedAngle = diameter - differenceAngle;
-        float multiplier = adjustedAngle / InertiaAngle;
-        col.a = static_cast<uchar>(std::clamp(alphaFloat * multiplier, 0.0f, (float)col.a));
     }
-    else if (differenceAngle > (360.0f - diameter) - InertiaAngle)
+
+    if (diffAngle < cutoff + fadeRange)
     {
-        float adjustedAngle = InertiaAngle - (differenceAngle - ((360.0f - diameter) - InertiaAngle));
-        float multiplier = adjustedAngle / InertiaAngle;
-        col.a = static_cast<uchar>(std::clamp(alphaFloat * multiplier, 0.0f, (float)col.a));
+        float adjustedAngle = cutoff - diffAngle;
+        float mul = std::fabs(adjustedAngle / fadeRange);
+        col.a *= mul;
+    }
+    else if (diffAngle > (360.0f - cutoff - fadeRange))
+    {
+        float adjustedAngle = fadeRange - (diffAngle - (360.0f - cutoff - fadeRange));
+        float mul = std::fabs(adjustedAngle / fadeRange);
+        col.a *= mul;
     }
 
     RegisterCorona(pVeh, coronaID, posn, col, size);
