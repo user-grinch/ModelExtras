@@ -151,16 +151,18 @@ void __cdecl Lights::hkTailLightCCoronas_RegisterCorona(uint32_t id, CVehicle *p
 	}
 }
 
+void __cdecl hkCShadows_StoreCarLightShadow(CVehicle *pVeh, int32_t id, RwTexture *pTex, CVector *shadowPos, float fwdX, float fwdY, float sideX, float sideY, uint8_t red, uint8_t green, uint8_t blue, float radius)
+{
+	CShadows::StoreCarLightShadow(pVeh, id, pTex, shadowPos, fwdX, fwdY, sideX * 1.5f, sideY * 1.5f, red, green, blue, radius);
+}
+
 void Lights::Initialize()
 {
 	patch::ReplaceFunctionCall(0x6E1A2D, hkTailLightCCoronas_RegisterCorona);
 
 	static float headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_SHORT;
-	patch::SetFloat(0x6E167E, 270.0f); // removes texture flikerring somehow
-	patch::SetFloat(0x6E154F, 270.0f); // removes texture flikerring somehow
-	patch::SetPointer(0x6E16A3, &headlightTexWidth);
-	patch::SetPointer(0x6E1537, &headlightTexWidth);
-	patch::SetPointer(0x6E1548, &HEADLIGHT_SHADOW_WIDTH_BIKE);
+	patch::ReplaceFunctionCall(0x6E15E2, hkCShadows_StoreCarLightShadow);
+	patch::ReplaceFunctionCall(0x6E170F, hkCShadows_StoreCarLightShadow);
 	patch::SetPointer(0x70C6CB, &HEADLIGHT_SHADOW_ALPHA);
 	patch::SetPointer(0x70C72D, &HEADLIGHT_SHADOW_ALPHA);
 	patch::SetUInt(0x6E0CF8, 0xC0); // Decrease inner corona alpha a bit
