@@ -870,18 +870,34 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightStat
 
 	if (state == eLightState::TailLight)
 	{
-		CRGBA col = {250, 0, 0, 240};
+		CRGBA col = {250, 0, 0, GetCoronaAlphaForDayTime()};
 		CVector left = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_MAIN];
 		CVector right = left;
 		right.x *= -1;
-		Common::RegisterCoronaWithAngle(pTowedVeh, 123498, left, col, 180.0f, 180.0f, 0.2f);
-		Common::RegisterCoronaWithAngle(pTowedVeh, 123499, right, col, 180.0f, 180.0f, 0.2f);
+		Common::RegisterCoronaWithAngle(pTowedVeh, 123498, left, col, 180.0f, 180.0f, 0.35f);
+		Common::RegisterCoronaWithAngle(pTowedVeh, 123499, right, col, 180.0f, 180.0f, 0.35f);
 
 		if (shadows)
 		{
 			col.a = GetShadowAlphaForDayTime();
 			Common::RegisterShadow(pTowedVeh, left, col, 180.0f, 0.0f, texture, sz, offset);
 			Common::RegisterShadow(pTowedVeh, right, col, 180.0f, 0.0f, texture, sz, offset);
+		}
+
+		left = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pTowedVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::LIGHT_REAR_SECONDARY];
+		if (left.x != 0.0f)
+		{
+			right = left;
+			right.x *= -1;
+			Common::RegisterCoronaWithAngle(pTowedVeh, 123496, left, col, 180.0f, 180.0f, 0.35f);
+			Common::RegisterCoronaWithAngle(pTowedVeh, 123497, right, col, 180.0f, 180.0f, 0.35f);
+
+			if (shadows)
+			{
+				col.a = GetShadowAlphaForDayTime();
+				Common::RegisterShadow(pTowedVeh, left, col, 180.0f, 0.0f, texture, sz, offset);
+				Common::RegisterShadow(pTowedVeh, right, col, 180.0f, 0.0f, texture, sz, offset);
+			}
 		}
 	}
 }

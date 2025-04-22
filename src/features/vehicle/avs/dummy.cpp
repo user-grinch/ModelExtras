@@ -133,42 +133,42 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
         }
     }
 
-    if (type == eDummyPos::Front)
+    if (DummyType == eDummyPos::Front)
     {
         Angle = 0 - angleVal;
     }
 
-    if (type == eDummyPos::FrontLeft)
+    if (DummyType == eDummyPos::FrontLeft)
     {
         Angle = 0 - angleVal;
     }
 
-    if (type == eDummyPos::FrontRight)
+    if (DummyType == eDummyPos::FrontRight)
     {
         Angle = 0 - angleVal;
     }
 
-    if (type == eDummyPos::RearLeft)
+    if (DummyType == eDummyPos::RearLeft)
     {
         Angle = 180 - angleVal;
     }
 
-    if (type == eDummyPos::RearRight)
+    if (DummyType == eDummyPos::RearRight)
     {
         Angle = 180 - angleVal;
     }
 
-    if (type == eDummyPos::Left)
+    if (DummyType == eDummyPos::Left)
     {
         Angle = 90 - angleVal;
     }
 
-    if (type == eDummyPos::Right)
+    if (DummyType == eDummyPos::Right)
     {
         Angle = 270 - angleVal;
     }
 
-    if (type == eDummyPos::Rear)
+    if (DummyType == eDummyPos::Rear)
     {
         Angle = 180 - angleVal;
     }
