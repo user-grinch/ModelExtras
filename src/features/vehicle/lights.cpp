@@ -165,6 +165,9 @@ void Lights::Initialize()
 	patch::ReplaceFunctionCall(0x6E170F, hkCShadows_StoreCarLightShadow);
 	patch::SetPointer(0x70C6CB, &HEADLIGHT_SHADOW_ALPHA);
 	patch::SetPointer(0x70C72D, &HEADLIGHT_SHADOW_ALPHA);
+	patch::SetFloat(0x872748, 50000);
+	patch::SetFloat(0x872740, 0.0011f);
+
 	patch::SetUInt(0x6E0CF8, 0xC0); // Decrease inner corona alpha a bit
 
 	static RwTexture *hss = nullptr;
