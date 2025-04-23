@@ -125,9 +125,6 @@ unsigned int HEADLIGHT_SHADOW_ALPHA = 240;
 float HEADLIGHT_SHADOW_WIDTH_BIKE = 2.75f;
 float HEADLIGHT_SHADOW_WIDTH = 240;
 
-float HEADLIGHT_SHADOW_WIDTH_SHORT = 7.8f;
-float HEADLIGHT_SHADOW_WIDTH_LONG = 7.8f;
-
 // Coronas
 float HEADLIGHT_CORONA_SIZE_SHORT = 0.075f;
 float HEADLIGHT_CORONA_SIZE_LONG = 0.115f;
@@ -160,11 +157,12 @@ void Lights::Initialize()
 {
 	patch::ReplaceFunctionCall(0x6E1A2D, hkTailLightCCoronas_RegisterCorona);
 
-	static float headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_SHORT;
 	patch::ReplaceFunctionCall(0x6E15E2, hkCShadows_StoreCarLightShadow);
 	patch::ReplaceFunctionCall(0x6E170F, hkCShadows_StoreCarLightShadow);
 	patch::SetPointer(0x70C6CB, &HEADLIGHT_SHADOW_ALPHA);
 	patch::SetPointer(0x70C72D, &HEADLIGHT_SHADOW_ALPHA);
+
+	// headlight distance fix
 	patch::SetFloat(0x872748, 50000);
 	patch::SetFloat(0x872740, 0.0011f);
 
@@ -199,9 +197,8 @@ void Lights::Initialize()
 		VehData &data = m_VehData.Get(pVeh);
 		if (data.m_bLongLightsOn)
 		{
-			plugin::patch::SetPointer(0x6E1693, htl); // Twin
-			plugin::patch::SetPointer(0x6E151D, hsl); // Single
-			headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_LONG;
+			plugin::patch::SetPointer(0x6E1693, htl);															 // Twin
+			plugin::patch::SetPointer(0x6E151D, hsl);															 // Single
 			patch::SetFloat(0x6E0CA6, isFoggy ? 1.5f * HEADLIGHT_CORONA_SIZE_LONG : HEADLIGHT_CORONA_SIZE_LONG); // HeadLightCoronaSize
 			patch::SetUInt(0x6E0DEE, HEADLIGHT_CORONA_ALPHA_LONG);												 // HeadLightCoronaAlpha
 		}
@@ -209,7 +206,6 @@ void Lights::Initialize()
 		{
 			plugin::patch::SetPointer(0x6E1693, hts); // Twin
 			plugin::patch::SetPointer(0x6E151D, hss); // Single
-			headlightTexWidth = HEADLIGHT_SHADOW_WIDTH_SHORT;
 			patch::SetFloat(0x6E0CA6, isFoggy ? 1.5f * HEADLIGHT_CORONA_SIZE_SHORT : HEADLIGHT_CORONA_SIZE_SHORT);
 
 			patch::SetUInt(0x6E0DEE, isFoggy ? HEADLIGHT_CORONA_ALPHA_LONG : HEADLIGHT_CORONA_ALPHA_SHORT); // HeadLightCoronaAlpha
