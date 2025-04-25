@@ -2,13 +2,14 @@
 #include <plugin.h>
 #include <vector>
 
-class Chain {
+class ChainFeature
+{
 protected:
-  struct VehData {
-    bool m_bInitialized = false;
+  struct VehData
+  {
     uint m_nCurChain = 0;
-    uint m_nLastFrameMS = 0;
-    std::vector<RwFrame*> m_FrameList;
+    RwFrame *m_pRootFrame = nullptr;
+    std::vector<RwFrame *> m_FrameList;
 
     VehData(CVehicle *pVeh) {}
     ~VehData() {}
@@ -17,5 +18,5 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
+  static void Initialize();
 };

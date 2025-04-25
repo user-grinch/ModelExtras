@@ -5,8 +5,8 @@
 #include <vector>
 #include <plugin.h>
 #include <CCoronas.h>
-#include "avs/dummy.h"
-#include "avs/materials.h"
+#include "core/dummy.h"
+#include "core/materials.h"
 #include "enums/lighttype.h"
 
 enum class VehicleSirenStates

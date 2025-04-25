@@ -1,8 +1,8 @@
 #pragma once
 #include <map>
 #include <plugin.h>
-#include "avs/dummy.h"
-#include "avs/materials.h"
+#include "core/dummy.h"
+#include "core/materials.h"
 #include "enums/lighttype.h"
 #include "enums/lightoverride.h"
 

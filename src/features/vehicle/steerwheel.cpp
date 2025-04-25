@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "steerwheel.h"
-#include "avs/materials.h"
+#include "core/materials.h"
 #define ROTATION_VAL 90.0f
 
 void SteerWheel::Initialize()

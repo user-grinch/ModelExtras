@@ -13,10 +13,10 @@
 #include "weapon/sound.h"
 #include "common/remap.h"
 #include "common/randomizer.h"
-#include "vehicle/avs/common.h"
+#include "vehicle/core/common.h"
 #include "vehicle/lights.h"
 #include "vehicle/paintjobs.h"
-#include "vehicle/avs/materials.h"
+#include "vehicle/core/materials.h"
 #include "vehicle/sirens.h"
 #include "vehicle/plate.h"
 #include "vehicle/carcols.h"
@@ -201,7 +201,7 @@ void FeatureMgr::Initialize()
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AnimatedChain", false))
     {
-        m_FunctionTable["x_chain"] = m_FunctionTable["fc_chain"] = Chain::Process;
+        ChainFeature::Initialize();
         LOG_NO_LEVEL("  AnimatedChain");
     }
 

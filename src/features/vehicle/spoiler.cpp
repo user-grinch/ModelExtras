@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "spoiler.h"
 #include "datamgr.h"
-#include "avs/materials.h"
+#include "core/materials.h"
 
 void Spoiler::Initialize()
 {

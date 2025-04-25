@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "sirens.h"
 #include <common.h>
-#include "avs/common.h"
+#include "core/common.h"
 #include <CShadows.h>
 #include <rwcore.h>
 #include <rpworld.h>

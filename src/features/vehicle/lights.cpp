@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "lights.h"
 #include <CClock.h>
-#include "avs/common.h"
+#include "core/common.h"
 #include "defines.h"
 #include <CShadows.h>
 #include <eVehicleClass.h>
