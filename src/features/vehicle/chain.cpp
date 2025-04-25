@@ -33,7 +33,7 @@ void ChainFeature::Initialize()
     if (absSpeed > minSpeed)
     {
         float t = std::clamp((absSpeed - minSpeed) / (maxSpeed - minSpeed), 0.0f, 1.0f);
-        interval = maxInterval - t * (maxInterval - minInterval);
+        interval = std::lerp(maxInterval, minInterval, t);
     }
 
     size_t curTime = CTimer::m_snTimeInMilliseconds;

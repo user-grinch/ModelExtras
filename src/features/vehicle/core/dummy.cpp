@@ -40,7 +40,6 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
         if (jsonData["lights"].contains(newName.c_str()))
         {
             auto &lights = jsonData["lights"][newName.c_str()];
-
             if (lights.contains("color"))
             {
                 Color.r = lights["color"].value("red", Color.r);
@@ -49,9 +48,13 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
                 Color.a = lights["color"].value("alpha", Color.a);
             }
 
-            coronaSize = lights.value("coronasize", coronaSize);
+            if (lights.contains("corona"))
+            {
+                coronaSize = lights["corona"].value("size", coronaSize);
+                LightType = GetLightType(lights["corona"].value("type", "directional"));
+            }
+
             PartType = eParentTypeFromString(lights.value("parent", ""));
-            LightType = GetLightType(lights.value("type", "directional"));
 
             if (lights.contains("shadow"))
             {
@@ -59,7 +62,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
                 shdwOffSet = {shadow.value("offsety", 0.0f), shadow.value("offsetx", 0.0f)};
 
                 // This needs to be like this
-                shdowSize = {shadow.value("sizey", 1.0f), shadow.value("sizex", 1.0f)};
+                shdowSize = {shadow.value("height", 1.0f), shadow.value("width", 1.0f)};
                 angleVal = shadow.value("angleoffset", 0.0f);
                 shdwTex = shadow.value("texture", "");
             }
