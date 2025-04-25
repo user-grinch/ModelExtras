@@ -38,8 +38,10 @@
                 "blue": 0,
                 "alpha": 255
             },
-            "coronasize": 0.5,
-            "type": "non-directional",
+            "corona": {
+                "size": 0.5,
+                "type": "non-directional"
+            },
             "parent": "rear-bumper",
             "shadow": {
                 "angleoffset": 45
@@ -52,8 +54,10 @@
                 "blue": 255,
                 "alpha": 255
             },
-            "coronasize": 0.5,
-            "type": "directional",
+            "corona": {
+                "size": 0.5,
+                "type": "directional"
+            },
             "parent": "front-bumper",
             "shadow": {
                 "angleoffset": -45
@@ -66,8 +70,10 @@
                 "blue": 0,
                 "alpha": 255
             },
-            "coronasize": 0.5,
-            "type": "inversed-directional",
+            "corona": {
+                "size": 0.5,
+                "type": "inversed-directional"
+            },
             "parent": "front-bumper",
             "shadow": {
                 "offsetx": 0,
@@ -82,12 +88,14 @@
                 "blue": 255,
                 "alpha": 255
             },
-            "coronasize": 0.5,
-            "type": "inversed-directional",
+            "corona": {
+                "size": 0.5,
+                "type": "inversed-directional"
+            },
             "parent": "rear-bumper",
             "shadow": {
-                "sizex": 1,
-                "sizey": 1,
+                "width": 1,
+                "height": 1,
                 "angleoffset": -45
             }
         }
