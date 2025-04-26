@@ -29,6 +29,7 @@ public:
     size_t strobeLightOn = false;
     size_t strobeLightTimer = 0;
     size_t strobeDelay = 1000;
+    bool mirroredX = false;
 
     VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDummyPos type = eDummyPos::None, CRGBA color = {255, 255, 255, 128}, size_t dummyIdx = 0, bool directionalByDef = false);
 

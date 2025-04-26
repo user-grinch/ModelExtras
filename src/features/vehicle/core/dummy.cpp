@@ -188,6 +188,12 @@ void VehicleDummy::Update(CVehicle *pVeh)
     Position.x = vehMatrix.right.x * offset.x + vehMatrix.right.y * offset.y + vehMatrix.right.z * offset.z;
     Position.y = vehMatrix.up.x * offset.x + vehMatrix.up.y * offset.y + vehMatrix.up.z * offset.z;
     Position.z = vehMatrix.at.x * offset.x + vehMatrix.at.y * offset.y + vehMatrix.at.z * offset.z;
+
+    if (mirroredX)
+    {
+        Position.x *= -1;
+    }
+
     ShdwPosition = Position;
 
     if (DummyType == eDummyPos::Left)
