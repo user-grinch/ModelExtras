@@ -120,96 +120,18 @@ inline bool IsBumperOrWingDamaged(CVehicle *pVeh, eParentType part)
 	return false;
 }
 
-// Shadows
-unsigned int HEADLIGHT_SHADOW_ALPHA = 240;
-float HEADLIGHT_SHADOW_WIDTH_BIKE = 2.75f;
-float HEADLIGHT_SHADOW_WIDTH = 240;
-
-// Coronas
-float HEADLIGHT_CORONA_SIZE_SHORT = 0.075f;
-float HEADLIGHT_CORONA_SIZE_LONG = 0.115f;
-
-int HEADLIGHT_CORONA_ALPHA_SHORT = 230;
-int HEADLIGHT_CORONA_ALPHA_LONG = 255;
-
-void __cdecl Lights::hkTailLightCCoronas_RegisterCorona(uint32_t id, CVehicle *pVeh, uint8_t r, uint8_t g, uint8_t b, uint8_t a, CVector *pos, float size, float range, int coronaType, uint8_t flareType, uint8_t reflectionType, bool checkObstacles, int bUsesTrails, float fNormalAngle, bool bNeonFade, float fPullTowardsCam, bool bFullBrightAtStart, float fadeSpeed, bool bOnlyFromBelow, bool bWhiteCore)
-{
-	if (pVeh->m_nOverrideLights == eLightOverride::ForceLightsOff)
-	{
-		return;
-	}
-
-	bool breakLightInstalled = IsDummyAvail(pVeh, eLightState::Brakelight);
-
-	if (!breakLightInstalled || IsTailLightOn(pVeh))
-	{
-		pos->y -= 0.05f;
-		Common::RegisterCorona(pVeh, id, *pos, {r, g, b, GetCoronaAlphaForDayTime()}, size * 3.0f);
-	}
-}
-
-void __cdecl hkCShadows_StoreCarLightShadow(CVehicle *pVeh, int32_t id, RwTexture *pTex, CVector *shadowPos, float fwdX, float fwdY, float sideX, float sideY, uint8_t red, uint8_t green, uint8_t blue, float radius)
-{
-	CShadows::StoreCarLightShadow(pVeh, id, pTex, shadowPos, fwdX, fwdY, sideX * 1.5f, sideY * 1.5f, red, green, blue, radius);
-}
-
 void Lights::Initialize()
 {
-	patch::ReplaceFunctionCall(0x6E1A2D, hkTailLightCCoronas_RegisterCorona);
-
-	patch::ReplaceFunctionCall(0x6E15E2, hkCShadows_StoreCarLightShadow);
-	patch::ReplaceFunctionCall(0x6E170F, hkCShadows_StoreCarLightShadow);
-	patch::SetPointer(0x70C6CB, &HEADLIGHT_SHADOW_ALPHA);
-	patch::SetPointer(0x70C72D, &HEADLIGHT_SHADOW_ALPHA);
-
-	// headlight distance fix
-	patch::SetFloat(0x872748, 50000);
-	patch::SetFloat(0x872740, 0.0011f);
-
-	patch::SetUInt(0x6E0CF8, 0xC0); // Decrease inner corona alpha a bit
-
-	static RwTexture *hss = nullptr;
-	static RwTexture *hsl = nullptr;
-	static RwTexture *hts = nullptr;
-	static RwTexture *htl = nullptr;
+	patch::Nop(0x6E2722, 19);	  // CVehicle::DoHeadLightReflection
+	patch::SetUChar(0x6E1A22, 0); // CVehicle::DoTailLightEffect
 
 	plugin::Events::initGameEvent += []()
 	{
-		hss = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_single_short.png")), 255);
-		hsl = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_single_long.png")), 255);
-		hts = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_twin_short.png")), 255);
-		htl = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("textures/headlight_twin_long.png")), 255);
-
 		gbGlobalIndicatorLights = gConfig.ReadBoolean("VEHICLE_FEATURES", "StandardLights_GlobalIndicatorLights", false);
 		gbGlobalReverseLights = gConfig.ReadBoolean("VEHICLE_FEATURES", "StandardLights_GlobalReverseLights", false);
 		gfGlobalCoronaSize = gConfig.ReadFloat("VEHICLE_FEATURES", "StandardLights_GlobalCoronaSize", 0.3f);
 		gGlobalShadowIntensity = gConfig.ReadInteger("VEHICLE_FEATURES", "StandardLights_GlobalShadowIntensity", 220);
 		gGlobalCoronaIntensity = gConfig.ReadInteger("VEHICLE_FEATURES", "StandardLights_GlobalCoronaIntensity", 250);
-	};
-
-	static FastcallEvent<AddressList<0x6E1A76, H_CALL>, PRIORITY_BEFORE,
-						 ArgPick2N<CVehicle *, 0, int, 1>, void(CVehicle *, int)>
-		DoHeadLightEvent;
-
-	DoHeadLightEvent += [](CVehicle *pVeh, int b)
-	{
-		bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
-		VehData &data = m_VehData.Get(pVeh);
-		if (data.m_bLongLightsOn)
-		{
-			plugin::patch::SetPointer(0x6E1693, htl);															 // Twin
-			plugin::patch::SetPointer(0x6E151D, hsl);															 // Single
-			patch::SetFloat(0x6E0CA6, isFoggy ? 1.5f * HEADLIGHT_CORONA_SIZE_LONG : HEADLIGHT_CORONA_SIZE_LONG); // HeadLightCoronaSize
-			patch::SetUInt(0x6E0DEE, HEADLIGHT_CORONA_ALPHA_LONG);												 // HeadLightCoronaAlpha
-		}
-		else
-		{
-			plugin::patch::SetPointer(0x6E1693, hts); // Twin
-			plugin::patch::SetPointer(0x6E151D, hss); // Single
-			patch::SetFloat(0x6E0CA6, isFoggy ? 1.5f * HEADLIGHT_CORONA_SIZE_SHORT : HEADLIGHT_CORONA_SIZE_SHORT);
-
-			patch::SetUInt(0x6E0DEE, isFoggy ? HEADLIGHT_CORONA_ALPHA_LONG : HEADLIGHT_CORONA_ALPHA_SHORT); // HeadLightCoronaAlpha
-		}
 	};
 
 	Events::vehicleDtorEvent += [](CVehicle *pVeh)
@@ -237,10 +159,10 @@ void Lights::Initialize()
 			RegisterMaterial(vehicle, material, eLightState::FogLight, col);
 		else if ((col.r == 255 && col.g == 175 && col.b == 0)
 		|| (col.r == 255 && col.g == 1 && col.b == 128))
-			RegisterMaterial(vehicle, material, eLightState::FrontLightLeft, col);
+			RegisterMaterial(vehicle, material, eLightState::HeadLightLeft, col);
 		else if ((col.r == 0 && col.g == 255 && col.b == 200)
 			|| (col.r == 255 && col.g == 2 && col.b == 128))
-			RegisterMaterial(vehicle, material, eLightState::FrontLightRight, col);
+			RegisterMaterial(vehicle, material, eLightState::HeadLightRight, col);
 		else if ((col.r == 255 && col.g == 60 && col.b == 0) || col.r == 185 && col.g == 255 && col.b == 0)
 			RegisterMaterial(vehicle, material, eLightState::TailLight, col);
 		else if (col.r == 255 && col.g == 200 && col.b == 1) {
@@ -415,6 +337,16 @@ void Lights::Initialize()
 			pDummy->mirroredX = true;
 			m_Dummies[pVeh][state].push_back(pDummy);
 		}
+		else if (std::regex_search(name, std::regex("headlights.*$")))
+		{
+			col = {250, 250, 250, GetCoronaAlphaForDayTime()};
+			state = eLightState::HeadLightLeft;
+			dummyPos = eDummyPos::Front;
+			VehicleDummy *pDummy = new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx, directioanlByDef);
+			pDummy->mirroredX = true;
+			m_Dummies[pVeh][state].push_back(pDummy);
+			state = eLightState::HeadLightRight;
+		}
 		else if (std::regex_search(name, match, std::regex("^(turnl_|indicator_)(.{2})")))
 		{
 			std::string stateStr = match.str(2);
@@ -555,14 +487,24 @@ void Lights::Initialize()
 				rightOk = pAutoMobile->m_renderLights.m_bRightFront && !pAutoMobile->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT);
 			}
 
+			std::string texName = "headlight_short";
+			CVector2D sz = {2.5f, 3.5f};
+			CVector2D offset = {0.0f, 3.25f};
+
+			bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
+			if (data.m_bLongLightsOn)
+			{
+				texName = "headlight_long";
+			}
+
 			if (leftOk)
 			{
-				RenderLights(pControlVeh, pTowedVeh, eLightState::FrontLightLeft);
+				RenderLights(pControlVeh, pTowedVeh, eLightState::HeadLightLeft, true, texName, sz, offset, isFoggy);
 			}
 
 			if (rightOk)
 			{
-				RenderLights(pControlVeh, pTowedVeh, eLightState::FrontLightRight);
+				RenderLights(pControlVeh, pTowedVeh, eLightState::HeadLightRight, true, texName, sz, offset, isFoggy);
 			}
 		}
 
