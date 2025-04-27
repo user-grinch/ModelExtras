@@ -23,7 +23,7 @@ int gGlobalShadowIntensity = 80;
 
 bool IsNightTime()
 {
-	return CClock::GetIsTimeInRange(20, 7);
+	return CClock::GetIsTimeInRange(20, 6);
 }
 
 bool IsTailLightOn(CVehicle *pVeh)
@@ -488,8 +488,8 @@ void Lights::Initialize()
 			}
 
 			std::string texName = "headlight_short";
-			CVector2D sz = {2.5f, 3.5f};
-			CVector2D offset = {0.0f, 3.25f};
+			CVector2D sz = {3.0f, 4.0f};
+			CVector2D offset = {0.0f, 3.75f};
 
 			bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
 			if (data.m_bLongLightsOn)
