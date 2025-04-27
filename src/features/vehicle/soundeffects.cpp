@@ -105,7 +105,7 @@ void SoundEffects::Initialize()
 
                 if (pedal <= 0.05f && val != NULL)
                 {
-                    static std::string path = MOD_DATA_PATH("audio/effects/air_break.wav");
+                    static std::string path = MOD_DATA_PATH("audio/effects/airbreak.wav");
                     static StreamHandle handle = NULL;
                     handle = AudioMgr::Load(&path);
                     AudioMgr::PlayOnVehicle(handle, pVeh, data.m_fBrakePressure);
