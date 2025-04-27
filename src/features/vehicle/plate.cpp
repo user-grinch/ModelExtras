@@ -5,6 +5,7 @@
 #include <rwcore.h>
 #include <rpworld.h>
 #include <RenderWare.h>
+#include <CTheZones.h>
 #include "defines.h"
 #include "../../enums/lightoverride.h"
 
@@ -67,10 +68,12 @@ bool __cdecl PlateFeature::CCustomCarPlateMgr_Initialise()
     pCharSetTex->raster->stride = 512;
 
     // Don't add .dds extension!
+    m_Plates[DAY_CS] = Util::LoadDDSTextureCB(dirPath, "plateback4");
     m_Plates[DAY_LS] = Util::LoadDDSTextureCB(dirPath, "plateback3");
     m_Plates[DAY_LV] = Util::LoadDDSTextureCB(dirPath, "plateback2");
     m_Plates[DAY_SF] = Util::LoadDDSTextureCB(dirPath, "plateback1");
 
+    m_Plates[NIGHT_CS] = Util::LoadDDSTextureCB(dirPath, "plateback4_l");
     m_Plates[NIGHT_LS] = Util::LoadDDSTextureCB(dirPath, "plateback3_l");
     m_Plates[NIGHT_LV] = Util::LoadDDSTextureCB(dirPath, "plateback2_l");
     m_Plates[NIGHT_SF] = Util::LoadDDSTextureCB(dirPath, "plateback1_l");
@@ -89,18 +92,33 @@ RpMaterial *__cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
 {
     if (plateType == -1)
     {
-        if (CWeather::WeatherRegion == WEATHER_REGION_LA)
+        VehData &data = vehData.Get(pCurrentVeh);
+        if (data.cityId == -1)
+        {
+            data.cityId = CTheZones::m_CurrLevel;
+        }
+        if (data.cityId == 0)
+        {
+            plateType = DAY_CS;
+        }
+        else if (data.cityId == 1)
+        {
             plateType = DAY_LS;
-        else if (CWeather::WeatherRegion == WEATHER_REGION_SF)
+        }
+        else if (data.cityId == 2)
+        {
             plateType = DAY_SF;
-        else
-            plateType = DAY_LV;
+        }
+        else if (data.cityId == 3)
+        {
+            plateType == DAY_LV;
+        }
     }
 
     if (IsNightTime() && !IsEngineOff(pCurrentVeh) && pCurrentVeh->m_nOverrideLights != eLightOverride::ForceLightsOff || pCurrentVeh->m_nOverrideLights == eLightOverride::ForceLightsOn)
     {
         material->surfaceProps.ambient = AMBIENT_ON_VAL;
-        RpMaterialSetTexture(material, m_Plates[plateType + 3]);
+        RpMaterialSetTexture(material, m_Plates[plateType + 4]);
     }
     else
     {

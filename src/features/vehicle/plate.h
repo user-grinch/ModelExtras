@@ -8,9 +8,11 @@ enum ePlateType
   DAY_SF,
   DAY_LV,
   DAY_LS,
+  DAY_CS,
   NIGHT_SF,
   NIGHT_LV,
   NIGHT_LS,
+  NIGHT_CS,
   TOTAL_SZ
 };
 
@@ -30,6 +32,7 @@ protected:
   struct VehData
   {
     bool m_bInit = false;
+    int cityId = -1;
     bool m_bNightTexture = false;
 
     VehData(CVehicle *pVeh) {}
