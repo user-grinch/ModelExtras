@@ -2,7 +2,9 @@
 <img src="https://github.com/user-grinch/ModelExtras/blob/main/resource/ModelExtras.png" width="400" align="center">
 </p>
 
-ModelExtras adds additional functionality to peds, weapons, and vehicle components. It works similarly to [VehFuncs](https://gtaforums.com/topic/904475-vehfuncs/) and [ImVehFt](https://gtaforums.com/topic/528175-improved-vehicle-features/).
+ModelExtras adds additional functionality to peds, weapons, and vehicle components. It works similarly to [VehFuncs](https://gtaforums.com/topic/904475-vehfuncs/) and [ImVehFt](https://gtaforums.com/topic/528175-improved-vehicle-features/)
+
+A full list of features can be found in the [Wiki](https://github.com/user-grinch/ModelExtras/wiki)
 
 ### 📥 Download
 - **Stable binaries**: [GitHub Releases](https://github.com/user-grinch/ModelExtras/releases)
@@ -12,29 +14,6 @@ ModelExtras adds additional functionality to peds, weapons, and vehicle componen
 [![Support on Patreon](https://github.com/user-attachments/assets/e6aa195c-e93a-41a9-8b14-2788bed2d7d1)](https://www.patreon.com/grinch_)
 
 ---
-
-## ⚙️ Features
-- Random Remap
-- Randomizer
-- Brakes
-- Chains
-- Clutch
-- Gear Change Sound
-- Gear Meter
-- Gear Switcher
-- Handlebar
-- Odometer
-- RPM Meter
-- Speedometer
-- Sirens
-- Turn Lights
-- Fog Lights
-- Brake Lights
-- Reverse Lights
-- Wheel Hubs
-- BloodRemap
-- BodyState
-- Custom Sounds
 
 ## 🛠 Installation
 1. Install [Visual C++ Redistributable 2022 x86](https://aka.ms/vs/17/release/vc_redist.x86.exe).
