@@ -57,24 +57,3 @@ protected:
 public:
   static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
 };
-
-using StreamHandle = int;
-
-class GearSound
-{
-protected:
-  struct VehData
-  {
-    bool m_bInitialized = false;
-    uint m_nCurGear = 0;
-    StreamHandle hUpAudio, hDownAudio;
-
-    VehData(CVehicle *pVeh) {}
-    ~VehData() {}
-  };
-
-  static inline VehicleExtendedData<VehData> vehData;
-
-public:
-  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
-};

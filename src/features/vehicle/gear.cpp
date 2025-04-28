@@ -4,11 +4,6 @@
 #include "datamgr.h"
 #include <extensions/ScriptCommands.h>
 
-#define LOAD_3D_AUDIO_STREAM 0x0AC1
-#define SET_PLAY_3D_AUDIO_STREAM_AT_COORDS 0x0AC2
-#define SET_AUDIO_STREAM_STATE 0x0AAD
-#define GET_AUDIO_STREAM_STATE 0x0AB9
-
 void Clutch::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 {
     CVehicle *pVeh = static_cast<CVehicle *>(ptr);
@@ -166,32 +161,5 @@ void GearLever::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 
             data.m_nLastFrameMS = timer;
         }
-    }
-}
-
-// TODO: Redo this feature
-void GearSound::Process(void *ptr, RwFrame *frame, eModelEntityType type)
-{
-    CVehicle *pVeh = static_cast<CVehicle *>(ptr);
-    std::string name = GetFrameNodeName(frame);
-    VehData &data = vehData.Get(pVeh);
-    if (!data.m_bInitialized)
-    {
-        std::string fileName = Util::GetRegexVal(name, "x_gs_(.*$)", "");
-        auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-        if (jsonData.contains("gearsound") && jsonData["gearsound"].contains("name"))
-        {
-            fileName = jsonData["gearsound"].value("name", 0.0f);
-        }
-        std::string upPath = MOD_DATA_PATH_S(std::format("audio/gear/{}.wav", fileName));
-        plugin::Command<LOAD_3D_AUDIO_STREAM>(upPath.c_str(), &data.hUpAudio);
-        data.m_bInitialized = true;
-    }
-    if (data.m_nCurGear != pVeh->m_nCurrentGear)
-    {
-        CVector pos = pVeh->GetPosition();
-        plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(data.hUpAudio, pos.x, pos.y, pos.z);
-        plugin::Command<SET_AUDIO_STREAM_STATE>(data.hUpAudio, 1);
-        data.m_nCurGear = pVeh->m_nCurrentGear;
     }
 }
