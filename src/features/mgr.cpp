@@ -9,7 +9,6 @@
 #include "vehicle/spotlights.h"
 #include "vehicle/wheelhub.h"
 #include "weapon/bodystate.h"
-#include "weapon/bloodremap.h"
 #include "weapon/sound.h"
 #include "common/remap.h"
 #include "common/randomizer.h"
@@ -154,7 +153,6 @@ void FeatureMgr::Initialize()
     if (gConfig.ReadBoolean("COMMON_FEATURES", "TextureRemaper", false))
     {
         Remap::Initialize();
-        m_FunctionTable["x_remap"] = BloodRemap::Process;
         LOG_NO_LEVEL("  TextureRemaper");
     }
 
@@ -250,12 +248,6 @@ void FeatureMgr::Initialize()
             BackFireEffect::Process(vehicle, nullptr, eModelEntityType::Vehicle);
         };
         LOG_NO_LEVEL("  BackfireEffect");
-    }
-
-    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "GearChangeSounds", false))
-    {
-        m_FunctionTable["x_gs"] = GearSound::Process;
-        LOG_NO_LEVEL("  GearChangeSounds");
     }
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "HDLicensePlate", false))
