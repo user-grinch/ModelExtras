@@ -61,7 +61,7 @@ void __cdecl PlateFeature::CCustomCarPlateMgr_Shudown()
 bool __cdecl PlateFeature::CCustomCarPlateMgr_Initialise()
 {
     const char *dirPath = MOD_DATA_PATH_S(std::string("plates"));
-    pCharSetTex = Util::LoadPNGTextureCB(dirPath, "platecharset");
+    pCharSetTex = Util::LoadDDSTextureCB(dirPath, "platecharset");
     RwTextureSetFilterMode(pCharSetTex, rwFILTERLINEARMIPLINEAR);
     RwTextureSetAddressingU(pCharSetTex, rwFILTERLINEARMIPLINEAR);
     RwTextureSetAddressingV(pCharSetTex, rwFILTERLINEARMIPLINEAR);

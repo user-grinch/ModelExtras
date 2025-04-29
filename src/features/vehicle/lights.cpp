@@ -335,6 +335,7 @@ void Lights::Initialize()
 			dummyPos = eDummyPos::Rear;
 			VehicleDummy *pDummy = new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx, directioanlByDef);
 			pDummy->mirroredX = true;
+			directioanlByDef = true;
 			m_Dummies[pVeh][state].push_back(pDummy);
 		}
 		else if (std::regex_search(name, std::regex("headlights.*$")))
@@ -344,6 +345,7 @@ void Lights::Initialize()
 			dummyPos = eDummyPos::Front;
 			VehicleDummy *pDummy = new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx, directioanlByDef);
 			pDummy->mirroredX = true;
+			directioanlByDef = true;
 			m_Dummies[pVeh][state].push_back(pDummy);
 			state = eLightState::HeadLightRight;
 		}
@@ -488,8 +490,8 @@ void Lights::Initialize()
 			}
 
 			std::string texName = "headlight_short";
-			CVector2D sz = {3.0f, 4.0f};
-			CVector2D offset = {0.0f, 3.75f};
+			CVector2D sz = {3.0f, 5.25f};
+			CVector2D offset = {0.0f, 5.5f};
 
 			bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
 			if (data.m_bLongLightsOn)
