@@ -3,7 +3,7 @@
 #include <CCamera.h>
 #include <CCoronas.h>
 #include "defines.h"
-#include "util.h"
+#include "texmgr.h"
 #include <CWorld.h>
 #include <extensions/ScriptCommands.h>
 #include <extensions/scripting/ScriptCommandNames.h>
@@ -30,7 +30,7 @@ void SpotLights::Initialize()
 	};
 	Events::initGameEvent += []()
 	{
-		pSpotlightTex = Util::LoadTextureFromFile(MOD_DATA_PATH_S(std::string("/textures/spotlight.png")));
+		pSpotlightTex = TextureMgr::Get("shadows/spotlight.png", 30);
 	};
 }
 

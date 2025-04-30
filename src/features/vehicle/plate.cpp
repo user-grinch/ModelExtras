@@ -8,6 +8,7 @@
 #include <CTheZones.h>
 #include "defines.h"
 #include "../../enums/lightoverride.h"
+#include "texmgr.h"
 
 static CVehicle *pCurrentVeh = nullptr;
 PlateFeature LicensePlate;
@@ -60,23 +61,21 @@ void __cdecl PlateFeature::CCustomCarPlateMgr_Shudown()
 
 bool __cdecl PlateFeature::CCustomCarPlateMgr_Initialise()
 {
-    const char *dirPath = MOD_DATA_PATH_S(std::string("plates"));
-    pCharSetTex = Util::LoadDDSTextureCB(dirPath, "platecharset");
+    pCharSetTex = TextureMgr::Get("plates/platecharset.dds");
     RwTextureSetFilterMode(pCharSetTex, rwFILTERLINEARMIPLINEAR);
     RwTextureSetAddressingU(pCharSetTex, rwFILTERLINEARMIPLINEAR);
     RwTextureSetAddressingV(pCharSetTex, rwFILTERLINEARMIPLINEAR);
     pCharSetTex->raster->stride = 512;
 
-    // Don't add .dds extension!
-    m_Plates[DAY_CS] = Util::LoadDDSTextureCB(dirPath, "plateback4");
-    m_Plates[DAY_LS] = Util::LoadDDSTextureCB(dirPath, "plateback3");
-    m_Plates[DAY_LV] = Util::LoadDDSTextureCB(dirPath, "plateback2");
-    m_Plates[DAY_SF] = Util::LoadDDSTextureCB(dirPath, "plateback1");
+    m_Plates[DAY_CS] = TextureMgr::Get("plates/plateback4.dds");
+    m_Plates[DAY_LS] = TextureMgr::Get("plates/plateback3.dds");
+    m_Plates[DAY_LV] = TextureMgr::Get("plates/plateback2.dds");
+    m_Plates[DAY_SF] = TextureMgr::Get("plates/plateback1.dds");
 
-    m_Plates[NIGHT_CS] = Util::LoadDDSTextureCB(dirPath, "plateback4_l");
-    m_Plates[NIGHT_LS] = Util::LoadDDSTextureCB(dirPath, "plateback3_l");
-    m_Plates[NIGHT_LV] = Util::LoadDDSTextureCB(dirPath, "plateback2_l");
-    m_Plates[NIGHT_SF] = Util::LoadDDSTextureCB(dirPath, "plateback1_l");
+    m_Plates[NIGHT_CS] = TextureMgr::Get("plates/plateback4_l.dds");
+    m_Plates[NIGHT_LS] = TextureMgr::Get("plates/plateback3_l.dds");
+    m_Plates[NIGHT_LV] = TextureMgr::Get("plates/plateback2_l.dds");
+    m_Plates[NIGHT_SF] = TextureMgr::Get("plates/plateback1_l.dds");
 
     for (int i = 0; i < ePlateType::TOTAL_SZ; i++)
     {
@@ -111,7 +110,7 @@ RpMaterial *__cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
         }
         else if (data.cityId == 3)
         {
-            plateType == DAY_LV;
+            plateType = DAY_LV;
         }
     }
 

@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "sirens.h"
 #include <common.h>
-#include "core/common.h"
 #include <CShadows.h>
 #include <rwcore.h>
 #include <rpworld.h>
@@ -990,13 +989,13 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 			dummyAngle -= 180.0f;
 		}
 
-		Common::RegisterCoronaWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, dummy->Position,
-										material->Color,
-										dummyAngle, material->Radius, material->Size);
+		Util::RegisterCoronaWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, dummy->Position,
+									  material->Color,
+									  dummyAngle, material->Radius, material->Size);
 	}
 	else
 	{
-		Common::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, dummy->Position, material->Color, material->Size);
+		Util::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, dummy->Position, material->Color, material->Size);
 	}
 
 	// FIX ME
@@ -1010,7 +1009,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 		dummyPos.x = dummyPos.x * 1.5f;
 		dummyPos.y = dummyPos.y * 1.2f;
 	}
-	Common::RegisterShadow(vehicle, dummyPos, *(CRGBA *)&material->Color, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
+	Util::RegisterShadow(vehicle, dummyPos, *(CRGBA *)&material->Color, dummy->Angle, dummy->CurrentAngle, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
 };
 
 VehicleSiren::VehicleSiren(CVehicle *_vehicle)

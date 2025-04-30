@@ -12,7 +12,6 @@
 #include "weapon/sound.h"
 #include "common/remap.h"
 #include "common/randomizer.h"
-#include "vehicle/core/common.h"
 #include "vehicle/lights.h"
 #include "vehicle/paintjobs.h"
 #include "vehicle/core/materials.h"

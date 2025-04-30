@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "lights.h"
 #include <CClock.h>
-#include "core/common.h"
 #include "defines.h"
 #include <CShadows.h>
 #include <eVehicleClass.h>
@@ -98,8 +97,8 @@ void DrawGlobalLight(CVehicle *pVeh, eDummyPos pos, CRGBA col, std::string textu
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	CRGBA color = {col.r, col.g, col.b, GetShadowAlphaForDayTime()};
-	Common::RegisterShadow(pVeh, posn, color, dummyAngle, 0.0f, texture, shdwSz, shdwOffset);
-	Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, {col.r, col.g, col.b, GetCoronaAlphaForDayTime()}, dummyAngle, 180.0f, gfGlobalCoronaSize);
+	Util::RegisterShadow(pVeh, posn, color, dummyAngle, 0.0f, texture, shdwSz, shdwOffset);
+	Util::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, {col.r, col.g, col.b, GetCoronaAlphaForDayTime()}, dummyAngle, 180.0f, gfGlobalCoronaSize);
 }
 
 inline float GetZAngleForPoint(CVector2D const &point)
@@ -789,7 +788,7 @@ void Lights::RenderLight(CVehicle *pVeh, eLightState state, bool shadows, std::s
 			if (shadows)
 			{
 				texture = (e->shdwTex == "") ? texture : e->shdwTex;
-				Common::RegisterShadow(pVeh, e->ShdwPosition, e->Color, e->Angle, e->CurrentAngle, texture, {sz.x * e->shdowSize.x, sz.y * e->shdowSize.y}, {offset.x + e->shdwOffSet.x, offset.y + e->shdwOffSet.y});
+				Util::RegisterShadow(pVeh, e->ShdwPosition, e->Color, e->Angle, e->CurrentAngle, texture, {sz.x * e->shdowSize.x, sz.y * e->shdowSize.y}, {offset.x + e->shdwOffSet.x, offset.y + e->shdwOffSet.y});
 			}
 		}
 	}
@@ -836,11 +835,11 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMu
 	{
 		if (dummy->LightType == eLightType::NonDirectional)
 		{
-			Common::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->coronaSize * szMul);
+			Util::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->coronaSize * szMul);
 		}
 		else
 		{
-			Common::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->Angle + (dummy->LightType == eLightType::Inversed ? 180.0f : 0.0f), 180.0f, dummy->coronaSize * szMul);
+			Util::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->Angle + (dummy->LightType == eLightType::Inversed ? 180.0f : 0.0f), 180.0f, dummy->coronaSize * szMul);
 		}
 	}
 };

@@ -3,6 +3,106 @@
 #include "util.h"
 #include <regex>
 #include <CWeaponInfo.h>
+#include <CCamera.h>
+#include <CCoronas.h>
+#include <CShadows.h>
+#include <CWorld.h>
+#include "texmgr.h"
+#include "defines.h"
+
+void Util::RegisterCorona(CVehicle *pVeh, int coronaID, CVector pos, CRGBA col, float size)
+{
+    if (!gConfig.ReadBoolean("VEHICLE_FEATURES", "LightCoronas", false))
+    {
+        return;
+    }
+
+    CCoronas::RegisterCorona(coronaID, pVeh, col.r, col.g, col.b, col.a, pos,
+                             size * CORONA_SZ_MUL, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, false, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
+};
+
+float Util::NormalizeAngle(float angle)
+{
+    while (angle < 0.0f)
+        angle += 360.0f;
+    while (angle >= 360.0f)
+        angle -= 360.0f;
+    return angle;
+}
+
+void Util::RegisterCoronaWithAngle(CVehicle *pVeh, int coronaID, CVector posn, CRGBA col, float angle, float radius, float size)
+{
+    constexpr float RAD_TO_DEG = 180.0f / 3.141592653589793f;
+
+    float vehicleAngle = NormalizeAngle(pVeh->GetHeading() * RAD_TO_DEG);
+    float cameraAngle = NormalizeAngle(TheCamera.GetHeading() * RAD_TO_DEG);
+    float dummyAngle = NormalizeAngle(vehicleAngle + angle);
+    float fadeRange = 20.0f;
+    float cutoff = (radius / 2.0f);
+    float diffAngle = std::fabs(std::fmod(std::fabs(cameraAngle - dummyAngle) + 180.0f, 360.0f) - 180.0f);
+
+    if (diffAngle < cutoff || diffAngle > (360.0f - cutoff))
+    {
+        return;
+    }
+
+    if (diffAngle < cutoff + fadeRange)
+    {
+        float adjustedAngle = cutoff - diffAngle;
+        float mul = std::fabs(adjustedAngle / fadeRange);
+        col.a *= mul;
+    }
+    else if (diffAngle > (360.0f - cutoff - fadeRange))
+    {
+        float adjustedAngle = fadeRange - (diffAngle - (360.0f - cutoff - fadeRange));
+        float mul = std::fabs(adjustedAngle / fadeRange);
+        col.a *= mul;
+    }
+
+    RegisterCorona(pVeh, coronaID, posn, col, size);
+}
+
+void Util::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float angle, float currentAngle, const std::string &shadwTexName, CVector2D shdwSz, CVector2D shdwOffset, RwTexture *pTexture)
+{
+    if (shdwSz.x == 0.0f || shdwSz.y == 0.0f || !gConfig.ReadBoolean("VEHICLE_FEATURES", "LightShadows", false))
+    {
+        return;
+    }
+    CVector vehPos = pVeh->GetPosition();
+    CVector center = pVeh->TransformFromObjectSpace(
+        CVector(
+            position.x + (shdwOffset.x * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+            position.y + ((0.5f + shdwOffset.y) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
+            position.z + 2.0f));
+
+    // center.z = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z + 100, nullptr, nullptr);
+
+    // if (CModelInfo::IsHeliModel(pVeh->m_nModelIndex))
+    // {
+    //     center.z += 3.0f; //  Fix shadows going under rooftops
+    // }
+    // else
+    // {
+    //     center.z += 0.5f;
+    // }
+    if (abs(vehPos.z - center.z) > 15.0f)
+    {
+        return;
+    }
+
+    float fAngle = pVeh->GetHeading() + (((angle + currentAngle) + 180.0f) * 3.14f / 180.0f);
+
+    CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
+    CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
+    up *= shdwSz.y;
+    right *= shdwSz.x;
+
+    CShadows::StoreShadowToBeRendered(2, (pTexture != NULL ? pTexture : TextureMgr::Get("shadows/" + shadwTexName + ".png", 30)), &center,
+                                      up.x, up.y,
+                                      right.x, right.y,
+                                      col.a, col.r, col.g, col.b,
+                                      10.0f, false, 1.0f, 0, true);
+};
 
 float Util::GetVehicleSpeed(CVehicle *pVeh)
 {
@@ -382,168 +482,6 @@ unsigned int Util::GetEntityModel(void *ptr, eModelEntityType type)
         model = reinterpret_cast<CEntity *>(ptr)->m_nModelIndex;
     }
     return model;
-}
-
-RwTexture *Util::LoadTextureFromFile(const char *filename, RwUInt8 alphaValue)
-{
-
-    RwImage *image = RtPNGImageRead(filename);
-    if (!image)
-    {
-        return nullptr;
-    }
-
-    RwInt32 width, height, depth, flags;
-    RwImageFindRasterFormat(image, 4, &width, &height, &depth, &flags);
-
-    RwRaster *raster = RwRasterCreate(width, height, depth, flags);
-    if (!raster)
-    {
-        RwImageDestroy(image);
-        return nullptr;
-    }
-
-    // Set the alpha value for each pixel
-    RwRGBA *pixels = (RwRGBA *)RwImageGetPixels(image);
-    for (RwInt32 y = 0; y < height; y++)
-    {
-        for (RwInt32 x = 0; x < width; x++)
-        {
-            RwRGBA *pixel = pixels + (y * width + x);
-            pixel->red = (pixel->red * alphaValue) / 255;
-            pixel->green = (pixel->green * alphaValue) / 255;
-            pixel->blue = (pixel->blue * alphaValue) / 255;
-            pixel->alpha = alphaValue;
-        }
-    }
-
-    RwRasterSetFromImage(raster, image);
-    RwImageDestroy(image);
-    return RwTextureCreate(raster);
-}
-
-#include <rwcore.h>
-#include <rwplcore.h>
-#include <rpworld.h>
-
-RwTexture *Util::FindTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict)
-{
-    const std::string baseName = pMat->texture->name;
-
-    // texture glitch fix
-    const std::vector<std::string> texNames = {
-        // baseName,
-        baseName + "on",
-        baseName + "_on",
-        // "sirenlighton",
-        // "sirenlight_on",
-        // "vehiclelightson128"
-    };
-
-    RwTexture *pTex = nullptr;
-    for (const auto &name : texNames)
-    {
-        pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
-        if (pTex)
-        {
-            break;
-        }
-    }
-    return pTex;
-}
-
-bool FileCheck(const char *name)
-{
-    struct stat buffer;
-
-    return (stat(name, &buffer) == 0);
-}
-
-// Taken from _AG (vHud)
-
-RwTexture *Util::LoadDDSTextureCB(const char *path, const char *name)
-{
-    char file[512];
-
-    sprintf(file, "%s\\%s", path, name);
-
-    return RwD3D9DDSTextureRead(file, NULL);
-}
-
-RwTexture *Util::LoadBMPTextureCB(const char *path, const char *name)
-{
-    int w, h, d, f;
-    char file[512];
-    RwTexture *texture = NULL;
-
-    sprintf(file, "%s\\%s.bmp", path, name);
-
-    if (file && FileCheck(file))
-    {
-        if (RwImage *img = RtBMPImageRead(file))
-        {
-            RwImageFindRasterFormat(img, rwRASTERTYPETEXTURE, &w, &h, &d, &f);
-
-            if (RwRaster *raster = RwRasterCreate(w * 0.25f, h * 0.25f, d, f))
-            {
-                RwRasterSetFromImage(raster, img);
-
-                if (texture = RwTextureCreate(raster))
-                {
-                    RwTextureSetName(texture, name);
-
-                    if ((texture->raster->cFormat & 0x80) == 0)
-                        RwTextureSetFilterMode(texture, rwFILTERLINEAR);
-                    else
-                        RwTextureSetFilterMode(texture, rwFILTERLINEARMIPLINEAR);
-
-                    RwTextureSetAddressing(texture, rwTEXTUREADDRESSWRAP);
-                }
-            }
-
-            RwImageDestroy(img);
-        }
-    }
-
-    return texture;
-}
-
-RwTexture *Util::LoadPNGTextureCB(const char *path, const char *name)
-{
-    int w, h, d, f;
-    char file[512];
-    RwTexture *texture = NULL;
-
-    sprintf(file, "%s\\%s.png", path, name);
-
-    if (file && FileCheck(file))
-    {
-        if (RwImage *img = RtPNGImageRead(file))
-        {
-            RwImageFindRasterFormat(img, rwRASTERTYPETEXTURE, &w, &h, &d, &f);
-
-            if (RwRaster *raster = RwRasterCreate(w, h, d, f))
-            {
-                RwRasterSetFromImage(raster, img);
-
-                if (texture = RwTextureCreate(raster))
-                {
-                    RwTextureSetName(texture, name);
-
-                    if ((texture->raster->cFormat & 0x80) == 0)
-                        RwTextureSetFilterMode(texture, rwFILTERLINEAR);
-                    else
-                        RwTextureSetFilterMode(texture, rwFILTERLINEARMIPLINEAR);
-
-                    RwTextureSetAddressing(texture, rwTEXTUREADDRESSWRAP);
-                }
-            }
-
-            RwImageDestroy(img);
-        }
-    }
-
-    return texture;
 }
 
 void Util::GetModelsFromIni(std::string &line, std::vector<int> &vec)

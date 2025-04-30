@@ -5,7 +5,10 @@ typedef enum class eModelEntityType eModelEntityType;
 class Util
 {
 public:
-  RwTexture *FindTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict);
+  static float NormalizeAngle(float angle);
+  static void RegisterCorona(CVehicle *pVeh, int coronaID, CVector pos, CRGBA col, float size);
+  static void RegisterCoronaWithAngle(CVehicle *pVeh, int coronaID, CVector posn, CRGBA col, float angle, float radius, float size);
+  static void RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float angle, float currentAngle, const std::string &shadwTexName, CVector2D shdwSz = {1.0f, 1.0f}, CVector2D shdwOffset = {0.0f, 0.0f}, RwTexture *pTexture = nullptr);
 
   // Returns value of regex from source string
   static std::string GetRegexVal(const std::string &src, const std::string &&ptrn, const std::string &&def);
@@ -44,11 +47,6 @@ public:
   static void ShowChildWithName(RwFrame *parent_frame, const char *name);
   static void HideAllChilds(RwFrame *parent_frame);
   static void ShowAllChilds(RwFrame *parent_frame);
-  static RwTexture *LoadTextureFromFile(const char *filename, RwUInt8 alphaValue = 255);
-
-  static RwTexture *LoadDDSTextureCB(const char *path, const char *name);
-  static RwTexture *LoadPNGTextureCB(const char *path, const char *name);
-  static RwTexture *LoadBMPTextureCB(const char *path, const char *name);
 
   static void GetModelsFromIni(std::string &line, std::vector<int> &vec);
 };
