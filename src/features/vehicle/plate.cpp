@@ -61,26 +61,26 @@ void __cdecl PlateFeature::CCustomCarPlateMgr_Shudown()
 
 bool __cdecl PlateFeature::CCustomCarPlateMgr_Initialise()
 {
-    pCharSetTex = TextureMgr::Get("plates/platecharset.dds");
-    RwTextureSetFilterMode(pCharSetTex, rwFILTERLINEARMIPLINEAR);
-    RwTextureSetAddressingU(pCharSetTex, rwFILTERLINEARMIPLINEAR);
-    RwTextureSetAddressingV(pCharSetTex, rwFILTERLINEARMIPLINEAR);
+    pCharSetTex = TextureMgr::Get("plate_char");
+    RwTextureSetFilterMode(pCharSetTex, rwFILTERNEAREST);
+    RwTextureSetAddressingU(pCharSetTex, rwFILTERMIPNEAREST);
+    RwTextureSetAddressingV(pCharSetTex, rwFILTERMIPNEAREST);
     pCharSetTex->raster->stride = 512;
 
-    m_Plates[DAY_CS] = TextureMgr::Get("plates/plateback4.dds");
-    m_Plates[DAY_LS] = TextureMgr::Get("plates/plateback3.dds");
-    m_Plates[DAY_LV] = TextureMgr::Get("plates/plateback2.dds");
-    m_Plates[DAY_SF] = TextureMgr::Get("plates/plateback1.dds");
+    m_Plates[DAY_CS] = TextureMgr::Get("plate_cs");
+    m_Plates[DAY_LS] = TextureMgr::Get("plate_ls");
+    m_Plates[DAY_LV] = TextureMgr::Get("plate_lv");
+    m_Plates[DAY_SF] = TextureMgr::Get("plate_sf");
 
-    m_Plates[NIGHT_CS] = TextureMgr::Get("plates/plateback4_l.dds");
-    m_Plates[NIGHT_LS] = TextureMgr::Get("plates/plateback3_l.dds");
-    m_Plates[NIGHT_LV] = TextureMgr::Get("plates/plateback2_l.dds");
-    m_Plates[NIGHT_SF] = TextureMgr::Get("plates/plateback1_l.dds");
+    m_Plates[NIGHT_CS] = TextureMgr::Get("plate_cs_l");
+    m_Plates[NIGHT_LS] = TextureMgr::Get("plate_ls_l");
+    m_Plates[NIGHT_LV] = TextureMgr::Get("plate_lv_l");
+    m_Plates[NIGHT_SF] = TextureMgr::Get("plate_sf_l");
 
     for (int i = 0; i < ePlateType::TOTAL_SZ; i++)
     {
-        RwTextureSetAddressingU(m_Plates[i], rwFILTERLINEARMIPLINEAR);
-        RwTextureSetAddressingV(m_Plates[i], rwFILTERLINEARMIPLINEAR);
+        RwTextureSetAddressingU(m_Plates[i], rwFILTERMIPNEAREST);
+        RwTextureSetAddressingV(m_Plates[i], rwFILTERMIPNEAREST);
         RwTextureSetFilterMode(m_Plates[i], rwFILTERLINEAR);
     }
     pCharsetLockedData = RwRasterLock(RwTextureGetRaster(LicensePlate.pCharSetTex), 0, rwRASTERLOCKREAD);
@@ -116,12 +116,10 @@ RpMaterial *__cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
 
     if (IsNightTime() && !IsEngineOff(pCurrentVeh) && pCurrentVeh->m_nOverrideLights != eLightOverride::ForceLightsOff || pCurrentVeh->m_nOverrideLights == eLightOverride::ForceLightsOn)
     {
-        material->surfaceProps.ambient = AMBIENT_ON_VAL;
         RpMaterialSetTexture(material, m_Plates[plateType + 4]);
     }
     else
     {
-        material->surfaceProps.ambient = 1.0f;
         RpMaterialSetTexture(material, m_Plates[plateType]);
     }
     return material;
@@ -190,28 +188,38 @@ bool PlateFeature::CCustomCarPlateMgr_RenderLicenseplateTextToRaster(const char 
 RwTexture *PlateFeature::CCustomCarPlateMgr_CreatePlateTexture(char *text, uint8_t plateType)
 {
     assert(text);
+
+    // Create a new raster for the plate with mipmap support
     const auto plateRaster = RwRasterCreate(256, 64, 32, rwRASTERFORMAT8888 | rwRASTERPIXELLOCKEDWRITE);
     if (!plateRaster)
+    {
         return nullptr;
+    }
 
+    // Ensure the charset texture is valid before proceeding
     if (!RwTextureGetRaster(pCharSetTex))
     {
         RwRasterDestroy(plateRaster);
         return nullptr;
     }
 
+    // Render the license plate text to the raster
     if (!CCustomCarPlateMgr_RenderLicenseplateTextToRaster(text, RwTextureGetRaster(pCharSetTex), plateRaster))
     {
         RwRasterDestroy(plateRaster);
         return nullptr;
     }
 
+    // Create a texture from the raster
     if (const auto plateTex = RwTextureCreate(plateRaster))
     {
+        // Set the texture name and filter mode
         RwTextureSetName(plateTex, text);
         RwTextureSetFilterMode(plateTex, rwFILTERNEAREST);
         return plateTex;
     }
 
+    // Cleanup if texture creation fails
+    RwRasterDestroy(plateRaster);
     return nullptr;
 }

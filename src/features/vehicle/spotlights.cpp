@@ -30,7 +30,7 @@ void SpotLights::Initialize()
 	};
 	Events::initGameEvent += []()
 	{
-		pSpotlightTex = TextureMgr::Get("shadows/spotlight.png", 30);
+		pSpotlightTex = TextureMgr::Get("spotlight", 30);
 	};
 }
 

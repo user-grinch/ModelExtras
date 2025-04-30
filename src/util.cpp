@@ -97,7 +97,7 @@ void Util::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float ang
     up *= shdwSz.y;
     right *= shdwSz.x;
 
-    CShadows::StoreShadowToBeRendered(2, (pTexture != NULL ? pTexture : TextureMgr::Get("shadows/" + shadwTexName + ".png", 30)), &center,
+    CShadows::StoreShadowToBeRendered(2, (pTexture != NULL ? pTexture : TextureMgr::Get(shadwTexName, 30)), &center,
                                       up.x, up.y,
                                       right.x, right.y,
                                       col.a, col.r, col.g, col.b,

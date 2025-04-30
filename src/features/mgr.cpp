@@ -23,6 +23,7 @@
 #include "vehicle/soundeffects.h"
 #include "vehicle/spoiler.h"
 #include "vehicle/backfire.h"
+#include "vehicle/dirt/modelinfo.h"
 
 #include <CMessages.h>
 
@@ -123,6 +124,7 @@ void FeatureMgr::Initialize()
 
     InitLogFile();
     AudioMgr::Initialize();
+    FxVehModelInfo::Initialize();
 
     // Common Section
     LOG_NO_LEVEL("\nCore->");
