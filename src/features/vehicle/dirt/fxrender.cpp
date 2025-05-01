@@ -11,6 +11,34 @@ void FxRender::Initialize()
 	patch::RedirectCall(0x53CA75, FxRender::Shutdown);
 	patch::RedirectCall(0x53CA61, FxRender::Shutdown);
 	patch::RedirectCall(0x5B8FFD, FxRender::InitialiseDirtTextures);
+
+	plugin::Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
+	{
+		if (pVeh->m_nModelIndex != 471)
+			return;
+		CVehicleModelInfo *pInfo = (CVehicleModelInfo *)CModelInfo::GetModelInfo(pVeh->m_nModelIndex);
+		static int idx = pInfo->m_nTxdIndex;
+		RpClumpForAllAtomics(pVeh->m_pRwClump, [](RpAtomic *atomic, void *data)
+							 {
+		if (!atomic->geometry)
+			return atomic;
+
+		RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial* material, void* data) {
+			if (!material || !material->texture)
+				return material;
+
+			RwTexture *pCleanTex = material->texture;
+			std::string cleanName = pCleanTex->name;
+			std::string dirtName = cleanName + "_dirt";
+			RwTexture *pDirtTex = TextureMgr::FindInDict(dirtName, pCleanTex->dict);
+			if (pDirtTex) {
+				InitialiseBlendTextureSingleEx(pCleanTex, pDirtTex);
+			}
+			return material;
+		}, atomic);
+
+		return atomic; }, nullptr);
+	};
 }
 
 void FxRender::InitialiseDirtTexture() // org
@@ -28,6 +56,24 @@ void FxRender::Shutdown()
 		RwTextureDestroy(ms_aDirtTextures_4[i]);
 		// RwTextureDestroy(ms_aDirtTextures_5[i]);
 		// RwTextureDestroy(ms_aDirtTextures_6[i]);
+	}
+}
+
+void FxRender::InitialiseBlendTextureSingleEx(RwTexture *src, RwTexture *dest)
+{
+	if (src && dest)
+	{
+		src->filterAddressing = rwFILTERLINEAR;
+		dest->filterAddressing = rwFILTERLINEAR;
+		for (size_t i = 0; i < 16; i++)
+		{
+			float FacB = (1.0 / 15.0) * i;
+			float FacA = 1 - FacB;
+			RwTexture *pTex = CClothesBuilder::CopyTexture(src);
+			RwTextureSetName(pTex, src->name);
+			CClothesBuilder::BlendTextures(pTex, dest, FacA, FacB);
+			m_DirtTextures[src->name].push_back(pTex);
+		}
 	}
 }
 
@@ -97,6 +143,6 @@ void FxRender::InitialiseDirtTextures()
 	InitialiseDirtTextureSingle("vehiclegrunge512", ms_aDirtTextures_3);
 
 	// Textures which belnd between two images
-	// InitialiseBlendTextureSingle("tyrewall_dirt", "tyrewall_dirt_d", ms_aDirtTextures_4);
+	InitialiseBlendTextureSingle("tyrewall_dirt", "tyrewall_dirt_d", ms_aDirtTextures_4);
 	// InitialiseBlendTextureSingle((char *)"vehicle_generic_detail", (char *)"vehicle_generic_detaild", ms_aDirtTextures_5);
 }

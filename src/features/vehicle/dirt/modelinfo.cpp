@@ -70,6 +70,13 @@ void FxVehModelInfo::ProcessGeometryForDirt(RpGeometry *geometry, int DirtLevel)
             RpMaterialSetTexture(material, FxRender::ms_aDirtTextures_3[DirtLevel]);
         else if (texName.starts_with("tyrewall_dirt"))
             RpMaterialSetTexture(material, FxRender::ms_aDirtTextures_4[DirtLevel]);
+        else
+        {
+            if (FxRender::m_DirtTextures.contains(texName))
+            {
+                RpMaterialSetTexture(material, FxRender::m_DirtTextures[texName][DirtLevel]);
+            }
+        }
     }
 }
 

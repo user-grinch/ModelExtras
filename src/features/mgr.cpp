@@ -124,7 +124,6 @@ void FeatureMgr::Initialize()
 
     InitLogFile();
     AudioMgr::Initialize();
-    FxVehModelInfo::Initialize();
 
     // Common Section
     LOG_NO_LEVEL("\nCore->");
@@ -249,6 +248,12 @@ void FeatureMgr::Initialize()
             BackFireEffect::Process(vehicle, nullptr, eModelEntityType::Vehicle);
         };
         LOG_NO_LEVEL("  BackfireEffect");
+    }
+
+    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "DirtFX", false))
+    {
+        FxVehModelInfo::Initialize();
+        LOG_NO_LEVEL("  DirtFX");
     }
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "HDLicensePlate", false))

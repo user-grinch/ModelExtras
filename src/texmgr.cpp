@@ -113,28 +113,7 @@ void TextureMgr::SetAlpha(RwTexture *texture, RwUInt8 alpha)
     RwImageDestroy(image);
 }
 
-RwTexture *TextureMgr::FindInDict(RpMaterial *pMat, RwTexDictionary *pDict)
+RwTexture *TextureMgr::FindInDict(std::string name, RwTexDictionary *pDict)
 {
-    const std::string baseName = pMat->texture->name;
-
-    // texture glitch fix
-    const std::vector<std::string> texNames = {
-        // baseName,
-        baseName + "on",
-        baseName + "_on",
-        // "sirenlighton",
-        // "sirenlight_on",
-        // "vehiclelightson128"
-    };
-
-    RwTexture *pTex = nullptr;
-    for (const auto &name : texNames)
-    {
-        pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
-        if (pTex)
-        {
-            break;
-        }
-    }
-    return pTex;
+    return RwTexDictionaryFindNamedTexture(pDict, name.c_str());
 }
