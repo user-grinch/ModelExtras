@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Meter.h"
 #include "datamgr.h"
+#include <CBike.h>
 
 void GearMeter::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 {

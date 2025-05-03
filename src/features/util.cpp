@@ -1,11 +1,11 @@
 #include "pch.h"
-#include <plugin.h>
 #include "util.h"
 #include <regex>
 #include <CWeaponInfo.h>
 #include <CCamera.h>
 #include <CCoronas.h>
 #include <CShadows.h>
+#include <CBike.h>
 #include <CWorld.h>
 #include "texmgr.h"
 #include "defines.h"

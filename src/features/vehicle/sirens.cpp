@@ -1,13 +1,14 @@
 #include "pch.h"
+#include <regex>
 #include "sirens.h"
 #include <common.h>
 #include <CShadows.h>
 #include <rwcore.h>
 #include <rpworld.h>
+#include <CPointLights.h>
 #include "defines.h"
 #include "lights.h"
-#include "../audiomgr.h"
-#include <CPointLights.h>
+#include "audiomgr.h"
 
 bool VehicleSiren::GetSirenState()
 {

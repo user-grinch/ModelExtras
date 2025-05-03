@@ -12,6 +12,7 @@
 #include <CWeather.h>
 #include <CCoronas.h>
 #include "../../enums/vehdummy.h"
+#include <regex>
 
 // flags
 bool gbGlobalIndicatorLights = false;
@@ -238,7 +239,7 @@ void Lights::Initialize()
 		std::smatch match;
 		size_t dummyIdx = 0;
 		bool directioanlByDef = false;
-		if (std::regex_search(name, match, std::regex("^fogl(ight)?_([lr]).*$")))
+		if (std::regex_search(name, std::regex("^fogl(ight)?_([lr]).*$")))
 		{
 			state = eLightState::FogLight;
 			dummyPos = eDummyPos::Front;
