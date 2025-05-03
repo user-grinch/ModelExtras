@@ -52,25 +52,35 @@ void Remap::Initialize()
 
     Events::pedRenderEvent.before += [](CPed *pPed)
     {
-        // BeforeRender(reinterpret_cast<void *>(pPed), eModelEntityType::Ped);
+        BeforeRender(reinterpret_cast<void *>(pPed), eModelEntityType::Ped);
     };
 
-    MEEvents::weaponRenderEvent.before += [](CPed *pPed)
+    // These two events need to be hooked later
+    Events::initGameEvent += []()
     {
-        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
-        if (pWeapon && pWeapon->m_eWeaponType != eWeaponType::WEAPON_UNARMED)
+        static bool init = false;
+        if (init)
         {
-            BeforeRender(reinterpret_cast<void *>(pWeapon), eModelEntityType::Weapon);
+            return;
         }
-    };
+        MEEvents::weaponRenderEvent.before += [](CPed *pPed)
+        {
+            CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
+            if (pWeapon && pWeapon->m_eWeaponType != eWeaponType::WEAPON_UNARMED)
+            {
+                BeforeRender(reinterpret_cast<void *>(pWeapon), eModelEntityType::Weapon);
+            }
+        };
 
-    MEEvents::weaponRenderEvent.after += [](CPed *pPed)
-    {
-        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
-        if (pWeapon && pWeapon->m_eWeaponType != eWeaponType::WEAPON_UNARMED)
+        MEEvents::weaponRenderEvent.after += [](CPed *pPed)
         {
-            AfterRender(reinterpret_cast<void *>(pWeapon), eModelEntityType::Weapon);
-        }
+            CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
+            if (pWeapon && pWeapon->m_eWeaponType != eWeaponType::WEAPON_UNARMED)
+            {
+                AfterRender(reinterpret_cast<void *>(pWeapon), eModelEntityType::Weapon);
+            }
+        };
+        init = true;
     };
 
     Events::vehicleRenderEvent.after += [](CVehicle *ptr)
@@ -80,13 +90,7 @@ void Remap::Initialize()
 
     Events::pedRenderEvent.after += [](CPed *pPed)
     {
-        // AfterRender(reinterpret_cast<void *>(pPed), eModelEntityType::Ped);
-
-        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
-        if (pWeapon && pWeapon->m_eWeaponType != eWeaponType::WEAPON_UNARMED)
-        {
-            AfterRender(reinterpret_cast<void *>(pWeapon), eModelEntityType::Weapon);
-        }
+        AfterRender(reinterpret_cast<void *>(pPed), eModelEntityType::Ped);
     };
 
     MEEvents::weaponRemoveEvent.before += [](CPed *pPed, int model)
