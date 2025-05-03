@@ -14,7 +14,7 @@ struct ColorSet
     CRGBA primary, secondary, tert, quart;
 };
 
-class IVFCarcolsFeature : public IFeature
+class IVFCarcols
 {
 private:
     struct VehData
@@ -29,8 +29,6 @@ private:
     static inline std::unordered_map<int, std::vector<ColorSet>> variations;
 
 public:
-    void Initialize();
+    static void Initialize();
     static void Parse(const nlohmann::json &data, int model);
 };
-
-extern IVFCarcolsFeature IVFCarcols;

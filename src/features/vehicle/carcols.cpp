@@ -4,10 +4,9 @@
 #include <rpworld.h>
 #include <RenderWare.h>
 
-IVFCarcolsFeature IVFCarcols;
 extern bool IsNightTime();
 
-void IVFCarcolsFeature::Initialize()
+void IVFCarcols::Initialize()
 {
     static CVehicle *pCurVehicle;
     injector::MakeInline<0x4C838D, 0x4C83AA>([](injector::reg_pack &regs)
@@ -89,7 +88,7 @@ void IVFCarcolsFeature::Initialize()
         plugin::Call<0x4C8C90>(pCurVehicle); });
 }
 
-void IVFCarcolsFeature::Parse(const nlohmann::json &data, int model)
+void IVFCarcols::Parse(const nlohmann::json &data, int model)
 {
     if (data.contains("carcols"))
     {

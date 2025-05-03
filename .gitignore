@@ -215,3 +215,15 @@ build/obj/Win32/Debug/soundeffects.obj
 build/obj/Win32/Release/audiomgr.obj
 build/obj/Win32/Release/backfire.obj
 build/obj/Win32/Release/soundeffects.obj
+archive/ModelExtras.7z
+build/obj/Win32/Debug/audiomgr.obj
+build/obj/Win32/Debug/fileconverter.obj
+build/obj/Win32/Debug/fxrender.obj
+build/obj/Win32/Debug/modelinfo.obj
+build/obj/Win32/Debug/soundeffects.obj
+build/obj/Win32/Debug/spoiler.obj
+build/obj/Win32/Debug/texmgr.obj
+build/obj/Win32/Debug/trainer.obj
+build/obj/Win32/Release/fileconverter.obj
+build/obj/Win32/Release/soundeffects.obj
+build/obj/Win32/Release/spoiler.obj

@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "defines.h"
 #include "datamgr.h"
 #include <string>
 #include <CModelInfo.h>
@@ -101,7 +102,7 @@ void DataMgr::Parse()
                     data[model] = jsonData;
 
                     Sirens::Parse(data[model], model);
-                    IVFCarcolsFeature::Parse(data[model], model);
+                    IVFCarcols::Parse(data[model], model);
                     gLogger->info("Successfully registered file '{}'", filename);
                 }
                 catch (const nlohmann::json::parse_error &ex)

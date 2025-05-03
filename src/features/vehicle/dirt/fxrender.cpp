@@ -14,30 +14,26 @@ void FxRender::Initialize()
 
 	plugin::Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
 	{
-		if (pVeh->m_nModelIndex != 471)
-			return;
-		CVehicleModelInfo *pInfo = (CVehicleModelInfo *)CModelInfo::GetModelInfo(pVeh->m_nModelIndex);
-		static int idx = pInfo->m_nTxdIndex;
-		RpClumpForAllAtomics(pVeh->m_pRwClump, [](RpAtomic *atomic, void *data)
-							 {
-		if (!atomic->geometry)
-			return atomic;
+		CVehicleModelInfo *pInfo = (CVehicleModelInfo *)CModelInfo::GetModelInfo(model);
+		CTxdStore::PushCurrentTxd();
+		CTxdStore::SetCurrentTxd(pInfo->m_nTxdIndex);
+		RwTexDictionaryForAllTextures(RwTexDictionaryGetCurrent(), [](RwTexture *texture, void *pData)
+									  { 
+				RwTexture *pDirtTex = texture;
+				std::string dirtName = pDirtTex->name;
 
-		RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial* material, void* data) {
-			if (!material || !material->texture)
-				return material;
+				if (!dirtName.ends_with("_dt")) {
+					return texture;
+				}
 
-			RwTexture *pCleanTex = material->texture;
-			std::string cleanName = pCleanTex->name;
-			std::string dirtName = cleanName + "_dirt";
-			RwTexture *pDirtTex = TextureMgr::FindInDict(dirtName, pCleanTex->dict);
-			if (pDirtTex) {
-				InitialiseBlendTextureSingleEx(pCleanTex, pDirtTex);
-			}
-			return material;
-		}, atomic);
+				std::string cleanName = dirtName.substr(0, dirtName.find_last_of('_'));
+				RwTexture *pCleanTex = TextureMgr::FindInDict(cleanName, RwTexDictionaryGetCurrent());
 
-		return atomic; }, nullptr);
+				if (pCleanTex) {
+					InitialiseBlendTextureSingleEx(pCleanTex, pDirtTex);
+				}
+										return texture; }, NULL);
+		CTxdStore::PopCurrentTxd();
 	};
 }
 
@@ -61,7 +57,7 @@ void FxRender::Shutdown()
 
 void FxRender::InitialiseBlendTextureSingleEx(RwTexture *src, RwTexture *dest)
 {
-	if (src && dest)
+	if (src && dest && !m_DirtTextures.contains(src->name))
 	{
 		src->filterAddressing = rwFILTERLINEAR;
 		dest->filterAddressing = rwFILTERLINEAR;
@@ -143,6 +139,6 @@ void FxRender::InitialiseDirtTextures()
 	InitialiseDirtTextureSingle("vehiclegrunge512", ms_aDirtTextures_3);
 
 	// Textures which belnd between two images
-	InitialiseBlendTextureSingle("tyrewall_dirt", "tyrewall_dirt_d", ms_aDirtTextures_4);
+	InitialiseBlendTextureSingle("tyrewall_dirt", "tyrewall_dirt_dt", ms_aDirtTextures_4);
 	// InitialiseBlendTextureSingle((char *)"vehicle_generic_detail", (char *)"vehicle_generic_detaild", ms_aDirtTextures_5);
 }

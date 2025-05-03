@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "defines.h"
 #include "texmgr.h"
 #include <CTxdStore.h>
 #include <rwcore.h>
@@ -115,5 +116,9 @@ void TextureMgr::SetAlpha(RwTexture *texture, RwUInt8 alpha)
 
 RwTexture *TextureMgr::FindInDict(std::string name, RwTexDictionary *pDict)
 {
+    if (!pDict)
+    {
+        return nullptr;
+    }
     return RwTexDictionaryFindNamedTexture(pDict, name.c_str());
 }

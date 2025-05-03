@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "defines.h"
 #include "paintjobs.h"
 #include <plugin.h>
 #include <CPools.h>

@@ -1,8 +1,8 @@
 #include "pch.h"
+#include "defines.h"
 #include "soundeffects.h"
 #include "lights.h"
 #include "eVehicleClass.h"
-#include "util.h"
 
 std::vector<int> ValidForReverseSound;
 

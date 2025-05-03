@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "defines.h"
 #include "mgr.h"
 #include "vehicle/chain.h"
 #include "vehicle/brakes.h"
@@ -24,6 +25,7 @@
 #include "vehicle/spoiler.h"
 #include "vehicle/backfire.h"
 #include "vehicle/dirt/modelinfo.h"
+#include "meevents.h"
 
 #include <CMessages.h>
 
@@ -40,17 +42,14 @@ void FeatureMgr::Initialize()
         DataMgr::Init();
     };
 
-    static ThiscallEvent<AddressList<0x6D0E89, H_JUMP>, PRIORITY_BEFORE, ArgPickN<CVehicle *, 0>, void(CVehicle *)> vehRenderEvent;
-    static ThiscallEvent<AddressList<0x5343B2, H_CALL>, PRIORITY_AFTER, ArgPickN<CVehicle *, 0>, void(CVehicle *)> heliRenderEvent;
-
-    vehRenderEvent.before += [](CVehicle *pVeh)
+    MEEvents::vehRenderEvent.before += [](CVehicle *pVeh)
     {
         VehicleMaterials::RestoreMaterials();
         VehicleMaterials::OnRender(pVeh);
         Process(static_cast<void *>(pVeh), eModelEntityType::Vehicle);
     };
 
-    heliRenderEvent.after += [](CVehicle *pVeh)
+    MEEvents::heliRenderEvent.after += [](CVehicle *pVeh)
     {
         if (!CModelInfo::IsHeliModel(pVeh->m_nModelIndex))
         {
@@ -258,13 +257,13 @@ void FeatureMgr::Initialize()
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "HDLicensePlate", false))
     {
-        LicensePlate.Initialize();
+        LicensePlate::Initialize();
         LOG_NO_LEVEL("  HDLicensePlate");
     }
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "IVFCarcols", false))
     {
-        IVFCarcols.Initialize();
+        IVFCarcols::Initialize();
         LOG_NO_LEVEL("  IVFCarcols");
     }
 
@@ -328,7 +327,7 @@ void FeatureMgr::FindNodes(void *ptr, RwFrame *frame, eModelEntityType type)
         const std::string name = GetFrameNodeName(frame);
         for (auto e : m_FunctionTable)
         {
-            if (NODE_FOUND(name, e.first))
+            if (STR_FOUND(name, e.first))
             {
                 m_EntityTable[type][ptr].emplace_back(frame, e.first);
                 LOG_VERBOSE("Found {} in model {}", e.first, static_cast<CEntity *>(ptr)->m_nModelIndex);

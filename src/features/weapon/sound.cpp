@@ -1,9 +1,10 @@
 #include "pch.h"
+#include "defines.h"
 #include "sound.h"
 #include <plugin.h>
 #include <CAEAudioHardware.h>
 #include <CAEPedAudioEntity.h>
-#include "../audiomgr.h"
+#include "audiomgr.h"
 
 std::string *WeaponSoundSystem::FindAudio(eWeaponType weaponType, const std::string &&audioType)
 {

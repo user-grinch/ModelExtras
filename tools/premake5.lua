@@ -1,5 +1,12 @@
 PSDK_DIR = os.getenv("PLUGIN_SDK_DIR")
 
+function addIncludeDirs(root)
+    for _, dir in ipairs(os.matchdirs(root .. "/*")) do
+        includedirs { dir }
+        addIncludeDirs(dir)
+    end
+end
+
 workspace "ModelExtras"
     configurations { 
         "Debug", 
@@ -34,6 +41,8 @@ project "ModelExtras"
         "GTASA",
         "RW"
     }
+
+    addIncludeDirs( "../src/")
 
     includedirs {
         "../include/",

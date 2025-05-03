@@ -1,6 +1,5 @@
 #pragma once
 #include <plugin.h>
-#include "../../interface/ifeature.hpp"
 #include <vector>
 
 enum ePlateType
@@ -16,7 +15,7 @@ enum ePlateType
   TOTAL_SZ
 };
 
-class PlateFeature : public IFeature
+class LicensePlate
 {
 protected:
   static inline RwTexture *pCharSetTex = nullptr;
@@ -47,7 +46,5 @@ protected:
   static bool CCustomCarPlateMgr_RenderLicenseplateTextToRaster(const char *text, RwRaster *charsRaster, RwRaster *plateRaster);
 
 public:
-  void Initialize();
+  static void Initialize();
 };
-
-extern PlateFeature LicensePlate;

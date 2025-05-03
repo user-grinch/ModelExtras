@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "defines.h"
 #include "features/mgr.h"
 
 #include <extensions/ScriptCommands.h>

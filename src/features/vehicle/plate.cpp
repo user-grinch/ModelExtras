@@ -7,15 +7,14 @@
 #include <RenderWare.h>
 #include <CTheZones.h>
 #include "defines.h"
-#include "../../enums/lightoverride.h"
+#include "enums/lightoverride.h"
 #include "texmgr.h"
 
 static CVehicle *pCurrentVeh = nullptr;
-PlateFeature LicensePlate;
 extern bool IsNightTime();
 extern bool IsEngineOff(CVehicle *pVeh);
 
-void PlateFeature::Initialize()
+void LicensePlate::Initialize()
 {
     // RpMaterial *__cdecl CCustomCarPlateMgr::SetupMaterialPlatebackTexture(RpMaterial *material, char plateType)
     plugin::patch::PutRetn(0x6FDE50);
@@ -43,7 +42,7 @@ void PlateFeature::Initialize()
     };
 }
 
-void __cdecl PlateFeature::CCustomCarPlateMgr_Shudown()
+void __cdecl LicensePlate::CCustomCarPlateMgr_Shudown()
 {
     if (pCharSetTex)
     {
@@ -59,7 +58,7 @@ void __cdecl PlateFeature::CCustomCarPlateMgr_Shudown()
     }
 }
 
-bool __cdecl PlateFeature::CCustomCarPlateMgr_Initialise()
+bool __cdecl LicensePlate::CCustomCarPlateMgr_Initialise()
 {
     pCharSetTex = TextureMgr::Get("plate_char");
     RwTextureSetFilterMode(pCharSetTex, rwFILTERNEAREST);
@@ -83,11 +82,11 @@ bool __cdecl PlateFeature::CCustomCarPlateMgr_Initialise()
         RwTextureSetAddressingV(m_Plates[i], rwFILTERMIPNEAREST);
         RwTextureSetFilterMode(m_Plates[i], rwFILTERLINEAR);
     }
-    pCharsetLockedData = RwRasterLock(RwTextureGetRaster(LicensePlate.pCharSetTex), 0, rwRASTERLOCKREAD);
+    pCharsetLockedData = RwRasterLock(RwTextureGetRaster(pCharSetTex), 0, rwRASTERLOCKREAD);
     return pCharsetLockedData != 0;
 }
 
-RpMaterial *__cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTexture(RpMaterial *material, char plateType)
+RpMaterial *__cdecl LicensePlate::CCustomCarPlateMgr_SetupMaterialPlatebackTexture(RpMaterial *material, char plateType)
 {
     if (plateType == -1)
     {
@@ -126,7 +125,7 @@ RpMaterial *__cdecl PlateFeature::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
     return material;
 }
 
-bool PlateFeature::CCustomCarPlateMgr_RenderLicenseplateTextToRaster(const char *text, RwRaster *charsRaster, RwRaster *plateRaster)
+bool LicensePlate::CCustomCarPlateMgr_RenderLicenseplateTextToRaster(const char *text, RwRaster *charsRaster, RwRaster *plateRaster)
 {
     assert(text);
     assert(charsRaster);
@@ -186,7 +185,7 @@ bool PlateFeature::CCustomCarPlateMgr_RenderLicenseplateTextToRaster(const char 
     return true;
 }
 
-RwTexture *PlateFeature::CCustomCarPlateMgr_CreatePlateTexture(char *text, uint8_t plateType)
+RwTexture *LicensePlate::CCustomCarPlateMgr_CreatePlateTexture(char *text, uint8_t plateType)
 {
     assert(text);
 
