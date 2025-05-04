@@ -14,6 +14,8 @@ public:
     CVector Position;
     float coronaSize = 0.35f;
     float Angle = 0.0f;
+
+    // Mostly used for rotators
     float CurrentAngle = 0.0f;
 
     size_t DummyIdx = 0;
@@ -33,6 +35,7 @@ public:
 
     VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDummyPos type = eDummyPos::None, CRGBA color = {255, 255, 255, 128}, size_t dummyIdx = 0, bool directionalByDef = false);
 
+    // Rotators
     void ResetAngle()
     {
         if (CurrentAngle != 0.0f)

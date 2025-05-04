@@ -490,8 +490,8 @@ void Lights::Initialize()
 			}
 
 			std::string texName = "headlight_short";
-			CVector2D sz = {3.0f, 5.25f};
-			CVector2D offset = {0.0f, 5.5f};
+			CVector2D sz = {3.25f, 5.25f};
+			CVector2D offset = {0.0f, 6.0f};
 
 			bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
 			if (data.m_bLongLightsOn)
@@ -530,7 +530,7 @@ void Lights::Initialize()
 
 		bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
 		std::string shdwName = (isBike ? "taillight_bike" : "taillight");
-		CVector2D shdwOff = {0.0f, (isBike ? 0.5f : 1.0f)};
+		CVector2D shdwOff = {0.0f, (isBike ? 1.0f : 1.55f)};
 
 		CVector2D shdwSz = {1.0f, 1.5f};
 		if (isBike || CModelInfo::IsCarModel(pControlVeh->m_nModelIndex))

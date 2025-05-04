@@ -23,11 +23,17 @@ void AudioMgr::Initialize()
         {
             for (auto it = m_NeedToFree.begin(); it != m_NeedToFree.end();)
             {
+                if (!*it)
+                {
+                    continue;
+                }
+
                 int state = eAudioStreamState::Stopped;
                 plugin::Command<GET_AUDIO_STREAM_STATE>(*it, &state);
                 if (state == eAudioStreamState::Stopped || state == eAudioStreamState::Paused)
                 {
                     plugin::Command<REMOVE_AUDIO_STREAM>(*it);
+                    *it = NULL;
                     it = m_NeedToFree.erase(it);
                 }
                 else
