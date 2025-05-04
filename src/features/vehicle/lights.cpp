@@ -490,8 +490,8 @@ void Lights::Initialize()
 			}
 
 			std::string texName = "headlight_short";
-			CVector2D sz = {3.25f, 5.25f};
-			CVector2D offset = {0.0f, 6.0f};
+			CVector2D sz = {4.0f, 8.f};
+			CVector2D offset = {0.0f, 8.5f};
 
 			bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
 			if (data.m_bLongLightsOn)
