@@ -8,9 +8,9 @@
 #define MOD_DATA_PATH_S(x) PLUGIN_PATH((char *)("ModelExtras/" + x).c_str())
 
 #define MOD_NAME "ModelExtras"
-#define MOD_VERSION "1.6"
-#define MOD_VERSION_NUMBER 10600
-#define MOD_TITLE MOD_NAME " v" MOD_VERSION "-beta"
+#define MOD_VERSION "2.0"
+#define MOD_VERSION_NUMBER 20000
+#define MOD_TITLE MOD_NAME " v" MOD_VERSION "-rc1"
 #define DISCORD_INVITE "https://discord.gg/AduJVdyqCD"
 #define GITHUB_LINK "https://github.com/user-grinch/ModelExtras"
 #define PATREON_LINK "https://www.patreon.com/grinch_"
