@@ -48,12 +48,17 @@ void DataMgr::Parse()
     {
         for (const auto &e : std::filesystem::recursive_directory_iterator(path))
         {
-            // Skip folders starting with '.'
-            if (e.is_directory())
+            // Skipping directories or links here
+            if (!e.is_regular_file() || e.is_directory())
             {
-                std::string folderName = e.path().filename().string();
-                if (!folderName.empty() && folderName[0] == '.')
-                    continue;
+                continue;
+            }
+
+            // Ignore folders with '.' int their names .data / .profile etc
+            std::string parentPath = e.path().parent_path().string();
+            if (STR_FOUND(parentPath, '.'))
+            {
+                continue;
             }
 
             if (e.is_regular_file() && e.path().extension() == ".jsonc")
