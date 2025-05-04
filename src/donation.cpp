@@ -12,6 +12,9 @@ const char *const LONG_MESSAGE =
     "If you find this mod valuable and would like to support its ongoing development, "
     "please consider making a donation to help keep the improvements coming.";
 
+const char *const WARN_MESSAGE =
+    "This is NOT a replacement for ImVehFt. Most models should work, but compatibility is not guaranteed.";
+
 void ShowDonationWindow()
 {
     const char CLASS_NAME[] = "ModelExtrasWindow";
@@ -30,7 +33,7 @@ void ShowDonationWindow()
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
     int windowWidth = 450;
-    int windowHeight = 500;
+    int windowHeight = 600;
     int xPos = (screenWidth - windowWidth) / 2;
     int yPos = (screenHeight - windowHeight) / 2;
 
@@ -107,12 +110,14 @@ void CreateControls(HWND hWnd)
     HFONT hFont = CreateFont(24, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                              CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Segoe UI"); // Changed to a more modern font
     HWND hLongText = CreateWindowEx(0, "STATIC", LONG_MESSAGE, WS_CHILD | WS_VISIBLE | SS_LEFT, 20, 220, 400, 200, hWnd, NULL, NULL, NULL);
-    HWND hDiscordButton = CreateWindowEx(0, "BUTTON", "Discord", WS_CHILD | WS_VISIBLE | BS_FLAT, 25, 400, 100, 30, hWnd, (HMENU)1, NULL, NULL);
-    HWND hDonationButton = CreateWindowEx(0, "BUTTON", "Donate", WS_CHILD | WS_VISIBLE | BS_FLAT, 170, 400, 100, 30, hWnd, (HMENU)2, NULL, NULL);
-    HWND hGitHubButton = CreateWindowEx(0, "BUTTON", "GitHub", WS_CHILD | WS_VISIBLE | BS_FLAT, 320, 400, 100, 30, hWnd, (HMENU)3, NULL, NULL);
+    HWND hWarnText = CreateWindowEx(0, "STATIC", WARN_MESSAGE, WS_CHILD | WS_VISIBLE | SS_LEFT, 20, 400, 400, 200, hWnd, NULL, NULL, NULL);
+    HWND hDiscordButton = CreateWindowEx(0, "BUTTON", "Discord", WS_CHILD | WS_VISIBLE | BS_FLAT, 25, 500, 100, 30, hWnd, (HMENU)1, NULL, NULL);
+    HWND hDonationButton = CreateWindowEx(0, "BUTTON", "Donate", WS_CHILD | WS_VISIBLE | BS_FLAT, 170, 500, 100, 30, hWnd, (HMENU)2, NULL, NULL);
+    HWND hGitHubButton = CreateWindowEx(0, "BUTTON", "GitHub", WS_CHILD | WS_VISIBLE | BS_FLAT, 320, 500, 100, 30, hWnd, (HMENU)3, NULL, NULL);
 
     SendMessage(hImage, STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)hBitmap);
     SendMessage(hLongText, WM_SETFONT, (WPARAM)hFont, TRUE);
+    SendMessage(hWarnText, WM_SETFONT, (WPARAM)hFont, TRUE);
     SendMessage(hDiscordButton, WM_SETFONT, (WPARAM)hFont, TRUE);
     SendMessage(hDonationButton, WM_SETFONT, (WPARAM)hFont, TRUE);
     SendMessage(hGitHubButton, WM_SETFONT, (WPARAM)hFont, TRUE);
