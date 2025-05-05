@@ -14,6 +14,11 @@
 
 void AudioMgr::Initialize()
 {
+    plugin::Events::reInitGameEvent += []
+    {
+        m_NeedToFree.clear();
+    };
+
     plugin::Events::processScriptsEvent += []
     {
         static size_t prev = 0;
