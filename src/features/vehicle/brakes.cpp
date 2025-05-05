@@ -5,6 +5,10 @@
 void FrontBrake::Initialize(RwFrame *pFrame, CEntity *ptr)
 {
     CVehicle *pVeh = static_cast<CVehicle *>(ptr);
+    if (!pVeh || !pVeh->GetIsOnScreen())
+    {
+        return;
+    }
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(pFrame);
     data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
@@ -23,6 +27,10 @@ void FrontBrake::Initialize(RwFrame *pFrame, CEntity *ptr)
 void RearBrake::Initialize(RwFrame *pFrame, CEntity *ptr)
 {
     CVehicle *pVeh = static_cast<CVehicle *>(ptr);
+    if (!pVeh || !pVeh->GetIsOnScreen())
+    {
+        return;
+    }
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(pFrame);
     data.m_nMaxRotation = std::stoi(Util::GetRegexVal(name, ".*_(-?[0-9]+).*", "0"));
@@ -41,6 +49,10 @@ void RearBrake::Initialize(RwFrame *pFrame, CEntity *ptr)
 void FrontBrake::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 {
     CVehicle *pVeh = static_cast<CVehicle *>(ptr);
+    if (!pVeh || !pVeh->GetIsOnScreen())
+    {
+        return;
+    }
     VehData &data = vehData.Get(pVeh);
 
     if (!data.m_bInitialized)
@@ -96,6 +108,10 @@ void FrontBrake::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 void RearBrake::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 {
     CVehicle *pVeh = static_cast<CVehicle *>(ptr);
+    if (!pVeh || !pVeh->GetIsOnScreen())
+    {
+        return;
+    }
     VehData &data = vehData.Get(pVeh);
 
     if (!data.m_bInitialized)

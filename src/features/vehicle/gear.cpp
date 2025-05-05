@@ -1,12 +1,15 @@
 #include "pch.h"
 #include "Gear.h"
-#include "bass.h"
 #include "datamgr.h"
 #include <extensions/ScriptCommands.h>
 
 void Clutch::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 {
     CVehicle *pVeh = static_cast<CVehicle *>(ptr);
+    if (!pVeh || !pVeh->GetIsOnScreen())
+    {
+        return;
+    }
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
 
@@ -90,6 +93,10 @@ void Clutch::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 void GearLever::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 {
     CVehicle *pVeh = static_cast<CVehicle *>(ptr);
+    if (!pVeh || !pVeh->GetIsOnScreen())
+    {
+        return;
+    }
     VehData &data = vehData.Get(pVeh);
     std::string name = GetFrameNodeName(frame);
 

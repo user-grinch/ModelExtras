@@ -21,6 +21,10 @@ void SpotLights::Initialize()
 
 	Events::vehicleRenderEvent += [](CVehicle *pVeh)
 	{
+		if (!pVeh || !pVeh->GetIsOnScreen())
+		{
+			return;
+		}
 		OnVehicleRender(pVeh);
 	};
 
