@@ -13,8 +13,23 @@ void Spoiler::Initialize()
         
         VehData &data = xData.Get(pVeh);
         SpoilerData spoilerData;
-        spoilerData.m_fRotation = std::stof(Util::GetRegexVal(name, "_(.*?)_", "30.0"));
-        spoilerData.m_nTime = std::stof(Util::GetRegexVal(name, "_([^_]*)$", "3000"));
+        auto first = name.find('_');
+        auto second = name.find('_', first + 1);
+        if (first != std::string::npos && second != std::string::npos && second > first + 1) {
+            spoilerData.m_fRotation = std::stof(name.substr(first + 1, second - first - 1));
+        }
+        else {
+            spoilerData.m_fRotation = 30.0f;
+        }
+
+        auto last = name.rfind('_');
+        if (last != std::string::npos && last + 1 < name.size()) {
+            spoilerData.m_nTime = std::stof(name.substr(last + 1));
+        }
+        else {
+            spoilerData.m_nTime = 3000.0f;
+        }
+
         spoilerData.m_pFrame = pFrame;
 
         auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);

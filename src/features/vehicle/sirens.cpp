@@ -1,5 +1,4 @@
 #include "pch.h"
-#include <regex>
 #include "sirens.h"
 #include <common.h>
 #include <CShadows.h>
@@ -9,6 +8,7 @@
 #include "defines.h"
 #include "lights.h"
 #include "audiomgr.h"
+#include "util.h"
 
 bool VehicleSiren::GetSirenState()
 {
@@ -561,19 +561,20 @@ void Sirens::Initialize()
 
 	VehicleMaterials::RegisterDummy([](CVehicle *vehicle, RwFrame *frame, std::string name, bool parent)
 									{
-		if (!modelData.contains(vehicle->m_nModelIndex))
+		if (!modelData.contains(vehicle->m_nModelIndex)) {
 			return;
+		}
 
 		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-
-		if (!vehicleData.contains(index))
+		if (!vehicleData.contains(index)) {
 			vehicleData[index] = new VehicleSiren(vehicle);
+		}
 
-		std::regex pattern(R"(^(siren_|siren|light_em)(\d+))");
-		std::smatch match;
+		int id = Util::GetDigitsAfter(name, "siren_").value_or(-1);
+		id = Util::GetDigitsAfter(name, "siren").value_or(id);
+		id = Util::GetDigitsAfter(name, "light_em").value_or(id);
 
-		if (std::regex_search(name, match, pattern)) {
-			int id = std::stoi(match[2]);
+		if (id != -1) {
 			vehicleData[index]->Dummies[id].push_back(new VehicleDummy(vehicle, frame, name, eDummyPos::None));
 		} });
 

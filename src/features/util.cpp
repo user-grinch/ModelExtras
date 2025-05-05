@@ -494,3 +494,27 @@ void Util::GetModelsFromIni(std::string &line, std::vector<int> &vec)
         vec.push_back(std::stoi(model));
     }
 }
+
+std::optional<int> Util::GetDigitsAfter(const std::string &str, const std::string &prefix)
+{
+    if (str.rfind(prefix, 0) == 0)
+    {
+        std::string digitsPart = str.substr(prefix.size());
+        if (!digitsPart.empty() && std::all_of(digitsPart.begin(), digitsPart.end(), ::isdigit))
+        {
+            return std::stoi(digitsPart);
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> Util::GetCharsAfterPrefix(const std::string &str, const std::string &prefix, size_t num_chars)
+{
+    if (str.size() > prefix.size() && str.substr(0, prefix.size()) == prefix)
+    {
+        std::string suffix = str.substr(prefix.size(), num_chars);
+        std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::toupper);
+        return suffix;
+    }
+    return std::nullopt;
+}

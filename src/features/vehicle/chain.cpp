@@ -19,6 +19,10 @@ void ChainFeature::Initialize()
 
     VehicleMaterials::RegisterRender([](CVehicle *pVeh)
                                      {
+    if (!pVeh || !pVeh->GetIsOnScreen())
+    {
+        return;
+    }
     VehData &data = vehData.Get(pVeh);
     if (data.m_FrameList.empty())
     {

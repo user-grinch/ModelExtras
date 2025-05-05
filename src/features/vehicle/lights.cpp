@@ -12,7 +12,6 @@
 #include <CWeather.h>
 #include <CCoronas.h>
 #include "../../enums/vehdummy.h"
-#include <regex>
 
 // flags
 bool gbGlobalIndicatorLights = false;
@@ -236,49 +235,46 @@ void Lights::Initialize()
 		eLightState state = eLightState::None;
 		RwRGBA col{255, 255, 255, GetCoronaAlphaForDayTime()};
 		eDummyPos dummyPos = eDummyPos::None;
-		std::smatch match;
-		size_t dummyIdx = 0;
+		int32_t dummyIdx = 0;
 		bool directioanlByDef = false;
-		if (std::regex_search(name, std::regex("^fogl(ight)?_([lr]).*$")))
+		if (name.starts_with("fogl") && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r")))
 		{
 			state = eLightState::FogLight;
 			dummyPos = eDummyPos::Front;
 			directioanlByDef = true;
 		}
-		else if (std::regex_search(name, std::regex(R"(^rev.*\s*_[lr].*$)")))
+		else if (name.starts_with("rev") && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r")))
 		{
 			state = eLightState::Reverselight;
 			dummyPos = eDummyPos::Rear;
 			directioanlByDef = true;
 		}
-		else if (std::regex_search(name, std::regex(R"(^breakl.*\s*_[lr].*$)")))
+		else if (name.starts_with("breakl") && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r")))
 		{
 			state = eLightState::Brakelight;
 			dummyPos = eDummyPos::Rear;
 			col = {240, 0, 0, GetCoronaAlphaForDayTime()};
 			directioanlByDef = true;
 		}
-		else if (std::regex_search(name, std::regex("^light_day")))
+		else if (name.starts_with("light_day"))
 		{
 			state = eLightState::Daylight;
 			dummyPos = eDummyPos::Front;
 		}
-		else if (std::regex_search(name, std::regex("^light_nigh")))
+		else if (name.starts_with("light_nigh"))
 		{
 			state = eLightState::Nightlight;
 			dummyPos = eDummyPos::Front;
 		}
-		else if (std::regex_search(name, match, std::regex(R"(^strobe_light(\d*)?)")))
+		else if (auto d = Util::GetDigitsAfter(name, "strobe_light"))
 		{
-			if (match.str(1).size() != 0) {
-				dummyIdx = match.str(1)[0] - '0';
-			}
+			dummyIdx = d.value();
 			dummyPos = eDummyPos::Front;
 			state = eLightState::StrobeLight;
 		}
-		else if (std::regex_search(name, match, std::regex("^sidelight?_([lr]).*$")))
+		else if (auto d = Util::GetCharsAfterPrefix(name, "sidelight_", 1))
 		{
-			if (toupper(match.str(1)[0]) == 'L')
+			if (d.value() == "L")
 			{
 				state = eLightState::SideLightLeft;
 				dummyPos = eDummyPos::Left;
@@ -289,9 +285,9 @@ void Lights::Initialize()
 				dummyPos = eDummyPos::Right;
 			}
 		}
-		else if (std::regex_search(name, match, std::regex("^sttlight?_([lr]).*$")))
+		else if (auto d = Util::GetCharsAfterPrefix(name, "sttlight_", 1))
 		{
-			if (toupper(match.str(1)[0]) == 'L')
+			if (d.value() == "L")
 			{
 				state = eLightState::STTLightLeft;
 				dummyPos = eDummyPos::RearLeft;
@@ -304,9 +300,9 @@ void Lights::Initialize()
 			directioanlByDef = true;
 			col = {240, 0, 0, GetCoronaAlphaForDayTime()};
 		}
-		else if (std::regex_search(name, match, std::regex("^nabrakelight?_([lr]).*$")))
+		else if (auto d = Util::GetCharsAfterPrefix(name, "nabrakelight_", 1))
 		{
-			if (toupper(match.str(1)[0]) == 'L')
+			if (d.value() == "L")
 			{
 				state = eLightState::NABrakeLightLeft;
 				dummyPos = eDummyPos::RearLeft;
@@ -319,16 +315,16 @@ void Lights::Initialize()
 			directioanlByDef = true;
 			col = {240, 0, 0, GetCoronaAlphaForDayTime()};
 		}
-		else if (std::regex_search(name, match, std::regex("^spotlight_light.*$")))
+		else if (name.starts_with("spotlight_light"))
 		{
 			state = eLightState::SpotLight;
 		}
-		else if (std::regex_search(name, std::regex("^light_allday")))
+		else if (name.starts_with("light_allday"))
 		{
 			state = eLightState::AllDayLight;
 			dummyPos = eDummyPos::Front;
 		}
-		else if (std::regex_search(name, std::regex("taillights.*$")))
+		else if (name.starts_with("taillights"))
 		{
 			col = {250, 0, 0, GetCoronaAlphaForDayTime()};
 			state = eLightState::TailLight;
@@ -338,7 +334,7 @@ void Lights::Initialize()
 			pDummy->mirroredX = true;
 			m_Dummies[pVeh][state].push_back(pDummy);
 		}
-		else if (std::regex_search(name, std::regex("headlights.*$")))
+		else if (name.starts_with("headlights"))
 		{
 			col = {250, 250, 250, GetCoronaAlphaForDayTime()};
 			state = eLightState::HeadLightLeft;
@@ -349,25 +345,30 @@ void Lights::Initialize()
 			m_Dummies[pVeh][state].push_back(pDummy);
 			state = eLightState::HeadLightRight;
 		}
-		else if (std::regex_search(name, match, std::regex("^(turnl_|indicator_)(.{2})")))
+		else if (name.starts_with("turnl_") || name.starts_with("indicator_"))
 		{
-			std::string stateStr = match.str(2);
-			state = (toupper(stateStr[0]) == 'L') ? eLightState::IndicatorLeft : eLightState::IndicatorRight;
-			col = {255, 128, 0, GetCoronaAlphaForDayTime()};
+			auto d = Util::GetCharsAfterPrefix(name, "turnl_", 2);
+			if (!d) {
+				d = Util::GetCharsAfterPrefix(name, "indicator_", 2);
+			}
 
-			if (toupper(stateStr[1]) == 'F')
-			{
-				dummyPos = state == eLightState::IndicatorRight ? eDummyPos::FrontRight : eDummyPos::FrontLeft;
+			if (d) {
+				state = (d.value()[0] == 'L') ? eLightState::IndicatorLeft : eLightState::IndicatorRight;
+				col = {255, 128, 0, GetCoronaAlphaForDayTime()};
+
+				switch (d.value()[1]) {
+					case 'F':
+						dummyPos = (state == eLightState::IndicatorRight) ? eDummyPos::FrontRight : eDummyPos::FrontLeft;
+						break;
+					case 'R':
+						dummyPos = (state == eLightState::IndicatorRight) ? eDummyPos::RearRight : eDummyPos::RearLeft;
+						break;
+					case 'M':
+						dummyPos = (state == eLightState::IndicatorRight) ? eDummyPos::Right : eDummyPos::Left;
+						break;
+				}
+				directioanlByDef = true;
 			}
-			else if (toupper(stateStr[1]) == 'R')
-			{
-				dummyPos = state == eLightState::IndicatorRight ? eDummyPos::RearRight : eDummyPos::RearLeft;
-			}
-			else if (toupper(stateStr[1]) == 'M')
-			{
-				dummyPos = state == eLightState::IndicatorRight ? eDummyPos::Right : eDummyPos::Left;
-			}
-			directioanlByDef = true;
 		}
 		else
 		{
