@@ -333,9 +333,9 @@ void Lights::Initialize()
 			col = {250, 0, 0, GetCoronaAlphaForDayTime()};
 			state = eLightState::TailLight;
 			dummyPos = eDummyPos::Rear;
+			directioanlByDef = true;
 			VehicleDummy *pDummy = new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx, directioanlByDef);
 			pDummy->mirroredX = true;
-			directioanlByDef = true;
 			m_Dummies[pVeh][state].push_back(pDummy);
 		}
 		else if (std::regex_search(name, std::regex("headlights.*$")))
@@ -343,9 +343,9 @@ void Lights::Initialize()
 			col = {250, 250, 250, GetCoronaAlphaForDayTime()};
 			state = eLightState::HeadLightLeft;
 			dummyPos = eDummyPos::Front;
+			directioanlByDef = true;
 			VehicleDummy *pDummy = new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx, directioanlByDef);
 			pDummy->mirroredX = true;
-			directioanlByDef = true;
 			m_Dummies[pVeh][state].push_back(pDummy);
 			state = eLightState::HeadLightRight;
 		}

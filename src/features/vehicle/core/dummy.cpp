@@ -23,6 +23,11 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
     DummyIdx = dummyIdx;
     float angleVal = 0.0f;
 
+    if (directionalByDef)
+    {
+        LightType = eLightType::Directional;
+    }
+
     // Calculate the angle based on the frame's orientation
     // Leave indicators out since they cause issues
     if (!name.starts_with("indicator") && !name.starts_with("turnl"))
@@ -128,13 +133,6 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
             else
             {
                 gLogger->warn("Model {} has issue with node `{}`: invalid shadow size", pVeh->m_nModelIndex, name);
-            }
-        }
-        else
-        {
-            if (directionalByDef)
-            {
-                LightType = eLightType::Directional;
             }
         }
     }
