@@ -25,4 +25,5 @@ namespace MEEvents
                                         plugin::PRIORITY_BEFORE, plugin::ArgPick2N<CPed *, 0, int, 1>, void(CPed *, int)>
         weaponRemoveEvent;
     static inline plugin::CdeclEvent<plugin::AddressList<0x5E7859, plugin::H_CALL>, plugin::PRIORITY_BEFORE, plugin::ArgPickN<CPed *, 0>, void(CPed *)> weaponRenderEvent;
+    static inline plugin::ThiscallEvent<plugin::AddressList<0x5E6192, plugin::H_CALL>, plugin::PRIORITY_BEFORE, plugin::ArgPick4N<CWeapon *, 0, int, 1, int, 2, CPed *, 3>, void(CWeapon *, int, int, CPed *)> weaponInitEvent;
 }

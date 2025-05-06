@@ -108,6 +108,22 @@ void Remap::Initialize()
             }
         }
     };
+
+    MEEvents::weaponInitEvent.before += [](CWeapon *pWeapon, int type, int ammo, CPed *owner)
+    {
+        if (pWeapon)
+        {
+            if (m_pRandom.contains(pWeapon))
+            {
+                m_pRandom.erase(m_pRandom.find(pWeapon));
+            }
+
+            if (m_pBloodState.contains(pWeapon))
+            {
+                m_pBloodState.erase(m_pBloodState.find(pWeapon));
+            }
+        }
+    };
 }
 
 void Remap::AfterRender(void *ptr, eModelEntityType type)
@@ -121,14 +137,17 @@ void Remap::AfterRender(void *ptr, eModelEntityType type)
 
 bool Remap::GetKilledState(CWeapon *pWeapon)
 {
+    if (!pWeapon)
+    {
+        return false;
+    }
+
     if (m_pBloodState[pWeapon])
     {
         return true;
     }
 
-    bool state = false;
     static CPed *lastKilled = nullptr;
-
     auto player = FindPlayerPed();
     if (player && player->m_aWeapons[player->m_nActiveWeaponSlot].m_eWeaponType == pWeapon->m_eWeaponType)
     {
@@ -139,12 +158,11 @@ bool Remap::GetKilledState(CWeapon *pWeapon)
         }
         if (pPed && pPed->m_nType == ENTITY_TYPE_PED && !pPed->IsAlive() && pPed != lastKilled)
         {
-            state = true;
             m_pBloodState[pWeapon] = true;
             lastKilled = pPed;
         }
     }
-    return state;
+    return m_pBloodState[pWeapon];
 }
 
 void Remap::BeforeRender(void *ptr, eModelEntityType type)
