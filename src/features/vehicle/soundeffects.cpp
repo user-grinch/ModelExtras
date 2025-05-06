@@ -43,15 +43,24 @@ void SoundEffects::Initialize()
                 {
                     static std::string carPath = MOD_DATA_PATH("audio/effects/engine_start.wav");
                     static std::string bikePath = MOD_DATA_PATH("audio/effects/bike_engine_start.wav");
+                    static StreamHandle carSound, bikeSound;
                     if (pVeh->m_nVehicleFlags.bEngineOn)
                     {
                         if (CModelInfo::IsCarModel(model))
                         {
-                            AudioMgr::LoadAndPlay(&carPath, pVeh, 0.5f);
+                            if (carSound == NULL)
+                            {
+                                carSound = AudioMgr::Load(&carPath);
+                            }
+                            AudioMgr::PlayOnVehicle(carSound, pVeh);
                         }
                         else
                         {
-                            AudioMgr::LoadAndPlay(&bikePath, pVeh, 0.5f);
+                            if (bikeSound == NULL)
+                            {
+                                bikeSound = AudioMgr::Load(&bikePath);
+                            }
+                            AudioMgr::PlayOnVehicle(bikeSound, pVeh);
                         }
                     }
                     data.m_bEngineState = pVeh->m_nVehicleFlags.bEngineOn;
@@ -74,7 +83,7 @@ void SoundEffects::Initialize()
                     {
                         hOff = AudioMgr::Load(&offpath);
                     }
-                    AudioMgr::Play(state ? hOn : hOff, pVeh, 0.5f);
+                    AudioMgr::PlayOnVehicle(state ? hOn : hOff, pVeh, 0.6f);
                     data.m_bIndicatorState = state;
                 }
             }

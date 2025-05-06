@@ -48,21 +48,21 @@ void DataMgr::Parse()
     {
         for (const auto &e : std::filesystem::recursive_directory_iterator(path))
         {
-            // Skipping directories or links here
-            if (!e.is_regular_file() || e.is_directory())
+            try
             {
-                continue;
-            }
+                // Skipping directories or links here
+                if (!e.is_regular_file() || e.is_directory() || e.path().extension() != ".jsonc")
+                {
+                    continue;
+                }
 
-            // Ignore folders with '.' int their names .data / .profile etc
-            std::string parentPath = e.path().parent_path().string();
-            if (STR_FOUND(parentPath, '.'))
-            {
-                continue;
-            }
+                // Ignore folders with '.' int their names .data / .profile etc
+                std::string parentPath = e.path().parent_path().string();
+                if (STR_FOUND(parentPath, '.'))
+                {
+                    continue;
+                }
 
-            if (e.is_regular_file() && e.path().extension() == ".jsonc")
-            {
                 std::string filename = e.path().filename().string();
                 std::string key = e.path().stem().string();
                 int model = 0;
@@ -115,6 +115,12 @@ void DataMgr::Parse()
                     gLogger->error("Failed to parse JSONC in file '{}': {}", e.path().string(), ex.what());
                 }
             }
+            catch (const std::exception &ex)
+            {
+                std::u8string u8Path = e.path().u8string();
+                std::string path(reinterpret_cast<const char *>(u8Path.data()), u8Path.size());
+                gLogger->error("Parsing {} failed. ({})", path, ex.what());
+            }
         }
     };
 
@@ -128,7 +134,8 @@ void DataMgr::Parse()
     }
 }
 
-nlohmann::json &DataMgr::Get(int model)
+nlohmann::json &
+DataMgr::Get(int model)
 {
     return data[model];
 }

@@ -39,7 +39,7 @@ project "ModelExtras"
         "_CRT_NON_CONFORMING_SWPRINTFS",
         "PLUGIN_SGV_10US",
         "GTASA",
-        "RW"
+        "RW",
     }
 
     addIncludeDirs( "../src/")
