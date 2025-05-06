@@ -12,27 +12,26 @@ void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType t
         CTxdStore::SetCurrentTxd(pModelInfo->m_nTxdIndex);
         RwTexDictionaryForAllTextures(RwTexDictionaryGetCurrent(), [](RwTexture *pTex, void *pData)
                                       { 
-            std::string name = pTex->name;
-            std::size_t remapFound = name.find("_remap");
-            bool bloodFound = name.ends_with("_b");
             int model = *(int*)pData;
-
-            if (remapFound != std::string::npos && !bloodFound)
+            std::string name = pTex->name;
+            std::size_t remapPos = name.find("_remap");
+            std::size_t bloodPos = name.find("_bld");
+            std::string orgName = name.substr(0, std::min(std::min(remapPos, bloodPos), name.size()));
+            
+            // remap but not blood one
+            if (remapPos != std::string::npos && bloodPos == std::string::npos)
             {
-                std::string ogName = name.substr(0, remapFound);
-                std::string blood = name + "_b";
                 RemapData &data = xRemaps.Get(model);
+                std::string bloodName = name + "_bld";
+                RwTexture *pBloodTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), bloodName.c_str());
+                data.m_pTextures[orgName].push_back({pTex, pBloodTex});
+            }
 
-                // push og too
-                if (data.m_pTextures[ogName].empty()) {
-                    std::string ogBlood = ogName + "_b";
-                    RwTexture *ogTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), ogName.c_str());
-                    RwTexture *ogBloodTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), ogBlood.c_str());
-                    data.m_pTextures[ogName].push_back({ogTex, ogBloodTex});
-                }
-
-                RwTexture *pBloodTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), blood.c_str());
-                data.m_pTextures[ogName].push_back({pTex, pBloodTex});
+            // edge case: original blood one
+            if (remapPos == std::string::npos && bloodPos != std::string::npos) {
+                RemapData &data = xRemaps.Get(model);
+                RwTexture *orgTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), orgName.c_str());
+                data.m_pTextures[orgName].push_back({orgTex, pTex});
             }
 										return pTex; }, &model);
         CTxdStore::PopCurrentTxd();
