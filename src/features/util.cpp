@@ -499,10 +499,20 @@ std::optional<int> Util::GetDigitsAfter(const std::string &str, const std::strin
 {
     if (str.rfind(prefix, 0) == 0)
     {
-        std::string digitsPart = str.substr(prefix.size());
-        if (!digitsPart.empty() && std::all_of(digitsPart.begin(), digitsPart.end(), ::isdigit))
+        std::string numberPart = str.substr(prefix.size());
+        if (!numberPart.empty() &&
+            std::all_of(numberPart.begin(), numberPart.end(), [](char c)
+                        { return std::isdigit(c) || c == '.'; }) &&
+            std::count(numberPart.begin(), numberPart.end(), '.') <= 1)
         {
-            return std::stoi(digitsPart);
+            try
+            {
+                return std::stoi(numberPart);
+            }
+            catch (...)
+            {
+                return std::nullopt;
+            }
         }
     }
     return std::nullopt;

@@ -491,8 +491,8 @@ void Lights::Initialize()
 			}
 
 			std::string texName = "headlight_short";
-			CVector2D sz = {4.0f, 8.f};
-			CVector2D offset = {0.0f, 8.5f};
+			CVector2D sz = {4.0f, 8.0f};
+			CVector2D offset = {0.0f, 8.0f};
 
 			bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
 			if (data.m_bLongLightsOn)
@@ -502,12 +502,12 @@ void Lights::Initialize()
 
 			if (leftOk)
 			{
-				RenderLights(pControlVeh, pTowedVeh, eLightState::HeadLightLeft, true, texName, sz, offset, isFoggy);
+				RenderLights(pControlVeh, pTowedVeh, eLightState::HeadLightLeft, true, texName, sz, offset, isFoggy || data.m_bLongLightsOn);
 			}
 
 			if (rightOk)
 			{
-				RenderLights(pControlVeh, pTowedVeh, eLightState::HeadLightRight, true, texName, sz, offset, isFoggy);
+				RenderLights(pControlVeh, pTowedVeh, eLightState::HeadLightRight, true, texName, sz, offset, isFoggy || data.m_bLongLightsOn);
 			}
 		}
 
@@ -844,23 +844,29 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMu
 			Util::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->Angle + (dummy->LightType == eLightType::Inversed ? 180.0f : 0.0f), 180.0f, dummy->coronaSize * szMul);
 		}
 	}
-};
+}
 
 void Lights::EnableMaterial(VehicleMaterial *material, float mul)
 {
-	if (material && material->Material)
+	if (!material || !material->Material || !material->Material->texture || !material->TextureActive)
 	{
-		if (material->Material->surfaceProps.ambient >= AMBIENT_ON_VAL && material->Material->texture == material->TextureActive)
-		{
-			return; // skip if enabled already
-		}
-
-		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int *>(&material->Material->surfaceProps.ambient)));
-		material->Material->surfaceProps.ambient = AMBIENT_ON_VAL * mul;
-		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->texture), *reinterpret_cast<unsigned int *>(&material->Material->texture)));
-		material->Material->texture = material->TextureActive;
+		return;
 	}
-};
+
+	auto *mat = material->Material;
+	if (mat->surfaceProps.ambient >= AMBIENT_ON_VAL && mat->texture == material->TextureActive)
+	{
+		return; // Already enabled
+	}
+
+	auto *ambientPtr = reinterpret_cast<unsigned int *>(&mat->surfaceProps.ambient);
+	VehicleMaterials::StoreMaterial({ambientPtr, *ambientPtr});
+	mat->surfaceProps.ambient = AMBIENT_ON_VAL * mul;
+
+	auto *texturePtr = reinterpret_cast<unsigned int *>(&mat->texture);
+	VehicleMaterials::StoreMaterial({texturePtr, *texturePtr});
+	mat->texture = material->TextureActive;
+}
 
 bool Lights::IsDummyAvail(CVehicle *pVeh, eLightState state)
 {
