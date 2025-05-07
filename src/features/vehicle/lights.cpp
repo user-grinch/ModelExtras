@@ -395,7 +395,7 @@ void Lights::Initialize()
 		}
 
 		CVehicle *pVeh = FindPlayerVehicle(-1, false);
-		if (pVeh && pVeh->m_nOverrideLights != eLightOverride::ForceLightsOff)
+		if (pVeh && pVeh->m_nOverrideLights != eLightOverride::ForceLightsOff && !IsEngineOff(pVeh))
 		{
 			static size_t prev = 0;
 			static uint32_t fogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", VK_J);
