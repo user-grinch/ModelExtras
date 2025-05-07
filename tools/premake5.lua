@@ -78,7 +78,8 @@ project "ModelExtras"
         }
 
     filter "configurations:Release"
-        optimize "On"
+        optimize "Speed"
+        symbols "On"
         links { 
             "plugin.lib",
         }

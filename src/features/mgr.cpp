@@ -44,6 +44,14 @@ void FeatureMgr::Initialize()
 
     MEEvents::vehRenderEvent.before += [](CVehicle *pVeh)
     {
+        static bool spInstalled = GetModuleHandle("SilentPatchSA.asi");
+        if (!spInstalled)
+        {
+            static std::string text = "ModelExtras requires SilentPatchSA installed!";
+            CMessages::AddMessageWithString((char *)text.c_str(), 5000, false, NULL, true);
+            gLogger->warn(text);
+        }
+
         VehicleMaterials::RestoreMaterials();
         VehicleMaterials::OnRender(pVeh);
         Process(static_cast<void *>(pVeh), eModelEntityType::Vehicle);
