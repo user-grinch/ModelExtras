@@ -263,8 +263,15 @@ void FeatureMgr::Initialize()
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "IVFCarcols", false))
     {
-        IVFCarcols::Initialize();
-        LOG_NO_LEVEL("  IVFCarcols");
+        if (GetModuleHandle("SAMP.dll") || GetModuleHandle("SAMP.asi"))
+        {
+            LOG_NO_LEVEL("  IVFCarcols: SAMP detected, feature disabled. ")
+        }
+        else
+        {
+            IVFCarcols::Initialize();
+            LOG_NO_LEVEL("  IVFCarcols");
+        }
     }
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "RotatingSteeringWheel", false))
