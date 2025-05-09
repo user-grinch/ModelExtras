@@ -68,41 +68,41 @@ void Util::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float ang
     {
         return;
     }
+
+    float fAngle = pVeh->GetHeading() + (DegToRad(angle + currentAngle + 180.0f));
     CVector vehPos = pVeh->GetPosition();
-    CVector center = pVeh->TransformFromObjectSpace(
-        CVector(
-            position.x + (shdwOffset.x * cos((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-            position.y + ((0.5f + shdwOffset.y) * sin((90.0f - angle + currentAngle) * 3.14f / 180.0f)),
-            position.z));
-
-    // center.z = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z + 100, nullptr, nullptr);
-
-    // if (CModelInfo::IsHeliModel(pVeh->m_nModelIndex))
-    // {
-    //     center.z += 3.0f; //  Fix shadows going under rooftops
-    // }
-    // else
-    // {
-    //     center.z += 0.5f;
-    // }
-    if (abs(vehPos.z - center.z) > 15.0f)
-    {
-        return;
-    }
-
-    float fAngle = pVeh->GetHeading() + (((angle + currentAngle) + 180.0f) * 3.14f / 180.0f);
 
     CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
     CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
     up *= shdwSz.y;
     right *= shdwSz.x;
 
+    CVector center = pVeh->TransformFromObjectSpace(
+        CVector(
+            position.x + (shdwOffset.x + shdwSz.x * cos(DegToRad(90.0f - angle + currentAngle))),
+            position.y + (shdwOffset.y + shdwSz.y * sin(DegToRad(90.0f - angle + currentAngle))),
+            position.z));
+
+    center.z = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z + 100, nullptr, nullptr) + 1.0f;
+
+    // Fix issues like under bridges
+    if (abs(center.z - vehPos.z) > 3.0f)
+    {
+        center.z = vehPos.z + position.z + 1.0f;
+    }
+
+    // Fix heli drawing shadow from sky
+    if (abs(vehPos.z - center.z) > 15.0f)
+    {
+        return;
+    }
+
     CShadows::StoreShadowToBeRendered(2, (pTexture != NULL ? pTexture : TextureMgr::Get(shadwTexName, 30)), &center,
                                       up.x, up.y,
                                       right.x, right.y,
                                       col.a, col.r, col.g, col.b,
                                       10.0f, false, 1.0f, 0, true);
-};
+}
 
 float Util::GetVehicleSpeed(CVehicle *pVeh)
 {

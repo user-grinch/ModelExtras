@@ -26,6 +26,7 @@ A full list of features can be found in the [Wiki](https://github.com/user-grinc
 - Plugin SDK
 - CLEO
 - DkPac22
+- d4dj
 - Junior-Djjr
 - Nora
 - KaiQ
