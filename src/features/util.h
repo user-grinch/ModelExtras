@@ -2,13 +2,15 @@
 
 typedef enum class eModelEntityType eModelEntityType;
 
+enum class eDummyPos;
+
 class Util
 {
 public:
   static float NormalizeAngle(float angle);
   static void RegisterCorona(CVehicle *pVeh, int coronaID, CVector pos, CRGBA col, float size);
   static void RegisterCoronaWithAngle(CVehicle *pVeh, int coronaID, CVector posn, CRGBA col, float angle, float radius, float size);
-  static void RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float angle, float currentAngle, const std::string &shadwTexName, CVector2D shdwSz = {1.0f, 1.0f}, CVector2D shdwOffset = {0.0f, 0.0f}, RwTexture *pTexture = nullptr);
+  static void RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float angle, eDummyPos dummyPos, const std::string &shadwTexName, CVector2D shdwSz = {1.0f, 1.0f}, CVector2D shdwOffset = {0.0f, 0.0f}, RwTexture *pTexture = nullptr);
 
   // Returns value of regex from source string
   static std::string GetRegexVal(const std::string &src, const std::string &&ptrn, const std::string &&def);

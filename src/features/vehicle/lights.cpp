@@ -97,7 +97,7 @@ void DrawGlobalLight(CVehicle *pVeh, eDummyPos pos, CRGBA col, std::string textu
 	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
 	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
 	CRGBA color = {col.r, col.g, col.b, GetShadowAlphaForDayTime()};
-	Util::RegisterShadow(pVeh, posn, color, dummyAngle, 0.0f, texture, shdwSz, shdwOffset);
+	Util::RegisterShadow(pVeh, posn, color, dummyAngle, pos, texture, shdwSz, shdwOffset);
 	Util::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, {col.r, col.g, col.b, GetCoronaAlphaForDayTime()}, dummyAngle, 180.0f, gfGlobalCoronaSize);
 }
 
@@ -475,10 +475,10 @@ void Lights::Initialize()
 			RenderLights(pControlVeh, pTowedVeh, eLightState::Daylight);
 		}
 		
-		CVector2D headlightOffset = {0.0f, 1.5f};
+		CVector2D shdwOffset = {0.0f, 1.5f};
 		if (data.m_bFogLightsOn)
 		{
-			RenderLights(pControlVeh, pTowedVeh, eLightState::FogLight, true, "foglight", {1.5f, 2.0f}, headlightOffset);
+			RenderLights(pControlVeh, pTowedVeh, eLightState::FogLight, true, "foglight", {1.5f, 2.0f}, shdwOffset);
 		}
 
 		if (pControlVeh->m_nVehicleFlags.bLightsOn)
@@ -502,12 +502,12 @@ void Lights::Initialize()
 
 			if (leftOk)
 			{
-				RenderLights(pControlVeh, pTowedVeh, eLightState::HeadLightLeft, true, texName, sz, headlightOffset, isFoggy || data.m_bLongLightsOn);
+				RenderLights(pControlVeh, pTowedVeh, eLightState::HeadLightLeft, true, texName, sz, shdwOffset, isFoggy || data.m_bLongLightsOn);
 			}
 
 			if (rightOk)
 			{
-				RenderLights(pControlVeh, pTowedVeh, eLightState::HeadLightRight, true, texName, sz, headlightOffset, isFoggy || data.m_bLongLightsOn);
+				RenderLights(pControlVeh, pTowedVeh, eLightState::HeadLightRight, true, texName, sz, shdwOffset, isFoggy || data.m_bLongLightsOn);
 			}
 		}
 
@@ -531,7 +531,7 @@ void Lights::Initialize()
 
 		bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
 		std::string shdwName = (isBike ? "taillight_bike" : "taillight");
-		CVector2D taillightOffset = {0.0f, (isBike ? -0.50f : -0.75f)};
+		CVector2D taillightOffset = {0.0f, 1.8f};
 
 		CVector2D shdwSz = {1.0f, 1.5f};
 		if (isBike || CModelInfo::IsCarModel(pControlVeh->m_nModelIndex))
@@ -689,13 +689,13 @@ void Lights::Initialize()
 					{
 						if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorRight)
 						{
-							DrawGlobalLight(pControlVeh, eDummyPos::FrontRight, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, taillightOffset);
-							DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, taillightOffset);
+							DrawGlobalLight(pControlVeh, eDummyPos::FrontRight, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOffset);
+							DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOffset);
 						}
 						if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorLeft)
 						{
-							DrawGlobalLight(pControlVeh, eDummyPos::FrontLeft, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, taillightOffset);
-							DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, taillightOffset);
+							DrawGlobalLight(pControlVeh, eDummyPos::FrontLeft, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOffset);
+							DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOffset);
 						}
 					}
 				}
@@ -704,13 +704,13 @@ void Lights::Initialize()
 			{
 				if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorLeft)
 				{
-					RenderLights(pControlVeh, pTowedVeh, eLightState::IndicatorLeft, true, "indicator", {1.0f, 1.0f}, taillightOffset);
+					RenderLights(pControlVeh, pTowedVeh, eLightState::IndicatorLeft, true, "indicator", {1.0f, 1.0f}, shdwOffset);
 					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightLeft, true, shdwName, shdwSz, taillightOffset, true);
 				}
 
 				if (indState == eLightState::IndicatorBoth || indState == eLightState::IndicatorRight)
 				{
-					RenderLights(pControlVeh, pTowedVeh, eLightState::IndicatorRight, true, "indicator", {1.0f, 1.0f}, taillightOffset);
+					RenderLights(pControlVeh, pTowedVeh, eLightState::IndicatorRight, true, "indicator", {1.0f, 1.0f}, shdwOffset);
 					RenderLights(pControlVeh, pTowedVeh, eLightState::STTLightRight, true, shdwName, shdwSz, taillightOffset, true);
 				}
 			}
@@ -790,7 +790,10 @@ void Lights::RenderLight(CVehicle *pVeh, eLightState state, bool shadows, std::s
 			if (shadows)
 			{
 				texture = (e->shdwTex == "") ? texture : e->shdwTex;
-				Util::RegisterShadow(pVeh, e->ShdwPosition, e->Color, e->Angle, e->CurrentAngle, texture, {sz.x * e->shdowSize.x, sz.y * e->shdowSize.y}, {offset.x + e->shdwOffSet.x, offset.y + e->shdwOffSet.y});
+				// if (e->DummyType == eDummyPos::Rear) {
+
+				// }
+				Util::RegisterShadow(pVeh, e->ShdwPosition, e->Color, e->Angle, e->DummyType, texture, {sz.x * e->shdowSize.x, sz.y * e->shdowSize.y}, {offset.x + e->shdwOffSet.x, offset.y + e->shdwOffSet.y});
 			}
 		}
 	}

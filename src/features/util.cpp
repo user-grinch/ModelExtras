@@ -9,6 +9,7 @@
 #include <CWorld.h>
 #include "texmgr.h"
 #include "defines.h"
+#include "vehicle/core/dummy.h"
 
 void Util::RegisterCorona(CVehicle *pVeh, int coronaID, CVector pos, CRGBA col, float size)
 {
@@ -62,14 +63,15 @@ void Util::RegisterCoronaWithAngle(CVehicle *pVeh, int coronaID, CVector posn, C
     RegisterCorona(pVeh, coronaID, posn, col, size);
 }
 
-void Util::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float angle, float currentAngle, const std::string &shadwTexName, CVector2D shdwSz, CVector2D shdwOffset, RwTexture *pTexture)
+void Util::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float angle, eDummyPos dummyPos, const std::string &shadwTexName, CVector2D shdwSz, CVector2D shdwOffset, RwTexture *pTexture)
 {
     if (shdwSz.x == 0.0f || shdwSz.y == 0.0f || !gConfig.ReadBoolean("VEHICLE_FEATURES", "LightShadows", false))
     {
         return;
     }
 
-    float fAngle = pVeh->GetHeading() + (DegToRad(angle + currentAngle + 180.0f));
+    float angleRad = DegToRad(angle);
+    float fAngle = pVeh->GetHeading() + angleRad;
     CVector vehPos = pVeh->GetPosition();
 
     CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
@@ -77,10 +79,30 @@ void Util::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float ang
     up *= shdwSz.y;
     right *= shdwSz.x;
 
+    float mulX = 1.0f, mulY = 1.0f;
+
+    if (dummyPos == eDummyPos::Rear || dummyPos == eDummyPos::RearLeft || dummyPos == eDummyPos::RearRight)
+    {
+        mulY = -1.0f;
+        shdwOffset.y *= 2;
+    }
+
+    // TODO
+    // if (dummyPos == eDummyPos::Left || dummyPos == eDummyPos::Right)
+    // {
+    //     shdwOffset.x += 1.25f;
+    //     shdwOffset.y -= 1.25f;
+    // }
+
+    // if (dummyPos == eDummyPos::Left)
+    // {
+    //     mulX = -1.0f;
+    // }
+
     CVector center = pVeh->TransformFromObjectSpace(
         CVector(
-            position.x + (shdwOffset.x + shdwSz.x * cos(DegToRad(90.0f - angle + currentAngle))),
-            position.y + (shdwOffset.y + shdwSz.y * sin(DegToRad(90.0f - angle + currentAngle))),
+            position.x + (shdwOffset.x * mulX + shdwSz.x * mulX * 0.955f * sin(angleRad)),
+            position.y + (shdwOffset.y * mulY + shdwSz.y * mulY * 0.955f * cos(angleRad)),
             position.z));
 
     center.z = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z + 100, nullptr, nullptr) + 1.0f;
