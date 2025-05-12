@@ -79,30 +79,18 @@ void Util::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float ang
     up *= shdwSz.y;
     right *= shdwSz.x;
 
-    float mulX = 1.0f, mulY = 1.0f;
-
-    if (dummyPos == eDummyPos::Rear)
+    if (dummyPos == eDummyPos::Left || dummyPos == eDummyPos::Right)
     {
-        mulY = -1.0f;
-        shdwOffset.y *= 2;
+        if (shdwOffset.x == 0.0f)
+        {
+            shdwOffset.x = -1.0f;
+        }
     }
-
-    // TODO
-    // if (dummyPos == eDummyPos::Left || dummyPos == eDummyPos::Right)
-    // {
-    //     shdwOffset.x += 1.25f;
-    //     shdwOffset.y -= 1.25f;
-    // }
-
-    // if (dummyPos == eDummyPos::Left)
-    // {
-    //     mulX = -1.0f;
-    // }
 
     CVector center = pVeh->TransformFromObjectSpace(
         CVector(
-            position.x + (shdwOffset.x * mulX + shdwSz.x * mulX * 0.955f * sin(angleRad)),
-            position.y + (shdwOffset.y * mulY + shdwSz.y * mulY * 0.955f * cos(angleRad)),
+            position.x + (shdwOffset.x * sin(angleRad) + shdwSz.x * 0.955f * sin(angleRad)),
+            position.y + (shdwOffset.y * cos(angleRad) + shdwSz.y * 0.955f * cos(angleRad)),
             position.z));
 
     center.z = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z + 100, nullptr, nullptr) + 1.0f;
