@@ -81,7 +81,7 @@ void Util::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float ang
 
     float mulX = 1.0f, mulY = 1.0f;
 
-    if (dummyPos == eDummyPos::Rear || dummyPos == eDummyPos::RearLeft || dummyPos == eDummyPos::RearRight)
+    if (dummyPos == eDummyPos::Rear)
     {
         mulY = -1.0f;
         shdwOffset.y *= 2;

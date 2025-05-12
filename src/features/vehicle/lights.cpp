@@ -73,32 +73,43 @@ CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address)
 	return CVector2D(0.0f, 0.0f);
 }
 
-void DrawGlobalLight(CVehicle *pVeh, eDummyPos pos, CRGBA col, std::string texture = "indicator", CVector2D shdwSz = {1.0F, 1.0F}, CVector2D shdwOffset = {0.0F, 0.0F})
+void DrawGlobalLight(CVehicle *pVeh, bool isRear, bool isLeft, CRGBA col, std::string texture = "indicator",
+					 CVector2D shdwSz = {1.0F, 1.0F}, CVector2D shdwOffset = {0.0F, 0.0F})
 {
 	if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE)
 	{
-		CAutomobile *ptr = reinterpret_cast<CAutomobile *>(pVeh);
-		if ((pos == eDummyPos::FrontLeft && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT)) || (pos == eDummyPos::FrontRight && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT)) || (pos == eDummyPos::RearLeft && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_LEFT)) || (pos == eDummyPos::RearRight && ptr->m_damageManager.GetLightStatus(eLights::LIGHT_REAR_RIGHT)))
+		CAutomobile *car = reinterpret_cast<CAutomobile *>(pVeh);
+		bool broken = (isLeft && car->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_LEFT)) || (!isLeft && car->m_damageManager.GetLightStatus(eLights::LIGHT_FRONT_RIGHT));
+		if (broken)
 		{
 			return;
 		}
 	}
 
-	int idx = (pos == eDummyPos::RearLeft) || (pos == eDummyPos::RearRight);
-	bool leftSide = (pos == eDummyPos::RearLeft) || (pos == eDummyPos::FrontLeft);
+	int dummyIdx = (isRear) ? 1 : 0;
 
-	CVector posn =
-		reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[idx];
+	CVehicleModelInfo *pInfo = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[pVeh->m_nModelIndex]);
+	CVector posn = pInfo->m_pVehicleStruct->m_avDummyPos[dummyIdx];
 
 	if (posn.x == 0.0f)
+	{
 		posn.x = 0.15f;
-	if (leftSide)
+	}
+
+	if (isLeft)
+	{
 		posn.x *= -1.0f;
-	int dummyId = static_cast<int>(idx) + (leftSide ? 0 : 2);
-	float dummyAngle = (pos == eDummyPos::RearLeft || pos == eDummyPos::RearRight) ? 180.0f : 0.0f;
-	CRGBA color = {col.r, col.g, col.b, GetShadowAlphaForDayTime()};
-	Util::RegisterShadow(pVeh, posn, color, dummyAngle, pos, texture, shdwSz, shdwOffset);
-	Util::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + int(pos), posn, {col.r, col.g, col.b, GetCoronaAlphaForDayTime()}, dummyAngle, 180.0f, gfGlobalCoronaSize);
+	}
+
+	int dummyId = dummyIdx + (isLeft ? 0 : 2);
+	float dummyAngle = isRear ? 180.0f : 0.0f;
+
+	CRGBA shadowColor = {col.r, col.g, col.b, GetShadowAlphaForDayTime()};
+	Util::RegisterShadow(pVeh, posn, shadowColor, dummyAngle, isRear ? eDummyPos::Rear : eDummyPos::Front, texture, shdwSz, shdwOffset);
+
+	CRGBA coronaColor = {col.r, col.g, col.b, GetCoronaAlphaForDayTime()};
+	int coronaId = reinterpret_cast<uintptr_t>(pVeh) + 255 * isRear + isLeft;
+	Util::RegisterCoronaWithAngle(pVeh, coronaId, posn, coronaColor, dummyAngle, 180.0f, gfGlobalCoronaSize);
 }
 
 inline float GetZAngleForPoint(CVector2D const &point)
@@ -196,13 +207,13 @@ void Lights::Initialize()
 			if (col.r == 255) { // Right
 				if (col.g >= 56 && col.g <= 58) {
 					if (col.g == 58) {
-						pos = eDummyPos::FrontRight;
+						pos = eDummyPos::Front;
 					}
 					else if (col.g == 57) {
 						pos = eDummyPos::Right;
 					}
 					else if (col.g == 56) {
-						pos = eDummyPos::RearRight;
+						pos = eDummyPos::Rear;
 					}
 					RegisterMaterial(vehicle, material, eLightType::IndicatorLightRight, col, pos);
 				}
@@ -210,13 +221,13 @@ void Lights::Initialize()
 			else if (col.g == 255) { // Left
 				if (col.r >= 181 && col.r <= 183) {
 					if (col.r == 183) {
-						pos = eDummyPos::FrontLeft;
+						pos = eDummyPos::Front;
 					}
 					else if (col.r == 182) {
 						pos = eDummyPos::Left;
 					}
 					else if (col.r == 181) {
-						pos = eDummyPos::RearLeft;
+						pos = eDummyPos::Rear;
 					}
 					RegisterMaterial(vehicle, material, eLightType::IndicatorLightLeft, col, pos);
 				}
@@ -290,13 +301,12 @@ void Lights::Initialize()
 			if (d.value() == "L")
 			{
 				state = eLightType::STTLightLeft;
-				dummyPos = eDummyPos::RearLeft;
 			}
 			else
 			{
 				state = eLightType::STTLightRight;
-				dummyPos = eDummyPos::RearRight;
 			}
+			dummyPos = eDummyPos::Rear;
 			directioanlByDef = true;
 			col = {240, 0, 0, GetCoronaAlphaForDayTime()};
 		}
@@ -305,13 +315,12 @@ void Lights::Initialize()
 			if (d.value() == "L")
 			{
 				state = eLightType::NABrakeLightLeft;
-				dummyPos = eDummyPos::RearLeft;
 			}
 			else
 			{
 				state = eLightType::NABrakeLightRight;
-				dummyPos = eDummyPos::RearRight;
 			}
+			dummyPos = eDummyPos::Rear;
 			directioanlByDef = true;
 			col = {240, 0, 0, GetCoronaAlphaForDayTime()};
 		}
@@ -358,10 +367,10 @@ void Lights::Initialize()
 
 				switch (d.value()[1]) {
 					case 'F':
-						dummyPos = (state == eLightType::IndicatorLightRight) ? eDummyPos::FrontRight : eDummyPos::FrontLeft;
+						dummyPos = (state == eLightType::IndicatorLightRight) ? eDummyPos::Front : eDummyPos::Front;
 						break;
 					case 'R':
-						dummyPos = (state == eLightType::IndicatorLightRight) ? eDummyPos::RearRight : eDummyPos::RearLeft;
+						dummyPos = (state == eLightType::IndicatorLightRight) ? eDummyPos::Rear : eDummyPos::Rear;
 						break;
 					case 'M':
 						dummyPos = (state == eLightType::IndicatorLightRight) ? eDummyPos::Right : eDummyPos::Left;
@@ -475,7 +484,7 @@ void Lights::Initialize()
 			RenderLights(pControlVeh, pTowedVeh, eLightType::DayLight);
 		}
 		
-		CVector2D shdwOffset = {0.0f, 1.5f};
+		CVector2D shdwOffset = {0.0f, 1.25f};
 		if (data.m_bFogLightsOn)
 		{
 			RenderLights(pControlVeh, pTowedVeh, eLightType::FogLight, true, "foglight", {1.5f, 2.0f}, shdwOffset);
@@ -547,8 +556,8 @@ void Lights::Initialize()
 				}
 				else
 				{
-					DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, {240, 240, 240, 0}, shdwName, shdwSz, taillightOffset);
-					DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, {240, 240, 240, 0}, shdwName, shdwSz, taillightOffset);
+					DrawGlobalLight(pTowedVeh, true, true, {240, 240, 240, 0}, shdwName, shdwSz, taillightOffset);
+					DrawGlobalLight(pTowedVeh, true, false, {240, 240, 240, 0}, shdwName, shdwSz, taillightOffset);
 				}
 			}
 
@@ -689,13 +698,13 @@ void Lights::Initialize()
 					{
 						if (indState == eIndicatorState::BothOn || indState == eIndicatorState::RightOn)
 						{
-							DrawGlobalLight(pControlVeh, eDummyPos::FrontRight, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOffset);
-							DrawGlobalLight(pTowedVeh, eDummyPos::RearRight, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOffset);
+							DrawGlobalLight(pControlVeh, false, false, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOffset);
+							DrawGlobalLight(pTowedVeh, true, false, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOffset);
 						}
 						if (indState == eIndicatorState::BothOn || indState == eIndicatorState::LeftOn)
 						{
-							DrawGlobalLight(pControlVeh, eDummyPos::FrontLeft, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOffset);
-							DrawGlobalLight(pTowedVeh, eDummyPos::RearLeft, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOffset);
+							DrawGlobalLight(pControlVeh, false, true, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOffset);
+							DrawGlobalLight(pTowedVeh, true, true, {255, 128, 0, 0}, "indicator", {1.0f, 1.0f}, shdwOffset);
 						}
 					}
 				}
@@ -743,7 +752,7 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 		{
 			if (e->PartType != eParentType::Unknown && IsBumperOrWingDamaged(pVeh, e->PartType))
 			{
-				if ((e->DummyType == eDummyPos::FrontLeft || e->DummyType == eDummyPos::FrontRight || e->DummyType == eDummyPos::Front))
+				if (e->DummyType == eDummyPos::Front)
 				{
 					FrontDisabled = true;
 				}
@@ -751,14 +760,14 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 				{
 					MidDisabled = true;
 				}
-				if ((e->DummyType == eDummyPos::RearLeft || e->DummyType == eDummyPos::RearRight || e->DummyType == eDummyPos::Rear))
+				if (e->DummyType == eDummyPos::Rear)
 				{
 					RearDisabled = true;
 				}
 				continue;
 			}
 
-			if (e->DummyType == eDummyPos::RearLeft || e->DummyType == eDummyPos::RearRight || e->DummyType == eDummyPos::Rear)
+			if (e->DummyType == eDummyPos::Rear)
 			{
 				if (pVeh->m_pTrailer)
 				{
@@ -802,7 +811,7 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 	{
 		for (auto e : m_Materials[pVeh->m_nModelIndex][state])
 		{
-			if ((FrontDisabled && (e->Pos == eDummyPos::FrontLeft || e->Pos == eDummyPos::FrontRight || e->Pos == eDummyPos::Front)) || (RearDisabled && (e->Pos == eDummyPos::RearLeft || e->Pos == eDummyPos::RearRight || e->Pos == eDummyPos::Rear)) || (MidDisabled && (e->Pos == eDummyPos::Left || e->Pos == eDummyPos::Right)))
+			if ((FrontDisabled && e->Pos == eDummyPos::Front) || (RearDisabled && e->Pos == eDummyPos::Rear) || (MidDisabled && (e->Pos == eDummyPos::Left || e->Pos == eDummyPos::Right)))
 			{
 				continue;
 			}
