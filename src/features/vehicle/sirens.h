@@ -7,7 +7,7 @@
 #include <CCoronas.h>
 #include "core/dummy.h"
 #include "core/materials.h"
-#include "enums/lighttype.h"
+#include "enums/lightingmode.h"
 
 enum class VehicleSirenStates
 {
@@ -95,7 +95,7 @@ public:
     int PatternTotal = 0;
     uint64_t PatternTime = 0;
     uint64_t Delay = 0;
-    eLightType Type = eLightType::Directional;
+    eLightingMode Type = eLightingMode::Directional;
     bool ImVehFt = false;
     VehicleSirenShadow Shadow;
     VehicleSirenRotator *Rotator;

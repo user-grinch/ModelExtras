@@ -4,7 +4,7 @@
 #include "RenderWare.h"
 #include "enums/parenttype.h"
 #include "enums/dummypos.h"
-#include "enums/lighttype.h"
+#include "enums/lightingmode.h"
 
 class VehicleDummy
 {
@@ -20,7 +20,7 @@ public:
 
     size_t DummyIdx = 0;
     eDummyPos DummyType = eDummyPos::None;
-    eLightType LightType = eLightType::NonDirectional;
+    eLightingMode LightType = eLightingMode::NonDirectional;
     eParentType PartType = eParentType::Unknown;
 
     std::string shdwTex = "";

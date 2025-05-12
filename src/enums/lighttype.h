@@ -2,25 +2,24 @@
 
 enum class eLightType
 {
-    Directional,
-    Inversed,
-    NonDirectional,
-    Rotator
+    Unknown,
+    HeadLightLeft,
+    HeadLightRight,
+    TailLight,
+    ReverseLight,
+    BrakeLight,
+    AllDayLight,
+    DayLight,
+    NightLight,
+    FogLight,
+    SideLightLeft,
+    SideLightRight,
+    STTLightLeft,
+    STTLightRight,
+    NABrakeLightLeft,
+    NABrakeLightRight,
+    SpotLight,
+    StrobeLight,
+    IndicatorLightLeft,
+    IndicatorLightRight,
 };
-
-inline eLightType GetLightType(std::string dir)
-{
-    if (dir == "directional")
-    {
-        return eLightType::Directional;
-    }
-    else if (dir == "rotator")
-    {
-        return eLightType::Rotator;
-    }
-    else if (dir == "inversed-directional")
-    {
-        return eLightType::Inversed;
-    }
-    return eLightType::NonDirectional;
-}

@@ -25,7 +25,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
 
     if (directionalByDef)
     {
-        LightType = eLightType::Directional;
+        LightType = eLightingMode::Directional;
     }
 
     // Calculate the angle based on the frame's orientation
@@ -68,7 +68,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
             if (lights.contains("corona"))
             {
                 coronaSize = lights["corona"].value("size", coronaSize);
-                LightType = GetLightType(lights["corona"].value("type", "directional"));
+                LightType = GetLightingMode(lights["corona"].value("type", "directional"));
             }
 
             PartType = eParentTypeFromString(lights.value("parent", ""));
@@ -110,7 +110,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
 
             if (prmPos + 10 < name.size())
             {
-                LightType = static_cast<eLightType>(name[prmPos + 10] - '0');
+                LightType = static_cast<eLightingMode>(name[prmPos + 10] - '0');
             }
             else
             {
