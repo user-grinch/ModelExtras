@@ -78,29 +78,19 @@ void Util::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float ang
     CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f) * shdwSz.x;
     CVector center, nSize;
 
-    if (dummyPos == eDummyPos::Left || dummyPos == eDummyPos::Right)
+    if (dummyPos == eDummyPos::Right)
     {
-        if (shdwOffset.x == 0.0f)
-        {
-            shdwOffset.x = -1.0f;
-        }
-
-        if (dummyPos == eDummyPos::Right)
-        {
-            nSize = {shdwSz.y, 0.0f, 0};
-        }
-        else
-        {
-            nSize = {-shdwSz.y, 0.0f, 0};
-        }
+        nSize = {shdwSz.y, 0.0f, 0};
     }
-
-    if (dummyPos == eDummyPos::Front)
+    else if (dummyPos == eDummyPos::Left)
+    {
+        nSize = {-shdwSz.y, 0.0f, 0};
+    }
+    else if (dummyPos == eDummyPos::Front)
     {
         nSize = {0.0f, shdwSz.y, 0};
     }
-
-    if (dummyPos == eDummyPos::Rear)
+    else if (dummyPos == eDummyPos::Rear)
     {
         nSize = {0.0f, -shdwSz.y, 0};
     }
