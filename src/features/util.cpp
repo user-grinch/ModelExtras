@@ -74,10 +74,9 @@ void Util::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float ang
     float fAngle = pVeh->GetHeading() + angleRad;
     CVector vehPos = pVeh->GetPosition();
 
-    CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f);
-    CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f);
-    up *= shdwSz.y;
-    right *= shdwSz.x;
+    CVector up = CVector(-sin(fAngle), cos(fAngle), 0.0f) * shdwSz.y;
+    CVector right = CVector(cos(fAngle), sin(fAngle), 0.0f) * shdwSz.x;
+    CVector center, nSize;
 
     if (dummyPos == eDummyPos::Left || dummyPos == eDummyPos::Right)
     {
@@ -85,13 +84,36 @@ void Util::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float ang
         {
             shdwOffset.x = -1.0f;
         }
+
+        if (dummyPos == eDummyPos::Right)
+        {
+            nSize = {shdwSz.y, 0.0f, 0};
+        }
+        else
+        {
+            nSize = {-shdwSz.y, 0.0f, 0};
+        }
     }
 
-    CVector center = pVeh->TransformFromObjectSpace(
-        CVector(
-            position.x + (shdwOffset.x * sin(angleRad) + shdwSz.x * 0.955f * sin(angleRad)),
-            position.y + (shdwOffset.y * cos(angleRad) + shdwSz.y * 0.955f * cos(angleRad)),
-            position.z));
+    if (dummyPos == eDummyPos::Front)
+    {
+        nSize = {0.0f, shdwSz.y, 0};
+    }
+
+    if (dummyPos == eDummyPos::Rear)
+    {
+        nSize = {0.0f, -shdwSz.y, 0};
+    }
+
+    // rotation matrix
+    //
+    // |cos  -sin|
+    // |sin   cos|
+
+    CVector nOffset = {shdwOffset.x * cos(angleRad) - shdwOffset.y * sin(angleRad),
+                       shdwOffset.x * sin(angleRad) + shdwOffset.y * cos(angleRad),
+                       0};
+    center = pVeh->TransformFromObjectSpace(position + nOffset + nSize);
 
     center.z = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z + 100, nullptr, nullptr) + 1.0f;
 

@@ -185,13 +185,13 @@ void VehicleDummy::Update(CVehicle *pVeh)
     }
 
     ShdwPosition = Position;
-    if (DummyType == eDummyPos::Left)
-    {
-        ShdwPosition.x -= 1.25f;
-    }
+    // if (DummyType == eDummyPos::Left)
+    // {
+    //     ShdwPosition.x -= 1.25f;
+    // }
 
-    if (DummyType == eDummyPos::Right)
-    {
-        ShdwPosition.x += 1.25f;
-    }
+    // if (DummyType == eDummyPos::Right)
+    // {
+    //     ShdwPosition.x += 1.25f;
+    // }
 }

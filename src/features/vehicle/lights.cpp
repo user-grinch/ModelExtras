@@ -488,7 +488,7 @@ void Lights::Initialize()
 		CVector2D headlightOffset = {0.0f, shdwOffset.y + 0.5f};
 		if (data.m_bFogLightsOn)
 		{
-			RenderLights(pControlVeh, pTowedVeh, eLightType::FogLight, true, "foglight", {1.5f, 2.0f}, headlightOffset);
+			RenderLights(pControlVeh, pTowedVeh, eLightType::FogLight, true, "foglight", {1.5f, 3.0f}, headlightOffset);
 		}
 
 		if (pControlVeh->m_nVehicleFlags.bLightsOn)
