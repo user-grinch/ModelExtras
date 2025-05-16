@@ -12,11 +12,15 @@ int ReadHex(char a, char b)
     return (a << 4) + b;
 }
 
-VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDummyPos type, CRGBA color, size_t dummyIdx, bool directionalByDef)
+VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDummyPos type, CRGBA color, size_t dummyIdx, bool directionalByDef, bool mirroredX)
 {
     Frame = frame;
     CVector pos = pVeh->GetPosition();
-    Position = {Frame->ltm.pos.x - pos.x, Frame->ltm.pos.y - pos.y, Frame->ltm.pos.z - pos.z};
+    Position = {Frame->modelling.pos.x - pos.x, Frame->modelling.pos.y - pos.y, Frame->modelling.pos.z - pos.z};
+    if (mirroredX)
+    {
+        Position.x *= -1;
+    }
     ShdwPosition = Position;
     Color = color;
     DummyType = type;
@@ -169,22 +173,22 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
 
 void VehicleDummy::Update(CVehicle *pVeh)
 {
-    CMatrix &vehMatrix = *(CMatrix *)pVeh->GetMatrix();
-    CVector pos = pVeh->GetPosition();
-    CVector dummyPos = Frame->ltm.pos;
-    CVector offset = dummyPos - pos;
+    // CMatrix &vehMatrix = *(CMatrix *)pVeh->GetMatrix();
+    // CVector pos = pVeh->GetPosition();
+    // CVector dummyPos = Frame->ltm.pos;
+    // CVector offset = dummyPos - pos;
 
-    // Transform to local space using  transpose of the rotation matrix
-    Position.x = vehMatrix.right.x * offset.x + vehMatrix.right.y * offset.y + vehMatrix.right.z * offset.z;
-    Position.y = vehMatrix.up.x * offset.x + vehMatrix.up.y * offset.y + vehMatrix.up.z * offset.z;
-    Position.z = vehMatrix.at.x * offset.x + vehMatrix.at.y * offset.y + vehMatrix.at.z * offset.z;
+    // // Transform to local space using  transpose of the rotation matrix
+    // Position.x = vehMatrix.right.x * offset.x + vehMatrix.right.y * offset.y + vehMatrix.right.z * offset.z;
+    // Position.y = vehMatrix.up.x * offset.x + vehMatrix.up.y * offset.y + vehMatrix.up.z * offset.z;
+    // Position.z = vehMatrix.at.x * offset.x + vehMatrix.at.y * offset.y + vehMatrix.at.z * offset.z;
 
-    if (mirroredX)
-    {
-        Position.x *= -1;
-    }
+    // if (mirroredX)
+    // {
+    //     Position.x *= -1;
+    // }
 
-    ShdwPosition = Position;
+    // ShdwPosition = Position;
     // if (DummyType == eDummyPos::Left)
     // {
     //     ShdwPosition.x -= 1.25f;

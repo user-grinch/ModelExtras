@@ -939,7 +939,7 @@ void Sirens::EnableMaterial(VehicleMaterial *material, VehicleSirenMaterial *mat
 void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time)
 {
 	CVector position = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
-	dummy->Update(vehicle);
+	// dummy->Update(vehicle);
 	unsigned char alpha = material->Color.a;
 
 	if (material->PatternTotal != 0 && material->Inertia != 0.0f)

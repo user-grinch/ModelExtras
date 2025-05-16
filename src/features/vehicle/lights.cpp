@@ -339,8 +339,7 @@ void Lights::Initialize()
 			state = eLightType::TailLight;
 			dummyPos = eDummyPos::Rear;
 			directioanlByDef = true;
-			VehicleDummy *pDummy = new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx, directioanlByDef);
-			pDummy->mirroredX = true;
+			VehicleDummy *pDummy = new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx, directioanlByDef, true);
 			m_Dummies[pVeh][state].push_back(pDummy);
 		}
 		else if (name.starts_with("headlights"))
@@ -349,8 +348,7 @@ void Lights::Initialize()
 			state = eLightType::HeadLightLeft;
 			dummyPos = eDummyPos::Front;
 			directioanlByDef = true;
-			VehicleDummy *pDummy = new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx, directioanlByDef);
-			pDummy->mirroredX = true;
+			VehicleDummy *pDummy = new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx, directioanlByDef, true);
 			m_Dummies[pVeh][state].push_back(pDummy);
 			state = eLightType::HeadLightRight;
 		}
@@ -488,9 +486,10 @@ void Lights::Initialize()
 		CVector2D headlightOffset = {0.0f, shdwOffset.y + 0.5f};
 		if (data.m_bFogLightsOn)
 		{
-			RenderLights(pControlVeh, pTowedVeh, eLightType::FogLight, true, "foglight", {1.5f, 3.0f}, headlightOffset);
+			RenderLights(pControlVeh, pTowedVeh, eLightType::FogLight, true, "foglight", {3.0f, 7.0f}, shdwOffset);
 		}
 
+		bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
 		if (pControlVeh->m_nVehicleFlags.bLightsOn)
 		{
 			bool leftOk = true;
@@ -539,7 +538,6 @@ void Lights::Initialize()
 
 		RenderLights(pControlVeh, pTowedVeh, eLightType::AllDayLight);
 
-		bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
 		std::string shdwName = (isBike ? "taillight_bike" : "taillight");
 
 		CVector2D shdwSz = {1.0f, 1.5f};
@@ -792,7 +790,7 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 				}
 			}
 
-			e->Update(pVeh);
+			// e->Update(pVeh);
 
 			EnableDummy((int)pVeh + 42 + id++, e, pVeh, highlight ? 1.5f : 1.0f);
 
