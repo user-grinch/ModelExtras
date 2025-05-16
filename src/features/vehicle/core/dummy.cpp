@@ -169,6 +169,11 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
     {
         Angle = 180 - angleVal;
     }
+
+    if (DummyType == eDummyPos::None)
+    {
+        Angle = modelAngle;
+    }
 }
 
 void VehicleDummy::Update(CVehicle *pVeh)

@@ -356,7 +356,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 					}
 					else
 					{
-						Shadow.Size = sz * 2.0f / 5.0f;
+						Shadow.Size = sz * 2.0f / 3.0f;
 					}
 				}
 				else

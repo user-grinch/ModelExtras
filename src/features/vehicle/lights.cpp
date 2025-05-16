@@ -105,7 +105,7 @@ void DrawGlobalLight(CVehicle *pVeh, bool isRear, bool isLeft, CRGBA col, std::s
 	float dummyAngle = isRear ? 180.0f : 0.0f;
 
 	CRGBA shadowColor = {col.r, col.g, col.b, GetShadowAlphaForDayTime()};
-	Util::RegisterShadow(pVeh, posn, shadowColor, dummyAngle, isRear ? eDummyPos::Rear : eDummyPos::Front, texture, shdwSz, shdwOffset);
+	// Util::RegisterShadow(pVeh, posn, shadowColor, dummyAngle, isRear ? eDummyPos::Rear : eDummyPos::Front, texture, shdwSz, shdwOffset);
 
 	CRGBA coronaColor = {col.r, col.g, col.b, GetCoronaAlphaForDayTime()};
 	int coronaId = reinterpret_cast<uintptr_t>(pVeh) + 255 * isRear + isLeft;
@@ -797,10 +797,7 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 			if (shadows)
 			{
 				texture = (e->shdwTex == "") ? texture : e->shdwTex;
-				// if (e->DummyType == eDummyPos::Rear) {
-
-				// }
-				Util::RegisterShadow(pVeh, e->ShdwPosition, e->Color, e->Angle, e->DummyType, texture, {sz.x * e->shdowSize.x, sz.y * e->shdowSize.y}, {offset.x + e->shdwOffSet.x, offset.y + e->shdwOffSet.y});
+				// Util::RegisterShadow(pVeh, e->ShdwPosition, e->Color, e->Angle, e->DummyType, texture, {sz.x * e->shdowSize.x, sz.y * e->shdowSize.y}, {offset.x + e->shdwOffSet.x, offset.y + e->shdwOffSet.y});
 			}
 		}
 	}
