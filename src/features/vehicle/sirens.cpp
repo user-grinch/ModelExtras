@@ -506,7 +506,6 @@ VehicleSirenData::VehicleSirenData(nlohmann::json json)
 
 void Sirens::RegisterMaterial(CVehicle *vehicle, RpMaterial *material)
 {
-
 	if (modelData.contains(vehicle->m_nModelIndex))
 	{
 		// Don't move this out
@@ -519,11 +518,6 @@ void Sirens::RegisterMaterial(CVehicle *vehicle, RpMaterial *material)
 		modelData[vehicle->m_nModelIndex]->Materials[id].push_back(new VehicleMaterial(material));
 	}
 };
-
-extern int Convert_EmlToJsonc(const std::string &inPath);
-extern void Convert_JsonToJsonc(const std::string &inPath);
-extern int Convert_IvfcToJsonc(const std::string &inPath);
-extern bool is_number(const std::string &s);
 
 void Sirens::Parse(const nlohmann::json &data, int model)
 {
@@ -939,16 +933,11 @@ void Sirens::EnableMaterial(VehicleMaterial *material, VehicleSirenMaterial *mat
 void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time)
 {
 	CVector position = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
-	// dummy->Update(vehicle);
 	unsigned char alpha = material->Color.a;
 
 	if (material->PatternTotal != 0 && material->Inertia != 0.0f)
 	{
-		float alphaFloat = static_cast<float>(alpha);
-
-		alphaFloat = (alphaFloat < 0.0f) ? (alphaFloat * -1) : (alphaFloat);
-
-		alpha = static_cast<char>(alphaFloat * material->InertiaMultiplier);
+		alpha = static_cast<char>(std::abs(alpha) * material->InertiaMultiplier);
 	}
 
 	if (material->Type != eLightingMode::NonDirectional)
@@ -979,12 +968,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 			Sirens::modelRotators[vehicle->m_nModelIndex].push_back(dummy);
 
 			dummy->SetAngle(angle);
-
-			while (dummyAngle > 360.0f)
-				dummyAngle -= 360.0f;
-
-			while (dummyAngle < 0.0f)
-				dummyAngle += 360.0f;
+			dummyAngle = Util::NormalizeAngle(dummyAngle);
 		}
 		else if (material->Type == eLightingMode::Inversed)
 		{
