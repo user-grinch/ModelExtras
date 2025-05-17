@@ -7,8 +7,6 @@
 #include "../../enums/vehdummy.h"
 #include <CCamera.h>
 
-static bool flag = false;
-
 void BackFireEffect::BackFireFX(CVehicle *pVeh, float x, float y, float z)
 {
     int handle = NULL;
@@ -84,7 +82,7 @@ void BackFireEffect::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 {
     CVehicle *pVeh = static_cast<CVehicle *>(ptr);
 
-    if (!pVeh->GetIsOnScreen() || pVeh->m_nVehicleFlags.bIsBig || pVeh->m_nVehicleFlags.bIsVan || pVeh->m_nVehicleFlags.bIsBus || pVeh->m_nVehicleFlags.bIsRCVehicle)
+    if (!pVeh->GetIsOnScreen() || !pVeh->m_nVehicleFlags.bEngineOn || pVeh->m_nVehicleFlags.bIsBig || pVeh->m_nVehicleFlags.bIsVan || pVeh->m_nVehicleFlags.bIsBus || pVeh->m_nVehicleFlags.bIsRCVehicle)
     {
         return;
     }
@@ -112,31 +110,23 @@ void BackFireEffect::Process(void *ptr, RwFrame *frame, eModelEntityType type)
         }
 
         // handle multi
-        static size_t prevTimer = 0, prevTimer2 = 0;
+        static size_t prevTimer = 0;
         size_t timer = CTimer::m_snTimeInMilliseconds;
 
-        if (timer - prevTimer2 > 100 && rpm != 65535)
+        if (data.wasFullThrottled)
         {
-            if (flag)
+            if (acclPadel < 100)
             {
-                if (acclPadel < 100)
-                {
-                    BackFireMulti(pVeh);
-                    flag = false;
-                }
+                BackFireMulti(pVeh);
+                data.wasFullThrottled = false;
             }
-            else
+        }
+        else
+        {
+            if (acclPadel == 128)
             {
-                if (acclPadel == 128)
-                {
-                    if (pVeh->m_nVehicleFlags.bEngineOn)
-                    {
-                        BackFireMulti(pVeh);
-                    }
-                    flag = true;
-                }
+                data.wasFullThrottled = true;
             }
-            prevTimer2 = timer;
         }
 
         if (timer - prevTimer > 200)

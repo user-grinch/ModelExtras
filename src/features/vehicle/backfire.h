@@ -8,6 +8,7 @@ protected:
   {
     bool m_bInitialized = false;
     size_t m_nleftFires = 0;
+    bool wasFullThrottled = false;
     VehData(CVehicle *pVeh) {}
     ~VehData() {}
   };
