@@ -48,7 +48,9 @@ RwTexture *FindTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict)
 VehicleMaterial::VehicleMaterial(RpMaterial *material, eDummyPos pos)
 {
 	if (!material || !material->texture)
+	{
 		return;
+	}
 
 	Material = material;
 	Texture = material->texture;
@@ -59,19 +61,18 @@ VehicleMaterial::VehicleMaterial(RpMaterial *material, eDummyPos pos)
 	RwTexture *pTexture = FindTextureInDict(material, material->texture->dict);
 	if (!pTexture)
 	{
+		CTxdStore::PushCurrentTxd();
 		int slot = CTxdStore::FindTxdSlot("vehicle");
-		bool loaded = false;
-
 		if (slot < 0)
 		{
 			slot = CTxdStore::AddTxdSlot("vehicle");
 			CTxdStore::LoadTxd(slot, "vehicle");
-			loaded = true;
 		}
-		CTxdStore::SetCurrentTxd(slot);
-		pTexture = FindTextureInDict(material, RwTexDictionaryGetCurrent());
-		if (loaded)
+
+		if (slot > 0)
 		{
+			CTxdStore::SetCurrentTxd(slot);
+			pTexture = FindTextureInDict(material, RwTexDictionaryGetCurrent());
 			CTxdStore::PopCurrentTxd();
 		}
 	}
