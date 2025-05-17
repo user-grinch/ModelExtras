@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "defines.h"
 #include "backfire.h"
 #include "datamgr.h"
 #include <extensions/ScriptCommands.h>
@@ -21,11 +22,17 @@ void BackFireEffect::BackFireFX(CVehicle *pVeh, float x, float y, float z)
 
     CVector vehPos = pVeh->GetPosition();
     CVector camPos = TheCamera.GetPosition();
-
-    if (DistanceBetweenPoints(vehPos, camPos) < 80.0f)
+    static std::string audioPath = MOD_DATA_PATH("audio/effects/backfire.wav");
+    static StreamHandle hAudio = NULL;
+    if (hAudio == NULL)
     {
-        plugin::Command<Commands::ADD_ONE_OFF_SOUND>(0.0f, 0.0f, 0.0f, 1131);
+        hAudio = AudioMgr::Load(&audioPath);
     }
+    AudioMgr::PlayOnVehicle(hAudio, pVeh, 1.5f);
+    // if (DistanceBetweenPoints(vehPos, camPos) < 80.0f)
+    // {
+    //     plugin::Command<Commands::ADD_ONE_OFF_SOUND>(0.0f, 0.0f, 0.0f, 1131);
+    // }
 }
 
 void BackFireEffect::BackFireSingle(CVehicle *pVeh)
@@ -82,7 +89,7 @@ void BackFireEffect::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 {
     CVehicle *pVeh = static_cast<CVehicle *>(ptr);
 
-    if (!pVeh->GetIsOnScreen() || !pVeh->m_nVehicleFlags.bEngineOn || pVeh->m_nVehicleFlags.bIsBig || pVeh->m_nVehicleFlags.bIsVan || pVeh->m_nVehicleFlags.bIsBus || pVeh->m_nVehicleFlags.bIsRCVehicle)
+    if (!pVeh->GetIsOnScreen() || pVeh->m_nVehicleFlags.bEngineBroken || !pVeh->m_nVehicleFlags.bEngineOn || pVeh->m_nVehicleFlags.bIsBig || pVeh->m_nVehicleFlags.bIsVan || pVeh->m_nVehicleFlags.bIsBus || pVeh->m_nVehicleFlags.bIsRCVehicle)
     {
         return;
     }
