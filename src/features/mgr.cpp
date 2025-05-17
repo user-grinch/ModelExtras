@@ -31,11 +31,17 @@
 
 void InitLogFile();
 
+RwFrame *__cdecl CVehicleModelInfo_CollapseFramesCB(RwFrame *frame, void *data)
+{
+    return frame;
+}
+
 void FeatureMgr::Initialize()
 {
     // Nop frame collasping
     plugin::patch::Nop(0x4C8E53, 5);
     plugin::patch::Nop(0x4C8F6E, 5);
+    patch::ReplaceFunction(0x4C8E30, CVehicleModelInfo_CollapseFramesCB);
 
     plugin::Events::initGameEvent += []()
     {

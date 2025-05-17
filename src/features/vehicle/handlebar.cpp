@@ -30,5 +30,7 @@ void HandleBar::Initialize()
 
         float rot = Util::GetMatrixRotationZ(&data.m_pOrigin->modelling);
         Util::ResetMatrixRotations(&data.m_pTarget->modelling);
-        Util::SetMatrixRotationZ(&data.m_pTarget->modelling, rot); });
+        Util::SetMatrixRotationZ(&data.m_pTarget->modelling, rot); 
+        pVeh->UpdateRwFrame();
+     });
 }

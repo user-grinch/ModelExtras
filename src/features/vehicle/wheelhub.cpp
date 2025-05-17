@@ -3,12 +3,13 @@
 #include <CCutsceneMgr.h>
 #include "core/materials.h"
 
-void UpdateRotation(RwFrame *ori, RwFrame *tar)
+void UpdateRotation(CVehicle *pVeh, RwFrame *ori, RwFrame *tar)
 {
     if (ori && tar)
     {
         float oriRot = Util::GetMatrixRotationZ(&ori->modelling);
         Util::SetMatrixRotationZ(&tar->modelling, oriRot);
+        pVeh->UpdateRwFrame();
     }
 }
 
@@ -38,10 +39,10 @@ void WheelHub::Initialize()
         }
 
         VehData& data = xData.Get(pVeh);
-        UpdateRotation(data.m_pWRF, data.m_pHRF);
-        UpdateRotation(data.m_pWRM, data.m_pHRM);
-        UpdateRotation(data.m_pWRR, data.m_pHRR);
-        UpdateRotation(data.m_pWLF, data.m_pHLF);
-        UpdateRotation(data.m_pWLM, data.m_pHLM);
-        UpdateRotation(data.m_pWLR, data.m_pHLR); });
+        UpdateRotation(pVeh, data.m_pWRF, data.m_pHRF);
+        UpdateRotation(pVeh, data.m_pWRM, data.m_pHRM);
+        UpdateRotation(pVeh, data.m_pWRR, data.m_pHRR);
+        UpdateRotation(pVeh, data.m_pWLF, data.m_pHLF);
+        UpdateRotation(pVeh, data.m_pWLM, data.m_pHLM);
+        UpdateRotation(pVeh, data.m_pWLR, data.m_pHLR); });
 }
