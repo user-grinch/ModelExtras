@@ -41,9 +41,12 @@ private:
 	 *		  Don't change it
 	 */
 	static inline std::map<int, std::map<RpMaterial *, bool>> materials;
+	static inline std::map<int, std::map<RpMaterial *, RwRGBA>> matColBackup;
 	static inline CVehicle *currentVehicle;
 	static inline std::list<std::pair<unsigned int *, unsigned int>> storedMaterials;
 
 public:
 	static void FindDummies(CVehicle *vehicle, RwFrame *frame, bool parent = false, bool print = false);
+
+	static void Reset(CVehicle *pVeh);
 };

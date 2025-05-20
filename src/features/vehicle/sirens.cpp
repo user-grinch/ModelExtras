@@ -995,6 +995,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 		dummyPos.x = dummyPos.x * 1.5f;
 		dummyPos.y = dummyPos.y * 1.2f;
 	}
+	dummy->Update(vehicle);
 	Util::RegisterShadow(vehicle, dummyPos, *(CRGBA *)&material->Color, dummy->Angle + dummy->CurrentAngle, dummy->DummyType, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
 };
 

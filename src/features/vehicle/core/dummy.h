@@ -25,6 +25,7 @@ public:
 
     std::string shdwTex = "";
     CVector ShdwPosition;
+    bool mirroredX = false;
     CVector2D shdwOffSet = {0.0f, 0.0f};
     CVector2D shdowSize = {1.0f, 1.0f};
 

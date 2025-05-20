@@ -8,8 +8,9 @@ private:
     static inline std::map<int, nlohmann::json> data;
 
 public:
-    static void Init();
-    static void Parse();
     static void Convert();
+    static void Init();
+    static void LoadFile(const std::filesystem::directory_entry &e);
+    static void Parse();
     static nlohmann::json &Get(int model);
 };

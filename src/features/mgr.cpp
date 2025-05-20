@@ -42,6 +42,15 @@ void FeatureMgr::Initialize()
         DataMgr::Init();
     };
 
+    Events::processScriptsEvent += []()
+    {
+        CVehicle *pVeh = FindPlayerVehicle(-1, false);
+        if (pVeh && KeyPressed(VK_K) && KeyPressed(VK_P))
+        {
+            Lights::Reload(pVeh);
+        }
+    };
+
     MEEvents::vehRenderEvent.before += [](CVehicle *pVeh)
     {
         static bool spInstalled = GetModuleHandle("SilentPatchSA.asi");

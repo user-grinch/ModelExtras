@@ -12,6 +12,7 @@
 #include <CWeather.h>
 #include <CCoronas.h>
 #include "../../enums/vehdummy.h"
+#include "datamgr.h"
 
 // flags
 bool gbGlobalIndicatorLights = false;
@@ -795,6 +796,7 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 			if (shadows)
 			{
 				texture = (e->shdwTex == "") ? texture : e->shdwTex;
+				e->Update(pVeh);
 				Util::RegisterShadow(pVeh, e->ShdwPosition, e->Color, e->Angle, e->DummyType, texture, {sz.x * e->shdowSize.x, sz.y * e->shdowSize.y}, {offset.x + e->shdwOffSet.x, offset.y + e->shdwOffSet.y});
 			}
 		}
@@ -849,6 +851,15 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMu
 			Util::RegisterCoronaWithAngle(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, dummy->Position, dummy->Color, dummy->Angle + (dummy->LightType == eLightingMode::Inversed ? 180.0f : 0.0f), 180.0f, dummy->coronaSize * szMul);
 		}
 	}
+}
+
+void Lights::Reload(CVehicle *pVeh)
+{
+	m_Materials.erase(pVeh->m_nModelIndex);
+	m_Dummies.erase(pVeh);
+	DataMgr::LoadFile(std::filesystem::directory_entry(std::format("{}{}.jsonc", MOD_DATA_PATH("data/"), pVeh->m_nModelIndex)));
+	VehicleMaterials::Reset(pVeh);
+	VehicleMaterials::OnModelSet(pVeh, pVeh->m_nModelIndex);
 }
 
 void Lights::EnableMaterial(VehicleMaterial *material, float mul)

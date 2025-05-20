@@ -120,8 +120,12 @@ void VehicleMaterials::OnModelSet(CVehicle *vehicle, int model)
 				return material;
 
 			RwRGBA col = material->color;
-			for (auto& e : functions)
-				e(currentVehicle, material, col);
+			if (!matColBackup[currentVehicle->m_nModelIndex].contains(material)) {
+				matColBackup[currentVehicle->m_nModelIndex][material] = col;
+			}
+			for (auto& e : functions) {
+				e(currentVehicle, material, matColBackup[currentVehicle->m_nModelIndex][material]);
+			}
 
 			materials[currentVehicle->m_nModelIndex][material] = true;
 
@@ -165,6 +169,11 @@ void VehicleMaterials::StoreMaterial(std::pair<unsigned int *, unsigned int> pai
 {
 	storedMaterials.push_back(pair);
 };
+
+void VehicleMaterials::Reset(CVehicle *pVeh)
+{
+	materials.erase(pVeh->m_nModelIndex);
+}
 
 void VehicleMaterials::RestoreMaterials()
 {
