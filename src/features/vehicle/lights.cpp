@@ -855,11 +855,12 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMu
 
 void Lights::Reload(CVehicle *pVeh)
 {
-	m_Materials.erase(pVeh->m_nModelIndex);
+	int model = pVeh->m_nModelIndex;
+	m_Materials.erase(model);
 	m_Dummies.erase(pVeh);
-	DataMgr::LoadFile(std::filesystem::directory_entry(std::format("{}{}.jsonc", MOD_DATA_PATH("data/"), pVeh->m_nModelIndex)));
+	DataMgr::Reload(model);
 	VehicleMaterials::Reset(pVeh);
-	VehicleMaterials::OnModelSet(pVeh, pVeh->m_nModelIndex);
+	VehicleMaterials::OnModelSet(pVeh, model);
 }
 
 void Lights::EnableMaterial(VehicleMaterial *material, float mul)

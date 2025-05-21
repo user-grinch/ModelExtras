@@ -26,10 +26,14 @@
 #include "vehicle/backfire.h"
 #include "vehicle/dirt/modelinfo.h"
 #include "meevents.h"
+#include <extensions/ScriptCommands.h>
+#include <CHud.h>
 
 #include <CMessages.h>
 
 void InitLogFile();
+
+#define TEST_CHEAT 0x0ADC
 
 void FeatureMgr::Initialize()
 {
@@ -42,14 +46,19 @@ void FeatureMgr::Initialize()
         DataMgr::Init();
     };
 
-    Events::processScriptsEvent += []()
+    if (gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))
     {
-        CVehicle *pVeh = FindPlayerVehicle(-1, false);
-        if (pVeh && KeyPressed(VK_K) && KeyPressed(VK_P))
+        Events::processScriptsEvent += []()
         {
-            Lights::Reload(pVeh);
-        }
-    };
+            CVehicle *pVeh = FindPlayerVehicle(-1, false);
+            if (pVeh && plugin::Command<TEST_CHEAT>("MERELOAD"))
+            {
+                Lights::Reload(pVeh);
+                Sirens::Reload(pVeh);
+                CHud::SetHelpMessage("Config reloaded", false, false, true);
+            }
+        };
+    }
 
     MEEvents::vehRenderEvent.before += [](CVehicle *pVeh)
     {

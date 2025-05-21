@@ -42,6 +42,17 @@ void DataMgr::Convert()
     }
 }
 
+void DataMgr::Reload(int model)
+{
+    std::filesystem::directory_entry e = std::filesystem::directory_entry(std::filesystem::path(DataMgr::GetPath(model)));
+    DataMgr::LoadFile(e);
+}
+
+const std::string &DataMgr::GetPath(int model)
+{
+    return modelPath[model];
+}
+
 void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
 {
     try
@@ -98,6 +109,7 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
                         gLogger->warn(text);
                     }
                 }
+                modelPath[model] = e.path().string();
             }
             else
             {

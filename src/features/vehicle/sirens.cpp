@@ -9,6 +9,7 @@
 #include "lights.h"
 #include "audiomgr.h"
 #include "util.h"
+#include "datamgr.h"
 
 bool VehicleSiren::GetSirenState()
 {
@@ -32,6 +33,18 @@ void __fastcall hkVehiclePreRender(CVehicle *ptr)
 {
 	pCurrentVeh = ptr;
 	plugin::CallMethod<0x6D6480>(ptr);
+}
+
+void Sirens::Reload(CVehicle *pVeh)
+{
+	int model = pVeh->m_nModelIndex;
+	modelRotators.erase(model);
+	modelData.erase(model);
+	vehicleData.erase((int)pVeh);
+	EventCtor(pVeh);
+	DataMgr::Reload(model);
+	VehicleMaterials::Reset(pVeh);
+	VehicleMaterials::OnModelSet(pVeh, model);
 }
 
 void __cdecl Sirens::hkAddPointLights(uint8_t type, CVector point, CVector dir, float range, float red, float green, float blue, uint8_t fogEffect, bool bCastsShadowFromPlayerCarAndPed, CEntity *castingEntity)
@@ -535,6 +548,14 @@ void Sirens::Parse(const nlohmann::json &data, int model)
 	}
 }
 
+void Sirens::EventCtor(CVehicle *pVeh)
+{
+	if (modelData.contains(pVeh->m_nModelIndex))
+	{
+		vehicleData[(int)pVeh] = new VehicleSiren(pVeh);
+	}
+}
+
 void Sirens::Initialize()
 {
 	VehicleMaterials::Register([](CVehicle *vehicle, RpMaterial *material, CRGBA col)
@@ -559,7 +580,7 @@ void Sirens::Initialize()
 			return;
 		}
 
-		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
+		int index = (int)vehicle;
 		if (!vehicleData.contains(index)) {
 			vehicleData[index] = new VehicleSiren(vehicle);
 		}
@@ -572,16 +593,9 @@ void Sirens::Initialize()
 			vehicleData[index]->Dummies[id].push_back(new VehicleDummy(vehicle, frame, name, eDummyPos::None));
 		} });
 
-	plugin::Events::vehicleCtorEvent += [](CVehicle *vehicle)
+	plugin::Events::vehicleCtorEvent += [](CVehicle *pVeh)
 	{
-		int model = vehicle->m_nModelIndex;
-
-		if (!modelData.contains(model))
-			return;
-
-		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
-
-		vehicleData[index] = new VehicleSiren(vehicle);
+		EventCtor(pVeh);
 	};
 
 	plugin::Events::vehicleDtorEvent += [](CVehicle *vehicle)
@@ -591,7 +605,7 @@ void Sirens::Initialize()
 		if (!modelData.contains(model))
 			return;
 
-		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
+		int index = (int)vehicle;
 
 		vehicleData.erase(index);
 	};
@@ -617,7 +631,7 @@ void Sirens::Initialize()
 				if (!modelData.contains(model))
 					return;
 
-				int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
+				int index = (int)vehicle;
 
 				if (!vehicleData.contains(index))
 					return;
@@ -637,7 +651,7 @@ void Sirens::Initialize()
 				if (!modelData.contains(model))
 					return;
 
-				int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
+				int index = (int)vehicle;
 
 				if (!vehicleData.contains(index))
 					return;
@@ -687,7 +701,7 @@ void Sirens::Initialize()
 				if (!modelData.contains(model))
 					return;
 
-				int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
+				int index = (int)vehicle;
 
 				if (!vehicleData.contains(index))
 					return;
@@ -717,7 +731,7 @@ void Sirens::Initialize()
 	VehicleMaterials::RegisterRender([](CVehicle *vehicle)
 									 {
 		int model = vehicle->m_nModelIndex;
-		int index = CPools::ms_pVehiclePool->GetIndex(vehicle);
+		int index = (int)vehicle;
 
 		if (!vehicle->GetIsOnScreen() || !modelData.contains(model) || vehicle->m_nOverrideLights == eLightOverride::ForceLightsOff || vehicle->ms_forceVehicleLightsOff) {
 			return;
