@@ -119,12 +119,14 @@ void VehicleMaterials::OnModelSet(CVehicle *vehicle, int model)
 			if (materials[currentVehicle->m_nModelIndex].contains(material))
 				return material;
 
-			RwRGBA col = material->color;
-			if (!matColBackup[currentVehicle->m_nModelIndex].contains(material)) {
-				matColBackup[currentVehicle->m_nModelIndex][material] = col;
+			if (matColBackup[currentVehicle->m_nModelIndex].contains(material)) {
+				material->color = matColBackup[currentVehicle->m_nModelIndex][material];
+			}
+			else {
+				matColBackup[currentVehicle->m_nModelIndex][material] = material->color;
 			}
 			for (auto& e : functions) {
-				e(currentVehicle, material, matColBackup[currentVehicle->m_nModelIndex][material]);
+				e(currentVehicle, material, material->color);
 			}
 
 			materials[currentVehicle->m_nModelIndex][material] = true;
