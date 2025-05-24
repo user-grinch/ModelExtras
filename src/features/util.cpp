@@ -105,7 +105,7 @@ void Util::RegisterShadow(CVehicle *pVeh, CVector position, CRGBA col, float ang
                        0};
     center = pVeh->TransformFromObjectSpace(position + nOffset + nSize);
 
-    center.z = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z + 100, nullptr, nullptr) + 1.0f;
+    center.z = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z + 100, nullptr, nullptr) + 2.0f;
 
     // Fix issues like under bridges
     if (abs(center.z - vehPos.z) > 3.0f)

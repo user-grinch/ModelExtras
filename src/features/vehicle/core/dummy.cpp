@@ -24,7 +24,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
         Position.x *= -1;
     }
     ShdwPosition = Position;
-    coronaCol = color;
+    shdwCol = coronaCol = color;
     DummyType = type;
     DummyIdx = dummyIdx;
     float angleVal = 0.0f;
