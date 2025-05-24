@@ -10,7 +10,7 @@ class VehicleDummy
 {
 public:
     RwFrame *Frame;
-    CRGBA Color = {255, 255, 255, 100};
+    CRGBA coronaCol = {255, 255, 255, 100};
     CVector Position;
     float coronaSize = 0.35f;
     float Angle = 0.0f;
@@ -26,6 +26,7 @@ public:
     std::string shdwTex = "";
     CVector ShdwPosition;
     bool mirroredX = false;
+    CRGBA shdwCol = {255, 255, 255, 100};
     CVector2D shdwOffSet = {0.0f, 0.0f};
     CVector2D shdowSize = {1.0f, 1.0f};
 

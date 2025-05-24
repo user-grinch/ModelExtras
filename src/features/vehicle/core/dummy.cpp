@@ -24,7 +24,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
         Position.x *= -1;
     }
     ShdwPosition = Position;
-    Color = color;
+    coronaCol = color;
     DummyType = type;
     DummyIdx = dummyIdx;
     float angleVal = 0.0f;
@@ -63,18 +63,19 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
         if (jsonData["lights"].contains(newName.c_str()))
         {
             auto &lights = jsonData["lights"][newName.c_str()];
-            if (lights.contains("color"))
-            {
-                Color.r = lights["color"].value("red", Color.r);
-                Color.g = lights["color"].value("green", Color.g);
-                Color.b = lights["color"].value("blue", Color.b);
-                Color.a = lights["color"].value("alpha", Color.a);
-            }
 
             if (lights.contains("corona"))
             {
-                coronaSize = lights["corona"].value("size", coronaSize);
-                LightType = GetLightingMode(lights["corona"].value("type", "directional"));
+                auto &coronaSec = lights["corona"];
+                if (coronaSec.contains("color"))
+                {
+                    coronaCol.r = coronaSec["color"].value("red", coronaCol.r);
+                    coronaCol.g = coronaSec["color"].value("green", coronaCol.g);
+                    coronaCol.b = coronaSec["color"].value("blue", coronaCol.b);
+                    coronaCol.a = coronaSec["color"].value("alpha", coronaCol.a);
+                }
+                coronaSize = coronaSec.value("size", coronaSize);
+                LightType = GetLightingMode(coronaSec.value("type", "directional"));
             }
 
             PartType = eParentTypeFromString(lights.value("parent", ""));
@@ -82,6 +83,13 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
             if (lights.contains("shadow"))
             {
                 auto &shadow = lights["shadow"];
+                if (shadow.contains("color"))
+                {
+                    shdwCol.r = shadow["color"].value("red", shdwCol.r);
+                    shdwCol.g = shadow["color"].value("green", shdwCol.g);
+                    shdwCol.b = shadow["color"].value("blue", shdwCol.b);
+                    shdwCol.a = shadow["color"].value("alpha", shdwCol.a);
+                }
                 shdwOffSet = {shadow.value("offsetx", 0.0f), shadow.value("offsety", 0.0f)};
 
                 // This needs to be like this
@@ -105,9 +113,9 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
         {
             if (prmPos + 9 < name.size())
             {
-                Color.r = ReadHex(name[prmPos + 4], name[prmPos + 5]);
-                Color.g = ReadHex(name[prmPos + 6], name[prmPos + 7]);
-                Color.b = ReadHex(name[prmPos + 8], name[prmPos + 9]);
+                shdwCol.r = coronaCol.r = ReadHex(name[prmPos + 4], name[prmPos + 5]);
+                shdwCol.g = coronaCol.g = ReadHex(name[prmPos + 6], name[prmPos + 7]);
+                shdwCol.b = coronaCol.b = ReadHex(name[prmPos + 8], name[prmPos + 9]);
             }
             else
             {
