@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "audiomgr.h"
+#include "defines.h"
 #include <extensions/ScriptCommands.h>
 #include <CAudioEngine.h>
 
@@ -61,6 +62,12 @@ void AudioMgr::Initialize()
 void AudioMgr::PlayClickSound()
 {
     AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_ON, 10.0, 1.0);
+}
+
+void AudioMgr::PlaySwitchSound(CEntity *pEntity)
+{
+    static std::string path = MOD_DATA_PATH("audio/effects/switch_toggle.wav");
+    PlayFileSound(path, pEntity, 1.0f, true);
 }
 
 StreamHandle AudioMgr::Load(const std::string &path)

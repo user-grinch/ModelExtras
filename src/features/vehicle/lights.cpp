@@ -415,7 +415,7 @@ void Lights::Initialize()
 					VehData &data = m_VehData.Get(pVeh);
 					data.m_bFogLightsOn = !data.m_bFogLightsOn;
 					prev = now;
-					AudioMgr::PlayClickSound();
+					AudioMgr::PlaySwitchSound(pVeh);
 				}
 			}
 
@@ -428,7 +428,7 @@ void Lights::Initialize()
 					VehData &data = m_VehData.Get(pVeh);
 					data.m_bLongLightsOn = !data.m_bLongLightsOn;
 					prev = now;
-					AudioMgr::PlayClickSound();
+					AudioMgr::PlaySwitchSound(pVeh);
 				}
 			}
 		}

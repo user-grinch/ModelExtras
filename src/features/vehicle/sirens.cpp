@@ -641,7 +641,7 @@ void Sirens::Initialize()
 				if (vehicleData[index]->Mute)
 					vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
 
-				AudioMgr::PlayClickSound();
+				AudioMgr::PlaySwitchSound(vehicle);
 			}
 
 			if (KeyPressed(VK_R))

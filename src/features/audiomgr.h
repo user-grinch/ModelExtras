@@ -25,4 +25,5 @@ public:
     static void Initialize();
     static void PlayFileSound(const std::string &path, CEntity *pEntity, float volume = 1.0f, bool cached = false);
     static void PlayClickSound();
+    static void PlaySwitchSound(CEntity *pEntity = NULL);
 };
