@@ -4,7 +4,6 @@
 class SoundEffects
 {
 private:
-    static inline StreamHandle m_hReverse = NULL;
     struct VehData
     {
         float m_fBrakePressure = 0.0f;

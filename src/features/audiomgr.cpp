@@ -5,6 +5,7 @@
 
 #define LOAD_3D_AUDIO_STREAM 0x0AC1
 #define SET_PLAY_3D_AUDIO_STREAM_AT_COORDS 0x0AC2
+#define SET_PLAY_3D_AUDIO_STREAM_AT_OBJECT 0x0AC3
 #define SET_PLAY_3D_AUDIO_STREAM_AT_CHAR 0x0AC4
 #define SET_PLAY_3D_AUDIO_STREAM_AT_CAR 0x0AC5
 #define SET_AUDIO_STREAM_STATE 0x0AAD
@@ -17,6 +18,11 @@ void AudioMgr::Initialize()
     plugin::Events::reInitGameEvent += []
     {
         m_NeedToFree.clear();
+
+        for (auto &e : m_Cache)
+        {
+            e.second = Load(e.first);
+        }
     };
 
     plugin::Events::processScriptsEvent += []
@@ -57,99 +63,99 @@ void AudioMgr::PlayClickSound()
     AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_ON, 10.0, 1.0);
 }
 
-StreamHandle AudioMgr::Load(std::string *pPath)
+StreamHandle AudioMgr::Load(const std::string &path)
 {
-    if (!pPath)
+    if (path.empty())
     {
-        return NULL;
+        return false;
     }
 
     StreamHandle handle = NULL;
-    plugin::Command<LOAD_3D_AUDIO_STREAM>(pPath->c_str(), &handle);
+    plugin::Command<LOAD_3D_AUDIO_STREAM>(path.c_str(), &handle);
     if (!handle)
     {
-        LOG_VERBOSE("Failed to load sound '{}'", *pPath);
+        LOG_VERBOSE("Failed to load sound '{}'", path);
+        return NULL;
     }
     return handle;
+}
+
+void AudioMgr::PlayFileSound(const std::string &path, CEntity *pEntity, float volume, bool cached)
+{
+    StreamHandle handle = NULL;
+
+    if (cached)
+    {
+        if (!m_Cache.contains(path))
+        {
+            StreamHandle temp = Load(path);
+            if (temp)
+            {
+                m_Cache[path] = temp;
+            }
+            else
+            {
+                return;
+            }
+        }
+        handle = m_Cache[path];
+    }
+    else
+    {
+        handle = Load(path);
+        m_NeedToFree.push_back(handle);
+    }
+
+    if (!handle)
+    {
+        return;
+    }
+
+    int state = eAudioStreamState::Stopped;
+    plugin::Command<GET_AUDIO_STREAM_STATE>(handle, &state);
+
+    if (state != eAudioStreamState::Playing)
+    {
+        SetVolume(handle, volume);
+        if (!pEntity)
+        {
+            pEntity = FindPlayerPed();
+        }
+
+        if (pEntity->m_nType == ENTITY_TYPE_VEHICLE)
+        {
+            int hEntity = CPools::GetVehicleRef(static_cast<CVehicle *>(pEntity));
+            if (hEntity)
+            {
+                plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_CAR>(handle, hEntity);
+            }
+        }
+        else if (pEntity->m_nType == ENTITY_TYPE_PED)
+        {
+            int hEntity = CPools::GetPedRef(static_cast<CPed *>(pEntity));
+            if (hEntity)
+            {
+                plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_CHAR>(handle, hEntity);
+            }
+        }
+        else if (pEntity->m_nType == ENTITY_TYPE_OBJECT)
+        {
+            int hEntity = CPools::GetObjectRef(static_cast<CObject *>(pEntity));
+            if (hEntity)
+            {
+                plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_OBJECT>(handle, hEntity);
+            }
+        }
+        else
+        {
+            CVector pos = pEntity->GetPosition();
+            plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, pos.x, pos.y, pos.z);
+        }
+        plugin::Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
+    }
 }
 
 void AudioMgr::SetVolume(StreamHandle handle, float volume)
 {
     plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume);
-}
-
-void AudioMgr::Play(StreamHandle handle, CEntity *pEntity, float volume)
-{
-    if (!handle)
-    {
-        return;
-    }
-
-    int state = eAudioStreamState::Stopped;
-    plugin::Command<GET_AUDIO_STREAM_STATE>(handle, &state);
-
-    if (state != eAudioStreamState::Playing)
-    {
-        CVector pos = pEntity->GetPosition();
-        plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume);
-        plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, pos.x, pos.y, pos.z);
-        plugin::Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
-    }
-}
-
-void AudioMgr::PlayOnVehicle(StreamHandle handle, CVehicle *pVeh, float volume)
-{
-    if (!handle)
-    {
-        return;
-    }
-
-    int state = eAudioStreamState::Stopped;
-    plugin::Command<GET_AUDIO_STREAM_STATE>(handle, &state);
-
-    if (state != eAudioStreamState::Playing)
-    {
-        plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume);
-        plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_CAR>(handle, CPools::GetVehicleRef(pVeh));
-        plugin::Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
-    }
-}
-
-void AudioMgr::LoadAndPlayOnVehicle(std::string *pPath, CVehicle *pVeh, float volume)
-{
-    if (!pPath || !pVeh)
-    {
-        return;
-    }
-
-    StreamHandle handle = NULL;
-    plugin::Command<LOAD_3D_AUDIO_STREAM>(pPath->c_str(), &handle);
-    if (!handle)
-    {
-        LOG_VERBOSE("Failed to load sound '{}'", *pPath);
-    }
-    plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_CAR>(handle, CPools::GetVehicleRef(pVeh));
-    plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume);
-    plugin::Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
-    m_NeedToFree.push_back(handle);
-}
-
-void AudioMgr::LoadAndPlay(std::string *pPath, CEntity *pEntity, float volume)
-{
-    if (!pPath || !pEntity)
-    {
-        return;
-    }
-
-    CVector pos = pEntity->GetPosition();
-    StreamHandle handle = NULL;
-    plugin::Command<LOAD_3D_AUDIO_STREAM>(pPath->c_str(), &handle);
-    if (!handle)
-    {
-        LOG_VERBOSE("Failed to load sound '{}'", *pPath);
-    }
-    plugin::Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, pos.x, pos.y, pos.z);
-    plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume);
-    plugin::Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
-    m_NeedToFree.push_back(handle);
 }

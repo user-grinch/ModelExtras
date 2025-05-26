@@ -43,24 +43,15 @@ void SoundEffects::Initialize()
                 {
                     static std::string carPath = MOD_DATA_PATH("audio/effects/engine_start.wav");
                     static std::string bikePath = MOD_DATA_PATH("audio/effects/bike_engine_start.wav");
-                    static StreamHandle carSound, bikeSound;
                     if (pVeh->m_nVehicleFlags.bEngineOn)
                     {
                         if (CModelInfo::IsCarModel(model))
                         {
-                            if (carSound == NULL)
-                            {
-                                carSound = AudioMgr::Load(&carPath);
-                            }
-                            AudioMgr::PlayOnVehicle(carSound, pVeh);
+                            AudioMgr::PlayFileSound(carPath, pVeh, 1.0f, true);
                         }
                         else
                         {
-                            if (bikeSound == NULL)
-                            {
-                                bikeSound = AudioMgr::Load(&bikePath);
-                            }
-                            AudioMgr::PlayOnVehicle(bikeSound, pVeh);
+                            AudioMgr::PlayFileSound(bikePath, pVeh, 1.0f, true);
                         }
                     }
                     data.m_bEngineState = pVeh->m_nVehicleFlags.bEngineOn;
@@ -74,16 +65,15 @@ void SoundEffects::Initialize()
                 {
                     static std::string onpath = MOD_DATA_PATH("audio/effects/indicator_on.wav");
                     static std::string offpath = MOD_DATA_PATH("audio/effects/indicator_off.wav");
-                    static StreamHandle hOn = NULL, hOff = NULL;
-                    if (hOn == NULL)
+
+                    if (state)
                     {
-                        hOn = AudioMgr::Load(&onpath);
+                        AudioMgr::PlayFileSound(onpath, pVeh, 0.6f, true);
                     }
-                    if (hOff == NULL)
+                    else
                     {
-                        hOff = AudioMgr::Load(&offpath);
+                        AudioMgr::PlayFileSound(offpath, pVeh, 0.6f, true);
                     }
-                    AudioMgr::PlayOnVehicle(state ? hOn : hOff, pVeh, 0.6f);
                     data.m_bIndicatorState = state;
                 }
             }
@@ -115,9 +105,7 @@ void SoundEffects::Initialize()
                 if (pedal <= 0.05f && val != NULL)
                 {
                     static std::string path = MOD_DATA_PATH("audio/effects/airbreak.wav");
-                    static StreamHandle handle = NULL;
-                    handle = AudioMgr::Load(&path);
-                    AudioMgr::PlayOnVehicle(handle, pVeh, data.m_fBrakePressure);
+                    AudioMgr::PlayFileSound(path, pVeh, data.m_fBrakePressure, true);
                     val = NULL;
                     data.m_fBrakePressure = 0.0f;
                 }
@@ -126,13 +114,10 @@ void SoundEffects::Initialize()
             if (bReverseSounds)
             {
                 static std::string path = MOD_DATA_PATH("audio/effects/reverse.wav");
+
                 if (isBigVeh && pVeh->m_nCurrentGear == 0 && pVeh->m_nVehicleFlags.bEngineOn && !pVeh->m_nVehicleFlags.bEngineBroken && speed >= 3.0f)
                 {
-                    if (m_hReverse == NULL)
-                    {
-                        m_hReverse = AudioMgr::Load(&path);
-                    }
-                    AudioMgr::PlayOnVehicle(m_hReverse, pVeh, 0.5f);
+                    AudioMgr::PlayFileSound(path, pVeh, 0.5f, true);
                 }
             }
         }

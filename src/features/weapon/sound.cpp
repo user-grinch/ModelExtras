@@ -90,7 +90,10 @@ void WeaponSoundSystem::Initialize()
         if (pAudioEnt && pAudioEnt->m_pPed)
         {
             std::string *path = WeaponSoundSystem::FindAudio(weaponType, "shoot");
-            AudioMgr::LoadAndPlay(path, pAudioEnt->m_pPed);
+            if (path)
+            {
+                AudioMgr::PlayFileSound(*path, pAudioEnt->m_pPed);
+            }
             plugin::patch::SetRaw(0x504F80, path ? (char *)"\xC2\x0C\x00" : (char *)"\x8B\x44\x24", 3);
         }
     };
@@ -109,7 +112,10 @@ void WeaponSoundSystem::Initialize()
             {
                 if (unk != 0x93) // SKIP AE_WEAPON_RELOAD_B
                 {
-                    AudioMgr::LoadAndPlay(path, pAudioEnt->m_pPed);
+                    if (path)
+                    {
+                        AudioMgr::PlayFileSound(*path, pAudioEnt->m_pPed);
+                    }
                 }
             }
             plugin::patch::SetRaw(0x503690, path ? (char *)"\xC2\x0C\x00" : (char *)"\x51\x53\x55", 3);
@@ -126,7 +132,10 @@ void WeaponSoundSystem::Initialize()
         if (pAudioEnt && pAudioEnt->m_pPed)
         {
             std::string *path = WeaponSoundSystem::FindAudio(weaponType, "projectile");
-            AudioMgr::LoadAndPlay(path, pAudioEnt->m_pPed);
+            if (path)
+            {
+                AudioMgr::PlayFileSound(*path, pAudioEnt->m_pPed);
+            }
             plugin::patch::SetRaw(0x4DF060, path ? (char *)"\xC2\x0C\x00" : (char *)"\x8B\x44\x24", 3);
         }
     };
@@ -142,7 +151,10 @@ void WeaponSoundSystem::Initialize()
         {
             eWeaponType weaponType = pAudioEnt->m_pPed->m_aWeapons[pAudioEnt->m_pPed->m_nActiveWeaponSlot].m_eWeaponType;
             std::string *path = WeaponSoundSystem::FindAudio(weaponType, "hit");
-            AudioMgr::LoadAndPlay(path, pAudioEnt->m_pPed);
+            if (path)
+            {
+                AudioMgr::PlayFileSound(*path, pAudioEnt->m_pPed);
+            }
             plugin::patch::SetRaw(0x4E1CC0, path ? (char *)"\xC2\x14\x00" : (char *)"\x83\xEC\x14", 3);
         }
     };
@@ -157,7 +169,10 @@ void WeaponSoundSystem::Initialize()
         {
             eWeaponType weaponType = pAudioEnt->m_pPed->m_aWeapons[pAudioEnt->m_pPed->m_nActiveWeaponSlot].m_eWeaponType;
             std::string *path = WeaponSoundSystem::FindAudio(weaponType, "swing");
-            AudioMgr::LoadAndPlay(path, pAudioEnt->m_pPed);
+            if (path)
+            {
+                AudioMgr::PlayFileSound(*path, pAudioEnt->m_pPed);
+            }
             plugin::patch::SetRaw(0x4E1A40, path ? (char *)"\xC2\x0C\x00" : (char *)"\x83\xEC\x08", 3);
         }
     };

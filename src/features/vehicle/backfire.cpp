@@ -23,12 +23,7 @@ void BackFireEffect::BackFireFX(CVehicle *pVeh, float x, float y, float z)
     CVector vehPos = pVeh->GetPosition();
     CVector camPos = TheCamera.GetPosition();
     static std::string audioPath = MOD_DATA_PATH("audio/effects/backfire.wav");
-    static StreamHandle hAudio = NULL;
-    if (hAudio == NULL)
-    {
-        hAudio = AudioMgr::Load(&audioPath);
-    }
-    AudioMgr::PlayOnVehicle(hAudio, pVeh, 1.5f);
+    AudioMgr::PlayFileSound(audioPath, pVeh, 1.5f, true);
     // if (DistanceBetweenPoints(vehPos, camPos) < 80.0f)
     // {
     //     plugin::Command<Commands::ADD_ONE_OFF_SOUND>(0.0f, 0.0f, 0.0f, 1131);
