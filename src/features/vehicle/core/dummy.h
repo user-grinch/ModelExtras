@@ -24,7 +24,6 @@ public:
     eParentType PartType = eParentType::Unknown;
 
     std::string shdwTex = "";
-    CVector ShdwPosition;
     bool mirroredX = false;
     CRGBA shdwCol = {255, 255, 255, 100};
     CVector2D shdwOffSet = {0.0f, 0.0f};

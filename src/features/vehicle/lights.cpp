@@ -483,7 +483,7 @@ void Lights::Initialize()
 			RenderLights(pControlVeh, pTowedVeh, eLightType::DayLight);
 		}
 		
-		CVector2D shdwOffset = {0.0f, 0.70f};
+		CVector2D shdwOffset = {0.0f, 0.7f};
 		CVector2D headlightOffset = {0.0f, shdwOffset.y + 0.5f};
 		if (data.m_bFogLightsOn)
 		{
@@ -797,7 +797,7 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 			{
 				texture = (e->shdwTex == "") ? texture : e->shdwTex;
 				e->Update(pVeh);
-				Util::RegisterShadow(pVeh, e->ShdwPosition, e->shdwCol, e->Angle, e->DummyType, texture, {sz.x * e->shdowSize.x, sz.y * e->shdowSize.y}, {offset.x + e->shdwOffSet.x, offset.y + e->shdwOffSet.y});
+				Util::RegisterShadow(pVeh, e->Position, e->shdwCol, e->Angle, e->DummyType, texture, {sz.x * e->shdowSize.x, sz.y * e->shdowSize.y}, {offset.x + e->shdwOffSet.x, offset.y + e->shdwOffSet.y});
 			}
 		}
 	}

@@ -999,7 +999,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 	}
 
 	// FIX ME
-	CVector dummyPos = dummy->ShdwPosition;
+	CVector dummyPos = dummy->Position;
 	if (modelData[vehicle->m_nModelIndex]->isImVehFtSiren)
 	{
 		dummyPos.x *= 1.5f;

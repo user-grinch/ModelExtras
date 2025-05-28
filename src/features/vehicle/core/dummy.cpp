@@ -23,7 +23,6 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
         this->mirroredX = mirroredX;
         Position.x *= -1;
     }
-    ShdwPosition = Position;
     shdwCol = coronaCol = color;
     DummyType = type;
     DummyIdx = dummyIdx;
@@ -202,15 +201,4 @@ void VehicleDummy::Update(CVehicle *pVeh)
     {
         Position.x *= -1;
     }
-
-    ShdwPosition = Position;
-    // if (DummyType == eDummyPos::Left)
-    // {
-    //     ShdwPosition.x -= 1.25f;
-    // }
-
-    // if (DummyType == eDummyPos::Right)
-    // {
-    //     ShdwPosition.x += 1.25f;
-    // }
 }
