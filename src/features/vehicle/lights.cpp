@@ -235,11 +235,6 @@ void Lights::Initialize()
 			}
 		}
 
-		if (col.r == 255 && (col.g == 4 || col.g == 5) && col.b == 128
-		&& std::string(material->texture->name).rfind("light", 0) == 0) {
-			RegisterMaterial(vehicle, material, (col.g == 4) ? eLightType::IndicatorLightLeft : eLightType::IndicatorLightRight, col);
-		}
-
 		return material; });
 
 	VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *frame, std::string name, bool parent)

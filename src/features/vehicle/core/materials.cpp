@@ -5,6 +5,7 @@
 #include <rwcore.h>
 #include <rwplcore.h>
 #include <rpworld.h>
+#include "texmgr.h"
 
 RwTexture *FindTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict)
 {
@@ -19,7 +20,7 @@ RwTexture *FindTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict)
 	*/
 	if (baseName == "vehiclelights128")
 	{
-		return RwTexDictionaryFindNamedTexture(pDict, "vehiclelightson128");
+		return TextureMgr::GetFromVehicleTxd("vehiclelightson128");
 	}
 
 	// texture glitch fix
@@ -59,23 +60,6 @@ VehicleMaterial::VehicleMaterial(RpMaterial *material, eDummyPos pos)
 	Color = {material->color.red, material->color.green, material->color.blue, material->color.alpha};
 
 	RwTexture *pTexture = FindTextureInDict(material, material->texture->dict);
-	if (!pTexture)
-	{
-		CTxdStore::PushCurrentTxd();
-		int slot = CTxdStore::FindTxdSlot("vehicle");
-		if (slot < 0)
-		{
-			slot = CTxdStore::AddTxdSlot("vehicle");
-			CTxdStore::LoadTxd(slot, "vehicle");
-		}
-
-		if (slot > 0)
-		{
-			CTxdStore::SetCurrentTxd(slot);
-			pTexture = FindTextureInDict(material, RwTexDictionaryGetCurrent());
-			CTxdStore::PopCurrentTxd();
-		}
-	}
 
 	if (pTexture)
 	{

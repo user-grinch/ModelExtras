@@ -6,6 +6,7 @@
 #include <rwplcore.h>
 #include <rpworld.h>
 #include <RenderWare.h>
+#include <CFileLoader.h>
 
 RwTexture *LoadPNGFromFile(const char *filename, RwUInt8 alpha)
 {
@@ -58,24 +59,32 @@ RwTexture *TextureMgr::Get(std::string name, RwUInt8 alpha)
         return Textures[name][alpha];
     }
 
-    int index = CTxdStore::FindTxdSlot("ME_TEXDB");
-    if (index == -1)
-    {
-        index = CTxdStore::AddTxdSlot("ME_TEXDB");
-        CTxdStore::LoadTxd(index, MOD_DATA_PATH("ME_TEXDB.TXD"));
-        CTxdStore::AddRef(index);
-    }
-    CTxdStore::PushCurrentTxd();
-    CTxdStore::SetCurrentTxd(index);
+    static auto pDict = CFileLoader::LoadTexDictionary(MOD_DATA_PATH("ME_TEXDB.TXD"));
+    Textures[name][alpha] = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
+    // int index = CTxdStore::FindTxdSlot("ME_TEXDB");
+    // if (index == -1)
+    // {
+    //     index = CTxdStore::AddTxdSlot("ME_TEXDB");
+    //     CTxdStore::LoadTxd(index, MOD_DATA_PATH("ME_TEXDB.TXD"));
+    //     CTxdStore::AddRef(index);
+    // }
+    // CTxdStore::PushCurrentTxd();
+    // CTxdStore::SetCurrentTxd(index);
 
-    Textures[name][alpha] = RwReadTexture(name.c_str());
+    // Textures[name][alpha] = RwReadTexture(name.c_str());
 
     if (alpha != 255)
     {
         SetAlpha(Textures[name][alpha], alpha);
     }
-    CTxdStore::PopCurrentTxd();
+    // CTxdStore::PopCurrentTxd();
     return Textures[name][alpha];
+}
+
+RwTexture *TextureMgr::GetFromVehicleTxd(std::string name)
+{
+    static auto pDict = CFileLoader::LoadTexDictionary("MODELS/GENERIC/VEHICLE.TXD");
+    return RwTexDictionaryFindNamedTexture(pDict, name.c_str());
 }
 
 void TextureMgr::SetAlpha(RwTexture *texture, RwUInt8 alpha)
