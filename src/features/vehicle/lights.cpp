@@ -109,7 +109,7 @@ void DrawGlobalLight(CVehicle *pVeh, bool isRear, bool isLeft, CRGBA col, std::s
 	Util::RegisterShadow(pVeh, posn, shadowColor, dummyAngle, isRear ? eDummyPos::Rear : eDummyPos::Front, texture, shdwSz, shdwOffset);
 
 	CRGBA coronaColor = {col.r, col.g, col.b, GetCoronaAlphaForDayTime()};
-	int coronaId = reinterpret_cast<uintptr_t>(pVeh) + 255 * isRear + isLeft;
+	int coronaId = reinterpret_cast<uintptr_t>(pVeh) + 255 * isRear + 128 * isLeft + col.r + col.g + col.b;
 	Util::RegisterCoronaWithAngle(pVeh, coronaId, posn, coronaColor, dummyAngle, 180.0f, gfGlobalCoronaSize);
 }
 
@@ -201,10 +201,7 @@ void Lights::Initialize()
 		}
 		else if (col.r == 255 && col.g == 199) { // 1-255 reserved
 			RegisterMaterial(vehicle, material, eLightType::StrobeLight, col);
-		}
-
-		// Indicator Lights
-		if (col.b == 0) {
+		} else if (col.b == 0) {
 			if (col.r == 255) { // Right
 				if (col.g >= 56 && col.g <= 58) {
 					if (col.g == 58) {
@@ -733,7 +730,7 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 	bool FrontDisabled = false;
 	bool RearDisabled = false;
 	bool MidDisabled = false;
-	int id = static_cast<int>(state) * 10000;
+	int id = static_cast<int>(state) * 1000;
 
 	bool lightState[256] = {true};
 	if (pVeh->m_pTrailer && (state == eLightType::IndicatorLightRight || state == eLightType::IndicatorLightLeft))
