@@ -43,8 +43,8 @@ void Sirens::Reload(CVehicle *pVeh)
 	vehicleData.erase((int)pVeh);
 	EventCtor(pVeh);
 	DataMgr::Reload(model);
-	VehicleMaterials::Reset(pVeh);
-	VehicleMaterials::OnModelSet(pVeh, model);
+	ModelMgr::Reset(pVeh);
+	ModelMgr::OnModelSet(pVeh, model);
 }
 
 void __cdecl Sirens::hkAddPointLights(uint8_t type, CVector point, CVector dir, float range, float red, float green, float blue, uint8_t fogEffect, bool bCastsShadowFromPlayerCarAndPed, CEntity *castingEntity)
@@ -528,7 +528,7 @@ void Sirens::RegisterMaterial(CVehicle *vehicle, RpMaterial *material)
 			id = 256 - id;
 		}
 		material->color.red = material->color.blue = material->color.green = 255;
-		modelData[vehicle->m_nModelIndex]->Materials[id].push_back(new VehicleMaterial(material));
+		modelData[vehicle->m_nModelIndex]->Materials[id].push_back(new MEMaterial(material));
 	}
 };
 
@@ -558,8 +558,8 @@ void Sirens::EventCtor(CVehicle *pVeh)
 
 void Sirens::Initialize()
 {
-	VehicleMaterials::Register([](CVehicle *vehicle, RpMaterial *material, CRGBA col)
-							   {
+	ModelMgr::Register([](CVehicle *vehicle, RpMaterial *material, CRGBA col)
+						  {
 		if (modelData.contains(vehicle->m_nModelIndex)
 			&& (col.b == 255 || col.g == 255 || modelData[vehicle->m_nModelIndex]->isImVehFtSiren)) {
 			if (modelData[vehicle->m_nModelIndex]->isImVehFtSiren) {
@@ -574,8 +574,8 @@ void Sirens::Initialize()
 		}
 		return material; });
 
-	VehicleMaterials::RegisterDummy([](CVehicle *vehicle, RwFrame *frame, std::string name, bool parent)
-									{
+	ModelMgr::RegisterDummy([](CVehicle *vehicle, RwFrame *frame, std::string name, bool parent)
+							   {
 		if (!modelData.contains(vehicle->m_nModelIndex)) {
 			return;
 		}
@@ -728,8 +728,8 @@ void Sirens::Initialize()
 		}
 	};
 
-	VehicleMaterials::RegisterRender([](CVehicle *vehicle)
-									 {
+	ModelMgr::RegisterRender([](CVehicle *vehicle)
+								{
 		int model = vehicle->m_nModelIndex;
 		int index = (int)vehicle;
 
@@ -915,32 +915,32 @@ void Sirens::hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char 
 	CCoronas::RegisterCorona(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
 };
 
-void Sirens::EnableMaterial(VehicleMaterial *material, VehicleSirenMaterial *mat, uint64_t time)
+void Sirens::EnableMaterial(MEMaterial *material, VehicleSirenMaterial *mat, uint64_t time)
 {
-	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->texture), *reinterpret_cast<unsigned int *>(&material->Material->texture)));
+	ModelMgr::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->pGameMat->texture), *reinterpret_cast<unsigned int *>(&material->pGameMat->texture)));
 
-	material->Material->texture = material->TextureActive;
+	material->pGameMat->texture = material->pTextureOn;
 
-	VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->surfaceProps.ambient), *reinterpret_cast<unsigned int *>(&material->Material->surfaceProps.ambient)));
+	ModelMgr::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->pGameMat->surfaceProps.ambient), *reinterpret_cast<unsigned int *>(&material->pGameMat->surfaceProps.ambient)));
 
-	material->Material->surfaceProps.ambient = AMBIENT_ON_VAL;
+	material->pGameMat->surfaceProps.ambient = AMBIENT_ON_VAL;
 
 	if (mat->Diffuse.Color)
 	{
-		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->color), *reinterpret_cast<unsigned int *>(&material->Material->color)));
+		ModelMgr::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->pGameMat->color), *reinterpret_cast<unsigned int *>(&material->pGameMat->color)));
 
-		material->Material->color.red = mat->Color.r;
-		material->Material->color.green = mat->Color.g;
-		material->Material->color.blue = mat->Color.b;
+		material->pGameMat->color.red = mat->Color.r;
+		material->pGameMat->color.green = mat->Color.g;
+		material->pGameMat->color.blue = mat->Color.b;
 
 		if (mat->Diffuse.Transparent)
-			material->Material->color.alpha = 255;
+			material->pGameMat->color.alpha = 255;
 	}
 	else if (mat->Diffuse.Transparent)
 	{
-		VehicleMaterials::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->Material->color), *reinterpret_cast<unsigned int *>(&material->Material->color)));
+		ModelMgr::StoreMaterial(std::make_pair(reinterpret_cast<unsigned int *>(&material->pGameMat->color), *reinterpret_cast<unsigned int *>(&material->pGameMat->color)));
 
-		material->Material->color.alpha = 255;
+		material->pGameMat->color.alpha = 255;
 	}
 };
 

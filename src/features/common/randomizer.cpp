@@ -6,7 +6,7 @@ void Randomizer::Initialize()
 {
     MEEvents::weaponRemoveEvent.before += [](CPed *pPed, int model)
     {
-        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
+        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nSelectedWepSlot];
         if (pWeapon)
         {
             if (m_pStoredRandoms.contains(pWeapon))

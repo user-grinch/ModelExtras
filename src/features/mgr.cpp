@@ -40,6 +40,7 @@ void FeatureMgr::Initialize()
     // Nop frame collasping
     plugin::patch::Nop(0x4C8E53, 5);
     plugin::patch::Nop(0x4C8F6E, 5);
+    patch::ReplaceFunction(0x4C8220, ModelMgr::SetEditableMaterialsCB);
 
     plugin::Events::initGameEvent += []()
     {
@@ -70,8 +71,8 @@ void FeatureMgr::Initialize()
             gLogger->warn(text);
         }
 
-        VehicleMaterials::RestoreMaterials();
-        VehicleMaterials::OnRender(pVeh);
+        ModelMgr::RestoreMaterials();
+        ModelMgr::OnRender(pVeh);
         Process(static_cast<void *>(pVeh), eModelEntityType::Vehicle);
     };
 
@@ -82,14 +83,14 @@ void FeatureMgr::Initialize()
             return;
         }
 
-        VehicleMaterials::RestoreMaterials();
-        VehicleMaterials::OnRender(pVeh);
+        ModelMgr::RestoreMaterials();
+        ModelMgr::OnRender(pVeh);
         Process(static_cast<void *>(pVeh), eModelEntityType::Vehicle);
     };
 
     Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
     {
-        VehicleMaterials::OnModelSet(pVeh, model);
+        ModelMgr::OnModelSet(pVeh, model);
         Add(static_cast<void *>(pVeh), (RwFrame *)pVeh->m_pRwClump->object.parent, eModelEntityType::Vehicle);
     };
 
@@ -107,24 +108,24 @@ void FeatureMgr::Initialize()
         CTaskSimpleJetPack *pTask = pPed->m_pIntelligence->GetTaskJetPack();
         if (pTask && pTask->m_pJetPackClump)
         {
-            Add(static_cast<void *>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), (RwFrame *)pTask->m_pJetPackClump->object.parent, eModelEntityType::Jetpack);
-            Process(static_cast<void *>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), eModelEntityType::Jetpack);
+            Add(static_cast<void *>(&pPed->m_aWeapons[pPed->m_nSelectedWepSlot]), (RwFrame *)pTask->m_pJetPackClump->object.parent, eModelEntityType::Jetpack);
+            Process(static_cast<void *>(&pPed->m_aWeapons[pPed->m_nSelectedWepSlot]), eModelEntityType::Jetpack);
         }
 
         // weapons
-        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
+        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nSelectedWepSlot];
         if (pWeapon)
         {
             eWeaponType weaponType = pWeapon->m_eWeaponType;
             CWeaponInfo *pWeaponInfo = CWeaponInfo::GetWeaponInfo(weaponType, pPed->GetWeaponSkill(weaponType));
-            if (pWeaponInfo && pWeaponInfo->m_nModelId1 > 0)
+            if (pWeaponInfo && pWeaponInfo->m_nModelId > 0)
             {
-                CWeaponModelInfo *pWeaponModelInfo = static_cast<CWeaponModelInfo *>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId1));
+                CWeaponModelInfo *pWeaponModelInfo = static_cast<CWeaponModelInfo *>(CModelInfo::GetModelInfo(pWeaponInfo->m_nModelId));
                 if (pWeaponModelInfo && pWeaponModelInfo->m_pRwClump)
                 {
-                    Add(static_cast<void *>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]),
+                    Add(static_cast<void *>(&pPed->m_aWeapons[pPed->m_nSelectedWepSlot]),
                         (RwFrame *)pWeaponModelInfo->m_pRwClump->object.parent, eModelEntityType::Weapon);
-                    Process(static_cast<void *>(&pPed->m_aWeapons[pPed->m_nActiveWeaponSlot]), eModelEntityType::Weapon);
+                    Process(static_cast<void *>(&pPed->m_aWeapons[pPed->m_nSelectedWepSlot]), eModelEntityType::Weapon);
                 }
             }
         }

@@ -8,28 +8,37 @@
 #include "RenderWare.h"
 #include "enums/dummypos.h"
 
-class VehicleMaterial
+struct tRestoreEntry
+{
+	void *m_pAddress;
+	void *m_pValue;
+};
+
+class MEMaterial
 {
 public:
-	RpMaterial *Material;
-	RwTexture *Texture;
-	RwTexture *TextureActive;
+	RpMaterial *pGameMat;
+	RwTexture *pTextureOff;
+	RwTexture *pTextureOn;
 	CRGBA Color;
 	eDummyPos Pos;
 
-	VehicleMaterial(RpMaterial *material, eDummyPos pos = (eDummyPos)0);
+	MEMaterial(RpMaterial *pMat, eDummyPos dummyPos = (eDummyPos)0);
+	~MEMaterial();
 };
 
-class VehicleMaterials
+class ModelMgr
 {
 public:
 	static void Register(std::function<RpMaterial *(CVehicle *, RpMaterial *, CRGBA)> function);
-	static void RegisterRender(std::function<void(CVehicle *)> render);
-	static void RegisterDummy(std::function<void(CVehicle *, RwFrame *, std::string, bool)> function);
 	static void OnModelSet(CVehicle *vehicle, int model);
-	static void OnRender(CVehicle *vehicke);
 	static void StoreMaterial(std::pair<unsigned int *, unsigned int> pair);
 	static void RestoreMaterials();
+
+	static void RegisterDummy(std::function<void(CVehicle *, RwFrame *, std::string, bool)> function);
+	static void RegisterRender(std::function<void(CVehicle *)> render);
+	static void OnRender(CVehicle *pVeh);
+	static RpMaterial *SetEditableMaterialsCB(RpMaterial *material, void *data);
 
 private:
 	static inline std::vector<std::function<RpMaterial *(CVehicle *, RpMaterial *, CRGBA)>> functions;
@@ -45,8 +54,8 @@ private:
 	static inline CVehicle *currentVehicle;
 	static inline std::list<std::pair<unsigned int *, unsigned int>> storedMaterials;
 
-public:
 	static void FindDummies(CVehicle *vehicle, RwFrame *frame, bool parent = false, bool print = false);
 
+public:
 	static void Reset(CVehicle *pVeh);
 };

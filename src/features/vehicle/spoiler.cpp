@@ -5,8 +5,8 @@
 
 void Spoiler::Initialize()
 {
-    VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
-                                    {
+    ModelMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
+                               {
         if (!name.starts_with("movspoiler")) {
             return;
         }
@@ -46,8 +46,8 @@ void Spoiler::Initialize()
         spoilerData.m_fCurrentRotation = 0.0f; 
         data.m_Spoilers.push_back(spoilerData); });
 
-    VehicleMaterials::RegisterRender([](CVehicle *pVeh)
-                                     {
+    ModelMgr::RegisterRender([](CVehicle *pVeh)
+                                {
         if (!pVeh || !pVeh->GetIsOnScreen())
         {
             return;

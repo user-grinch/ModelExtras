@@ -496,7 +496,7 @@ unsigned int Util::GetEntityModel(void *ptr, eModelEntityType type)
                                                               FindPlayerPed()->GetWeaponSkill(reinterpret_cast<CWeapon *>(ptr)->m_eWeaponType));
         if (pWeaponInfo)
         {
-            model = pWeaponInfo->m_nModelId1;
+            model = pWeaponInfo->m_nModelId;
         }
     }
     else

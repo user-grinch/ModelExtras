@@ -64,8 +64,8 @@ void Remap::Initialize()
         }
         MEEvents::weaponRenderEvent.before += [](CPed *pPed)
         {
-            CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
-            if (pWeapon && pWeapon->m_eWeaponType != eWeaponType::WEAPON_UNARMED)
+            CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nSelectedWepSlot];
+            if (pWeapon && pWeapon->m_eWeaponType != eWeaponType::WEAPONTYPE_UNARMED)
             {
                 BeforeRender(reinterpret_cast<void *>(pWeapon), eModelEntityType::Weapon);
             }
@@ -73,8 +73,8 @@ void Remap::Initialize()
 
         MEEvents::weaponRenderEvent.after += [](CPed *pPed)
         {
-            CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
-            if (pWeapon && pWeapon->m_eWeaponType != eWeaponType::WEAPON_UNARMED)
+            CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nSelectedWepSlot];
+            if (pWeapon && pWeapon->m_eWeaponType != eWeaponType::WEAPONTYPE_UNARMED)
             {
                 AfterRender(reinterpret_cast<void *>(pWeapon), eModelEntityType::Weapon);
             }
@@ -94,7 +94,7 @@ void Remap::Initialize()
 
     MEEvents::weaponRemoveEvent.before += [](CPed *pPed, int model)
     {
-        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nActiveWeaponSlot];
+        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nSelectedWepSlot];
         if (pWeapon)
         {
             if (m_pRandom.contains(pWeapon))
@@ -149,7 +149,7 @@ bool Remap::GetKilledState(CWeapon *pWeapon)
 
     static CPed *lastKilled = nullptr;
     auto player = FindPlayerPed();
-    if (player && player->m_aWeapons[player->m_nActiveWeaponSlot].m_eWeaponType == pWeapon->m_eWeaponType)
+    if (player && player->m_aWeapons[player->m_nSelectedWepSlot].m_eWeaponType == pWeapon->m_eWeaponType)
     {
         CPed *pPed = static_cast<CPed *>(player->m_pDamageEntity);
         if (!pPed)

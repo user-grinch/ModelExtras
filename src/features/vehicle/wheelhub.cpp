@@ -15,8 +15,8 @@ void UpdateRotation(CVehicle *pVeh, RwFrame *ori, RwFrame *tar)
 
 void WheelHub::Initialize()
 {
-    VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
-                                    {
+    ModelMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
+                               {
         VehData& data = xData.Get(pVeh);
         if (name == "wheel_rf_dummy") data.m_pWRF = pFrame;
         else if (name == "wheel_rm_dummy") data.m_pWRM = pFrame;
@@ -31,8 +31,8 @@ void WheelHub::Initialize()
         else if (name == "hub_lm") data.m_pHLM = pFrame;
         else if (name == "hub_lb") data.m_pHLR = pFrame; });
 
-    VehicleMaterials::RegisterRender([](CVehicle *pVeh)
-                                     {
+    ModelMgr::RegisterRender([](CVehicle *pVeh)
+                                {
         if (!pVeh || !pVeh->GetIsOnScreen() || CCutsceneMgr::ms_running)
         {
             return;

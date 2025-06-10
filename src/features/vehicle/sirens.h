@@ -151,7 +151,7 @@ class VehicleSirenData
 {
 public:
     bool Validate = false;
-    std::map<int, std::vector<VehicleMaterial *>> Materials;
+    std::map<int, std::vector<MEMaterial *>> Materials;
     std::vector<VehicleSirenState *> States;
     bool isImVehFtSiren = false;
 
@@ -203,7 +203,7 @@ private:
     static void __cdecl hkAddPointLights(uint8_t type, CVector point, CVector dir, float range, float red, float green, float blue, uint8_t fogEffect, bool bCastsShadowFromPlayerCarAndPed, CEntity *castingEntity);
 
     static void RegisterMaterial(CVehicle *vehicle, RpMaterial *material);
-    static void EnableMaterial(VehicleMaterial *material, VehicleSirenMaterial *mat, uint64_t time);
+    static void EnableMaterial(MEMaterial *material, VehicleSirenMaterial *mat, uint64_t time);
     static void EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time);
     static void EventCtor(CVehicle *pVeh);
 };

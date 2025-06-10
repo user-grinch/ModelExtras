@@ -9,16 +9,16 @@ const float minInterval = 20.0f;
 
 void ChainFeature::Initialize()
 {
-    VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool flag)
-                                    {
+    ModelMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool flag)
+                               {
         if (name.starts_with("x_chain") || name.starts_with("fc_chain")) {
             VehData &data = vehData.Get(pVeh);
             data.m_pRootFrame = pFrame;
             Util::StoreChilds(pFrame, data.m_FrameList);
         } });
 
-    VehicleMaterials::RegisterRender([](CVehicle *pVeh)
-                                     {
+    ModelMgr::RegisterRender([](CVehicle *pVeh)
+                                {
     if (!pVeh || !pVeh->GetIsOnScreen())
     {
         return;

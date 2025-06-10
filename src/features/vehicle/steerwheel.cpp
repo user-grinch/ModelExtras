@@ -5,8 +5,8 @@
 
 void SteerWheel::Initialize()
 {
-    VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
-                                    {
+    ModelMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
+                               {
         auto& data = xData.Get(pVeh);
 
         // VehFuncs
@@ -35,8 +35,8 @@ void SteerWheel::Initialize()
             data.pFrame = pFrame;
         } });
 
-    VehicleMaterials::RegisterRender([](CVehicle *pVeh)
-                                     {
+    ModelMgr::RegisterRender([](CVehicle *pVeh)
+                                {
         if (!pVeh || !pVeh->GetIsOnScreen())
         {
             return;

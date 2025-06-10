@@ -5,11 +5,6 @@
 
 using namespace plugin;
 
-struct tRestoreEntry
-{
-    void *Address;
-    void *Value;
-};
 
 class FxVehModelInfo : CVehicleModelInfo
 {

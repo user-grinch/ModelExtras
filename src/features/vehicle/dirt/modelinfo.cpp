@@ -19,25 +19,6 @@ void FxVehModelInfo::Initialize()
     patch::RedirectCall(0x4C9648, &FxVehModelInfo::EmptyFindMats);
 }
 
-void FxVehModelInfo::SetEditableMaterialsCB(RpMaterial *material, void *data)
-{
-    tRestoreEntry **pEntries = (tRestoreEntry **)data;
-    int CarColorID;
-    int LightID = -1;
-    // int MaterialColor = *(int*)&material->color & 0xFFFFFF;
-    CRGBA MaterialColor = material->color;
-    int LighttextureType = 0;
-    bool IsBroken = false;
-
-    if (ms_pRemapTexture && material && RpMaterialGetTexture(material) && material->texture->name[0] == '#')
-    {
-        (*pEntries)->Address = &material->texture;
-        (*pEntries)->Value = material->texture;
-        (*pEntries)++;
-        material->texture = ms_pRemapTexture;
-    }
-}
-
 void FxVehModelInfo::EmptyFindMats(CVehicleModelInfo *modelInfo)
 {
     // We don't do anything here atm.

@@ -1,11 +1,16 @@
 #pragma once
 
-enum class eLightType
+enum eLightType
 {
-    Unknown,
+    // Order can't be changed
+    // Game internally uses them
+    UnknownLight = -1,
     HeadLightLeft,
     HeadLightRight,
-    TailLight,
+    TailLightLeft,
+    TailLightRight,
+
+    // ModelExtras
     ReverseLight,
     BrakeLight,
     AllDayLight,

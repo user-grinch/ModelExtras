@@ -6,8 +6,8 @@
 
 void HandleBar::Initialize()
 {
-    VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
-                                    { 
+    ModelMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
+                               { 
         auto &data = xData.Get(pVeh); 
 
         if (name == "forks_front") {
@@ -16,8 +16,8 @@ void HandleBar::Initialize()
             data.m_pTarget = pFrame;
         } });
 
-    VehicleMaterials::RegisterRender([](CVehicle *pVeh)
-                                     {
+    ModelMgr::RegisterRender([](CVehicle *pVeh)
+                                {
         if (!pVeh || !pVeh->GetIsOnScreen())
         {
             return;
@@ -31,6 +31,5 @@ void HandleBar::Initialize()
         float rot = Util::GetMatrixRotationZ(&data.m_pOrigin->modelling);
         Util::ResetMatrixRotations(&data.m_pTarget->modelling);
         Util::SetMatrixRotationZ(&data.m_pTarget->modelling, rot); 
-        pVeh->UpdateRwFrame();
-     });
+        pVeh->UpdateRwFrame(); });
 }

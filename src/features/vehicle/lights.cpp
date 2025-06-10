@@ -150,13 +150,13 @@ void Lights::Initialize()
 		m_Dummies.erase(pVeh);
 	};
 
-	VehicleMaterials::Register([](CVehicle *vehicle, RpMaterial *material, CRGBA col)
-							   {
+	ModelMgr::Register([](CVehicle *vehicle, RpMaterial *material, CRGBA col)
+						  {
 		eDummyPos pos = eDummyPos::None;
 		if ((col.r == 255 && col.g == 173 && col.b == 0) || (col.r == 0 && col.g == 255 && col.b == 198))
 			RegisterMaterial(vehicle, material, eLightType::ReverseLight, col);
-		else if ((col.r == 184 && col.g == 255 && col.b == 0) || (col.r == 255 && col.g == 59 && col.b == 0))
-			RegisterMaterial(vehicle, material, eLightType::BrakeLight, col);
+		// else if ((col.r == 184 && col.g == 255 && col.b == 0) || (col.r == 255 && col.g == 59 && col.b == 0))
+		// 	RegisterMaterial(vehicle, material, eLightType::BrakeLight, col);
 		else if ((col.r == 0 && col.g == 16 && col.b == 255)
 		|| (col.r == 255 && col.g == 8 && col.b == 128))
 			RegisterMaterial(vehicle, material, eLightType::NightLight, col);
@@ -168,14 +168,16 @@ void Lights::Initialize()
 			RegisterMaterial(vehicle, material, eLightType::DayLight, col);
 		else if ((col.r == 255 && col.g == 174 && col.b == 0) || (col.r == 0 && col.g == 255 && col.b == 199))
 			RegisterMaterial(vehicle, material, eLightType::FogLight, col);
-		else if ((col.r == 255 && col.g == 175 && col.b == 0)
-		|| (col.r == 255 && col.g == 1 && col.b == 128))
-			RegisterMaterial(vehicle, material, eLightType::HeadLightLeft, col);
-		else if ((col.r == 0 && col.g == 255 && col.b == 200)
-			|| (col.r == 255 && col.g == 2 && col.b == 128))
-			RegisterMaterial(vehicle, material, eLightType::HeadLightRight, col);
-		else if ((col.r == 255 && col.g == 60 && col.b == 0) || col.r == 185 && col.g == 255 && col.b == 0)
-			RegisterMaterial(vehicle, material, eLightType::TailLight, col);
+		// else if ((col.r == 255 && col.g == 175 && col.b == 0)
+		// || (col.r == 255 && col.g == 1 && col.b == 128))
+		// 	RegisterMaterial(vehicle, material, eLightType::HeadLightLeft, col);
+		// else if ((col.r == 0 && col.g == 255 && col.b == 200)
+		// 	|| (col.r == 255 && col.g == 2 && col.b == 128))
+		// 	RegisterMaterial(vehicle, material, eLightType::HeadLightRight, col);
+		else if (col.r == 255 && col.g == 60 && col.b == 0)
+			RegisterMaterial(vehicle, material, eLightType::TailLightLeft, col);
+		else if (col.r == 185 && col.g == 255 && col.b == 0)
+			RegisterMaterial(vehicle, material, eLightType::TailLightRight, col);
 		else if (col.r == 255 && col.g == 200 && col.b == 1) {
 			RegisterMaterial(vehicle, material, eLightType::SideLightLeft, col);
 			pos = eDummyPos::Left;
@@ -234,9 +236,9 @@ void Lights::Initialize()
 
 		return material; });
 
-	VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *frame, std::string name, bool parent)
-									{
-		eLightType state = eLightType::Unknown;
+	ModelMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *frame, std::string name, bool parent)
+							   {
+		eLightType state = eLightType::UnknownLight;
 		RwRGBA col{255, 255, 255, GetCoronaAlphaForDayTime()};
 		eDummyPos dummyPos = eDummyPos::None;
 		int32_t dummyIdx = 0;
@@ -329,11 +331,12 @@ void Lights::Initialize()
 		else if (name.starts_with("taillights"))
 		{
 			col = {250, 0, 0, GetCoronaAlphaForDayTime()};
-			state = eLightType::TailLight;
+			state = eLightType::TailLightLeft;
 			dummyPos = eDummyPos::Rear;
 			directioanlByDef = true;
 			VehicleDummy *pDummy = new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx, directioanlByDef, true);
 			m_Dummies[pVeh][state].push_back(pDummy);
+			state = eLightType::TailLightRight;
 		}
 		else if (name.starts_with("headlights"))
 		{
@@ -377,14 +380,6 @@ void Lights::Initialize()
 
 		m_Dummies[pVeh][state].push_back(new VehicleDummy(pVeh, frame, name, dummyPos, col, dummyIdx, directioanlByDef)); });
 
-	// Events::processScriptsEvent += []()
-	// {
-	// 	if (KeyPressed(VK_J))
-	// 	{
-	// 		VehicleMaterials::FindDummies(FindPlayerVehicle(0, false), (RwFrame *)FindPlayerVehicle(0, false)->m_pRwClump->object.parent, false, true);
-	// 	}
-	// };
-
 	Events::processScriptsEvent += []()
 	{
 		size_t timestamp = CTimer::m_snTimeInMilliseconds;
@@ -426,8 +421,8 @@ void Lights::Initialize()
 		}
 	};
 
-	VehicleMaterials::RegisterRender([](CVehicle *pControlVeh)
-									 {
+	ModelMgr::RegisterRender([](CVehicle *pControlVeh)
+								{
 		int model = pControlVeh->m_nModelIndex;
 		
 		// skip directly processing trailers
@@ -564,9 +559,10 @@ void Lights::Initialize()
 					{
 						RenderLights(pControlVeh, pTowedVeh, eLightType::BrakeLight, true, shdwName, shdwSz, shdwOffset);
 					}
-					else if (IsMatAvail(pTowedVeh, eLightType::TailLight))
+					else if (IsMatAvail(pTowedVeh, eLightType::TailLightLeft))
 					{
-						RenderLights(pControlVeh, pTowedVeh, eLightType::TailLight, true, shdwName, shdwSz, shdwOffset);
+						RenderLights(pControlVeh, pTowedVeh, eLightType::TailLightLeft, true, shdwName, shdwSz, shdwOffset);
+						RenderLights(pControlVeh, pTowedVeh, eLightType::TailLightRight, true, shdwName, shdwSz, shdwOffset);
 					}
 				}
 
@@ -591,9 +587,10 @@ void Lights::Initialize()
 					RenderLights(pControlVeh, pTowedVeh, eLightType::STTLightRight, true, shdwName, shdwSz, shdwOffset);
 				}
 				else {
-					if (IsMatAvail(pTowedVeh, eLightType::TailLight))
+					if (IsMatAvail(pTowedVeh, eLightType::TailLightLeft))
 					{
-						RenderLights(pControlVeh, pTowedVeh, eLightType::TailLight, !sttInstalled, shdwName, shdwSz, shdwOffset);
+						RenderLights(pControlVeh, pTowedVeh, eLightType::TailLightLeft, !sttInstalled, shdwName, shdwSz, shdwOffset);
+						RenderLights(pControlVeh, pTowedVeh, eLightType::TailLightRight, !sttInstalled, shdwName, shdwSz, shdwOffset);
 					}
 					else if (IsMatAvail(pTowedVeh, eLightType::BrakeLight))
 					{
@@ -825,7 +822,7 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightType
 
 void Lights::RegisterMaterial(CVehicle *pVeh, RpMaterial *material, eLightType state, CRGBA col, eDummyPos pos)
 {
-	VehicleMaterial *mat = new VehicleMaterial(material, pos);
+	MEMaterial *mat = new MEMaterial(material, pos);
 	m_Materials[pVeh->m_nModelIndex][state].push_back(mat);
 	material->color.red = material->color.green = material->color.blue = 255;
 };
@@ -851,30 +848,30 @@ void Lights::Reload(CVehicle *pVeh)
 	m_Materials.erase(model);
 	m_Dummies.erase(pVeh);
 	DataMgr::Reload(model);
-	VehicleMaterials::Reset(pVeh);
-	VehicleMaterials::OnModelSet(pVeh, model);
+	ModelMgr::Reset(pVeh);
+	ModelMgr::OnModelSet(pVeh, model);
 }
 
-void Lights::EnableMaterial(VehicleMaterial *material, float mul)
+void Lights::EnableMaterial(MEMaterial *material, float mul)
 {
-	if (!material || !material->Material || !material->Material->texture || !material->TextureActive)
+	if (!material || !material->pGameMat || !material->pGameMat->texture || !material->pTextureOn)
 	{
 		return;
 	}
 
-	auto *mat = material->Material;
-	if (mat->surfaceProps.ambient >= AMBIENT_ON_VAL && mat->texture == material->TextureActive)
+	auto *mat = material->pGameMat;
+	if (mat->surfaceProps.ambient >= AMBIENT_ON_VAL && mat->texture == material->pTextureOn)
 	{
 		return; // Already enabled
 	}
 
 	auto *ambientPtr = reinterpret_cast<unsigned int *>(&mat->surfaceProps.ambient);
-	VehicleMaterials::StoreMaterial({ambientPtr, *ambientPtr});
+	ModelMgr::StoreMaterial({ambientPtr, *ambientPtr});
 	mat->surfaceProps.ambient = AMBIENT_ON_VAL * mul;
 
 	auto *texturePtr = reinterpret_cast<unsigned int *>(&mat->texture);
-	VehicleMaterials::StoreMaterial({texturePtr, *texturePtr});
-	mat->texture = material->TextureActive;
+	ModelMgr::StoreMaterial({texturePtr, *texturePtr});
+	mat->texture = material->pTextureOn;
 }
 
 bool Lights::IsDummyAvail(CVehicle *pVeh, eLightType state)

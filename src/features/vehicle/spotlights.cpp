@@ -14,8 +14,8 @@
 void SpotLights::Initialize()
 {
 
-	VehicleMaterials::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
-									{
+	ModelMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
+							   {
         VehData& data = vehData.Get(pVeh);
         if (name == "spotlight_dummy") data.pFrame = pFrame; });
 

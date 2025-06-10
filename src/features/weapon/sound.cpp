@@ -32,7 +32,7 @@ void WeaponSoundSystem::Register(const std::filesystem::path &filepath, std::str
         return;
     }
     eWeaponType weapontype = CWeaponInfo::FindWeaponType((char *)weaponName.c_str());
-    if (weapontype > eWeaponType::WEAPON_UNARMED)
+    if (weapontype > eWeaponType::WEAPONTYPE_UNARMED)
     {
         m_vecRegisteredWeapons[weapontype][audioType] = std::move(filepath.string());
         LOG_VERBOSE("Registering '{}' for {}", audioType, weaponName);
@@ -149,7 +149,7 @@ void WeaponSoundSystem::Initialize()
     {
         if (pAudioEnt && pAudioEnt->m_pPed)
         {
-            eWeaponType weaponType = pAudioEnt->m_pPed->m_aWeapons[pAudioEnt->m_pPed->m_nActiveWeaponSlot].m_eWeaponType;
+            eWeaponType weaponType = pAudioEnt->m_pPed->m_aWeapons[pAudioEnt->m_pPed->m_nSelectedWepSlot].m_eWeaponType;
             std::string *path = WeaponSoundSystem::FindAudio(weaponType, "hit");
             if (path)
             {
@@ -167,7 +167,7 @@ void WeaponSoundSystem::Initialize()
     {
         if (pAudioEnt && pAudioEnt->m_pPed)
         {
-            eWeaponType weaponType = pAudioEnt->m_pPed->m_aWeapons[pAudioEnt->m_pPed->m_nActiveWeaponSlot].m_eWeaponType;
+            eWeaponType weaponType = pAudioEnt->m_pPed->m_aWeapons[pAudioEnt->m_pPed->m_nSelectedWepSlot].m_eWeaponType;
             std::string *path = WeaponSoundSystem::FindAudio(weaponType, "swing");
             if (path)
             {
