@@ -62,6 +62,10 @@ unsigned char GetCoronaAlphaForDayTime()
 	}
 }
 
+int GetStrobeIndex(CVehicle *pVeh, RpMaterial *pMat) {
+	return pMat->color.blue;
+}
+
 // Indicator lights
 static uint64_t delay;
 
@@ -134,6 +138,7 @@ inline bool IsBumperOrWingDamaged(CVehicle *pVeh, eParentType part)
 
 void Lights::Initialize()
 {
+	m_bEnabled = true;
 	patch::Nop(0x6E2722, 19);	  // CVehicle::DoHeadLightReflection
 	patch::SetUChar(0x6E1A22, 0); // CVehicle::DoTailLightEffect
 
@@ -153,6 +158,10 @@ void Lights::Initialize()
 
 
 	ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat){
+
+		if (!m_bEnabled) {
+			return eLightType::UnknownLight;
+		}
 		// Headlights
 		CRGBA matCol = *reinterpret_cast<CRGBA *>(RpMaterialGetColor(pMat));
 		if (matCol == VEHCOL_HEADLIGHT_LEFT) {
@@ -720,11 +729,6 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 	bool MidDisabled = false;
 	int id = static_cast<int>(state) * 1000;
 
-	bool lightState[256] = {true};
-	if (pVeh->m_pTrailer && (state == eLightType::IndicatorLightRight || state == eLightType::IndicatorLightLeft))
-	{
-		lightState[0] = true;
-	}
 	if (IsDummyAvail(pVeh, state))
 	{
 		for (auto e : m_Dummies[pVeh][state])
@@ -764,9 +768,10 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 					e->strobeLightTimer = timer;
 				}
 
-				if (!e->strobeLightOn)
+				if (e->strobeLightOn)
 				{
-					lightState[e->DummyIdx] = false;
+					ModelInfoMgr::EnableStrobeMaterial(pVeh, e->DummyIdx);
+				} else {
 					continue;
 				}
 			}

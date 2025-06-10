@@ -11,6 +11,8 @@
 class Lights
 {
 private:
+	static inline bool m_bEnabled = false;
+	static inline bool indicatorsDelay;
 	struct VehData
 	{
 		bool m_bFogLightsOn = false;
@@ -33,7 +35,6 @@ private:
 	static bool IsDummyAvail(CVehicle *pVeh, eLightType state);
 
 public:
-	static inline bool indicatorsDelay;
 
 	static void Initialize();
 	static bool IsIndicatorOn(CVehicle *pVeh)
@@ -41,5 +42,6 @@ public:
 		return (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) && indicatorsDelay && m_VehData.Get(pVeh).m_nIndicatorState != eIndicatorState::Off && pVeh->m_nOverrideLights != eLightOverride::ForceLightsOff;
 	}
 
+	friend int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat);
 	static void Reload(CVehicle *pVeh);
 };

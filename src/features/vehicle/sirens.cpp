@@ -550,8 +550,12 @@ int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat) {
 
 void Sirens::Initialize()
 {
+	m_bEnabled = true;
 	ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat)
 						  {
+		if (!m_bEnabled) {
+			return eLightType::UnknownLight;
+		}
 		CRGBA col = *reinterpret_cast<CRGBA *>(RpMaterialGetColor(pMat));
 		if (modelData.contains(pVeh->m_nModelIndex)
 			&& (col.b == 255 || col.g == 255 || modelData[pVeh->m_nModelIndex]->isImVehFtSiren)) {

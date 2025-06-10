@@ -8,6 +8,7 @@
 #include "enums/dummypos.h"
 #include "enums/lighttype.h"
 
+constexpr uint32_t MAX_LIGHTS = 256;
 using DummyCallback_t = std::function<void(CVehicle *, RwFrame *)>;
 using RenderCallback_t = std::function<void(CVehicle *)>;
 using MaterialCallback_t = std::function<eLightType(CVehicle *, RpMaterial*)>;
@@ -20,7 +21,7 @@ private:
 	static inline std::vector<RenderCallback_t> renders;
 
 	static inline std::map<CVehicle *, std::array<bool, TotalLight>> m_LightStatus;
-	static inline std::map<CVehicle *, std::array<bool, 256>> m_SirenStatus;
+	static inline std::map<CVehicle *, std::array<bool, MAX_LIGHTS>> m_SirenStatus, m_StrobeStatus;
 
 	static void FindDummies(CVehicle *vehicle, RwFrame *frame);
 	static void OnRender(CVehicle *pVeh);
@@ -31,6 +32,8 @@ private:
 public:
 	static void EnableLightMaterial(CVehicle *pVeh, eLightType type);
 	static void EnableSirenMaterial(CVehicle *pVeh, int idx);
+	static void EnableStrobeMaterial(CVehicle *pVeh, int idx);
+
 	static void Initialize();
 	static void RegisterDummy(DummyCallback_t function);
 	static void RegisterMaterial(MaterialCallback_t material);

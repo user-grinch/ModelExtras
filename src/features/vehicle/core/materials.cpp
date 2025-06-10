@@ -13,6 +13,7 @@
 #include "sirens.h"
 
 extern int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat);
+extern int GetStrobeIndex(CVehicle *pVeh, RpMaterial *pMat);
 
 static CVehicle *pCurVeh = nullptr;
 void ModelInfoMgr::Initialize() {
@@ -58,6 +59,10 @@ void ModelInfoMgr::EnableLightMaterial(CVehicle *pVeh, eLightType type) {
 
 void ModelInfoMgr::EnableSirenMaterial(CVehicle *pVeh, int idx) {
 	m_SirenStatus[pVeh][idx] = true;
+}
+
+void ModelInfoMgr::EnableStrobeMaterial(CVehicle *pVeh, int idx) {
+	m_StrobeStatus[pVeh][idx] = true;
 }
 
 void ModelInfoMgr::FindDummies(CVehicle *vehicle, RwFrame *frame)
@@ -111,8 +116,12 @@ void ModelInfoMgr::SetupRender(CVehicle *ptr)
 		m_LightStatus[ptr][i] = false;
 	}
 
-	for (int i = 0; i < 256; i++) {
+	for (int i = 0; i < MAX_LIGHTS; i++) {
 		m_SirenStatus[ptr][i] = false;
+	}
+
+	for (int i = 0; i < MAX_LIGHTS; i++) {
+		m_StrobeStatus[ptr][i] = false;
 	}
 }
 
@@ -127,6 +136,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 {
 	tRestoreEntry **ppEntries = reinterpret_cast<tRestoreEntry **>(data);
 	CRGBA matCol = *reinterpret_cast<CRGBA *>(RpMaterialGetColor(material));
+	matCol.a = 255;
 
 	if (CVehicleModelInfo::ms_pRemapTexture && RpMaterialGetTexture(material) && RwTextureGetName(RpMaterialGetTexture(material))[0] == '#')
 	{
@@ -136,7 +146,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 		material->texture = CVehicleModelInfo::ms_pRemapTexture;
 	}
 
-	int iLightIndex = eLightType::UnknownLight;
+	eLightType iLightIndex = eLightType::UnknownLight;
 
 	for (auto& e : materials) {
 		eLightType type = e(pCurVeh, material);
@@ -152,10 +162,12 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 
 		if (iLightIndex == eLightType::SirenLight) {
 			lightStatus = m_SirenStatus[pCurVeh][GetSirenIndex(pCurVeh, material)];
+		} else if (iLightIndex == eLightType::StrobeLight){
+			lightStatus = m_StrobeStatus[pCurVeh][GetStrobeIndex(pCurVeh, material)];
 		} else if (iLightIndex != eLightType::UnknownLight) {
 			lightStatus = m_LightStatus[pCurVeh][iLightIndex];
-			matCol.a = 255;
 		}
+
 
 		(*ppEntries)->m_pAddress = RpMaterialGetColor(material);
 		(*ppEntries)->m_pValue = *reinterpret_cast<void **>(RpMaterialGetColor(material));
@@ -188,7 +200,10 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 	}
 	else
 	{
-		CRGBA col = IVFCarcols::GetColor(pCurVeh, material, matCol);
+		CRGBA col = {255, 255, 255, 255};
+		if (!CModelInfo::IsHeliModel(pCurVeh->m_nModelIndex)) {
+			col = IVFCarcols::GetColor(pCurVeh, material, matCol);
+		} 
 		
 		(*ppEntries)->m_pAddress = RpMaterialGetColor(material);
 		(*ppEntries)->m_pValue = *reinterpret_cast<void **>(RpMaterialGetColor(material));
