@@ -9,9 +9,9 @@ private:
 
 public:
     static RwTexture *FindInDict(std::string name, RwTexDictionary *pDict);
+    static RwTexture *FindTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict);
     static RwTexture *LoadFromFile(const char *filename, RwUInt8 alpha = 255);
     static RwTexture *RwReadTexture(const char *name, char *Maskname = NULL);
     static RwTexture *Get(std::string texName, RwUInt8 alpha = 255);
-    static RwTexture *GetFromVehicleTxd(std::string texName);
     static void SetAlpha(RwTexture *texture, RwUInt8 alpha = 255);
 };

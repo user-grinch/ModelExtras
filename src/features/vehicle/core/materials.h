@@ -11,7 +11,7 @@
 
 using DummyCallback_t = std::function<void(CVehicle *, RwFrame *)>;
 using RenderCallback_t = std::function<void(CVehicle *)>;
-using MaterialCallback_t = std::function<eLightType(CRGBA)>;
+using MaterialCallback_t = std::function<eLightType(CVehicle *, RpMaterial*)>;
 
 class ModelInfoMgr
 {
@@ -34,4 +34,6 @@ public:
 	static void RegisterDummy(DummyCallback_t function);
 	static void RegisterMaterial(MaterialCallback_t material);
 	static void RegisterRender(RenderCallback_t render);
+
+	static inline std::map<CVehicle *, std::array<bool, 256>> m_SirenStatus;
 };

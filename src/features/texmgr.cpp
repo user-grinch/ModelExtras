@@ -81,10 +81,24 @@ RwTexture *TextureMgr::Get(std::string name, RwUInt8 alpha)
     return Textures[name][alpha];
 }
 
-RwTexture *TextureMgr::GetFromVehicleTxd(std::string name)
+RwTexture *TextureMgr::FindTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict)
 {
-    static auto pDict = CFileLoader::LoadTexDictionary("MODELS/GENERIC/VEHICLE.TXD");
-    return RwTexDictionaryFindNamedTexture(pDict, name.c_str());
+	const std::string baseName = pMat->texture->name;
+	const std::vector<std::string> texNames = {
+		baseName + "on",
+		baseName + "_on",
+	};
+
+	RwTexture *pTex = nullptr;
+	for (const auto &name : texNames)
+	{
+		pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
+		if (pTex)
+		{
+			break;
+		}
+	}
+	return pTex;
 }
 
 void TextureMgr::SetAlpha(RwTexture *texture, RwUInt8 alpha)

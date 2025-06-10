@@ -152,73 +152,74 @@ void Lights::Initialize()
 	};
 
 
-	ModelInfoMgr::RegisterMaterial([](CRGBA color){
+	ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat){
 		// Headlights
-		if (color == VEHCOL_HEADLIGHT_LEFT) {
+		CRGBA matCol = *reinterpret_cast<CRGBA *>(RpMaterialGetColor(pMat));
+		if (matCol == VEHCOL_HEADLIGHT_LEFT) {
 			return eLightType::HeadLightLeft;
-		} else if (color == VEHCOL_HEADLIGHT_RIGHT) {
+		} else if (matCol == VEHCOL_HEADLIGHT_RIGHT) {
 			return eLightType::HeadLightRight;
 		}
 		// Taillights
-		else if (color == VEHCOL_TAILLIGHT_LEFT) {
+		else if (matCol == VEHCOL_TAILLIGHT_LEFT) {
 			return eLightType::TailLightLeft;
-		} else if (color == VEHCOL_TAILLIGHT_RIGHT) {
+		} else if (matCol == VEHCOL_TAILLIGHT_RIGHT) {
 			return eLightType::TailLightRight;
 		}
 		// Reverse Lights
-		else if (color == VEHCOL_REVERSELIGHT_LEFT || color == VEHCOL_REVERSELIGHT_RIGHT) {
+		else if (matCol == VEHCOL_REVERSELIGHT_LEFT || matCol == VEHCOL_REVERSELIGHT_RIGHT) {
 			return eLightType::ReverseLight;
 		}
 		// Brake Lights
-		else if (color == VEHCOL_BRAKELIGHT_LEFT || color == VEHCOL_BRAKELIGHT_RIGHT) {
+		else if (matCol == VEHCOL_BRAKELIGHT_LEFT || matCol == VEHCOL_BRAKELIGHT_RIGHT) {
 			return eLightType::BrakeLight;
 		}
 		// All Day Lights
-		else if (color == VEHCOL_ALLDAYLIGHT_1 || color == VEHCOL_ALLDAYLIGHT_2) {
+		else if (matCol == VEHCOL_ALLDAYLIGHT_1 || matCol == VEHCOL_ALLDAYLIGHT_2) {
 			return eLightType::AllDayLight;
 		}
 		// Day Lights
-		else if (color == VEHCOL_DAYLIGHT_1 || color == VEHCOL_DAYLIGHT_2) {
+		else if (matCol == VEHCOL_DAYLIGHT_1 || matCol == VEHCOL_DAYLIGHT_2) {
 			return eLightType::DayLight;
 		}
 		// Night Lights
-		else if (color == VEHCOL_NIGHTLIGHT_1 || color == VEHCOL_NIGHTLIGHT_2) {
+		else if (matCol == VEHCOL_NIGHTLIGHT_1 || matCol == VEHCOL_NIGHTLIGHT_2) {
 			return eLightType::NightLight;
 		}
 		// Fog Lights
-		else if (color == VEHCOL_FOGLIGHT_1 || color == VEHCOL_FOGLIGHT_2) {
+		else if (matCol == VEHCOL_FOGLIGHT_1 || matCol == VEHCOL_FOGLIGHT_2) {
 			return eLightType::FogLight;
 		}
 		// Sidelights
-		else if (color == VEHCOL_SIDELIGHT_LEFT) {
+		else if (matCol == VEHCOL_SIDELIGHT_LEFT) {
 			return eLightType::SideLightLeft;
-		} else if (color == VEHCOL_SIDELIGHT_RIGHT) {
+		} else if (matCol == VEHCOL_SIDELIGHT_RIGHT) {
 			return eLightType::SideLightRight;
 		}
 		// STT Lights
-		else if (color == VEHCOL_STTLIGHT_LEFT) {
+		else if (matCol == VEHCOL_STTLIGHT_LEFT) {
 			return eLightType::STTLightLeft;
-		} else if (color == VEHCOL_STTLIGHT_RIGHT) {
+		} else if (matCol == VEHCOL_STTLIGHT_RIGHT) {
 			return eLightType::STTLightRight;
 		}
 		// NA Brake Lights
-		else if (color == VEHCOL_NABRAKE_LEFT) {
+		else if (matCol == VEHCOL_NABRAKE_LEFT) {
 			return eLightType::NABrakeLightLeft;
-		} else if (color == VEHCOL_NABRAKE_RIGHT) {
+		} else if (matCol == VEHCOL_NABRAKE_RIGHT) {
 			return eLightType::NABrakeLightRight;
 		}
 		// Spot and Strobe Lights
-		else if (color == VEHCOL_SPOTLIGHT) {
+		else if (matCol == VEHCOL_SPOTLIGHT) {
 			return eLightType::SpotLight;
-		} else if (color == VEHCOL_STROBELIGHT) {
+		} else if (matCol == VEHCOL_STROBELIGHT) {
 			return eLightType::StrobeLight;
 		}
 		// Indicator Lights (Left)
-		else if (color == VEHCOL_INDICATOR_LEFT_REAR || color == VEHCOL_INDICATOR_LEFT_SIDE || color == VEHCOL_INDICATOR_LEFT_FRONT) {
+		else if (matCol == VEHCOL_INDICATOR_LEFT_REAR || matCol == VEHCOL_INDICATOR_LEFT_SIDE || matCol == VEHCOL_INDICATOR_LEFT_FRONT) {
 			return eLightType::IndicatorLightLeft;
 		}
 		// Indicator Lights (Right)
-		else if (color == VEHCOL_INDICATOR_RIGHT_REAR || color == VEHCOL_INDICATOR_RIGHT_SIDE || color == VEHCOL_INDICATOR_RIGHT_FRONT) {
+		else if (matCol == VEHCOL_INDICATOR_RIGHT_REAR || matCol == VEHCOL_INDICATOR_RIGHT_SIDE || matCol == VEHCOL_INDICATOR_RIGHT_FRONT) {
 			return eLightType::IndicatorLightRight;
 		}
 

@@ -312,7 +312,7 @@ void FeatureMgr::Initialize()
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "SirenLights", false))
     {
-        // Sirens::Initialize();
+        Sirens::Initialize();
         LOG_NO_LEVEL("  SirenLights");
     }
 

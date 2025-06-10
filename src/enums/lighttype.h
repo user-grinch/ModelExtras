@@ -25,6 +25,7 @@ enum eLightType
     NABrakeLightRight,
     SpotLight,
     StrobeLight,
+    SirenLight,
     IndicatorLightLeft,
     IndicatorLightRight,
     TotalLight,
