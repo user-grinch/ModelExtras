@@ -4,7 +4,6 @@
 #include "game_sa/CVehicle.h"
 #include "game_sa/CPools.h"
 #include "game_sa/CModelInfo.h"
-#include "game_sa/NodeName.h"
 #include "RenderWare.h"
 #include "enums/dummypos.h"
 #include "enums/lighttype.h"
@@ -21,6 +20,7 @@ private:
 	static inline std::vector<RenderCallback_t> renders;
 
 	static inline std::map<CVehicle *, std::array<bool, TotalLight>> m_LightStatus;
+	static inline std::map<CVehicle *, std::array<bool, 256>> m_SirenStatus;
 
 	static void FindDummies(CVehicle *vehicle, RwFrame *frame);
 	static void OnRender(CVehicle *pVeh);
@@ -29,11 +29,11 @@ private:
 	static void __fastcall SetupRender(CVehicle *ptr);
 
 public:
-	static void EnableLight(CVehicle *pVeh, eLightType type);
+	static void EnableLightMaterial(CVehicle *pVeh, eLightType type);
+	static void EnableSirenMaterial(CVehicle *pVeh, int idx);
 	static void Initialize();
 	static void RegisterDummy(DummyCallback_t function);
 	static void RegisterMaterial(MaterialCallback_t material);
 	static void RegisterRender(RenderCallback_t render);
-
-	static inline std::map<CVehicle *, std::array<bool, 256>> m_SirenStatus;
+	static void Reload(CVehicle *pVeh);
 };

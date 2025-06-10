@@ -782,7 +782,7 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 		}
 	}
 
-	ModelInfoMgr::EnableLight(pVeh, state);
+	ModelInfoMgr::EnableLightMaterial(pVeh, state);
 
 	// if (IsDummyAvail(pVeh, state))
 	// {
@@ -830,10 +830,8 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMu
 
 void Lights::Reload(CVehicle *pVeh)
 {
-	int model = pVeh->m_nModelIndex;
 	m_Dummies.erase(pVeh);
-	DataMgr::Reload(model);
-	// ModelInfoMgr::OnModelSet(pVeh, model);
+	DataMgr::Reload(pVeh->m_nModelIndex);
 }
 
 bool Lights::IsDummyAvail(CVehicle *pVeh, eLightType state)

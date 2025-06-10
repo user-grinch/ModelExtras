@@ -52,8 +52,12 @@ void ModelInfoMgr::RegisterDummy(DummyCallback_t function)
 	dummy.push_back(function);
 };
 
-void ModelInfoMgr::EnableLight(CVehicle *pVeh, eLightType type) {
+void ModelInfoMgr::EnableLightMaterial(CVehicle *pVeh, eLightType type) {
 	m_LightStatus[pVeh][type] = true;
+}
+
+void ModelInfoMgr::EnableSirenMaterial(CVehicle *pVeh, int idx) {
+	m_SirenStatus[pVeh][idx] = true;
 }
 
 void ModelInfoMgr::FindDummies(CVehicle *vehicle, RwFrame *frame)
@@ -76,6 +80,13 @@ void ModelInfoMgr::FindDummies(CVehicle *vehicle, RwFrame *frame)
 		}
 	}
 };
+
+void ModelInfoMgr::Reload(CVehicle *pVeh) {
+	if (pVeh->m_pRwClump) {
+		RwFrame *frame = reinterpret_cast<RwFrame*>(pVeh->m_pRwClump->object.parent);
+		FindDummies(pVeh, frame);
+	}
+}
 
 void ModelInfoMgr::OnRender(CVehicle *vehicle)
 {

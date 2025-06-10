@@ -139,7 +139,7 @@ void DataMgr::Parse()
 {
     auto LoadModelDataFromPath = [&](const std::string &path)
     {
-        for (const auto &e : std::filesystem::recursive_directory_iterator(path))
+        for (const auto &e : std::filesystem::directory_iterator(path))
         {
             LoadFile(e);
         }

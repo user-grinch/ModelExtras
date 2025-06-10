@@ -44,8 +44,6 @@ void Sirens::Reload(CVehicle *pVeh)
 	vehicleData.erase((int)pVeh);
 	EventCtor(pVeh);
 	DataMgr::Reload(model);
-	// ModelInfoMgr::Reset(pVeh);
-	// ModelInfoMgr::OnModelSet(pVeh, model);
 }
 
 void __cdecl Sirens::hkAddPointLights(uint8_t type, CVector point, CVector dir, float range, float red, float green, float blue, uint8_t fogEffect, bool bCastsShadowFromPlayerCarAndPed, CEntity *castingEntity)
@@ -873,7 +871,7 @@ void Sirens::Initialize()
 				EnableDummy((mat.first * 16) + id, e, vehicle, mat.second, type, time);
 			}
 
-			ModelInfoMgr::m_SirenStatus[vehicle][mat.first] = true;
+			ModelInfoMgr::EnableSirenMaterial(vehicle, mat.first);
 		} });
 
 	patch::ReplaceFunctionCall(0x6D8492, hkUsesSiren);

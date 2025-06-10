@@ -38,7 +38,7 @@ void InitLogFile();
 void FeatureMgr::Initialize()
 {
     ModelInfoMgr::Initialize();
-    plugin::Events::initGameEvent += []()
+    plugin::Events::initGameEvent.after += []()
     {
         DataMgr::Init();
     };
@@ -51,7 +51,8 @@ void FeatureMgr::Initialize()
             if (pVeh && plugin::Command<TEST_CHEAT>("MERELOAD"))
             {
                 Lights::Reload(pVeh);
-                // Sirens::Reload(pVeh);
+                Sirens::Reload(pVeh);
+            	ModelInfoMgr::Reload(pVeh);
                 CHud::SetHelpMessage("Config reloaded", false, false, true);
             }
         };
