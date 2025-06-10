@@ -24,11 +24,12 @@ private:
         VehData(CVehicle *pVeh) {}
         ~VehData() {}
     };
-
+    static inline bool m_bEnabled = false;
     static inline VehicleExtendedData<VehData> ExData;
     static inline std::unordered_map<int, std::vector<ColorSet>> variations;
 
 public:
     static void Initialize();
     static void Parse(const nlohmann::json &data, int model);
+    static CRGBA GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA col);
 };

@@ -37,11 +37,7 @@ void InitLogFile();
 
 void FeatureMgr::Initialize()
 {
-    // Nop frame collasping
-    plugin::patch::Nop(0x4C8E53, 5);
-    plugin::patch::Nop(0x4C8F6E, 5);
-    patch::ReplaceFunction(0x4C8220, ModelMgr::SetEditableMaterialsCB);
-
+    ModelInfoMgr::Initialize();
     plugin::Events::initGameEvent += []()
     {
         DataMgr::Init();
@@ -55,7 +51,7 @@ void FeatureMgr::Initialize()
             if (pVeh && plugin::Command<TEST_CHEAT>("MERELOAD"))
             {
                 Lights::Reload(pVeh);
-                Sirens::Reload(pVeh);
+                // Sirens::Reload(pVeh);
                 CHud::SetHelpMessage("Config reloaded", false, false, true);
             }
         };
@@ -71,8 +67,6 @@ void FeatureMgr::Initialize()
             gLogger->warn(text);
         }
 
-        ModelMgr::RestoreMaterials();
-        ModelMgr::OnRender(pVeh);
         Process(static_cast<void *>(pVeh), eModelEntityType::Vehicle);
     };
 
@@ -83,14 +77,11 @@ void FeatureMgr::Initialize()
             return;
         }
 
-        ModelMgr::RestoreMaterials();
-        ModelMgr::OnRender(pVeh);
         Process(static_cast<void *>(pVeh), eModelEntityType::Vehicle);
     };
 
     Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
     {
-        ModelMgr::OnModelSet(pVeh, model);
         Add(static_cast<void *>(pVeh), (RwFrame *)pVeh->m_pRwClump->object.parent, eModelEntityType::Vehicle);
     };
 
@@ -321,7 +312,7 @@ void FeatureMgr::Initialize()
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "SirenLights", false))
     {
-        Sirens::Initialize();
+        // Sirens::Initialize();
         LOG_NO_LEVEL("  SirenLights");
     }
 

@@ -118,7 +118,7 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
 
             data[model] = jsonData;
 
-            Sirens::Parse(data[model], model);
+            // Sirens::Parse(data[model], model);
             IVFCarcols::Parse(data[model], model);
             gLogger->info("Successfully registered file '{}'", filename);
         }

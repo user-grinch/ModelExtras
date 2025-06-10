@@ -20,18 +20,10 @@ private:
 		VehData(CVehicle *pVeh) {}
 		~VehData() {}
 	};
-
-	/*
-	 *	Note: Material data need to be model based
-	 *		  Dummy data should be entity based
-	 *		  Don't change it
-	 */
-	static inline std::map<int, std::map<eLightType, std::vector<MEMaterial *>>> m_Materials;
-	static inline std::map<CVehicle *, std::map<eLightType, std::vector<VehicleDummy *>>> m_Dummies;
 	static inline VehicleExtendedData<VehData> m_VehData;
 
-	static void RegisterMaterial(CVehicle *vehicle, RpMaterial *material, eLightType state, CRGBA col, eDummyPos pos = eDummyPos::None);
-	static void EnableMaterial(MEMaterial *material, float mul = 1.0f);
+	static inline std::map<CVehicle *, std::map<eLightType, std::vector<VehicleDummy *>>> m_Dummies;
+
 	static void EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, float szMul = 1.0f);
 	static void RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::string texture, CVector2D sz, CVector2D offset, bool highlight);
 	static void RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightType state, bool shadows = true, std::string texture = "indicator", CVector2D sz = {1.0f, 1.0f}, CVector2D offset = {0.0f, 0.0f}, bool highlight = false);
@@ -39,7 +31,6 @@ private:
 
 	// Helper functions
 	static bool IsDummyAvail(CVehicle *pVeh, eLightType state);
-	static bool IsMatAvail(CVehicle *pVeh, eLightType state);
 
 public:
 	static inline bool indicatorsDelay;

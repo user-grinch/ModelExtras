@@ -27,4 +27,5 @@ enum eLightType
     StrobeLight,
     IndicatorLightLeft,
     IndicatorLightRight,
+    TotalLight,
 };

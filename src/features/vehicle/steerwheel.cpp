@@ -5,11 +5,12 @@
 
 void SteerWheel::Initialize()
 {
-    ModelMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, std::string name, bool parent)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame)
                                {
         auto& data = xData.Get(pVeh);
 
         // VehFuncs
+        std::string name = GetFrameNodeName(pFrame);
         if (name.starts_with("f_steer")) {
             if (name.length() >= 7 && isdigit(name[7]))
             {
@@ -35,7 +36,7 @@ void SteerWheel::Initialize()
             data.pFrame = pFrame;
         } });
 
-    ModelMgr::RegisterRender([](CVehicle *pVeh)
+    ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
                                 {
         if (!pVeh || !pVeh->GetIsOnScreen())
         {

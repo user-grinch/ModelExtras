@@ -7,179 +7,74 @@
 #include <rpworld.h>
 #include "texmgr.h"
 #include "colors.h"
+#include <NodeName.h>
+#include "../carcols.h"
+#include "meevents.h"
 
-RwSurfaceProperties &gLightSurfProps = *(RwSurfaceProperties *)0x8A645C;
+static CVehicle *pCurVeh = nullptr;
+void ModelInfoMgr::Initialize() {
+	// Nop frame collasping
+    plugin::patch::Nop(0x4C8E53, 5);
+    plugin::patch::Nop(0x4C8F6E, 5);
 
-RwTexture *FindTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict)
-{
-	const std::string baseName = pMat->texture->name;
+	patch::ReplaceFunctionCall(0x5532A9, ModelInfoMgr::SetupRender);
+    patch::ReplaceFunction(0x4C8220, ModelInfoMgr::SetEditableMaterialsCB);
 
-	/*
-		This needs to be handled separately
-		Apperently VehFuncs allows for more vehicleXX.txds
-		This needs to be handled someday too.
+	MEEvents::vehRenderEvent.before += [](CVehicle *pVeh)
+    {
+        ModelInfoMgr::OnRender(pVeh);
+    };
 
-		Directly addding it to the texNames vector causes graphical annomolies
-	*/
-	// if (RpMaterialGetTexture(pMat) == CVehicleModelInfo::ms_pLightsTexture)
-	// {
-	// 	CVehicleModelInfo::ms_pLightsOnTexture->refCount++;
-	// 	return CVehicleModelInfo::ms_pLightsOnTexture;
-	// }
+    MEEvents::heliRenderEvent.after += [](CVehicle *pVeh)
+    {
+		if (CModelInfo::IsHeliModel(pVeh->m_nModelIndex))
+        {
+            ModelInfoMgr::OnRender(pVeh);
+        }
+    };
 
-	// texture glitch fix
-	const std::vector<std::string> texNames = {
-		// baseName,
-		baseName + "on",
-		baseName + "_on",
-		// Don't touch this
-		// "sirenlighton",
-		// "sirenlight_on",
-		// "vehiclelightson128"
-	};
-
-	RwTexture *pTex = nullptr;
-	for (const auto &name : texNames)
-	{
-		pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
-		if (pTex)
-		{
-			break;
-		}
-	}
-	return pTex;
+    Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
+    {
+        ModelInfoMgr::FindDummies(pVeh, (RwFrame *)pVeh->m_pRwClump->object.parent);
+    };
 }
 
-MEMaterial::~MEMaterial() {
-	// pGameMat->texture = pTextureOff;
-	// CVehicleModelInfo::ms_pLightsOnTexture->refCount--;
-}
-
-MEMaterial::MEMaterial(RpMaterial *material, eDummyPos pos)
-{
-	if (!material || !material->texture)
-	{
-		return;
-	}
-
-	pGameMat = material;
-	pTextureOff = material->texture;
-	pTextureOn = material->texture;
-	Pos = pos;
-	Color = {material->color.red, material->color.green, material->color.blue, material->color.alpha};
-
-	RwTexture *pTexture = FindTextureInDict(material, material->texture->dict);
-
-	if (pTexture)
-	{
-		pTextureOn = pTexture;
-	}
-}
-
-void ModelMgr::Register(std::function<RpMaterial *(CVehicle *, RpMaterial *, CRGBA)> function)
-{
-	functions.push_back(function);
-};
-
-void ModelMgr::RegisterRender(std::function<void(CVehicle *)> render)
+void ModelInfoMgr::RegisterRender(RenderCallback_t render)
 {
 	renders.push_back(render);
 };
 
-void ModelMgr::RegisterDummy(std::function<void(CVehicle *, RwFrame *, std::string, bool)> function)
+void ModelInfoMgr::RegisterDummy(DummyCallback_t function)
 {
 	dummy.push_back(function);
 };
 
-void ModelMgr::OnModelSet(CVehicle *vehicle, int model)
-{
-	currentVehicle = vehicle;
+void ModelInfoMgr::EnableLight(CVehicle *pVeh, eLightType type) {
+	m_LightStatus[pVeh][type] = true;
+}
 
-	RpClumpForAllAtomics(vehicle->m_pRwClump, [](RpAtomic *atomic, void *data)
-						 {
-		if (!atomic->geometry)
-			return atomic;
-
-		RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial* material, void* data) {
-			if (!material || !material->texture)
-				return material;
-
-			/*
-			*	Note: Material data need to be model based
-			*		  Dummy data should be entity based
-			*		  Don't change it
-			*/
-			if (materials[currentVehicle->m_nModelIndex].contains(material))
-				return material;
-
-			if (matColBackup[currentVehicle->m_nModelIndex].contains(material)) {
-				material->color = matColBackup[currentVehicle->m_nModelIndex][material];
-			}
-			else {
-				matColBackup[currentVehicle->m_nModelIndex][material] = material->color;
-			}
-			for (auto& e : functions) {
-				e(currentVehicle, material, material->color);
-			}
-
-			materials[currentVehicle->m_nModelIndex][material] = true;
-
-			return material;
-		}, atomic);
-
-		return atomic; }, nullptr);
-
-	ModelMgr::FindDummies(vehicle, (RwFrame *)vehicle->m_pRwClump->object.parent);
-};
-
-void ModelMgr::FindDummies(CVehicle *vehicle, RwFrame *frame, bool parent, bool print)
+void ModelInfoMgr::FindDummies(CVehicle *vehicle, RwFrame *frame)
 {
 	if (frame)
 	{
-		const std::string name = GetFrameNodeName(frame);
-
-		if (print)
-		{
-			gLogger->info(name);
-		}
-
 		if (RwFrame *nextFrame = frame->child)
 		{
-			FindDummies(vehicle, nextFrame, (RwFrameGetParent(frame)) ? (true) : (false), print);
+			FindDummies(vehicle, nextFrame);
 		}
 
 		if (RwFrame *nextFrame = frame->next)
 		{
-			FindDummies(vehicle, nextFrame, parent, print);
+			FindDummies(vehicle, nextFrame);
 		}
 
 		for (auto e : dummy)
 		{
-			e(currentVehicle, frame, name, parent);
+			e(vehicle, frame);
 		}
 	}
 };
 
-void ModelMgr::StoreMaterial(std::pair<unsigned int *, unsigned int> pair)
-{
-	storedMaterials.push_back(pair);
-};
-
-void ModelMgr::Reset(CVehicle *pVeh)
-{
-	materials.erase(pVeh->m_nModelIndex);
-}
-
-void ModelMgr::RestoreMaterials()
-{
-	for (auto &p : storedMaterials)
-	{
-		*p.first = p.second;
-	}
-	storedMaterials.clear();
-};
-
-void ModelMgr::OnRender(CVehicle *vehicle)
+void ModelInfoMgr::OnRender(CVehicle *vehicle)
 {
 	if (!renders.empty())
 	{
@@ -188,9 +83,29 @@ void ModelMgr::OnRender(CVehicle *vehicle)
 			e(vehicle);
 		}
 	}
+}
+
+void ModelInfoMgr::RegisterMaterial(MaterialCallback_t mat) {
+	materials.push_back(mat);
+}
+
+void ModelInfoMgr::SetupRender(CVehicle *ptr)
+{
+	pCurVeh = ptr;
+	ptr->SetupRender();
+	for (int i = 0; i < eLightType::TotalLight; i++) {
+		m_LightStatus[ptr][i] = false;
+	}
+}
+
+RwSurfaceProperties &gLightSurfProps = *(RwSurfaceProperties *)0x8A645C;
+struct tRestoreEntry
+{
+	void *m_pAddress;
+	void *m_pValue;
 };
 
-RpMaterial *ModelMgr::SetEditableMaterialsCB(RpMaterial *material, void *data)
+RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *data)
 {
 	tRestoreEntry **ppEntries = reinterpret_cast<tRestoreEntry **>(data);
 	CRGBA color = *reinterpret_cast<CRGBA *>(RpMaterialGetColor(material));
@@ -206,18 +121,14 @@ RpMaterial *ModelMgr::SetEditableMaterialsCB(RpMaterial *material, void *data)
 
 	if (material->texture == CVehicleModelInfo::ms_pLightsTexture)
 	{
-		int iLightIndex = -1;
-		if (color == VEHCOL_HEADLIGHT_LEFT) {
-			iLightIndex = 0;
-		}
-		else if (color == VEHCOL_HEADLIGHT_RIGHT) {
-			iLightIndex = 1;
-		}
-		else if (color == VEHCOL_TAILLIGHT_LEFT) {
-			iLightIndex = 2;
-		}
-		else if (color == VEHCOL_TAILLIGHT_RIGHT) {
-			iLightIndex = 3;
+		int iLightIndex = eLightType::UnknownLight;
+
+		for (auto& e : materials) {
+			eLightType type = e(color);
+			if (type != eLightType::UnknownLight) {
+				iLightIndex = type;
+				break;
+			}
 		}
 
 		(*ppEntries)->m_pAddress = RpMaterialGetColor(material);
@@ -228,7 +139,7 @@ RpMaterial *ModelMgr::SetEditableMaterialsCB(RpMaterial *material, void *data)
 		RpMaterialGetColor(material)->green = 255;
 		RpMaterialGetColor(material)->blue = 255;
 
-		if (iLightIndex != -1 && CVehicleModelInfo::ms_lightsOn[iLightIndex])
+		if (iLightIndex != eLightType::UnknownLight && m_LightStatus[pCurVeh][iLightIndex])
 		{
 			(*ppEntries)->m_pAddress = &material->texture;
 			(*ppEntries)->m_pValue = material->texture;
@@ -244,36 +155,15 @@ RpMaterial *ModelMgr::SetEditableMaterialsCB(RpMaterial *material, void *data)
 	}
 	else
 	{
-		int iColorIndex;
-		if (color == VEHCOL_PRIMARY)
-		{
-			iColorIndex = CVehicleModelInfo::ms_currentCol[0];
-		}
-		else if (color == VEHCOL_SECONDARY)
-		{
-			iColorIndex = CVehicleModelInfo::ms_currentCol[1];
-		}
-		else if (color == VEHCOL_TERTIARY)
-		{
-			iColorIndex = CVehicleModelInfo::ms_currentCol[2];
-		}
-		else if (color == VEHCOL_QUATARNARY)
-		{
-			iColorIndex = CVehicleModelInfo::ms_currentCol[3];
-		}
-		else
-		{
-			return material;
-		}
+		CRGBA col = IVFCarcols::GetColor(pCurVeh, material, color);
 
 		(*ppEntries)->m_pAddress = RpMaterialGetColor(material);
 		(*ppEntries)->m_pValue = *reinterpret_cast<void **>(RpMaterialGetColor(material));
 		(*ppEntries)++;
 
-		auto &color = CVehicleModelInfo::ms_vehicleColourTable[iColorIndex];
-		RpMaterialGetColor(material)->red = color.r;
-		RpMaterialGetColor(material)->green = color.g;
-		RpMaterialGetColor(material)->blue = color.b;
+		RpMaterialGetColor(material)->red = col.r;
+		RpMaterialGetColor(material)->green = col.g;
+		RpMaterialGetColor(material)->blue = col.b;
 	}
 
 	return material;

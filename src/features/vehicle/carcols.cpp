@@ -3,89 +3,70 @@
 #include <rwcore.h>
 #include <rpworld.h>
 #include <RenderWare.h>
-
-extern bool IsNightTime();
+#include "core/colors.h"
 
 void IVFCarcols::Initialize()
 {
-    static CVehicle *pCurVehicle;
-    injector::MakeInline<0x4C838D, 0x4C83AA>([](injector::reg_pack &regs)
-                                             {
-        RpMaterial* pMat = (RpMaterial*)regs.eax;
-        CRGBA color = *(CRGBA*)&pMat->color;
-        color.a = 0;
-        int model = pCurVehicle->m_nModelIndex;
-        auto& data = ExData.Get(pCurVehicle);
+    m_bEnabled = true;
+}
 
-        if (variations.contains(model)) {
-            int random = rand() % variations[model].size();
-            auto col = variations[model][random];
-            CRGBA rgbaCol;
-            if (color == CRGBA(60, 255, 0, 0)) {
-                if (!data.m_bPri) {
-                    data.m_Colors.primary = col.primary;
-                    data.m_bPri = true;
-                }
-                rgbaCol = data.m_Colors.primary;
+CRGBA IVFCarcols::GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA type) {
+    int model = pVeh->m_nModelIndex;
+    if (m_bEnabled && variations.contains(model)) {
+        auto& data = ExData.Get(pVeh);
+        int random = rand() % variations[model].size();
+        auto col = variations[model][random];
+        
+        if (type == VEHCOL_PRIMARY) {
+            if (!data.m_bPri) {
+                data.m_Colors.primary = col.primary;
+                data.m_bPri = true;
             }
-            else if (color == CRGBA(255, 0, 175, 0)) {
-                if (!data.m_bSec) {
-                    data.m_Colors.secondary = col.secondary;
-                    data.m_bSec = true;
-                }
-                rgbaCol = data.m_Colors.secondary;
+            return data.m_Colors.primary;
+        }
+        else if (type == VEHCOL_SECONDARY) {
+            if (!data.m_bSec) {
+                data.m_Colors.secondary = col.secondary;
+                data.m_bSec = true;
             }
-            else if (color == CRGBA(0, 255, 255, 0)) {
-                if (!data.m_bTer) {
-                    data.m_Colors.tert = col.tert;
-                    data.m_bTer = true;
-                }
-                rgbaCol = data.m_Colors.tert;
+            return data.m_Colors.secondary;
+        }
+        else if (type == VEHCOL_TERTIARY) {
+            if (!data.m_bTer) {
+                data.m_Colors.tert = col.tert;
+                data.m_bTer = true;
             }
-            else if (color == CRGBA(255, 0, 255, 0)) {
-                if (!data.m_bQuat) {
-                    data.m_Colors.quart = col.quart;
-                    data.m_bQuat = true;
-                }
-                rgbaCol = data.m_Colors.quart;
+            return data.m_Colors.tert;
+        }
+        else if (type == VEHCOL_QUATARNARY) {
+            if (!data.m_bQuat) {
+                data.m_Colors.quart = col.quart;
+                data.m_bQuat = true;
             }
-            else {
-                return;
-            }
-
-            pMat->color.red = rgbaCol.r;
-            pMat->color.green = rgbaCol.g;
-            pMat->color.blue = rgbaCol.b;
+            return data.m_Colors.quart;
+        } else {
+            return *reinterpret_cast<CRGBA*>(RpMaterialGetColor(pMat));
+        }
+    }
+    else {
+        int idx = 0;
+        if (type == VEHCOL_PRIMARY) {
+            idx = CVehicleModelInfo::ms_currentCol[0];
+        }
+        else if (type == VEHCOL_SECONDARY) {
+            idx = CVehicleModelInfo::ms_currentCol[1];
+        }
+        else if (type == VEHCOL_TERTIARY) {
+            idx = CVehicleModelInfo::ms_currentCol[2];
+        }
+        else if (type == VEHCOL_QUATARNARY) {
+            idx = CVehicleModelInfo::ms_currentCol[3];
         }
         else {
-            int id = 0;
-            if (color == CRGBA(60, 255, 0, 0)) {
-                id = CVehicleModelInfo::ms_currentCol[0];
-            }
-            else if (color == CRGBA(255, 0, 175, 0)) {
-                id = CVehicleModelInfo::ms_currentCol[1];
-            }
-            else if (color == CRGBA(0, 255, 255, 0)) {
-                id = CVehicleModelInfo::ms_currentCol[2];
-            }
-            else if (color == CRGBA(255, 0, 255, 0)) {
-                id = CVehicleModelInfo::ms_currentCol[3];
-            }
-            else {
-                return;
-            }
-
-            pMat->color.red = CVehicleModelInfo::ms_vehicleColourTable[id].r;
-            pMat->color.green = CVehicleModelInfo::ms_vehicleColourTable[id].g;
-            pMat->color.blue = CVehicleModelInfo::ms_vehicleColourTable[id].b;
-        } });
-
-    injector::MakeInline<0x6D6617, 0x6D661C>([](injector::reg_pack &regs)
-                                             {
-        pCurVehicle = (CVehicle*)regs.esi;
-        CVehicleModelInfo* pInfo = (CVehicleModelInfo*)CModelInfo::GetModelInfo(pCurVehicle->m_nModelIndex);
-        // CVehicle *__cdecl CVehicleModelInfo::SetupLightFlags(CVehicle *vehicle)
-        plugin::Call<0x4C8C90>(pCurVehicle); });
+            return *reinterpret_cast<CRGBA*>(RpMaterialGetColor(pMat));
+        }
+        return CVehicleModelInfo::ms_vehicleColourTable[idx];
+    }
 }
 
 void IVFCarcols::Parse(const nlohmann::json &data, int model)
