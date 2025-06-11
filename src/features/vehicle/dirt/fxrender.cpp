@@ -47,11 +47,9 @@ void FxRender::Shutdown()
 	((void(__cdecl *)())0x5D5AD0)(); // Shutdown
 	for (int i = 0; i < 16; i++)
 	{
-		RwTextureDestroy(ms_aDirtTextures_2[i]);
-		RwTextureDestroy(ms_aDirtTextures_3[i]);
-		RwTextureDestroy(ms_aDirtTextures_4[i]);
-		// RwTextureDestroy(ms_aDirtTextures_5[i]);
-		// RwTextureDestroy(ms_aDirtTextures_6[i]);
+		if (ms_aDirtTextures_2[i]) RwTextureDestroy(ms_aDirtTextures_2[i]);
+		if (ms_aDirtTextures_3[i]) RwTextureDestroy(ms_aDirtTextures_3[i]); 
+		if (ms_aDirtTextures_4[i]) RwTextureDestroy(ms_aDirtTextures_4[i]);		// RwTextureDestroy(ms_aDirtTextures_5[i]);
 	}
 }
 
