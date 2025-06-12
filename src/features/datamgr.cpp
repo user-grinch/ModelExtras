@@ -24,21 +24,26 @@ void DataMgr::Init()
 void DataMgr::Convert()
 {
     std::string path = std::string(MOD_DATA_PATH("data/"));
-    for (auto &p : std::filesystem::directory_iterator(path))
-    {
-        std::string filePath = p.path().string();
-        if (filePath.ends_with(".eml"))
+
+    if (std::filesystem::exists(path)) {
+        for (auto &p : std::filesystem::directory_iterator(path))
         {
-            Convert_EmlToJsonc(filePath);
+            std::string filePath = p.path().string();
+            if (filePath.ends_with(".eml"))
+            {
+                Convert_EmlToJsonc(filePath);
+            }
+            else if (filePath.ends_with(".json"))
+            {
+                Convert_JsonToJsonc(filePath);
+            }
+            else if (filePath.ends_with(".ivfc"))
+            {
+                Convert_IvfcToJsonc(filePath);
+            }
         }
-        else if (filePath.ends_with(".json"))
-        {
-            Convert_JsonToJsonc(filePath);
-        }
-        else if (filePath.ends_with(".ivfc"))
-        {
-            Convert_IvfcToJsonc(filePath);
-        }
+    } else {
+        gLogger->warn("ModelExtras/data directory doesn't exist");
     }
 }
 

@@ -77,9 +77,15 @@ void FxRender::InitialiseBlendTextureSingle(const char *CleanName, const char *D
 	RwTexture *DestTexture;
 
 	SrcTexture = TextureMgr::Get(CleanName);
+	if (!SrcTexture) {
+		return;
+	}
 	SrcTexture->filterAddressing = rwFILTERLINEAR;
 
 	DestTexture = TextureMgr::Get(DirtName);
+	if (!DestTexture) {
+		return;
+	}
 	DestTexture->filterAddressing = rwFILTERLINEAR;
 
 	if (SrcTexture && DestTexture)
@@ -98,6 +104,10 @@ void FxRender::InitialiseBlendTextureSingle(const char *CleanName, const char *D
 void FxRender::InitialiseDirtTextureSingle(const char *name, RwTexture **dirtTextureArray)
 {
 	RwTexture *pTex = TextureMgr::Get(name);
+	if (!pTex)
+	{
+		return;
+	}
 	pTex->filterAddressing = rwFILTERLINEAR;
 
 	for (int texid = 0; texid < 16; texid++)

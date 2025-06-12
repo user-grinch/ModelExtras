@@ -14,7 +14,6 @@
 #include "common/remap.h"
 #include "common/randomizer.h"
 #include "vehicle/lights.h"
-#include "vehicle/paintjobs.h"
 #include "vehicle/core/materials.h"
 #include "vehicle/sirens.h"
 #include "vehicle/plate.h"
@@ -210,11 +209,6 @@ void FeatureMgr::Initialize()
 
     // Vehicle Section
     LOG_NO_LEVEL("\nVehicle Features->");
-    if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AdditionalPaintJobs", false))
-    {
-        PaintJobs::Initialize();
-        LOG_NO_LEVEL("  AdditionalPaintJobs");
-    }
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "AnimatedChain", false))
     {

@@ -134,6 +134,10 @@ struct tRestoreEntry
 
 RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *data)
 {
+	if (!material || !material->texture) {
+		return material;
+	}
+
 	tRestoreEntry **ppEntries = reinterpret_cast<tRestoreEntry **>(data);
 	CRGBA matCol = *reinterpret_cast<CRGBA *>(RpMaterialGetColor(material));
 	matCol.a = 255;

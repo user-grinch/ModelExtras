@@ -60,7 +60,12 @@ RwTexture *TextureMgr::Get(std::string name, RwUInt8 alpha)
     }
 
     static auto pDict = CFileLoader::LoadTexDictionary(MOD_DATA_PATH("ME_TEXDB.TXD"));
-    Textures[name][alpha] = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
+    RwTexture *pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
+    if (!pTex) {
+        return nullptr;
+    }
+
+    Textures[name][alpha] = pTex;
     // int index = CTxdStore::FindTxdSlot("ME_TEXDB");
     // if (index == -1)
     // {
@@ -83,6 +88,9 @@ RwTexture *TextureMgr::Get(std::string name, RwUInt8 alpha)
 
 RwTexture *TextureMgr::FindTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict)
 {
+    if (!pMat || !pMat->texture) {
+        return nullptr;
+    }
 	const std::string baseName = pMat->texture->name;
 	const std::vector<std::string> texNames = {
 		baseName + "on",
@@ -92,7 +100,7 @@ RwTexture *TextureMgr::FindTextureInDict(RpMaterial *pMat, RwTexDictionary *pDic
 	RwTexture *pTex = nullptr;
 	for (const auto &name : texNames)
 	{
-		pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
+		pTex = TextureMgr::FindInDict(name, pDict);
 		if (pTex)
 		{
 			break;
