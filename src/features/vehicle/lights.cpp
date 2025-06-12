@@ -164,6 +164,7 @@ void Lights::Initialize()
 		}
 		// Headlights
 		CRGBA matCol = *reinterpret_cast<CRGBA *>(RpMaterialGetColor(pMat));
+		matCol.a = 255;
 		if (matCol == VEHCOL_HEADLIGHT_LEFT) {
 			return eLightType::HeadLightLeft;
 		} else if (matCol == VEHCOL_HEADLIGHT_RIGHT) {

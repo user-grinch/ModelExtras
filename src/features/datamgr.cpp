@@ -142,21 +142,19 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
 
 void DataMgr::Parse()
 {
-    auto LoadModelDataFromPath = [&](const std::string &path)
-    {
-        for (const auto &e : std::filesystem::directory_iterator(path))
-        {
-            LoadFile(e);
-        }
-    };
-
     gLogger->info("Loading data files from ModelExtras/data...");
-    LoadModelDataFromPath(MOD_DATA_PATH("data/"));
+    for (const auto &e : std::filesystem::directory_iterator(MOD_DATA_PATH("data/")))
+    {
+        LoadFile(e);
+    }
     LOG_NO_LEVEL("");
     if (GetModuleHandle("modloader.asi"))
     {
         gLogger->info("Loading data files from modloader...");
-        LoadModelDataFromPath(GAME_PATH((char *)"modloader/"));
+        for (const auto &e : std::filesystem::recursive_directory_iterator(GAME_PATH((char *)"modloader/")))
+        {
+            LoadFile(e);
+        }
     }
 }
 
