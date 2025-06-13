@@ -125,7 +125,9 @@ void ModelInfoMgr::SetupRender(CVehicle *ptr)
 	}
 }
 
-RwSurfaceProperties &gLightSurfProps = *(RwSurfaceProperties *)0x8A645C;
+RwSurfaceProperties &gLightSurfPropsOn = *(RwSurfaceProperties *)0x8A645C;
+RwSurfaceProperties gLightSurfProps = {1.0, 0.0, 0.0};
+
 struct tRestoreEntry
 {
 	void *m_pAddress;
@@ -198,9 +200,11 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 				if (pTex) {
 					material->texture = pTex;
 				} else{
-					LOG_VERBOSE("Expected an 'on' texture for {} but none found", material->texture);
+					LOG_VERBOSE("Expected an 'on' texture for {} but none found", material->texture->name);
 				}
 			}
+			RpMaterialSetSurfaceProperties(material, &gLightSurfPropsOn);
+		} else {
 			RpMaterialSetSurfaceProperties(material, &gLightSurfProps);
 		}
 	}
