@@ -303,26 +303,14 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 	{
 		if (json["type"].is_string())
 		{
-			if (json["type"] == "directional")
-				Type = eLightingMode::Directional;
-			else if (json["type"] == "non-directional")
-				Type = eLightingMode::NonDirectional;
-			else if (json["type"] == "inversed-directional")
-				Type = eLightingMode::Inversed;
-			else if (json["type"] == "rotator")
+			Type = GetLightingMode(json["type"]);
+			if (Type == eLightingMode::Rotator && json.contains("rotator"))
 			{
-				Type = eLightingMode::Rotator;
-
-				if (json.contains("rotator"))
-				{
-					if (json["rotator"].is_object())
-						Rotator = new VehicleSirenRotator(json["rotator"]);
-					else
-						gLogger->error("Model " + std::to_string(Sirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", rotator property is not an object!");
-				}
+				if (json["rotator"].is_object())
+					Rotator = new VehicleSirenRotator(json["rotator"]);
+				else
+					gLogger->error("Model " + std::to_string(Sirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", rotator property is not an object!");
 			}
-			else
-				gLogger->error("Model " + std::to_string(Sirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", type property '" + (std::string)json["type"] + "' is not a recognized type!");
 		}
 		else
 			gLogger->error("Model " + std::to_string(Sirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", type property is not a string!");

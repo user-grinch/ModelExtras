@@ -204,10 +204,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 	}
 	else
 	{
-		CRGBA col = {255, 255, 255, 255};
-		if (!CModelInfo::IsHeliModel(pCurVeh->m_nModelIndex)) {
-			col = IVFCarcols::GetColor(pCurVeh, material, matCol);
-		} 
+		CRGBA col = IVFCarcols::GetColor(pCurVeh, material, matCol);
 		
 		(*ppEntries)->m_pAddress = RpMaterialGetColor(material);
 		(*ppEntries)->m_pValue = *reinterpret_cast<void **>(RpMaterialGetColor(material));

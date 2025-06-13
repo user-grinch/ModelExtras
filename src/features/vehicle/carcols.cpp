@@ -11,6 +11,8 @@ void IVFCarcols::Initialize()
 }
 
 CRGBA IVFCarcols::GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA type) {
+    CRGBA *colorTable = *reinterpret_cast<CRGBA**>(0x4C8390);
+
     int model = pVeh->m_nModelIndex;
     if (m_bEnabled && variations.contains(model)) {
         auto& data = ExData.Get(pVeh);
@@ -65,7 +67,7 @@ CRGBA IVFCarcols::GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA type) {
         else {
             return *reinterpret_cast<CRGBA*>(RpMaterialGetColor(pMat));
         }
-        return CVehicleModelInfo::ms_vehicleColourTable[idx];
+        return colorTable[idx];
     }
 }
 
