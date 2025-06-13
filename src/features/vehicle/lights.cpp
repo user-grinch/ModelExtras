@@ -789,24 +789,6 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 	}
 
 	ModelInfoMgr::EnableLightMaterial(pVeh, state);
-
-	// if (IsDummyAvail(pVeh, state))
-	// {
-	// 	for (auto e : m_Materials[pVeh->m_nModelIndex][state])
-	// 	{
-	// 		if ((FrontDisabled && e->Pos == eDummyPos::Front) || (RearDisabled && e->Pos == eDummyPos::Rear) || (MidDisabled && (e->Pos == eDummyPos::Left || e->Pos == eDummyPos::Right)))
-	// 		{
-	// 			continue;
-	// 		}
-
-	// 		if (state == eLightType::StrobeLight && !lightState[e->Color.b])
-	// 		{
-	// 			continue;
-	// 		}
-
-	// 		EnableMaterial(e, highlight ? 2.0f : 1.0f);
-	// 	}
-	// }
 }
 
 void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightType state, bool shadows, std::string texture, CVector2D sz, CVector2D offset, bool highlight)

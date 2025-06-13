@@ -160,7 +160,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 		}
 	}
 
-	if (material->texture == CVehicleModelInfo::ms_pLightsTexture || iLightIndex != eLightType::UnknownLight)
+	if (iLightIndex != eLightType::UnknownLight)
 	{
 		bool lightStatus = false;
 
@@ -191,13 +191,15 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 			(*ppEntries)->m_pValue = *(void **)RpMaterialGetSurfaceProperties(material);
 			(*ppEntries)++;
 
-			if (iLightIndex == eLightType::SirenLight) {
+			if (material->texture == CVehicleModelInfo::ms_pLightsTexture) {
+				material->texture = CVehicleModelInfo::ms_pLightsOnTexture;
+			} else {
 				RwTexture *pTex = TextureMgr::FindTextureInDict(material, material->texture->dict);
 				if (pTex) {
 					material->texture = pTex;
+				} else{
+					LOG_VERBOSE("Expected an 'on' texture for {} but none found", material->texture);
 				}
-			} else {
-				material->texture = CVehicleModelInfo::ms_pLightsOnTexture;
 			}
 			RpMaterialSetSurfaceProperties(material, &gLightSurfProps);
 		}

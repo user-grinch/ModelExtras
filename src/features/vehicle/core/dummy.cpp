@@ -118,7 +118,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
             }
             else
             {
-                gLogger->warn("Model {} has issue with node `{}`: invalid color format", pVeh->m_nModelIndex, name);
+                LOG_VERBOSE("Model {} has issue with node `{}`: invalid color format", pVeh->m_nModelIndex, name);
             }
 
             if (prmPos + 10 < name.size())
@@ -127,7 +127,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
             }
             else
             {
-                gLogger->warn("Model {} has issue with node `{}`: invalid light type", pVeh->m_nModelIndex, name);
+                LOG_VERBOSE("Model {} has issue with node `{}`: invalid light type", pVeh->m_nModelIndex, name);
             }
 
             if (prmPos + 11 < name.size())
@@ -140,7 +140,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
             }
             else
             {
-                gLogger->warn("Model {} has issue with node `{}`: invalid corona size", pVeh->m_nModelIndex, name);
+                LOG_VERBOSE("Model {} has issue with node `{}`: invalid corona size", pVeh->m_nModelIndex, name);
             }
 
             if (prmPos + 12 < name.size())
@@ -154,7 +154,7 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
             }
             else
             {
-                gLogger->warn("Model {} has issue with node `{}`: invalid shadow size", pVeh->m_nModelIndex, name);
+                LOG_VERBOSE("Model {} has issue with node `{}`: invalid shadow size", pVeh->m_nModelIndex, name);
             }
         }
     }

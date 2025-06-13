@@ -52,7 +52,7 @@ void OdoMeter::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 
     if (data.m_FrameList.size() < 6)
     {
-        gLogger->error("Vehicle ID: {}. {} odometer childs detected, 6 expected", pVeh->m_nModelIndex, data.m_FrameList.size());
+        LOG_VERBOSE("Vehicle ID: {}. {} odometer childs detected, 6 expected", pVeh->m_nModelIndex, data.m_FrameList.size());
         return;
     }
 
