@@ -29,15 +29,17 @@ void DataMgr::Convert()
         for (auto &p : std::filesystem::directory_iterator(path))
         {
             std::string filePath = p.path().string();
-            if (filePath.ends_with(".eml"))
+            std::string fileExt = p.path().extension().string();
+            gLogger->info("FILE PATH IS: {}", filePath);
+            if (fileExt == ".eml")
             {
                 Convert_EmlToJsonc(filePath);
             }
-            else if (filePath.ends_with(".json"))
+            else if (fileExt == ".json")
             {
                 Convert_JsonToJsonc(filePath);
             }
-            else if (filePath.ends_with(".ivfc"))
+            else if (fileExt == ".ivfc")
             {
                 Convert_IvfcToJsonc(filePath);
             }
@@ -91,6 +93,10 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
             }
         }
 
+        if (data.contains(model)) {
+            gLogger->warn("Found multiple config files for model id {}", model);
+        }
+
         if (model == 0)
         {
             return;
@@ -119,6 +125,7 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
             else
             {
                 gLogger->error("Skipping {}. No metadata found!", filename);
+                return;
             }
 
             data[model] = jsonData;

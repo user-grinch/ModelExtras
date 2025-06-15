@@ -322,18 +322,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 		{
 			if (json["shadow"].contains("type"))
 			{
-				if (json["shadow"]["type"].is_number())
-				{
-					if (json["shadow"]["type"] == 1)
-						Shadow.Type = "pointlight";
-					else if (json["shadow"]["type"] == 0)
-						Shadow.Type = DEFAULT_SIREN_SHADOW;
-					else if (json["shadow"]["type"] == 10)
-						Shadow.Type = "narrow";
-					// TODO: Implement others
-					// No docs for them
-				}
-				else if (json["shadow"]["type"].is_string())
+				if (json["shadow"]["type"].is_string())
 				{
 					Shadow.Type = json["shadow"]["type"];
 				}
@@ -347,17 +336,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 			{
 				if (json["shadow"]["size"].is_number())
 				{
-					float sz = json["shadow"]["size"];
-
-					// ModelExtras FIXME
-					if (Shadow.Type == DEFAULT_SIREN_SHADOW)
-					{
-						Shadow.Size = sz;
-					}
-					else
-					{
-						Shadow.Size = sz * 2.0f / 3.0f;
-					}
+					Shadow.Size = json["shadow"]["size"];
 				}
 				else
 				{

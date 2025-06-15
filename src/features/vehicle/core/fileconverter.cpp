@@ -2,6 +2,8 @@
 #include "defines.h"
 #include <sstream>
 
+#define DEFAULT_SIREN_SHADOW "round"
+
 int Helper_ImVehFtReadColor(std::string input)
 {
     if (input.length() == 3)
@@ -180,6 +182,48 @@ int Convert_EmlToJsonc(const std::string &emlPath)
     return model;
 }
 
+const char* GetShadowTypeName(int index) {
+    static const char* shadowTypeNames[] = {
+        "round", "pointlight", "arealight", "bollard", "comet",
+        "cylindernarrow", "defined", "defineddiffuse", "defineddiffusespot", "definedspot",
+        "narrow", "jellyfish", "mediumscatter", "overhead", "parallelbeam",
+        "pear", "round", "scatterlight", "softarrow", "softdisplay",
+        "star", "starfocused", "threelobeumbrella", "threelobevee", "tightfocused",
+        "toppost", "trapezoid", "umbrella", "vee", "veeup",
+        "xarrow", "xarrowdiffuse", "xarrowsoft"
+    };
+
+    constexpr int count = sizeof(shadowTypeNames) / sizeof(shadowTypeNames[0]);
+
+    if (index < 0 || index >= count) {
+        return (char*)DEFAULT_SIREN_SHADOW;
+    }
+
+    return shadowTypeNames[index];
+}
+
+void Helper_UpdateAVSRecursive(nlohmann::json& j) {
+    if (j.is_object()) {
+        for (auto& [key, value] : j.items()) {
+            if (key == "shadow" && value.is_object()) {
+                if (value.contains("type") && value["type"].is_number()) {
+                    std::string name = GetShadowTypeName(value["type"].get<int>());
+                    value["type"] = name;
+                    if (strcmp(name.c_str(), DEFAULT_SIREN_SHADOW) != 0)
+					{
+						value["size"] = value["size"].get<float>() * 2.0f / 3.0f;
+					}
+                }
+            }
+            Helper_UpdateAVSRecursive(value);
+        }
+    } else if (j.is_array()) {
+        for (auto& item : j) {
+            Helper_UpdateAVSRecursive(item);
+        }
+    }
+}
+
 void Convert_JsonToJsonc(const std::string &inPath)
 {
     std::string outPath = inPath + "c";
@@ -198,6 +242,7 @@ void Convert_JsonToJsonc(const std::string &inPath)
     jsonData["metadata"]["desc"] = "Converted from AVS";
     jsonData["metadata"]["minver"] = 20000; // First ME Version with support
     jsonData["sirens"] = nlohmann::json::parse(infile);
+    Helper_UpdateAVSRecursive(jsonData);
     infile.close();
     outfile << jsonData.dump(4);
     outfile.close();
