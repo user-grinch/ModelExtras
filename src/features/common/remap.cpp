@@ -11,23 +11,31 @@ void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType t
         CTxdStore::PushCurrentTxd();
         CTxdStore::SetCurrentTxd(pModelInfo->m_nTxdIndex);
         RwTexDictionaryForAllTextures(RwTexDictionaryGetCurrent(), [](RwTexture *pTex, void *pData)
-        { 
+                                      { 
             int model = *(int*)pData;
             std::string name = pTex->name;
             std::size_t remapPos = name.find("_remap");
-            std::string orgName = name.substr(0, std::min(remapPos, name.size()));
-            RemapData &data = xRemaps.Get(model);
-            
-            if (remapPos != std::string::npos)
-            {
-                // check if the original texture was insered
-                if (data.m_pTextures[orgName].empty()) {
-                    RwTexture *orgTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), orgName.c_str());
-                    if (orgTex) {
-                        data.m_pTextures[orgName].push_back(orgTex);
-                    }
+            std::size_t bloodPos = name.find("_bld");
+            std::string orgName = name.substr(0, std::min(std::min(remapPos, bloodPos), name.size()));
+            bool isRemapTex = remapPos != std::string::npos;
+            bool isBloodTex = bloodPos != std::string::npos;
+
+            if (isRemapTex || isBloodTex) {
+                RemapData &data = xRemaps.Get(model);
+                if (data.m_pTextures.empty()) {
+                    std::string bloodName = orgName + "_bld";
+                    RwTexture *pOrgTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), orgName.c_str());
+                    RwTexture *pBloodTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), bloodName.c_str());
+                    data.m_pTextures[orgName].push_back({pOrgTex, pBloodTex});
                 }
-                data.m_pTextures[orgName].push_back(pTex);
+            }
+            
+            if (isRemapTex && !isBloodTex)
+            {
+                RemapData &data = xRemaps.Get(model);
+                std::string bloodName = name + "_bld";
+                RwTexture *pBloodTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), bloodName.c_str());
+                data.m_pTextures[orgName].push_back({pTex, pBloodTex});
             }
 			return pTex; 
         }, &model);
@@ -37,6 +45,7 @@ void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType t
 
 static std::vector<std::pair<unsigned int *, unsigned int>> m_pOriginalTextures;
 static std::map<void *, int> m_pRandom;
+static std::map<void *, bool> m_pBloodState;
 
 void Remap::Initialize()
 {
@@ -97,6 +106,11 @@ void Remap::Initialize()
             {
                 m_pRandom.erase(m_pRandom.find(pWeapon));
             }
+
+            if (m_pBloodState.contains(pWeapon))
+            {
+                m_pBloodState.erase(m_pBloodState.find(pWeapon));
+            }
         }
     };
 
@@ -107,6 +121,11 @@ void Remap::Initialize()
             if (m_pRandom.contains(pWeapon))
             {
                 m_pRandom.erase(m_pRandom.find(pWeapon));
+            }
+
+            if (m_pBloodState.contains(pWeapon))
+            {
+                m_pBloodState.erase(m_pBloodState.find(pWeapon));
             }
         }
     };
@@ -119,6 +138,36 @@ void Remap::AfterRender(void *ptr, eModelEntityType type)
         *e.first = e.second;
     }
     m_pOriginalTextures.clear();
+}
+
+bool Remap::GetKilledState(CWeapon *pWeapon)
+{
+    if (!pWeapon)
+    {
+        return false;
+    }
+
+    if (m_pBloodState[pWeapon])
+    {
+        return true;
+    }
+
+    static CPed *lastKilled = nullptr;
+    auto player = FindPlayerPed();
+    if (player && player->m_aWeapons[player->m_nSelectedWepSlot].m_eWeaponType == pWeapon->m_eWeaponType)
+    {
+        CPed *pPed = static_cast<CPed *>(player->m_pDamageEntity);
+        if (!pPed)
+        {
+            pPed = static_cast<CPed *>(player->m_pLastEntityDamage);
+        }
+        if (pPed && pPed->m_nType == ENTITY_TYPE_PED && !pPed->IsAlive() && pPed != lastKilled)
+        {
+            m_pBloodState[pWeapon] = true;
+            lastKilled = pPed;
+        }
+    }
+    return m_pBloodState[pWeapon];
 }
 
 void Remap::BeforeRender(void *ptr, eModelEntityType type)
@@ -136,6 +185,11 @@ void Remap::BeforeRender(void *ptr, eModelEntityType type)
     if (data.m_pTextures.empty())
     {
         return;
+    }
+
+    if (type == eModelEntityType::Weapon)
+    {
+        data.useBlood = GetKilledState(static_cast<CWeapon *>(ptr));
     }
 
     data.curPtr = ptr;
@@ -159,7 +213,12 @@ void Remap::BeforeRender(void *ptr, eModelEntityType type)
                 }
 
                 m_pOriginalTextures.push_back({reinterpret_cast<unsigned int*>(&mat->texture), *reinterpret_cast<unsigned int *>(&mat->texture)});
-                mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]];
+
+                if (pData->useBlood && pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pBlood) {
+                    mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pBlood;
+                } else {
+                    mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pNormal;
+                }
 
                 return mat;
             }, data);
