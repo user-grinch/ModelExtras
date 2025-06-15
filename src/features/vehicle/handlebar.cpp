@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "handlebar.h"
-#include "core/materials.h"
+#include "modelinfomgr.h"
 #define TARGET_NODE "handlebars"
 #define SOURCE_NODE "forks_front"
 

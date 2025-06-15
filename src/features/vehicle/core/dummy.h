@@ -1,5 +1,5 @@
 #pragma once
-#include "materials.h"
+#include "modelinfomgr.h"
 #include "game_sa/CGeneral.h"
 #include "RenderWare.h"
 #include "enums/parenttype.h"

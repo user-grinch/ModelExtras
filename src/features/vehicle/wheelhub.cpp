@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "wheelhub.h"
 #include <CCutsceneMgr.h>
-#include "core/materials.h"
+#include "modelinfomgr.h"
 
 void UpdateRotation(CVehicle *pVeh, RwFrame *ori, RwFrame *tar)
 {

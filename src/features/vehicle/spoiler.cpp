@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "spoiler.h"
 #include "datamgr.h"
-#include "core/materials.h"
+#include "modelinfomgr.h"
 
 void Spoiler::Initialize()
 {

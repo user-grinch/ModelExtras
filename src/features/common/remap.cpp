@@ -16,14 +16,16 @@ void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType t
             std::string name = pTex->name;
             std::size_t remapPos = name.find("_remap");
             std::string orgName = name.substr(0, std::min(remapPos, name.size()));
-            bool isRemapTex = remapPos != std::string::npos;
             RemapData &data = xRemaps.Get(model);
             
-            if (isRemapTex) {
+            if (remapPos != std::string::npos)
+            {
                 // check if the original texture was insered
                 if (data.m_pTextures[orgName].empty()) {
                     RwTexture *orgTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), orgName.c_str());
-                    data.m_pTextures[orgName].push_back(orgTex);
+                    if (orgTex) {
+                        data.m_pTextures[orgName].push_back(orgTex);
+                    }
                 }
                 data.m_pTextures[orgName].push_back(pTex);
             }

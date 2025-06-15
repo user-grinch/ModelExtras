@@ -2,7 +2,7 @@
 #include <map>
 #include <plugin.h>
 #include "core/dummy.h"
-#include "core/materials.h"
+#include "modelinfomgr.h"
 #include "enums/lightingmode.h"
 #include "enums/lightoverride.h"
 #include "enums/lighttype.h"

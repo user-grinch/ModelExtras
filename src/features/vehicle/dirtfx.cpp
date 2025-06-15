@@ -1,16 +1,19 @@
 #include "pch.h"
-#include "fxrender.h"
+#include "dirtfx.h"
 #include "RenderWare.h"
 #include <rwcore.h>
 #include <rwplcore.h>
 #include <rpworld.h>
 #include "texmgr.h"
 
-void FxRender::Initialize()
+void DirtFx::Initialize()
 {
-	patch::RedirectCall(0x53CA75, FxRender::Shutdown);
-	patch::RedirectCall(0x53CA61, FxRender::Shutdown);
-	patch::RedirectCall(0x5B8FFD, FxRender::InitialiseDirtTextures);
+	m_bEnabled = true;
+	patch::Nop(0x6D0E7E, 5);
+    patch::Nop(0x4C9648, 5);
+	patch::RedirectCall(0x53CA75, DirtFx::Shutdown);
+	patch::RedirectCall(0x53CA61, DirtFx::Shutdown);
+	patch::RedirectCall(0x5B8FFD, DirtFx::InitialiseDirtTextures);
 
 	plugin::Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
 	{
@@ -18,7 +21,7 @@ void FxRender::Initialize()
 		CTxdStore::PushCurrentTxd();
 		CTxdStore::SetCurrentTxd(pInfo->m_nTxdIndex);
 		RwTexDictionaryForAllTextures(RwTexDictionaryGetCurrent(), [](RwTexture *texture, void *pData)
-									  { 
+		{ 
 				RwTexture *pDirtTex = texture;
 				std::string dirtName = pDirtTex->name;
 
@@ -32,17 +35,38 @@ void FxRender::Initialize()
 				if (pCleanTex) {
 					InitialiseBlendTextureSingleEx(pCleanTex, pDirtTex);
 				}
-										return texture; }, NULL);
+		return texture; }, NULL);
 		CTxdStore::PopCurrentTxd();
 	};
 }
 
-void FxRender::InitialiseDirtTexture() // org
+void DirtFx::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat) {
+	std::string texName = pMat->texture->name;
+	int dirtLvl = pVeh->m_fDirtLevel;
+
+	if (texName == "vehiclegrunge256")
+        RpMaterialSetTexture(pMat, ms_aDirtTextures[dirtLvl]);
+	else if (texName == "vehicle_genericmud_truck" || texName == "vehiclegrunge_iv")
+		RpMaterialSetTexture(pMat, ms_aDirtTextures_2[dirtLvl]);
+	else if (texName == "vehiclegrunge512")
+		RpMaterialSetTexture(pMat, ms_aDirtTextures_3[dirtLvl]);
+	else if (texName.starts_with("tyrewall_dirt"))
+		RpMaterialSetTexture(pMat, ms_aDirtTextures_4[dirtLvl]);
+	else
+	{
+		if (m_DirtTextures.contains(texName))
+		{
+			RpMaterialSetTexture(pMat, m_DirtTextures[texName][dirtLvl]);
+		}
+	}
+}
+
+void DirtFx::InitialiseDirtTexture() // org
 {
 	((void(__cdecl *)())0x5D5BC0)();
 }
 
-void FxRender::Shutdown()
+void DirtFx::Shutdown()
 {
 	((void(__cdecl *)())0x5D5AD0)(); // Shutdown
 	for (int i = 0; i < 16; i++)
@@ -53,7 +77,7 @@ void FxRender::Shutdown()
 	}
 }
 
-void FxRender::InitialiseBlendTextureSingleEx(RwTexture *src, RwTexture *dest)
+void DirtFx::InitialiseBlendTextureSingleEx(RwTexture *src, RwTexture *dest)
 {
 	if (src && dest && !m_DirtTextures.contains(src->name))
 	{
@@ -71,7 +95,7 @@ void FxRender::InitialiseBlendTextureSingleEx(RwTexture *src, RwTexture *dest)
 	}
 }
 
-void FxRender::InitialiseBlendTextureSingle(const char *CleanName, const char *DirtName, RwTexture **TextureArray)
+void DirtFx::InitialiseBlendTextureSingle(const char *CleanName, const char *DirtName, RwTexture **TextureArray)
 {
 	RwTexture *SrcTexture;
 	RwTexture *DestTexture;
@@ -101,7 +125,7 @@ void FxRender::InitialiseBlendTextureSingle(const char *CleanName, const char *D
 	}
 }
 
-void FxRender::InitialiseDirtTextureSingle(const char *name, RwTexture **dirtTextureArray)
+void DirtFx::InitialiseDirtTextureSingle(const char *name, RwTexture **dirtTextureArray)
 {
 	RwTexture *pTex = TextureMgr::Get(name);
 	if (!pTex)
@@ -138,7 +162,7 @@ void FxRender::InitialiseDirtTextureSingle(const char *name, RwTexture **dirtTex
 	}
 }
 
-void FxRender::InitialiseDirtTextures()
+void DirtFx::InitialiseDirtTextures()
 {
 	InitialiseDirtTexture();
 

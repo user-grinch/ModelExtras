@@ -6,7 +6,7 @@
 #include <plugin.h>
 #include <CCoronas.h>
 #include "core/dummy.h"
-#include "core/materials.h"
+#include "modelinfomgr.h"
 #include "enums/lightingmode.h"
 
 enum class VehicleSirenStates

@@ -7,7 +7,7 @@
 #include <CWorld.h>
 #include <extensions/ScriptCommands.h>
 #include <extensions/scripting/ScriptCommandNames.h>
-#include "core/materials.h"
+#include "modelinfomgr.h"
 
 #define VK_RMB 0x02
 

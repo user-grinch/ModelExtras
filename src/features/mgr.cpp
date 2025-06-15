@@ -14,20 +14,19 @@
 #include "common/remap.h"
 #include "common/randomizer.h"
 #include "vehicle/lights.h"
-#include "vehicle/core/materials.h"
 #include "vehicle/sirens.h"
 #include "vehicle/plate.h"
 #include "vehicle/carcols.h"
 #include "datamgr.h"
 #include "audiomgr.h"
+#include "modelinfomgr.h"
 #include "vehicle/soundeffects.h"
 #include "vehicle/spoiler.h"
+#include "vehicle/dirtfx.h"
 #include "vehicle/backfire.h"
-#include "vehicle/dirt/modelinfo.h"
 #include "meevents.h"
 #include <extensions/ScriptCommands.h>
 #include <CHud.h>
-
 #include <CMessages.h>
 
 void InitLogFile();
@@ -264,7 +263,7 @@ void FeatureMgr::Initialize()
 
     if (gConfig.ReadBoolean("VEHICLE_FEATURES", "DirtFX", false))
     {
-        FxVehModelInfo::Initialize();
+        DirtFx::Initialize();
         LOG_NO_LEVEL("  DirtFX");
     }
 

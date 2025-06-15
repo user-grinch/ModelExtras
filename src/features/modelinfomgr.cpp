@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "materials.h"
+#include "modelinfomgr.h"
 #include <CTxdStore.h>
 #include <RenderWare.h>
 #include <rwcore.h>
@@ -10,7 +10,7 @@
 #include <NodeName.h>
 #include "../carcols.h"
 #include "meevents.h"
-#include "sirens.h"
+#include "dirtfx.h"
 
 extern int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat);
 extern int GetStrobeIndex(CVehicle *pVeh, RpMaterial *pMat);
@@ -151,6 +151,8 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 		(*ppEntries)++;
 		material->texture = CVehicleModelInfo::ms_pRemapTexture;
 	}
+
+	DirtFx::ProcessTextures(pCurVeh, material);
 
 	eLightType iLightIndex = eLightType::UnknownLight;
 

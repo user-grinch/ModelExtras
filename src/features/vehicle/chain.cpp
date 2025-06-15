@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "chain.h"
-#include "core/materials.h"
+#include "modelinfomgr.h"
 
 const float minSpeed = 0.3f;
 const float maxSpeed = 10.0f;
