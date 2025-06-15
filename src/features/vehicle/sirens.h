@@ -195,7 +195,7 @@ public:
 
 private:
     static inline bool m_bEnabled = false;
-    static inline std::map<int, VehicleSiren *> vehicleData;
+    static inline std::map<CVehicle*, VehicleSiren *> vehicleData;
     static inline std::map<int, VehicleSirenData *> modelData;
     static inline std::map<int, std::vector<VehicleDummy *>> modelRotators;
 

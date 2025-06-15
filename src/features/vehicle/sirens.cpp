@@ -41,7 +41,7 @@ void Sirens::Reload(CVehicle *pVeh)
 	int model = pVeh->m_nModelIndex;
 	modelRotators.erase(model);
 	modelData.erase(model);
-	vehicleData.erase((int)pVeh);
+	vehicleData.erase(pVeh);
 	EventCtor(pVeh);
 	DataMgr::Reload(model);
 }
@@ -503,7 +503,7 @@ void Sirens::EventCtor(CVehicle *pVeh)
 {
 	if (modelData.contains(pVeh->m_nModelIndex))
 	{
-		vehicleData[(int)pVeh] = new VehicleSiren(pVeh);
+		vehicleData[pVeh] = new VehicleSiren(pVeh);
 	}
 }
 
@@ -547,10 +547,10 @@ void Sirens::Initialize()
 		int matIdx = GetSirenIndex(pVeh, pMat);
 
 		if (matIdx != - 1) {
-			for (auto& state : modelData[pVeh->m_nModelIndex]->States) {
-				if (state->Materials.contains(matIdx)) {
-					return state->Materials[matIdx]->Color;
-				}
+			int curState = vehicleData[pVeh]->GetCurrentState();
+			auto& state = modelData[pVeh->m_nModelIndex]->States[curState];
+			if (state->Materials.contains(matIdx)) {
+				return state->Materials[matIdx]->Color;
 			}
 		}
 		return CRGBA(255, 255, 255, 255);
@@ -563,9 +563,8 @@ void Sirens::Initialize()
 			return;
 		}
 
-		int index = (int)vehicle;
-		if (!vehicleData.contains(index)) {
-			vehicleData[index] = new VehicleSiren(vehicle);
+		if (!vehicleData.contains(vehicle)) {
+			vehicleData[vehicle] = new VehicleSiren(vehicle);
 		}
 
 		int id = Util::GetDigitsAfter(name, "siren_").value_or(-1);
@@ -573,7 +572,7 @@ void Sirens::Initialize()
 		id = Util::GetDigitsAfter(name, "light_em").value_or(id);
 
 		if (id != -1) {
-			vehicleData[index]->Dummies[id].push_back(new VehicleDummy(vehicle, frame, name, eDummyPos::None));
+			vehicleData[vehicle]->Dummies[id].push_back(new VehicleDummy(vehicle, frame, name, eDummyPos::None));
 		} });
 
 	plugin::Events::vehicleCtorEvent += [](CVehicle *pVeh)
@@ -588,9 +587,7 @@ void Sirens::Initialize()
 		if (!modelData.contains(model))
 			return;
 
-		int index = (int)vehicle;
-
-		vehicleData.erase(index);
+		vehicleData.erase(vehicle);
 	};
 
 	Events::processScriptsEvent += []()
@@ -614,14 +611,12 @@ void Sirens::Initialize()
 				if (!modelData.contains(model))
 					return;
 
-				int index = (int)vehicle;
-
-				if (!vehicleData.contains(index))
+				if (!vehicleData.contains(vehicle))
 					return;
 
-				vehicleData[index]->Mute = !vehicleData[index]->Mute;
+				vehicleData[vehicle]->Mute = !vehicleData[vehicle]->Mute;
 
-				if (vehicleData[index]->Mute)
+				if (vehicleData[vehicle]->Mute)
 					vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
 
 				AudioMgr::PlaySwitchSound(vehicle);
@@ -634,12 +629,11 @@ void Sirens::Initialize()
 				if (!modelData.contains(model))
 					return;
 
-				int index = (int)vehicle;
 
-				if (!vehicleData.contains(index))
+				if (!vehicleData.contains(vehicle))
 					return;
 
-				if (!vehicleData[index]->GetSirenState())
+				if (!vehicleData[vehicle]->GetSirenState())
 					return;
 
 				if (modelData[model]->States.size() == 0)
@@ -647,27 +641,27 @@ void Sirens::Initialize()
 
 				int addition = (plugin::KeyPressed(0x10)) ? (-1) : (1);
 
-				vehicleData[index]->State += addition;
+				vehicleData[vehicle]->State += addition;
 
-				if (vehicleData[index]->State == modelData[model]->States.size())
-					vehicleData[index]->State = 0;
+				if (vehicleData[vehicle]->State == modelData[model]->States.size())
+					vehicleData[vehicle]->State = 0;
 
-				if (vehicleData[index]->State == -1)
-					vehicleData[index]->State = modelData[model]->States.size() - 1;
+				if (vehicleData[vehicle]->State == -1)
+					vehicleData[vehicle]->State = modelData[model]->States.size() - 1;
 
-				while (modelData[model]->States[vehicleData[index]->State]->Paintjob != -1 && modelData[model]->States[vehicleData[index]->State]->Paintjob != vehicle->GetRemapIndex())
+				while (modelData[model]->States[vehicleData[vehicle]->State]->Paintjob != -1 && modelData[model]->States[vehicleData[vehicle]->State]->Paintjob != vehicle->GetRemapIndex())
 				{
-					vehicleData[index]->State += (plugin::KeyPressed(0x10)) ? (-1) : (1);
+					vehicleData[vehicle]->State += (plugin::KeyPressed(0x10)) ? (-1) : (1);
 
-					if (vehicleData[index]->State == modelData[model]->States.size())
+					if (vehicleData[vehicle]->State == modelData[model]->States.size())
 					{
-						vehicleData[index]->State = 0;
+						vehicleData[vehicle]->State = 0;
 
 						break;
 					}
-					else if (vehicleData[index]->State == -1)
+					else if (vehicleData[vehicle]->State == -1)
 					{
-						vehicleData[index]->State = modelData[model]->States.size() - 1;
+						vehicleData[vehicle]->State = modelData[model]->States.size() - 1;
 
 						break;
 					}
@@ -684,12 +678,10 @@ void Sirens::Initialize()
 				if (!modelData.contains(model))
 					return;
 
-				int index = (int)vehicle;
-
-				if (!vehicleData.contains(index))
+				if (!vehicleData.contains(vehicle))
 					return;
 
-				if (!vehicleData[index]->GetSirenState())
+				if (!vehicleData[vehicle]->GetSirenState())
 					return;
 
 				if (modelData[model]->States.size() == 0)
@@ -700,13 +692,13 @@ void Sirens::Initialize()
 				if ((int)modelData[model]->States.size() <= newState)
 					return;
 
-				if (vehicleData[index]->State == newState)
+				if (vehicleData[vehicle]->State == newState)
 					return;
 
 				if (modelData[model]->States[newState]->Paintjob != -1 && modelData[model]->States[newState]->Paintjob != vehicle->GetRemapIndex())
 					return;
 
-				vehicleData[index]->State = newState;
+				vehicleData[vehicle]->State = newState;
 			}
 		}
 	};
@@ -714,7 +706,6 @@ void Sirens::Initialize()
 	ModelInfoMgr::RegisterRender([](CVehicle *vehicle)
 								{
 		int model = vehicle->m_nModelIndex;
-		int index = (int)vehicle;
 
 		if (!vehicle->GetIsOnScreen() || !modelData.contains(model) || vehicle->m_nOverrideLights == eLightOverride::ForceLightsOff || vehicle->ms_forceVehicleLightsOff) {
 			return;
@@ -725,7 +716,7 @@ void Sirens::Initialize()
 			return;
 		}
 
-		bool sirenState = vehicleData[index]->GetSirenState();
+		bool sirenState = vehicleData[vehicle]->GetSirenState();
 		if (modelRotators.contains(model)) {
 			for (auto& dummy : modelRotators[model]) {
 				dummy->ResetAngle();
@@ -733,16 +724,16 @@ void Sirens::Initialize()
 			modelRotators.erase(model);
 		}
 
-		if (!vehicleData.contains(index))
-			vehicleData[index] = new VehicleSiren(vehicle);
+		if (!vehicleData.contains(vehicle))
+			vehicleData[vehicle] = new VehicleSiren(vehicle);
 
 		uint64_t time = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		VehicleSirenState* state = modelData[model]->States[vehicleData[index]->GetCurrentState()];
-		if (vehicleData[index]->SirenState == false && sirenState == true) {
-			vehicleData[index]->SirenState = true;
+		VehicleSirenState* state = modelData[model]->States[vehicleData[vehicle]->GetCurrentState()];
+		if (vehicleData[vehicle]->SirenState == false && sirenState == true) {
+			vehicleData[vehicle]->SirenState = true;
 
-			if (vehicleData[index]->Delay != 0) {
-				vehicleData[index]->Delay = 0;
+			if (vehicleData[vehicle]->Delay != 0) {
+				vehicleData[vehicle]->Delay = 0;
 			}
 
 			for (auto& mat : state->Materials) {
@@ -750,21 +741,21 @@ void Sirens::Initialize()
 				mat.second->PatternTime = time;
 			}
 		}
-		else if (vehicleData[index]->SirenState == true && sirenState == false) {
-			vehicleData[index]->SirenState = false;
+		else if (vehicleData[vehicle]->SirenState == true && sirenState == false) {
+			vehicleData[vehicle]->SirenState = false;
 		}
 
-		if (!vehicleData[index]->GetSirenState() && !vehicleData[index]->Trailer) {
+		if (!vehicleData[vehicle]->GetSirenState() && !vehicleData[vehicle]->Trailer) {
 			return;
 		}
 
-		if (vehicleData[index]->Delay == 0) {
-			vehicleData[index]->Delay = time;
+		if (vehicleData[vehicle]->Delay == 0) {
+			vehicleData[vehicle]->Delay = time;
 		}
 
 		for (auto& mat : state->Materials) {
 			if (mat.second->Delay != 0) {
-				if (time - vehicleData[index]->Delay < mat.second->Delay) {
+				if (time - vehicleData[vehicle]->Delay < mat.second->Delay) {
 					if (mat.second->Type == eLightingMode::Rotator) {
 						if ((time - mat.second->Rotator->TimeElapse) > mat.second->Rotator->Time) {
 							mat.second->Rotator->TimeElapse = time;
@@ -834,7 +825,7 @@ void Sirens::Initialize()
 				continue;
 			}
 
-			if (mat.second->Delay != 0 && time - vehicleData[index]->Delay < mat.second->Delay) {
+			if (mat.second->Delay != 0 && time - vehicleData[vehicle]->Delay < mat.second->Delay) {
 				continue;
 			}
 
@@ -854,7 +845,7 @@ void Sirens::Initialize()
 			}
 
 			int id = 0;
-			for (auto& e : vehicleData[index]->Dummies[mat.first]) {
+			for (auto& e : vehicleData[vehicle]->Dummies[mat.first]) {
 				id++;
 				EnableDummy((mat.first * 16) + id, e, vehicle, mat.second, type, time);
 			}
