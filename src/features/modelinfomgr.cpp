@@ -108,6 +108,10 @@ void ModelInfoMgr::RegisterMaterial(MaterialCallback_t mat) {
 	materials.push_back(mat);
 }
 
+void ModelInfoMgr::RegisterMaterialColProvider(MaterialColProviderCallback_t mat) {
+	matColProviders.push_back(mat);
+}
+
 void ModelInfoMgr::SetupRender(CVehicle *ptr)
 {
 	pCurVeh = ptr;
@@ -134,6 +138,30 @@ struct tRestoreEntry
 	void *m_pValue;
 };
 
+CRGBA ModelInfoMgr::FetchMaterialCol(CVehicle *pVeh, RpMaterial *pMat) {
+	CRGBA col = DEFAULT_MAT_COL;
+	for (auto& e : matColProviders) {
+		col = e(pVeh, pMat);
+		if (col != DEFAULT_MAT_COL) {
+			break;
+		}
+	}
+	return col;
+}
+
+eLightType ModelInfoMgr::FetchMaterialType(CVehicle *pVeh, RpMaterial *pMat) {
+	eLightType matType = eLightType::UnknownLight;
+
+	for (auto& e : materials) {
+		eLightType type = e(pVeh, pMat);
+		if (type != eLightType::UnknownLight) {
+			matType = type;
+			break;
+		}
+	}
+	return matType;
+}
+
 RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *data)
 {
 	if (!material || !material->texture) {
@@ -154,38 +182,28 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 
 	DirtFx::ProcessTextures(pCurVeh, material);
 
-	eLightType iLightIndex = eLightType::UnknownLight;
-
-	for (auto& e : materials) {
-		eLightType type = e(pCurVeh, material);
-		if (type != eLightType::UnknownLight) {
-			iLightIndex = type;
-			break;
-		}
-	}
-
+	eLightType iLightIndex = FetchMaterialType(pCurVeh, material);
 	if (iLightIndex != eLightType::UnknownLight)
 	{
-		bool lightStatus = false;
-
+		bool lightOn = false;
 		if (iLightIndex == eLightType::SirenLight) {
-			lightStatus = m_SirenStatus[pCurVeh][GetSirenIndex(pCurVeh, material)];
+			lightOn = m_SirenStatus[pCurVeh][GetSirenIndex(pCurVeh, material)];
 		} else if (iLightIndex == eLightType::StrobeLight){
-			lightStatus = m_StrobeStatus[pCurVeh][GetStrobeIndex(pCurVeh, material)];
+			lightOn = m_StrobeStatus[pCurVeh][GetStrobeIndex(pCurVeh, material)];
 		} else if (iLightIndex != eLightType::UnknownLight) {
-			lightStatus = m_LightStatus[pCurVeh][iLightIndex];
+			lightOn = m_LightStatus[pCurVeh][iLightIndex];
 		}
-
-
+		
+		CRGBA enabledCol = FetchMaterialCol(pCurVeh, material);
 		(*ppEntries)->m_pAddress = RpMaterialGetColor(material);
 		(*ppEntries)->m_pValue = *reinterpret_cast<void **>(RpMaterialGetColor(material));
 		(*ppEntries)++;
 
-		RpMaterialGetColor(material)->red = 255;
-		RpMaterialGetColor(material)->green = 255;
-		RpMaterialGetColor(material)->blue = 255;
+		RpMaterialGetColor(material)->red = enabledCol.r;
+		RpMaterialGetColor(material)->green = enabledCol.g;
+		RpMaterialGetColor(material)->blue = enabledCol.b;
 
-		if (iLightIndex != eLightType::UnknownLight && lightStatus)
+		if (lightOn)
 		{
 			(*ppEntries)->m_pAddress = &material->texture;
 			(*ppEntries)->m_pValue = material->texture;
@@ -207,6 +225,9 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 			}
 			RpMaterialSetSurfaceProperties(material, &gLightSurfPropsOn);
 		} else {
+			RpMaterialGetColor(material)->red = DEFAULT_MAT_COL.r;
+			RpMaterialGetColor(material)->green = DEFAULT_MAT_COL.g;
+			RpMaterialGetColor(material)->blue = DEFAULT_MAT_COL.b;
 			RpMaterialSetSurfaceProperties(material, &gLightSurfProps);
 		}
 	}

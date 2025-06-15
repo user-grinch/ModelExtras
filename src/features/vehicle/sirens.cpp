@@ -508,11 +508,15 @@ void Sirens::EventCtor(CVehicle *pVeh)
 }
 
 int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat) {
-	if (Sirens::modelData[pVeh->m_nModelIndex]->isImVehFtSiren) {
-		return 256-pMat->color.red;
-	} else {
-		return pMat->color.red;
+	int model = pVeh->m_nModelIndex;
+	if (Sirens::modelData.contains(model)) {
+		if (Sirens::modelData[model]->isImVehFtSiren) {
+			return 256 - pMat->color.red;
+		} else {
+			return pMat->color.red;
+		}
 	}
+	return -1;
 }
 
 void Sirens::Initialize()
@@ -537,6 +541,19 @@ void Sirens::Initialize()
 			}
 		}
 		return eLightType::UnknownLight;
+	 });
+
+	 ModelInfoMgr::RegisterMaterialColProvider([](CVehicle *pVeh, RpMaterial* pMat){
+		int matIdx = GetSirenIndex(pVeh, pMat);
+
+		if (matIdx != - 1) {
+			for (auto& state : modelData[pVeh->m_nModelIndex]->States) {
+				if (state->Materials.contains(matIdx)) {
+					return state->Materials[matIdx]->Color;
+				}
+			}
+		}
+		return CRGBA(255, 255, 255, 255);
 	 });
 
 	ModelInfoMgr::RegisterDummy([](CVehicle *vehicle, RwFrame *frame)
