@@ -16,30 +16,24 @@ extern bool IsEngineOff(CVehicle *pVeh);
 
 void LicensePlate::Initialize()
 {
+    m_bEnabled = true;
     // RpMaterial *__cdecl CCustomCarPlateMgr::SetupMaterialPlatebackTexture(RpMaterial *material, char plateType)
     plugin::patch::PutRetn(0x6FDE50);
     plugin::patch::ReplaceFunction(0x6FD500, CCustomCarPlateMgr_Initialise);
     plugin::patch::ReplaceFunction(0x6FD720, CCustomCarPlateMgr_Shudown);
     plugin::patch::ReplaceFunction(0x6FDEA0, CCustomCarPlateMgr_CreatePlateTexture);
+}
 
-    plugin::Events::vehicleRenderEvent += [](CVehicle *pVeh)
+void LicensePlate::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat) {
+    if (!m_bEnabled) {
+        return;
+    }
+    
+    pCurrentVeh = pVeh;
+    if ( !_stricmp("carpback", pMat->texture->name) )
     {
-        pCurrentVeh = pVeh;
-        RpClumpForAllAtomics(pVeh->m_pRwClump, [](RpAtomic *atomic, void *data)
-                             {
-        if (atomic->geometry) {
-            RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *mat, void *data) {
-                if (mat && mat->texture) {
-                    if ( !_stricmp("carpback", mat->texture->name) )
-                    {
-                        CCustomCarPlateMgr_SetupMaterialPlatebackTexture(mat, -1);
-                    }
-                }
-                return mat;
-            }, NULL);
-        }
-        return atomic; }, NULL);
-    };
+        CCustomCarPlateMgr_SetupMaterialPlatebackTexture(pMat, -1);
+    }
 }
 
 void __cdecl LicensePlate::CCustomCarPlateMgr_Shudown()

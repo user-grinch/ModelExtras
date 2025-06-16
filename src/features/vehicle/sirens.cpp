@@ -511,7 +511,7 @@ int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat) {
 	int model = pVeh->m_nModelIndex;
 	if (Sirens::modelData.contains(model)) {
 		if (Sirens::modelData[model]->isImVehFtSiren) {
-			return 256 - pMat->color.red;
+			return 255 - pMat->color.red;
 		} else {
 			return pMat->color.red;
 		}
@@ -628,7 +628,6 @@ void Sirens::Initialize()
 
 				if (!modelData.contains(model))
 					return;
-
 
 				if (!vehicleData.contains(vehicle))
 					return;

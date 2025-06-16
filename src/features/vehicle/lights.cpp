@@ -139,6 +139,7 @@ inline bool IsBumperOrWingDamaged(CVehicle *pVeh, eParentType part)
 void Lights::Initialize()
 {
 	m_bEnabled = true;
+
 	patch::Nop(0x6E2722, 19);	  // CVehicle::DoHeadLightReflection
 	patch::SetUChar(0x6E1A22, 0); // CVehicle::DoTailLightEffect
 
@@ -461,7 +462,9 @@ void Lights::Initialize()
 		CAutomobile *pAutoMobile = reinterpret_cast<CAutomobile *>(pControlVeh);
 		RenderLights(pControlVeh, pTowedVeh, eLightType::AllDayLight);
 		RenderLights(pControlVeh, pTowedVeh, eLightType::StrobeLight);
-
+		RenderLights(pControlVeh, pTowedVeh, eLightType::SideLightLeft);
+		RenderLights(pControlVeh, pTowedVeh, eLightType::SideLightRight);
+		
 		if (IsNightTime())
 		{
 			RenderLights(pControlVeh, pTowedVeh, eLightType::NightLight);
@@ -514,18 +517,6 @@ void Lights::Initialize()
 			RenderLights(pControlVeh, pTowedVeh, eLightType::SpotLight, false);
 		}
 
-		if (IsNightTime())
-		{
-			RenderLights(pControlVeh, pTowedVeh, eLightType::NightLight);
-			RenderLights(pControlVeh, pTowedVeh, eLightType::SideLightLeft);
-			RenderLights(pControlVeh, pTowedVeh, eLightType::SideLightRight);
-		}
-		else
-		{
-			RenderLights(pControlVeh, pTowedVeh, eLightType::DayLight);
-		}
-
-		RenderLights(pControlVeh, pTowedVeh, eLightType::AllDayLight);
 
 		std::string shdwName = (isBike ? "taillight_bike" : "taillight");
 

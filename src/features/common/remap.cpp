@@ -3,6 +3,7 @@
 #include <TxdDef.h>
 #include <CTxdStore.h>
 #include "meevents.h"
+#include "texmgr.h"
 
 void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType type)
 {
@@ -10,10 +11,15 @@ void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType t
     {
         CTxdStore::PushCurrentTxd();
         CTxdStore::SetCurrentTxd(pModelInfo->m_nTxdIndex);
-        RwTexDictionaryForAllTextures(RwTexDictionaryGetCurrent(), [](RwTexture *pTex, void *pData)
+        static RwTexDictionary *pDict;
+        pDict = RwTexDictionaryGetCurrent();
+        RwTexDictionaryForAllTextures(pDict, [](RwTexture *pTex, void *pData)
                                       { 
             int model = *(int*)pData;
             std::string name = pTex->name;
+            if (name.starts_with("#") || name.starts_with("remap")) {
+                return pTex;
+            }
             std::size_t remapPos = name.find("_remap");
             std::size_t bloodPos = name.find("_bld");
             std::string orgName = name.substr(0, std::min(std::min(remapPos, bloodPos), name.size()));
@@ -24,8 +30,8 @@ void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType t
                 RemapData &data = xRemaps.Get(model);
                 if (data.m_pTextures.empty()) {
                     std::string bloodName = orgName + "_bld";
-                    RwTexture *pOrgTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), orgName.c_str());
-                    RwTexture *pBloodTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), bloodName.c_str());
+                    RwTexture *pOrgTex = TextureMgr::FindInDict(orgName, pDict);
+                    RwTexture *pBloodTex = TextureMgr::FindInDict(bloodName, pDict);
                     data.m_pTextures[orgName].push_back({pOrgTex, pBloodTex});
                 }
             }
@@ -34,7 +40,7 @@ void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType t
             {
                 RemapData &data = xRemaps.Get(model);
                 std::string bloodName = name + "_bld";
-                RwTexture *pBloodTex = RwTexDictionaryFindNamedTexture(RwTexDictionaryGetCurrent(), bloodName.c_str());
+                RwTexture *pBloodTex = TextureMgr::FindInDict(bloodName, pDict);
                 data.m_pTextures[orgName].push_back({pTex, pBloodTex});
             }
 			return pTex; 

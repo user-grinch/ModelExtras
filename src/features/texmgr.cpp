@@ -151,5 +151,7 @@ RwTexture *TextureMgr::FindInDict(std::string name, RwTexDictionary *pDict)
     {
         return nullptr;
     }
-    return RwTexDictionaryFindNamedTexture(pDict, name.c_str());
+
+    RwTexture *pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
+    return pTex;
 }

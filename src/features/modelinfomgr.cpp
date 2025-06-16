@@ -11,15 +11,32 @@
 #include "../carcols.h"
 #include "meevents.h"
 #include "dirtfx.h"
+#include "plate.h"	
 
 extern int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat);
 extern int GetStrobeIndex(CVehicle *pVeh, RpMaterial *pMat);
 
 static CVehicle *pCurVeh = nullptr;
+
+signed int __cdecl hkRwD3D9SetTexture(RwTexture *texture, int stage)
+{
+	if (texture) {
+		gLogger->info("Currnt texture is {}", texture->name);
+		std::cout <<"tex " << texture->name << std::endl;
+	} else {
+		gLogger->info("Texture is null");
+		std::cout <<"null tex" << std::endl;
+	}
+	return RwD3D9SetTexture(texture, stage);
+}
 void ModelInfoMgr::Initialize() {
 	// Nop frame collasping
     plugin::patch::Nop(0x4C8E53, 5);
     plugin::patch::Nop(0x4C8F6E, 5);
+
+	// patch::ReplaceFunctionCall(0x5D996F, hkRwD3D9SetTexture);
+	// patch::ReplaceFunctionCall(0x5D9BE0, hkRwD3D9SetTexture);
+	// patch::ReplaceFunctionCall(0x5D9D69, hkRwD3D9SetTexture);
 
 	patch::ReplaceFunctionCall(0x5532A9, ModelInfoMgr::SetupRender);
     patch::ReplaceFunction(0x4C8220, ModelInfoMgr::SetEditableMaterialsCB);
@@ -167,20 +184,29 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 	if (!material || !material->texture) {
 		return material;
 	}
+	bool isRemapTex = RwTextureGetName(RpMaterialGetTexture(material))[0] == '#';
+	
+	// if (pCurVeh->m_nModelIndex == 416) {
+	// 	gLogger->info("Currently loading tex {}", material->texture->name);
+	// 	std::cout << material->texture->name << std::endl;
+	// }
 
 	tRestoreEntry **ppEntries = reinterpret_cast<tRestoreEntry **>(data);
 	CRGBA matCol = *reinterpret_cast<CRGBA *>(RpMaterialGetColor(material));
 	matCol.a = 255;
 
-	if (CVehicleModelInfo::ms_pRemapTexture && RpMaterialGetTexture(material) && RwTextureGetName(RpMaterialGetTexture(material))[0] == '#')
-	{
-		(*ppEntries)->m_pAddress = &material->texture;
-		(*ppEntries)->m_pValue = material->texture;
-		(*ppEntries)++;
-		material->texture = CVehicleModelInfo::ms_pRemapTexture;
+	if (isRemapTex) {
+		if (CVehicleModelInfo::ms_pRemapTexture)
+		{
+			(*ppEntries)->m_pAddress = &material->texture;
+			(*ppEntries)->m_pValue = material->texture;
+			(*ppEntries)++;
+			material->texture = CVehicleModelInfo::ms_pRemapTexture;
+		}
+	} else {
+		DirtFx::ProcessTextures(pCurVeh, material);
+		LicensePlate::ProcessTextures(pCurVeh, material);
 	}
-
-	DirtFx::ProcessTextures(pCurVeh, material);
 
 	eLightType iLightIndex = FetchMaterialType(pCurVeh, material);
 	if (iLightIndex != eLightType::UnknownLight)
@@ -207,10 +233,6 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 		{
 			(*ppEntries)->m_pAddress = &material->texture;
 			(*ppEntries)->m_pValue = material->texture;
-			(*ppEntries)++;
-
-			(*ppEntries)->m_pAddress = RpMaterialGetSurfaceProperties(material);
-			(*ppEntries)->m_pValue = *(void **)RpMaterialGetSurfaceProperties(material);
 			(*ppEntries)++;
 
 			if (material->texture == CVehicleModelInfo::ms_pLightsTexture) {

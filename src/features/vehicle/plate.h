@@ -17,7 +17,8 @@ enum ePlateType
 
 class LicensePlate
 {
-protected:
+private:
+  static inline bool m_bEnabled = false;
   static inline RwTexture *pCharSetTex = nullptr;
   static inline RwTexture *m_Plates[ePlateType::TOTAL_SZ];
 
@@ -47,4 +48,5 @@ protected:
 
 public:
   static void Initialize();
+  static void ProcessTextures(CVehicle *pVeh, RpMaterial *pMat);
 };

@@ -22,20 +22,25 @@ void DirtFx::Initialize()
 		CTxdStore::SetCurrentTxd(pInfo->m_nTxdIndex);
 		RwTexDictionaryForAllTextures(RwTexDictionaryGetCurrent(), [](RwTexture *texture, void *pData)
 		{ 
-				RwTexture *pDirtTex = texture;
-				std::string dirtName = pDirtTex->name;
+			RwTexture *pDirtTex = texture;
+			std::string dirtName = pDirtTex->name;
 
-				if (!dirtName.ends_with("_dt")) {
-					return texture;
-				}
+			if (!dirtName.ends_with("#") || dirtName.starts_with("remap")) {
+                return texture;
+            }
+			
+			if (!dirtName.ends_with("dt")) {
+                return texture;
+            }
 
-				std::string cleanName = dirtName.substr(0, dirtName.find_last_of('_'));
-				RwTexture *pCleanTex = TextureMgr::FindInDict(cleanName, RwTexDictionaryGetCurrent());
+			std::string cleanName = dirtName.substr(0, dirtName.find_last_of('_'));
+			RwTexture *pCleanTex = TextureMgr::FindInDict(cleanName, RwTexDictionaryGetCurrent());
 
-				if (pCleanTex) {
-					InitialiseBlendTextureSingleEx(pCleanTex, pDirtTex);
-				}
-		return texture; }, NULL);
+			if (pCleanTex) {
+				InitialiseBlendTextureSingleEx(pCleanTex, pDirtTex);
+			}
+			return texture; 
+		}, NULL);
 		CTxdStore::PopCurrentTxd();
 	};
 }

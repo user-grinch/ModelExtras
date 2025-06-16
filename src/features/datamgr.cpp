@@ -30,7 +30,6 @@ void DataMgr::Convert()
         {
             std::string filePath = p.path().string();
             std::string fileExt = p.path().extension().string();
-            gLogger->info("FILE PATH IS: {}", filePath);
             if (fileExt == ".eml")
             {
                 Convert_EmlToJsonc(filePath);
