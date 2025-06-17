@@ -238,7 +238,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 			if (material->texture == CVehicleModelInfo::ms_pLightsTexture) {
 				material->texture = CVehicleModelInfo::ms_pLightsOnTexture;
 			} else {
-				RwTexture *pTex = TextureMgr::FindTextureInDict(material, material->texture->dict);
+				RwTexture *pTex = TextureMgr::FindOnTextureInDict(material, material->texture->dict);
 				if (pTex) {
 					material->texture = pTex;
 				} else{

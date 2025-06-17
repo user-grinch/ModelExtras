@@ -25,11 +25,7 @@ void DirtFx::Initialize()
 			RwTexture *pDirtTex = texture;
 			std::string dirtName = pDirtTex->name;
 
-			if (!dirtName.ends_with("#") || dirtName.starts_with("remap")) {
-                return texture;
-            }
-			
-			if (!dirtName.ends_with("dt")) {
+			if (dirtName.starts_with("#") || dirtName.starts_with("remap") || !dirtName.ends_with("_dt")) {
                 return texture;
             }
 

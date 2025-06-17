@@ -86,7 +86,7 @@ RwTexture *TextureMgr::Get(std::string name, RwUInt8 alpha)
     return Textures[name][alpha];
 }
 
-RwTexture *TextureMgr::FindTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict)
+RwTexture *TextureMgr::FindOnTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict, bool fallback)
 {
     if (!pMat || !pMat->texture) {
         return nullptr;
@@ -100,7 +100,7 @@ RwTexture *TextureMgr::FindTextureInDict(RpMaterial *pMat, RwTexDictionary *pDic
 	RwTexture *pTex = nullptr;
 	for (const auto &name : texNames)
 	{
-		pTex = TextureMgr::FindInDict(name, pDict);
+		pTex = TextureMgr::FindInDict(name, pDict, fallback);
 		if (pTex)
 		{
 			break;
@@ -145,13 +145,35 @@ void TextureMgr::SetAlpha(RwTexture *texture, RwUInt8 alpha)
     RwImageDestroy(image);
 }
 
-RwTexture *TextureMgr::FindInDict(std::string name, RwTexDictionary *pDict)
+// Priority
+// 1. Vehicle's txd 
+// 2. ModelExtras txd
+// 3. vehicle.txd (Supports vehfuncs additional txds)
+RwTexture *TextureMgr::FindInDict(std::string name, RwTexDictionary *pDict, bool fallback)
 {
-    if (!pDict)
+    RwTexture *pTex = nullptr;
+
+    if (pDict)
     {
-        return nullptr;
+        pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
     }
 
-    RwTexture *pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
+    if (fallback) {
+        if (!pTex) {
+            LOG_VERBOSE("TextureMgr: Unable to find '{}' in the vehicle's TXD file. Searching in the ModelExtras TXD file instead.", name);
+            pTex = TextureMgr::Get(name);
+        }
+
+        if (!pTex) {
+            LOG_VERBOSE("TextureMgr: Unable to find '{}' in the ModelExtras TXD file. Searching in the vehicle TXD file instead.", name);
+            pTex = RwTexDictionaryFindNamedTexture(CVehicleModelInfo::ms_pVehicleTxd, name.c_str());
+        }
+
+        if (!pTex) {
+            LOG_VERBOSE("TextureMgr: Unable to find '{}' in the vehicle TXD file. Using the default white texture", name);
+            pTex = CVehicleModelInfo::ms_pWhiteTexture;
+        }
+    }
+
     return pTex;
 }
