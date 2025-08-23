@@ -15,7 +15,7 @@ void ChainFeature::Initialize()
         if (name.starts_with("x_chain") || name.starts_with("fc_chain")) {
             VehData &data = vehData.Get(pVeh);
             data.m_pRootFrame = pFrame;
-            Util::StoreChilds(pFrame, data.m_FrameList);
+            FrameUtil::StoreChilds(pFrame, data.m_FrameList);
         } });
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
@@ -62,8 +62,8 @@ void ChainFeature::Initialize()
             }
         }
 
-        Util::HideAllChilds(data.m_pRootFrame);
-        Util::ShowAllChilds(data.m_FrameList[data.m_nCurChain]);
+        FrameUtil::HideAllChilds(data.m_pRootFrame);
+        FrameUtil::ShowAllChilds(data.m_FrameList[data.m_nCurChain]);
         lastUpdateTime = curTime;
     } });
 }

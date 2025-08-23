@@ -38,6 +38,7 @@ project "ModelExtras"
         "_CRT_SECURE_NO_WARNINGS",
         "_CRT_NON_CONFORMING_SWPRINTFS",
         "PLUGIN_SGV_10US",
+        "MODELEXTRAS_DEV",
         "GTASA",
         "RW",
     }

@@ -31,5 +31,5 @@ private:
 public:
     static void Initialize();
     static void Parse(const nlohmann::json &data, int model);
-    static CRGBA GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA col);
+    static bool GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA &col);
 };

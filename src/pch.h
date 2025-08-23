@@ -40,4 +40,32 @@ extern bool gVerboseLogging;
     gLogger->debug(fmt, __VA_ARGS__); \
   }
 
+extern unsigned int FramePluginOffset;
+#define PLUGIN_ID_STR 'MEX'
+#define PLUGIN_ID_NUM 0x42945628
+#define FRAME_EXTENSION(frame) ((RwFrameExtension *)((unsigned int)frame + FramePluginOffset))
+
+struct RwFrameExtension {   
+	CVehicle *pOwner;
+  RwMatrix *pOrigMatrix;
+
+	static RwFrame *Initialize(RwFrame *pFrame) {
+    FRAME_EXTENSION(pFrame)->pOwner = nullptr;
+    FRAME_EXTENSION(pFrame)->pOrigMatrix = nullptr;
+		return pFrame;
+	}
+
+	static RwFrame *Shutdown(RwFrame *pFrame) {
+    if (FRAME_EXTENSION(pFrame)->pOrigMatrix)
+		{
+			delete FRAME_EXTENSION(pFrame)->pOrigMatrix;
+		}
+		return pFrame;
+	}
+
+	static RwFrame *Clone(RwFrame *pCopy, RwFrame *pFrame) {
+		return pCopy;
+	}
+};
+
 static inline CBaseModelInfo **CModelInfo__ms_modelInfoPtrs = reinterpret_cast<CBaseModelInfo **>(plugin::patch::GetPointer(0x403DA7));

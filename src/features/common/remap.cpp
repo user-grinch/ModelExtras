@@ -4,6 +4,8 @@
 #include <CTxdStore.h>
 #include "meevents.h"
 #include "texmgr.h"
+#include <rw/rwcore.h>
+#include <rw/rpworld.h>
 
 void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType type)
 {
@@ -14,7 +16,7 @@ void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType t
         static RwTexDictionary *pDict;
         pDict = RwTexDictionaryGetCurrent();
         RwTexDictionaryForAllTextures(pDict, [](RwTexture *pTex, void *pData)
-                                      { 
+        { 
             int model = *(int*)pData;
             std::string name = pTex->name;
             if (name.starts_with("#") || name.starts_with("remap")) {
@@ -60,10 +62,10 @@ void Remap::Initialize()
         BeforeRender(reinterpret_cast<void *>(ptr), eModelEntityType::Vehicle);
     };
 
-    Events::pedRenderEvent.before += [](CPed *pPed)
-    {
-        BeforeRender(reinterpret_cast<void *>(pPed), eModelEntityType::Ped);
-    };
+    // Events::pedRenderEvent.before += [](CPed *pPed)
+    // {
+    //     BeforeRender(reinterpret_cast<void *>(pPed), eModelEntityType::Ped);
+    // };
 
     // These two events need to be hooked later
     Events::initGameEvent += []()
@@ -98,10 +100,10 @@ void Remap::Initialize()
         AfterRender(reinterpret_cast<void *>(ptr), eModelEntityType::Vehicle);
     };
 
-    Events::pedRenderEvent.after += [](CPed *pPed)
-    {
-        AfterRender(reinterpret_cast<void *>(pPed), eModelEntityType::Ped);
-    };
+    // Events::pedRenderEvent.after += [](CPed *pPed)
+    // {
+    //     AfterRender(reinterpret_cast<void *>(pPed), eModelEntityType::Ped);
+    // };
 
     MEEvents::weaponRemoveEvent.before += [](CPed *pPed, int model)
     {
@@ -225,9 +227,11 @@ void Remap::BeforeRender(void *ptr, eModelEntityType type)
                 } else {
                     mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pNormal;
                 }
+                mat->texture->refCount++;
 
                 return mat;
             }, data);
         }
-        return atomic; }, &data);
+        return atomic; 
+    }, &data);
 }

@@ -3,6 +3,11 @@
 #include "defines.h"
 #include "datamgr.h"
 #include "enums/dummypos.h"
+#include <CWorld.h>
+
+extern float gfGlobalCoronaSize;
+extern int gGlobalCoronaIntensity;
+extern int gGlobalShadowIntensity;
 
 int ReadHex(char a, char b)
 {
@@ -12,50 +17,17 @@ int ReadHex(char a, char b)
     return (a << 4) + b;
 }
 
-VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDummyPos type, CRGBA color, size_t dummyIdx, bool directionalByDef, bool mirroredX)
+VehicleDummy::VehicleDummy(const VehicleDummyConfig& config)
 {
-    Frame = frame;
-    CVector pos = pVeh->GetPosition();
-    Position = {Frame->ltm.pos.x - pos.x, Frame->ltm.pos.y - pos.y, Frame->ltm.pos.z - pos.z};
-
-    if (mirroredX)
-    {
-        this->mirroredX = mirroredX;
-        Position.x *= -1;
-    }
-    shdwCol = coronaCol = color;
-    DummyType = type;
-    DummyIdx = dummyIdx;
+    data = config;
     float angleVal = 0.0f;
 
-    if (directionalByDef)
-    {
-        LightType = eLightingMode::Directional;
-    }
-
     // Calculate the angle based on the frame's orientation
-    float modelAngle = Util::NormalizeAngle(CGeneral::GetATanOfXY(frame->modelling.right.x, frame->modelling.right.y) * 57.295776f);
-    if (modelAngle != 0.0f)
-    {
-        if (modelAngle == 0.0f)
-        {
-            DummyType = eDummyPos::Front;
-        }
-        if (modelAngle == 90.0f)
-        {
-            DummyType = eDummyPos::Left;
-        }
-        if (modelAngle == 180.0f)
-        {
-            DummyType = eDummyPos::Rear;
-        }
-        if (modelAngle == 270.0f)
-        {
-            DummyType = eDummyPos::Right;
-        }
-    }
+    data.rotation.angle = Util::RadToDeg(CGeneral::GetATanOfXY(data.frame->modelling.right.x, data.frame->modelling.right.y));
 
-    auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
+    auto &jsonData = DataMgr::Get(data.pVeh->m_nModelIndex);
+    std::string name = GetFrameNodeName(data.frame);
+
     if (jsonData.contains("lights"))
     {
         std::string newName = name.substr(0, name.find("_prm"));
@@ -68,39 +40,36 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
                 auto &coronaSec = lights["corona"];
                 if (coronaSec.contains("color"))
                 {
-                    coronaCol.r = coronaSec["color"].value("red", coronaCol.r);
-                    coronaCol.g = coronaSec["color"].value("green", coronaCol.g);
-                    coronaCol.b = coronaSec["color"].value("blue", coronaCol.b);
-                    coronaCol.a = coronaSec["color"].value("alpha", coronaCol.a);
+                    data.corona.color.r = coronaSec["color"].value("red", data.corona.color.r);
+                    data.corona.color.g = coronaSec["color"].value("green", data.corona.color.g);
+                    data.corona.color.b = coronaSec["color"].value("blue", data.corona.color.b);
+                    data.corona.color.a = coronaSec["color"].value("alpha", gGlobalCoronaIntensity);
                 }
-                coronaSize = coronaSec.value("size", coronaSize);
-                LightType = GetLightingMode(coronaSec.value("type", "directional"));
+                data.corona.size = coronaSec.value("size", gfGlobalCoronaSize);
+                data.corona.lightingType = GetLightingMode(coronaSec.value("type", "directional"));
             }
-
-            PartType = eParentTypeFromString(lights.value("parent", ""));
 
             if (lights.contains("shadow"))
             {
                 auto &shadow = lights["shadow"];
                 if (shadow.contains("color"))
                 {
-                    shdwCol.r = shadow["color"].value("red", shdwCol.r);
-                    shdwCol.g = shadow["color"].value("green", shdwCol.g);
-                    shdwCol.b = shadow["color"].value("blue", shdwCol.b);
-                    shdwCol.a = shadow["color"].value("alpha", shdwCol.a);
+                    data.shadow.color.r = shadow["color"].value("red", data.shadow.color.r);
+                    data.shadow.color.g = shadow["color"].value("green", data.shadow.color.g);
+                    data.shadow.color.b = shadow["color"].value("blue", data.shadow.color.b);
+                    data.shadow.color.a = shadow["color"].value("alpha", gGlobalShadowIntensity);
                 }
-                shdwOffSet = {shadow.value("offsetx", 0.0f), shadow.value("offsety", 0.0f)};
+                data.shadow.size = shadow.value("size", 1.0f);
+                data.shadow.texture = shadow.value("texture", "");
 
-                // This needs to be like this
-                shdowSize = {shadow.value("width", 1.0f), shadow.value("height", 1.0f)};
-                angleVal = shadow.value("angleoffset", 0.0f);
-                shdwTex = shadow.value("texture", "");
+                // shadows will be force enabled if there is JSON data for it.
+                data.shadow.render = true;
             }
 
             // Only for StrobeLights
             if (lights.contains("strobedelay"))
             {
-                strobeDelay = lights.value("strobedelay", 1000);
+                data.strobe.delay = lights.value("strobedelay", 1000);
             }
         }
     }
@@ -112,93 +81,68 @@ VehicleDummy::VehicleDummy(CVehicle *pVeh, RwFrame *frame, std::string name, eDu
         {
             if (prmPos + 9 < name.size())
             {
-                shdwCol.r = coronaCol.r = ReadHex(name[prmPos + 4], name[prmPos + 5]);
-                shdwCol.g = coronaCol.g = ReadHex(name[prmPos + 6], name[prmPos + 7]);
-                shdwCol.b = coronaCol.b = ReadHex(name[prmPos + 8], name[prmPos + 9]);
+                data.shadow.color.r = data.corona.color.r = ReadHex(name[prmPos + 4], name[prmPos + 5]);
+                data.shadow.color.g = data.corona.color.g = ReadHex(name[prmPos + 6], name[prmPos + 7]);
+                data.shadow.color.b = data.corona.color.b = ReadHex(name[prmPos + 8], name[prmPos + 9]);
             }
             else
             {
-                LOG_VERBOSE("Model {} has issue with node `{}`: invalid color format", pVeh->m_nModelIndex, name);
+                LOG_VERBOSE("Model {} has issue with node `{}`: invalid color format", data.pVeh->m_nModelIndex, name);
             }
 
             if (prmPos + 10 < name.size())
             {
-                LightType = static_cast<eLightingMode>(name[prmPos + 10] - '0');
+                int type = name[prmPos + 10] - '0';
+                data.corona.lightingType = (type == 2) ? eLightingMode::NonDirectional : eLightingMode::Directional;
             }
             else
             {
-                LOG_VERBOSE("Model {} has issue with node `{}`: invalid light type", pVeh->m_nModelIndex, name);
+                data.corona.lightingType = eLightingMode::NonDirectional;
+                LOG_VERBOSE("Model {} has issue with node `{}`: invalid light type", data.pVeh->m_nModelIndex, name);
             }
 
             if (prmPos + 11 < name.size())
             {
-                coronaSize = static_cast<float>(name[prmPos + 11] - '0') / 10.0f;
-                if (coronaSize < 0.0f)
+                data.corona.size = static_cast<float>(name[prmPos + 11] - '0') / 10.0f;
+                if (data.corona.size < 0.0f)
                 {
-                    coronaSize = 0.0f;
+                    data.corona.size = 0.0f;
                 }
             }
             else
             {
-                LOG_VERBOSE("Model {} has issue with node `{}`: invalid corona size", pVeh->m_nModelIndex, name);
+                data.corona.size = 0.0f;
+                LOG_VERBOSE("Model {} has issue with node `{}`: invalid corona size", data.pVeh->m_nModelIndex, name);
             }
 
             if (prmPos + 12 < name.size())
             {
                 float shadowValue = static_cast<float>(name[prmPos + 12] - '0') / 7.5f;
-                shdowSize = {shadowValue, shadowValue};
-                if (shdowSize.x < 0.0f || shdowSize.y < 0.0f)
-                {
-                    shdowSize = {0.0f, 0.0f};
-                }
+                data.shadow.size = std::max(shadowValue, 0.0f);
             }
             else
             {
-                LOG_VERBOSE("Model {} has issue with node `{}`: invalid shadow size", pVeh->m_nModelIndex, name);
+                data.shadow.size = 0.0f;
+                LOG_VERBOSE("Model {} has issue with node `{}`: invalid shadow size", data.pVeh->m_nModelIndex, name);
             }
         }
     }
-
-    if (DummyType == eDummyPos::Front)
-    {
-        Angle = 0 - angleVal;
-    }
-
-    if (DummyType == eDummyPos::Left)
-    {
-        Angle = 90 - angleVal;
-    }
-
-    if (DummyType == eDummyPos::Right)
-    {
-        Angle = 270 - angleVal;
-    }
-
-    if (DummyType == eDummyPos::Rear)
-    {
-        Angle = 180 - angleVal;
-    }
-
-    if (DummyType == eDummyPos::None)
-    {
-        Angle = modelAngle;
-    }
 }
 
-void VehicleDummy::Update(CVehicle *pVeh)
-{
-    CMatrix &vehMatrix = *(CMatrix *)pVeh->GetMatrix();
-    CVector pos = pVeh->GetPosition();
-    CVector dummyPos = Frame->ltm.pos;
+void VehicleDummy::Update() {
+    CMatrix &vehMatrix = *(CMatrix *)data.pVeh->GetMatrix();
+    CVector pos = data.pVeh->GetPosition();
+    CVector dummyPos = data.frame->ltm.pos;
     CVector offset = dummyPos - pos;
 
     // Transform to local space using  transpose of the rotation matrix
-    Position.x = vehMatrix.right.x * offset.x + vehMatrix.right.y * offset.y + vehMatrix.right.z * offset.z;
-    Position.y = vehMatrix.up.x * offset.x + vehMatrix.up.y * offset.y + vehMatrix.up.z * offset.z;
-    Position.z = vehMatrix.at.x * offset.x + vehMatrix.at.y * offset.y + vehMatrix.at.z * offset.z;
+    data.shadow.position.x = data.position.x = vehMatrix.right.x * offset.x + vehMatrix.right.y * offset.y + vehMatrix.right.z * offset.z;
+    data.shadow.position.y = data.position.y = vehMatrix.up.x * offset.x + vehMatrix.up.y * offset.y + vehMatrix.up.z * offset.z;
+    data.shadow.position.z = data.position.z = vehMatrix.at.x * offset.x + vehMatrix.at.y * offset.y + vehMatrix.at.z * offset.z;
 
-    if (mirroredX)
+    if (data.mirroredX)
     {
-        Position.x *= -1;
+        data.position.x *= -1;
+        data.shadow.position.x *= -1;
     }
 }

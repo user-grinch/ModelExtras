@@ -25,7 +25,10 @@ rd /S /Q "pack" /Q
 rd /S /Q %archivePath% /Q
 
 @REM Copy the files to a temp folder
+xcopy /s "%srcPath%\ModelExtrasAPI.h" "pack\" /K /D /H /Y
 xcopy /E "%buildPath%.asi" "pack\" /K /D /H /Y 
+xcopy /E "%buildPath%.lib" "pack\" /K /D /H /Y 
+xcopy /E "%buildPath%.exp" "pack\" /K /D /H /Y 
 xcopy /E "%iniPath%" "pack\" /K /D /H /Y 
 xcopy /E %folderpath% "pack\%~1\" /K /D /H /Y 
 

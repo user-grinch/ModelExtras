@@ -23,6 +23,7 @@ struct VehicleSirenShadow
     float Size = 0.0f;
     std::string Type = DEFAULT_SIREN_SHADOW;
     float Offset = 0.0f;
+    float AngleOffset = 0.0f;
 };
 
 struct VehicleSirenDiffuse

@@ -14,13 +14,16 @@
 
 bool VehicleSiren::GetSirenState()
 {
-	return (Mute == false) ? (vehicle->m_nVehicleFlags.bSirenOrAlarm) : (true);
+	return (Mute == false) ? (vehicle->bSirenOrAlarm) : (true);
 };
-
-bool IsEngineOff(CVehicle *pVeh);
 
 char __fastcall Sirens::hkUsesSiren(CVehicle *ptr)
 {
+	if (Util::IsEngineOff(ptr)) {
+		ptr->bSirenOrAlarm = false;
+		return false;
+	}
+
 	if (Sirens::modelData.contains(ptr->m_nModelIndex))
 	{
 		ptr->m_vehicleAudio.m_bModelWithSiren = true;
@@ -320,6 +323,18 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 	{
 		if (json["shadow"].is_object())
 		{
+			if (json["shadow"].contains("angleoffset"))
+			{
+				if (json["shadow"]["angleoffset"].is_number())
+				{
+					Shadow.AngleOffset= json["shadow"]["angleoffset"];
+				}
+				else
+				{
+					LOG_VERBOSE("Model " + std::to_string(Sirens::CurrentModel) + " siren configuration exception!\n \nState '" + state + "' material " + std::to_string(material) + ", shadow object property type is not an acceptable number or string!");
+				}
+			}
+
 			if (json["shadow"].contains("type"))
 			{
 				if (json["shadow"]["type"].is_string())
@@ -543,17 +558,23 @@ void Sirens::Initialize()
 		return eLightType::UnknownLight;
 	 });
 
-	 ModelInfoMgr::RegisterMaterialColProvider([](CVehicle *pVeh, RpMaterial* pMat){
-		int matIdx = GetSirenIndex(pVeh, pMat);
+	 ModelInfoMgr::RegisterMaterialColProvider([](CVehicle *pVeh, RpMaterial* pMat, eLightType type) {
+		if (type == eLightType::SirenLight) {
+			int matIdx = GetSirenIndex(pVeh, pMat);
 
-		if (matIdx != - 1) {
-			int curState = vehicleData[pVeh]->GetCurrentState();
-			auto& state = modelData[pVeh->m_nModelIndex]->States[curState];
-			if (state->Materials.contains(matIdx)) {
-				return state->Materials[matIdx]->Color;
+			if (matIdx != - 1) {
+				int curState = vehicleData[pVeh]->GetCurrentState();
+				auto& state = modelData[pVeh->m_nModelIndex]->States[curState];
+				if (state->Materials.contains(matIdx)) {
+					if (modelData[pVeh->m_nModelIndex]->isImVehFtSiren) {
+						return MatStateColor{state->Materials[matIdx]->Color, state->Materials[matIdx]->Color};
+					} else {
+						return MatStateColor{state->Materials[matIdx]->Color, DEFAULT_MAT_COL};
+					}
+				}
 			}
 		}
-		return CRGBA(255, 255, 255, 255);
+		return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
 	 });
 
 	ModelInfoMgr::RegisterDummy([](CVehicle *vehicle, RwFrame *frame)
@@ -572,7 +593,11 @@ void Sirens::Initialize()
 		id = Util::GetDigitsAfter(name, "light_em").value_or(id);
 
 		if (id != -1) {
-			vehicleData[vehicle]->Dummies[id].push_back(new VehicleDummy(vehicle, frame, name, eDummyPos::None));
+			VehicleDummyConfig config {
+				.pVeh = vehicle,
+				.frame = frame,
+			};
+			vehicleData[vehicle]->Dummies[id].push_back(new VehicleDummy(config));
 		} });
 
 	plugin::Events::vehicleCtorEvent += [](CVehicle *pVeh)
@@ -617,7 +642,7 @@ void Sirens::Initialize()
 				vehicleData[vehicle]->Mute = !vehicleData[vehicle]->Mute;
 
 				if (vehicleData[vehicle]->Mute)
-					vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+					vehicle->bSirenOrAlarm = false;
 
 				AudioMgr::PlaySwitchSound(vehicle);
 			}
@@ -710,8 +735,8 @@ void Sirens::Initialize()
 			return;
 		}
 
-		if (IsEngineOff(vehicle)) {
-			vehicle->m_nVehicleFlags.bSirenOrAlarm = false;
+		if (Util::IsEngineOff(vehicle)) {
+			vehicle->bSirenOrAlarm = false;
 			return;
 		}
 
@@ -884,6 +909,7 @@ void Sirens::hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char 
 
 void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time)
 {
+	dummy->Update();
 	CVector position = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 	unsigned char alpha = material->Color.a;
 
@@ -892,10 +918,13 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 		alpha = static_cast<char>(std::abs(alpha) * material->InertiaMultiplier);
 	}
 
+	VehicleDummyConfig *pDummyConfig = &dummy->Get();
+	pDummyConfig->shadow.color = pDummyConfig->corona.color = material->Color;
+	pDummyConfig->corona.size = material->Size;
+	float dummyAngle = Util::NormalizeAngle(pDummyConfig->rotation.angle + material->Shadow.AngleOffset);
+
 	if (material->Type != eLightingMode::NonDirectional)
 	{
-		float dummyAngle = dummy->Angle;
-
 		if (material->Type == eLightingMode::Rotator)
 		{
 			uint64_t elapsed = time - material->Rotator->TimeElapse;
@@ -922,33 +951,12 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 			dummy->SetAngle(angle);
 			dummyAngle = Util::NormalizeAngle(dummyAngle);
 		}
-		else if (material->Type == eLightingMode::Inversed)
-		{
-			dummyAngle -= 180.0f;
-		}
-
-		Util::RegisterCoronaWithAngle(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, dummy->Position,
-									  material->Color,
-									  dummyAngle, material->Radius, material->Size);
+		RenderUtil::RegisterCoronaDirectional(pDummyConfig, dummyAngle, material->Radius, 1.0f, material->Type == eLightingMode::Inversed);
+		RenderUtil::RegisterShadowDirectional(pDummyConfig, material->Shadow.Type, material->Shadow.Size);
+	} else {
+		RenderUtil::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, pDummyConfig->position, material->Color, material->Size);
+		RenderUtil::RegisterShadow(vehicle, pDummyConfig->position, *(CRGBA *)&material->Color, dummyAngle + pDummyConfig->rotation.currentAngle, pDummyConfig->dummyType, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
 	}
-	else
-	{
-		Util::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, dummy->Position, material->Color, material->Size);
-	}
-
-	// FIX ME
-	CVector dummyPos = dummy->Position;
-	if (modelData[vehicle->m_nModelIndex]->isImVehFtSiren)
-	{
-		dummyPos.x *= 1.5f;
-	}
-	else
-	{
-		dummyPos.x = dummyPos.x * 1.5f;
-		dummyPos.y = dummyPos.y * 1.2f;
-	}
-	dummy->Update(vehicle);
-	Util::RegisterShadow(vehicle, dummyPos, *(CRGBA *)&material->Color, dummy->Angle + dummy->CurrentAngle, dummy->DummyType, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
 };
 
 VehicleSiren::VehicleSiren(CVehicle *_vehicle)
@@ -962,7 +970,7 @@ VehicleSiren::VehicleSiren(CVehicle *_vehicle)
 	if (modelInfo->m_nVehicleType == eVehicleType::VEHICLE_HELI || modelInfo->m_nVehicleType == eVehicleType::VEHICLE_PLANE)
 		this->Mute = true;
 
-	SirenState = _vehicle->m_nVehicleFlags.bSirenOrAlarm;
+	SirenState = _vehicle->bSirenOrAlarm;
 
 	if (modelInfo->m_nVehicleType == eVehicleType::VEHICLE_TRAILER)
 		Trailer = true;

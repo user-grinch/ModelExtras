@@ -42,6 +42,10 @@ void DirtFx::Initialize()
 }
 
 void DirtFx::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat) {
+	if (!m_bEnabled) {
+		return;
+	}
+	
 	std::string texName = pMat->texture->name;
 	int dirtLvl = pVeh->m_fDirtLevel;
 

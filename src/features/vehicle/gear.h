@@ -15,11 +15,12 @@ class Clutch
 protected:
   struct VehData
   {
+    RwFrame *pFrame = nullptr;
     bool m_bInitialized = false;
     eFrameState m_eState = eFrameState::AtOrigin;
     float m_fCalVal = 1.0f;
     float m_fCurRotation = 0.0f;
-    int m_nCurOffset = 0;
+    int m_nCurOffset = 20;
     uint m_nWaitTime = 0;
     uint m_nLastFrameMS = 0;
     short m_nLastGear = 0;
@@ -31,7 +32,7 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
+  static void Initialize();
 };
 
 class GearLever
@@ -39,11 +40,12 @@ class GearLever
 protected:
   struct VehData
   {
+    RwFrame *pFrame = nullptr;
     bool m_bInitialized = false;
     eFrameState m_eState = eFrameState::AtOrigin;
     float m_fCalVal = 1.0f;
     float m_fCurRotation = 0.0f;
-    int m_nCurOffset = 0;
+    int m_nCurOffset = 20;
     uint m_nWaitTime = 0;
     uint m_nLastFrameMS = 0;
     short m_nLastGear = 0;
@@ -55,5 +57,5 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
+  static void Initialize();
 };

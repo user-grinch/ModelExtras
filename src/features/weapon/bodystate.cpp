@@ -42,22 +42,22 @@ void BodyState::Process(void *ptr, RwFrame *frame, eModelEntityType type)
 
     if (bodyState != data.prevBodyState)
     {
-        Util::HideAllChilds(frame);
+        FrameUtil::HideAllChilds(frame);
         if (isFat && isMuscle)
         {
-            Util::ShowChildWithName(frame, "muscle_fat");
+            FrameUtil::ShowChildWithName(frame, "muscle_fat");
         }
         else if (isFat)
         {
-            Util::ShowChildWithName(frame, isPlus ? "fat+" : "fat");
+            FrameUtil::ShowChildWithName(frame, isPlus ? "fat+" : "fat");
         }
         else if (isMuscle)
         {
-            Util::ShowChildWithName(frame, isPlus ? "muscle+" : "muscle");
+            FrameUtil::ShowChildWithName(frame, isPlus ? "muscle+" : "muscle");
         }
         else if (isSlim)
         {
-            Util::ShowChildWithName(frame, isPlus ? "slim+" : "slim");
+            FrameUtil::ShowChildWithName(frame, isPlus ? "slim+" : "slim");
         }
         auto play = FindPlayerPed();
         if (play && play->m_nWeaponModelId == PARACHUTE_MODEL)

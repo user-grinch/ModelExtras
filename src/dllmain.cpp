@@ -24,7 +24,8 @@ std::vector<std::string> donators = {
     "Osama aj",
     "Pol3 Million",
     "Seemann",
-    "spdfnpe"};
+    "spdfnpe",
+    "14todoeltiempoPATREON"};
 
 void InitLogFile()
 {
@@ -64,9 +65,12 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
         }
 
         gVerboseLogging = gConfig.ReadBoolean("CONFIG", "VerboseLogging", false);
-        if (!gVerboseLogging) {
-            gLogger->info("Enable 'VerboseLogging' in ModelExtras.ini to display model-related errors.");
-        }
+        
+        Events::initScriptsEvent.after += []() {
+            if (!gVerboseLogging) {
+                gLogger->info("Enable 'VerboseLogging' in ModelExtras.ini to display model-related errors.");
+            }
+        };
 
         Events::initRwEvent.after += []()
         {
@@ -98,7 +102,6 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
             bool ImVehFtFixInstalled = GetModuleHandle("ImVehFtFix.asi");
             bool AVSInstalled = GetModuleHandle("AdvancedVehicleSirens.asi");
             bool EarShot = GetModuleHandle("EarShot.asi");
-            bool gtweaker = GetModuleHandle("GraphicsTweaker.SA.asi");
             bool PedFuncs = GetModuleHandle("PedFuncs.asi");
             bool GrinchTrainer = GetModuleHandle("GrinchTrainerSA.asi");
             bool BackFireZAZInstalled = false;
@@ -150,16 +153,6 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
                 MessageBox(RsGlobal.ps->window, str.c_str(), "Incompatible plugins found!", MB_OK);
                 gLogger->error(str);
                 exit(EXIT_FAILURE);
-            }
-
-            if (gtweaker && gConfig.ReadBoolean("CONFIG", "ShowGraphicsTweakerWarning", true))
-            {
-                std::string str = "Using GraphicsTweaker may result in visual anomalies.\n\n";
-                str += "Set these values to following to avoid issues,\n";
-                str += "1. MultAmbientNight = 1.0\n2. MultColorFilterNight = 1.0\n";
-                str += "\n\nSet ShowGraphicsTweakerWarning=False in ModelExtras.ini to remove this popup.\n";
-                MessageBox(RsGlobal.ps->window, str.c_str(), "GraphicsTweaker Found!", MB_OK);
-                gLogger->error(str);
             }
 
             if (GrinchTrainer && gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))

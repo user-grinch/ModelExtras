@@ -1,9 +1,10 @@
 {
+    // metadata section is a must
     "metadata": {
         "author": "Grinch_",
         "desc": "Lamborghini Aventador SVJ",
         "creationtime": "2023-10-01",
-        "minver": 10600
+        "minver": 20000
     },
     "clutch": {
         "offset": 0
@@ -23,7 +24,7 @@
     },
     "odometer": {
         "kph": true,
-        "digital": true,
+        "digital": true
     },
     "speedmeter": {
         "maxspeed": 200,
@@ -31,73 +32,33 @@
         "kph": true
     },
     "lights": {
+        // The name of the table below must match with your model
         "indicator_lr": {
-            "color": {
-                "red": 0,
-                "green": 255,
-                "blue": 0,
-                "alpha": 255
-            },
             "corona": {
-                "size": 0.5,
-                "type": "non-directional"
-            },
-            "parent": "rear-bumper",
-            "shadow": {
-                "angleoffset": 45
-            }
-        },
-        "indicator_lf": {
-            "color": {
-                "red": 0,
-                "green": 0,
-                "blue": 255,
-                "alpha": 255
-            },
-            "corona": {
+                "color": {
+                    "red": 0,
+                    "green": 255,
+                    "blue": 0,
+                    "alpha": 200
+                },
                 "size": 0.5,
                 "type": "directional"
             },
-            "parent": "front-bumper",
             "shadow": {
-                "angleoffset": -45
-            }
-        },
-        "indicator_rf": {
-            "color": {
-                "red": 0,
-                "green": 255,
-                "blue": 0,
-                "alpha": 255
+                "color": {
+                    "red": 0,
+                    "green": 255,
+                    "blue": 0,
+                    "alpha": 200
+                },
+                "offsetx": 0.0,
+                "offsety": 0.0,
+                "angleoffset": 45,
+                "width": 1.0,
+                "length": 1.0,
+                "texture": "pointlight"
             },
-            "corona": {
-                "size": 0.5,
-                "type": "inversed-directional"
-            },
-            "parent": "front-bumper",
-            "shadow": {
-                "offsetx": 0,
-                "offsety": 1,
-                "angleoffset": 45
-            }
-        },
-        "indicator_rr": {
-            "color": {
-                "red": 0,
-                "green": 0,
-                "blue": 255,
-                "alpha": 255
-            },
-            "corona": {
-                "size": 0.5,
-                "type": "inversed-directional"
-            },
-            "parent": "rear-bumper",
-            "shadow": {
-                "width": 1,
-                "height": 1,
-                "angleoffset": -45
-            }
+            "strobedelay": 0
         }
     },
     "sirens": {

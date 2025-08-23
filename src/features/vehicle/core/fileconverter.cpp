@@ -167,8 +167,10 @@ int Convert_EmlToJsonc(const std::string &emlPath)
         state["color"] = {{"red", red}, {"green", green}, {"blue", blue}, {"alpha", alpha}};
         state["state"] = starting;
         state["pattern"] = pattern;
+        state["shadow"]["angleoffset"] = type == 1 ? 180.0f : 0.0f;
         state["shadow"]["size"] = shadow / 2;
         state["inertia"] = flash / 100.0f;
+        state["shadow"]["type"] = type == 2 ? "pointlight" :  "round";
         state["type"] = type == 0 ? "directional" : (type == 1 ? "inversed-directional" : "non-directional");
     }
 
@@ -309,6 +311,9 @@ int Convert_IvfcToJsonc(const std::string &inPath)
         }
     }
 
+    jsonData["metadata"]["author"] = "Unknown";
+    jsonData["metadata"]["desc"] = "Converted from IVF";
+    jsonData["metadata"]["minver"] = 20000; // First ME Version with support
     infile.close();
     outfile << jsonData.dump(4);
     outfile.close();

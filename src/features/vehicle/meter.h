@@ -8,8 +8,8 @@ class GearMeter
 protected:
   struct VehData
   {
-    bool m_bInitialized = false;
     uint m_nCurrent = 0;
+    RwFrame *pRoot = nullptr;
     std::vector<RwFrame *> m_FrameList;
 
     VehData(CVehicle *pVeh) {}
@@ -19,7 +19,7 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
+  static void Initialize();
 };
 
 class OdoMeter
@@ -27,6 +27,7 @@ class OdoMeter
 protected:
   struct VehData
   {
+    RwFrame *pFrame = nullptr;
     bool m_bInitialized = false;
     bool m_bDigital = false;
     int m_nPrevRot = 0;
@@ -41,7 +42,7 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
+  static void Initialize();
 };
 
 class RpmMeter
@@ -49,10 +50,12 @@ class RpmMeter
 protected:
   struct VehData
   {
+    RwFrame *pFrame = nullptr;
     bool m_bInitialized = false;
-    int m_nMaxRpm = 0;
+    int m_nMaxRpm = 5000.0f;
+    int prevGear = -1;
     float m_fCurRotation = 0.0f;
-    float m_fMaxRotation = 0.0f;
+    float m_fMaxRotation = 260.0f;
 
     VehData(CVehicle *pVeh) {}
     ~VehData() {}
@@ -61,7 +64,7 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
+  static void Initialize();
 };
 
 class SpeedMeter
@@ -69,11 +72,12 @@ class SpeedMeter
 protected:
   struct VehData
   {
+    RwFrame *pFrame = nullptr;
     bool m_bInitialized = false;
-    int m_nMaxSpeed = 0;
+    int m_nMaxSpeed = 100.0f;
     float m_fMul = 160.9f;
     float m_fCurRotation = 0.0f;
-    float m_fMaxRotation = 0.0f;
+    float m_fMaxRotation = 100.0f;
 
     VehData(CVehicle *pVeh) {}
     ~VehData() {}
@@ -82,7 +86,7 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
+  static void Initialize();
 };
 
 class TurboMeter
@@ -90,8 +94,9 @@ class TurboMeter
 protected:
   struct VehData
   {
+    RwFrame *pFrame = nullptr;
     bool m_bInitialized = false;
-    int m_nMaxTurbo = 220.0f;
+    float m_nMaxTurbo = 220.0f;
     float m_fCurRotation = 0.0f;
     float m_fMaxRotation = 220.0f;
 
@@ -102,21 +107,11 @@ protected:
   static inline VehicleExtendedData<VehData> vehData;
 
 public:
-  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
+  static void Initialize();
 };
 
 class GasMeter
 {
-protected:
-  struct VehData
-  {
-    bool m_bInitialized = false;
-    VehData(CVehicle *pVeh) {}
-    ~VehData() {}
-  };
-
-  static inline VehicleExtendedData<VehData> vehData;
-
 public:
-  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
+  static void Initialize();
 };

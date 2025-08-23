@@ -7,10 +7,17 @@
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void CreateControls(HWND hWnd);
 
+#if PATRON_BUILD
+const char* const LONG_MESSAGE =
+    "You're using a donator build, thanks for supporting the project. "
+    "Your contribution helps make continued updates, new features, and maintenance possible. "
+    "Appreciate your support, and hope you find this build useful.";
+#else
 const char *const LONG_MESSAGE =
     "Maintaining and enhancing this mod takes a lot of effort and time, with continuous updates, new features, and bug fixes. "
     "If you find this mod valuable and would like to support its ongoing development, "
     "please consider making a donation to help keep the improvements coming.";
+#endif
 
 const char *const WARN_MESSAGE =
     "This is NOT a replacement for ImVehFt. Most models should work, but compatibility is not guaranteed.";

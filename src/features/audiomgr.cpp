@@ -4,6 +4,7 @@
 #include <extensions/ScriptCommands.h>
 #include <CAudioEngine.h>
 
+#define LOAD_AUDIO_STREAM 0x0AAC
 #define LOAD_3D_AUDIO_STREAM 0x0AC1
 #define SET_PLAY_3D_AUDIO_STREAM_AT_COORDS 0x0AC2
 #define SET_PLAY_3D_AUDIO_STREAM_AT_OBJECT 0x0AC3
@@ -70,6 +71,8 @@ void AudioMgr::PlaySwitchSound(CEntity *pEntity)
     PlayFileSound(path, pEntity, 1.0f, true);
 }
 
+std::unordered_map<std::string, bool> is3DSupported;
+
 StreamHandle AudioMgr::Load(const std::string &path)
 {
     if (path.empty())
@@ -78,11 +81,20 @@ StreamHandle AudioMgr::Load(const std::string &path)
     }
 
     StreamHandle handle = NULL;
-    plugin::Command<LOAD_3D_AUDIO_STREAM>(path.c_str(), &handle);
-    if (!handle)
-    {
-        LOG_VERBOSE("Failed to load sound '{}'", path);
-        return NULL;
+    if (!is3DSupported.contains(path) || is3DSupported[path]) {
+        plugin::Command<LOAD_3D_AUDIO_STREAM>(path.c_str(), &handle);
+    }
+    
+    if (handle) {
+        is3DSupported[path] = true;
+    } else {
+        plugin::Command<LOAD_AUDIO_STREAM>(path.c_str(), &handle);
+        if (handle) {
+            is3DSupported[path] = false;
+        } else {
+            LOG_VERBOSE("Failed to load sound '{}'", path);
+            return NULL;
+        }
     }
     return handle;
 }
@@ -110,7 +122,9 @@ void AudioMgr::PlayFileSound(const std::string &path, CEntity *pEntity, float vo
     else
     {
         handle = Load(path);
-        m_NeedToFree.push_back(handle);
+        if (handle) {
+            m_NeedToFree.push_back(handle);
+        }
     }
 
     if (!handle)
@@ -162,7 +176,8 @@ void AudioMgr::PlayFileSound(const std::string &path, CEntity *pEntity, float vo
     }
 }
 
-void AudioMgr::SetVolume(StreamHandle handle, float volume)
-{
-    plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume);
+void AudioMgr::SetVolume(StreamHandle handle, float volume) {
+    if (handle) {
+        plugin::Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume);
+    }
 }

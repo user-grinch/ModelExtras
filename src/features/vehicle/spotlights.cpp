@@ -10,6 +10,7 @@
 #include "modelinfomgr.h"
 
 #define VK_RMB 0x02
+extern int gGlobalShadowIntensity;
 
 void SpotLights::Initialize()
 {
@@ -35,7 +36,7 @@ void SpotLights::Initialize()
 	};
 	Events::initGameEvent += []()
 	{
-		pSpotlightTex = TextureMgr::Get("spotlight", 30);
+		pSpotlightTex = TextureMgr::Get("spotlight", gGlobalShadowIntensity);
 	};
 }
 
@@ -74,7 +75,7 @@ void SpotLights::OnHudRender()
 
 	data.pFrame->modelling = *(RwMatrix *)&TheCamera.m_mCameraMatrix;
 	float heading = pVeh->GetHeading() * 180.0f / 3.14f;
-	Util::SetFrameRotationZ(data.pFrame, heading);
+	FrameUtil::SetRotationZ(data.pFrame, heading);
 };
 
 void SpotLights::OnVehicleRender(CVehicle *pVeh)

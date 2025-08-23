@@ -73,8 +73,8 @@ void Spoiler::Initialize()
             e.m_fCurrentRotation =
             e.m_fCurrentRotation * (1.0f - t) + targetAngle * t;
 
-            Util::ResetMatrixRotations(&e.m_pFrame->modelling);
-            Util::SetMatrixRotationX(&e.m_pFrame->modelling, e.m_fCurrentRotation);
+            MatrixUtil::ResetRotation(&e.m_pFrame->modelling);
+            MatrixUtil::SetRotationX(&e.m_pFrame->modelling, e.m_fCurrentRotation);
             RwMatrixUpdate(&e.m_pFrame->modelling);
         } });
 }

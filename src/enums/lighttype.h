@@ -11,12 +11,15 @@ enum eLightType
     TailLightRight,
 
     // ModelExtras
-    ReverseLight,
-    BrakeLight,
+    ReverseLightLeft,
+    ReverseLightRight,
+    BrakeLightLeft,
+    BrakeLightRight,
     AllDayLight,
     DayLight,
     NightLight,
-    FogLight,
+    FogLightLeft,
+    FogLightRight,
     SideLightLeft,
     SideLightRight,
     STTLightLeft,
@@ -26,7 +29,21 @@ enum eLightType
     SpotLight,
     StrobeLight,
     SirenLight,
-    IndicatorLightLeft,
-    IndicatorLightRight,
+
+    IndicatorLightLeftFront,
+    IndicatorLightLeftMiddle,
+    IndicatorLightLeftRear,
+    IndicatorLightRightFront,
+    IndicatorLightRightMiddle,
+    IndicatorLightRightRear,
     TotalLight,
 };
+
+#define INDICATOR_LIGHTS_TYPE { \
+    IndicatorLightLeftFront, \
+    IndicatorLightLeftMiddle, \
+    IndicatorLightLeftRear, \
+    IndicatorLightRightFront, \
+    IndicatorLightRightMiddle, \
+    IndicatorLightRightRear \
+}
