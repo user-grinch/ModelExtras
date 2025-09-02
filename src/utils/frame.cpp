@@ -137,7 +137,7 @@ void FrameUtil::ShowAllChilds(RwFrame *parent_frame)
 }
 
 bool FrameUtil::IsOkAtomicVisible(RwFrame* frame) {
-	if (!rwLinkListEmpty(&frame->objectList)) {
+	if (frame && !rwLinkListEmpty(&frame->objectList)) {
         RwObjectHasFrame *atomic;
 
         RwLLLink *current = rwLinkListGetFirstLLLink(&frame->objectList);

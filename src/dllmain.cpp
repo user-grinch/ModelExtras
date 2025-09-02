@@ -58,12 +58,14 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 {
     if (nReason == DLL_PROCESS_ATTACH)
     {
+        
+#if !PATRON_BUILD
         if (gConfig.ReadBoolean("CONFIG", "ShowDonationPopup", true))
         {
             ShowDonationWindow();
             gConfig.WriteBoolean("CONFIG", "ShowDonationPopup", false);
         }
-
+#endif
         gVerboseLogging = gConfig.ReadBoolean("CONFIG", "VerboseLogging", false);
         
         Events::initScriptsEvent.after += []() {

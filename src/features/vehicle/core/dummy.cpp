@@ -61,6 +61,7 @@ VehicleDummy::VehicleDummy(const VehicleDummyConfig& config)
                 }
                 data.shadow.size = shadow.value("size", 1.0f);
                 data.shadow.texture = shadow.value("texture", "");
+                data.shadow.rotationChecks = shadow.value("rotationchecks", true);
 
                 // shadows will be force enabled if there is JSON data for it.
                 data.shadow.render = true;

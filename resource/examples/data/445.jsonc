@@ -51,11 +51,8 @@
                     "blue": 0,
                     "alpha": 200
                 },
-                "offsetx": 0.0,
-                "offsety": 0.0,
-                "angleoffset": 45,
-                "width": 1.0,
-                "length": 1.0,
+                "size": 1.0,
+                "rotationchecks": true,
                 "texture": "pointlight"
             },
             "strobedelay": 0

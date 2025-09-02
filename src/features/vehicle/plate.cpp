@@ -11,6 +11,8 @@
 #include "texmgr.h"
 
 static CVehicle *pCurrentVeh = nullptr;
+extern RwSurfaceProperties& gLightSurfProps;
+extern RwSurfaceProperties gLightSurfPropsOff;
 
 void LicensePlate::Initialize()
 {
@@ -105,13 +107,11 @@ RpMaterial *__cdecl LicensePlate::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
         }
     }
 
-    if (Util::IsNightTime() && !Util::IsEngineOff(pCurrentVeh) && pCurrentVeh->m_nOverrideLights != eLightOverride::ForceLightsOff || pCurrentVeh->m_nOverrideLights == eLightOverride::ForceLightsOn)
-    {
-        material->surfaceProps.ambient = AMBIENT_ON_VAL;
+    if (Util::IsNightTime() && !Util::IsEngineOff(pCurrentVeh) && pCurrentVeh->m_nOverrideLights != eLightOverride::ForceLightsOff || pCurrentVeh->m_nOverrideLights == eLightOverride::ForceLightsOn) {
+        material->surfaceProps.ambient = gLightSurfProps.ambient;
         RpMaterialSetTexture(material, m_Plates[plateType + 4]);
-    }
-    else
-    {
+    } else {
+        material->surfaceProps.ambient = gLightSurfPropsOff.ambient;
         RpMaterialSetTexture(material, m_Plates[plateType]);
     }
     return material;

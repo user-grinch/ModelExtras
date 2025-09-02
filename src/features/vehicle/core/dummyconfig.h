@@ -43,6 +43,7 @@ struct VehicleDummyConfig {
 
     struct {
         bool render = true;
+        bool rotationChecks = true;
         std::string texture;
         CRGBA color = {255, 255, 255, 100};
         CVector2D offset = {0.0f, 0.0f};

@@ -43,11 +43,24 @@ void BackFireEffect::BackFireSingle(CVehicle *pVeh)
         vx = pos.x * -1.0f;
     }
 
-    if (pHandlingData->m_bDoubleExhaust)
-    {
+    if (pHandlingData->m_bDoubleExhaust) {
         BackFireFX(pVeh, vx, pos.y, pos.z);
     }
     BackFireFX(pVeh, pos.x, pos.y, pos.z);
+
+    vx = 0.0f;
+    pos = pInfo->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::EXHAUST_SECONDARY];
+    if (!pos.IsZero()) {
+        if (pHandlingData->m_bDoubleExhaust)
+        {
+            vx = pos.x * -1.0f;
+        }
+
+        if (pHandlingData->m_bDoubleExhaust) {
+            BackFireFX(pVeh, vx, pos.y, pos.z);
+        }
+        BackFireFX(pVeh, pos.x, pos.y, pos.z);
+    }
 }
 
 void BackFireEffect::BackFireMulti(CVehicle *pVeh)

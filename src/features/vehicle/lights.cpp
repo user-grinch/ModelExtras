@@ -50,6 +50,12 @@ void Lights::Initialize()
 	patch::Nop(0x6E2722, 19);	  // CVehicle::DoHeadLightReflection
 	patch::SetUChar(0x6E1A22, 0); // CVehicle::DoTailLightEffect
 
+	// NOP CVehicle::DoHeadLightBeam
+	if (!gConfig.ReadBoolean("TWEAKS", "HeadLightBeams", false)) {
+		patch::Nop(0x6A2E9F, 0x58);
+		patch::Nop(0x6BDE73, 0x12);
+	}
+
 	plugin::Events::initGameEvent += []()
 	{
 		gbGlobalIndicatorLights = gConfig.ReadBoolean("VEHICLE_FEATURES", "StandardLights_GlobalIndicatorLights", false);
@@ -234,7 +240,7 @@ void Lights::Initialize()
 			c.lightType = eLightType::AllDayLight;
 			c.dummyType = eDummyPos::Front;
 		}
-		else if (name == "taillights" || name == "taillights2") {
+		else if (name.starts_with("taillights")) {
 			c.dummyType = eDummyPos::Rear;
 			c.lightType = eLightType::TailLightRight;
 			c.corona.color = c.shadow.color = {250, 0, 0, static_cast<unsigned char>(gGlobalCoronaIntensity)};
@@ -336,7 +342,7 @@ void Lights::Initialize()
 				continue;
 			}
 
-			if (DistanceBetweenPoints(pVeh->GetPosition(), TheCamera.GetPosition()) < 50.0f || pVeh->GetIsOnScreen()) {
+			if (DistanceBetweenPoints(pVeh->GetPosition(), TheCamera.GetPosition()) < 150.0f || pVeh->GetIsOnScreen()) {
 				bool isLeftFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT);
 				bool isRightFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT);
 				bool isHeadlightLeftOn = pVeh->m_renderLights.m_bLeftFront && isLeftFrontOk;
@@ -482,7 +488,9 @@ void Lights::Initialize()
 				}
 			}
 
-			if (Util::IsNightTime() || pControlVeh->m_nOverrideLights == eLightOverride::ForceLightsOn || pControlVeh->bLightsOn) {
+			bool indicatorOn = data.m_bUsingGlobalIndicators && data.m_nIndicatorState != eIndicatorState::Off;
+			bool tailLightFlag = Util::IsNightTime() || pControlVeh->m_nOverrideLights == eLightOverride::ForceLightsOn || pControlVeh->bLightsOn;
+			if (tailLightFlag || indicatorOn) {
 				if (sttInstalled) {
 					if (isLeftRearOk) {
 						RenderLights(pControlVeh, pTowedVeh, eLightType::STTLightLeft, true, shdwName, shdwSz);
@@ -494,14 +502,14 @@ void Lights::Initialize()
 				}
 				else {
 					auto tailLightsRender = [&](bool leftOk, bool rightOk) {
-						if (IsMatAvail(pTowedVeh, {eLightType::TailLightLeft, eLightType::TailLightRight})) {
+						if (IsMatAvail(pTowedVeh, {eLightType::TailLightLeft, eLightType::TailLightRight}) || IsDummyAvail(pTowedVeh, {eLightType::TailLightLeft, eLightType::TailLightRight})) {
 							if (leftOk) {
 								RenderLights(pControlVeh, pTowedVeh, eLightType::TailLightLeft, true, shdwName, shdwSz);
 							}
 							if (rightOk) {
 								RenderLights(pControlVeh, pTowedVeh, eLightType::TailLightRight, true, shdwName, shdwSz);
 							}
-						} else if (IsMatAvail(pTowedVeh, {eLightType::BrakeLightLeft, eLightType::BrakeLightRight})) {
+						} else if (IsMatAvail(pTowedVeh, {eLightType::BrakeLightLeft, eLightType::BrakeLightRight}) || IsDummyAvail(pTowedVeh, {eLightType::BrakeLightLeft, eLightType::BrakeLightRight})) {
 							if (leftOk) {
 								RenderLights(pControlVeh, pTowedVeh, eLightType::BrakeLightLeft, true, shdwName, shdwSz);
 							}
@@ -511,17 +519,17 @@ void Lights::Initialize()
 						}
 					};
 
-					if (data.m_bUsingGlobalIndicators && data.m_nIndicatorState != eIndicatorState::Off) {
+					if (indicatorOn) {
 						if (data.m_nIndicatorState == eIndicatorState::BothOn) {
 							tailLightsRender(isLeftRearOk && !indicatorsDelay, isRightRearOk && !indicatorsDelay);
 						}
 
 						if (data.m_nIndicatorState == eIndicatorState::LeftOn) {
-							tailLightsRender(isLeftRearOk && !indicatorsDelay, isRightRearOk);
+							tailLightsRender(isLeftRearOk && !indicatorsDelay, isRightRearOk && tailLightFlag);
 						}
 
 						if (data.m_nIndicatorState == eIndicatorState::RightOn) {
-							tailLightsRender(isLeftRearOk, isRightRearOk && !indicatorsDelay);
+							tailLightsRender(isLeftRearOk && tailLightFlag, isRightRearOk && !indicatorsDelay);
 						}
 					} else {
 						tailLightsRender(isLeftRearOk, isRightRearOk);
@@ -704,10 +712,10 @@ void Lights::RenderLight(CVehicle *pVeh, eLightType state, bool shadows, std::st
 void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eLightType state, bool shadows, std::string texture, float sz, bool highlight)
 {	
 	int model = pControlVeh->m_nModelIndex;
-	if (CModelInfo::IsHeliModel(model) || CModelInfo::IsPlaneModel(model)) {
-		sz = 1.0f;
-		texture = "pointlight";
-	}
+	// if (CModelInfo::IsHeliModel(model) || CModelInfo::IsPlaneModel(model)) {
+	// 	sz = 1.0f;
+	// 	texture = "pointlight";
+	// }
 
 	if (GetLightState(pControlVeh, state)) {
 		RenderLight(pControlVeh, state, shadows, texture, sz, highlight);

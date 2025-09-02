@@ -55,7 +55,6 @@ public:
 	static void EnableLightMaterial(CVehicle *pVeh, eLightType type);
 	static void EnableSirenMaterial(CVehicle *pVeh, int idx);
 	static void EnableStrobeMaterial(CVehicle *pVeh, int idx);
-
 	static bool IsMaterialAvailable(CVehicle *pVeh, eLightType type);
 
 	static void Initialize();
