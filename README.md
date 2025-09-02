@@ -36,17 +36,4 @@
 
 > ⚠️ *Supports only GTA San Andreas v1.0 US (Hoodlum)*
 
-### 👥 Contributors
-
-**Core Credits**  
-Plugin SDK · CLEO · DkPac22 · d4dj · Junior-Djjr · Nora · KaiQ
-
-**Testers**  
-Caner Karaca · Crowdigger · Damix · KaiQ · Kaoru Tanamachi · Zeneric
-
-**Supporters**  
-Agha ·Autumn Wright· berrymuffin · blackOS · Damix · Dustin Eastwood  
-Dwolf98 · KaiQ · MC Silver · Osama aj · Pol3 Million · Seemann  
-spdfnpe · SimBoRRis · 14todoeltiempo
-
-<p align="center"><sub>📜 Full list of credits and donators is included in <code>ModelExtras.ini</code></sub></p>
+<p align="center"><sub>📜 List of credits and donators is included in <code>ModelExtras.ini</code></sub></p>
