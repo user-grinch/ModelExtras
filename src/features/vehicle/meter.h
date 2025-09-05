@@ -1,13 +1,11 @@
 #pragma once
-#include <plugin.h>
 #include "../../interface/ifeature.hpp"
+#include <plugin.h>
 #include <vector>
 
-class GearMeter
-{
+class GearMeter {
 protected:
-  struct VehData
-  {
+  struct VehData {
     uint m_nCurrent = 0;
     RwFrame *pRoot = nullptr;
     std::vector<RwFrame *> m_FrameList;
@@ -22,11 +20,9 @@ public:
   static void Initialize();
 };
 
-class OdoMeter
-{
+class OdoMeter {
 protected:
-  struct VehData
-  {
+  struct VehData {
     RwFrame *pFrame = nullptr;
     bool m_bInitialized = false;
     bool m_bDigital = false;
@@ -45,11 +41,9 @@ public:
   static void Initialize();
 };
 
-class RpmMeter
-{
+class RpmMeter {
 protected:
-  struct VehData
-  {
+  struct VehData {
     RwFrame *pFrame = nullptr;
     bool m_bInitialized = false;
     int m_nMaxRpm = 5000.0f;
@@ -67,11 +61,9 @@ public:
   static void Initialize();
 };
 
-class SpeedMeter
-{
+class SpeedMeter {
 protected:
-  struct VehData
-  {
+  struct VehData {
     RwFrame *pFrame = nullptr;
     bool m_bInitialized = false;
     int m_nMaxSpeed = 100.0f;
@@ -89,11 +81,9 @@ public:
   static void Initialize();
 };
 
-class TurboMeter
-{
+class TurboMeter {
 protected:
-  struct VehData
-  {
+  struct VehData {
     RwFrame *pFrame = nullptr;
     bool m_bInitialized = false;
     float m_nMaxTurbo = 220.0f;
@@ -110,8 +100,7 @@ public:
   static void Initialize();
 };
 
-class GasMeter
-{
+class GasMeter {
 public:
   static void Initialize();
 };

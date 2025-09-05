@@ -1,13 +1,11 @@
 #pragma once
-#include <plugin.h>
 #include "../../interface/ifeature.hpp"
+#include <plugin.h>
 #include <vector>
 
-class SteerWheel
-{
+class SteerWheel {
 protected:
-  struct VehData
-  {
+  struct VehData {
     float prevAngle = 0.0f;
     float factor = 1.0f;
     RwFrame *pFrame = NULL;

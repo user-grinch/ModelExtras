@@ -1,237 +1,230 @@
-#include "pch.h"
 #include "remap.h"
-#include <TxdDef.h>
-#include <CTxdStore.h>
 #include "meevents.h"
+#include "pch.h"
 #include "texmgr.h"
-#include <rw/rwcore.h>
+#include <CTxdStore.h>
+#include <TxdDef.h>
 #include <rw/rpworld.h>
+#include <rw/rwcore.h>
 
-void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType type)
-{
-    if (pModelInfo)
-    {
-        CTxdStore::PushCurrentTxd();
-        CTxdStore::SetCurrentTxd(pModelInfo->m_nTxdIndex);
-        static RwTexDictionary *pDict;
-        pDict = RwTexDictionaryGetCurrent();
-        RwTexDictionaryForAllTextures(pDict, [](RwTexture *pTex, void *pData)
-        { 
-            int model = *(int*)pData;
-            std::string name = pTex->name;
-            if (name.starts_with("#") || name.starts_with("remap")) {
-                return pTex;
-            }
-            std::size_t remapPos = name.find("_remap");
-            std::size_t bloodPos = name.find("_bld");
-            std::string orgName = name.substr(0, std::min(std::min(remapPos, bloodPos), name.size()));
-            bool isRemapTex = remapPos != std::string::npos;
-            bool isBloodTex = bloodPos != std::string::npos;
+void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model,
+                       eModelEntityType type) {
+  if (pModelInfo) {
+    CTxdStore::PushCurrentTxd();
+    CTxdStore::SetCurrentTxd(pModelInfo->m_nTxdIndex);
+    static RwTexDictionary *pDict;
+    pDict = RwTexDictionaryGetCurrent();
+    RwTexDictionaryForAllTextures(
+        pDict,
+        [](RwTexture *pTex, void *pData) {
+          int model = *(int *)pData;
+          std::string name = pTex->name;
+          if (name.starts_with("#") || name.starts_with("remap")) {
+            return pTex;
+          }
+          std::size_t remapPos = name.find("_remap");
+          std::size_t bloodPos = name.find("_bld");
+          std::string orgName = name.substr(
+              0, std::min(std::min(remapPos, bloodPos), name.size()));
+          bool isRemapTex = remapPos != std::string::npos;
+          bool isBloodTex = bloodPos != std::string::npos;
 
-            if (isRemapTex || isBloodTex) {
-                RemapData &data = xRemaps.Get(model);
-                if (data.m_pTextures.empty()) {
-                    std::string bloodName = orgName + "_bld";
-                    RwTexture *pOrgTex = TextureMgr::FindInDict(orgName, pDict);
-                    RwTexture *pBloodTex = TextureMgr::FindInDict(bloodName, pDict);
-                    data.m_pTextures[orgName].push_back({pOrgTex, pBloodTex});
-                }
+          if (isRemapTex || isBloodTex) {
+            RemapData &data = xRemaps.Get(model);
+            if (data.m_pTextures.empty()) {
+              std::string bloodName = orgName + "_bld";
+              RwTexture *pOrgTex = TextureMgr::FindInDict(orgName, pDict);
+              RwTexture *pBloodTex = TextureMgr::FindInDict(bloodName, pDict);
+              data.m_pTextures[orgName].push_back({pOrgTex, pBloodTex});
             }
-            
-            if (isRemapTex && !isBloodTex)
-            {
-                RemapData &data = xRemaps.Get(model);
-                std::string bloodName = name + "_bld";
-                RwTexture *pBloodTex = TextureMgr::FindInDict(bloodName, pDict);
-                data.m_pTextures[orgName].push_back({pTex, pBloodTex});
-            }
-			return pTex; 
-        }, &model);
-        CTxdStore::PopCurrentTxd();
-    }
+          }
+
+          if (isRemapTex && !isBloodTex) {
+            RemapData &data = xRemaps.Get(model);
+            std::string bloodName = name + "_bld";
+            RwTexture *pBloodTex = TextureMgr::FindInDict(bloodName, pDict);
+            data.m_pTextures[orgName].push_back({pTex, pBloodTex});
+          }
+          return pTex;
+        },
+        &model);
+    CTxdStore::PopCurrentTxd();
+  }
 }
 
 static std::vector<std::pair<unsigned int *, unsigned int>> m_pOriginalTextures;
 static std::map<void *, int> m_pRandom;
 static std::map<void *, bool> m_pBloodState;
 
-void Remap::Initialize()
-{
-    Events::vehicleRenderEvent.before += [](CVehicle *ptr)
-    {
-        BeforeRender(reinterpret_cast<void *>(ptr), eModelEntityType::Vehicle);
+void Remap::Initialize() {
+  Events::vehicleRenderEvent.before += [](CVehicle *ptr) {
+    BeforeRender(reinterpret_cast<void *>(ptr), eModelEntityType::Vehicle);
+  };
+
+  // Events::pedRenderEvent.before += [](CPed *pPed)
+  // {
+  //     BeforeRender(reinterpret_cast<void *>(pPed), eModelEntityType::Ped);
+  // };
+
+  // These two events need to be hooked later
+  Events::initGameEvent += []() {
+    static bool init = false;
+    if (init) {
+      return;
+    }
+    MEEvents::weaponRenderEvent.before += [](CPed *pPed) {
+      CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nSelectedWepSlot];
+      if (pWeapon &&
+          pWeapon->m_eWeaponType != eWeaponType::WEAPONTYPE_UNARMED) {
+        BeforeRender(reinterpret_cast<void *>(pWeapon),
+                     eModelEntityType::Weapon);
+      }
     };
 
-    // Events::pedRenderEvent.before += [](CPed *pPed)
-    // {
-    //     BeforeRender(reinterpret_cast<void *>(pPed), eModelEntityType::Ped);
-    // };
+    MEEvents::weaponRenderEvent.after += [](CPed *pPed) {
+      CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nSelectedWepSlot];
+      if (pWeapon &&
+          pWeapon->m_eWeaponType != eWeaponType::WEAPONTYPE_UNARMED) {
+        AfterRender(reinterpret_cast<void *>(pWeapon),
+                    eModelEntityType::Weapon);
+      }
+    };
+    init = true;
+  };
 
-    // These two events need to be hooked later
-    Events::initGameEvent += []()
-    {
-        static bool init = false;
-        if (init)
-        {
-            return;
+  Events::vehicleRenderEvent.after += [](CVehicle *ptr) {
+    AfterRender(reinterpret_cast<void *>(ptr), eModelEntityType::Vehicle);
+  };
+
+  // Events::pedRenderEvent.after += [](CPed *pPed)
+  // {
+  //     AfterRender(reinterpret_cast<void *>(pPed), eModelEntityType::Ped);
+  // };
+
+  MEEvents::weaponRemoveEvent.before += [](CPed *pPed, int model) {
+    CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nSelectedWepSlot];
+    if (pWeapon) {
+      if (m_pRandom.contains(pWeapon)) {
+        m_pRandom.erase(m_pRandom.find(pWeapon));
+      }
+
+      if (m_pBloodState.contains(pWeapon)) {
+        m_pBloodState.erase(m_pBloodState.find(pWeapon));
+      }
+    }
+  };
+
+  MEEvents::weaponInitEvent.before +=
+      [](CWeapon *pWeapon, int type, int ammo, CPed *owner) {
+        if (pWeapon) {
+          if (m_pRandom.contains(pWeapon)) {
+            m_pRandom.erase(m_pRandom.find(pWeapon));
+          }
+
+          if (m_pBloodState.contains(pWeapon)) {
+            m_pBloodState.erase(m_pBloodState.find(pWeapon));
+          }
         }
-        MEEvents::weaponRenderEvent.before += [](CPed *pPed)
-        {
-            CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nSelectedWepSlot];
-            if (pWeapon && pWeapon->m_eWeaponType != eWeaponType::WEAPONTYPE_UNARMED)
-            {
-                BeforeRender(reinterpret_cast<void *>(pWeapon), eModelEntityType::Weapon);
-            }
-        };
-
-        MEEvents::weaponRenderEvent.after += [](CPed *pPed)
-        {
-            CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nSelectedWepSlot];
-            if (pWeapon && pWeapon->m_eWeaponType != eWeaponType::WEAPONTYPE_UNARMED)
-            {
-                AfterRender(reinterpret_cast<void *>(pWeapon), eModelEntityType::Weapon);
-            }
-        };
-        init = true;
-    };
-
-    Events::vehicleRenderEvent.after += [](CVehicle *ptr)
-    {
-        AfterRender(reinterpret_cast<void *>(ptr), eModelEntityType::Vehicle);
-    };
-
-    // Events::pedRenderEvent.after += [](CPed *pPed)
-    // {
-    //     AfterRender(reinterpret_cast<void *>(pPed), eModelEntityType::Ped);
-    // };
-
-    MEEvents::weaponRemoveEvent.before += [](CPed *pPed, int model)
-    {
-        CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nSelectedWepSlot];
-        if (pWeapon)
-        {
-            if (m_pRandom.contains(pWeapon))
-            {
-                m_pRandom.erase(m_pRandom.find(pWeapon));
-            }
-
-            if (m_pBloodState.contains(pWeapon))
-            {
-                m_pBloodState.erase(m_pBloodState.find(pWeapon));
-            }
-        }
-    };
-
-    MEEvents::weaponInitEvent.before += [](CWeapon *pWeapon, int type, int ammo, CPed *owner)
-    {
-        if (pWeapon)
-        {
-            if (m_pRandom.contains(pWeapon))
-            {
-                m_pRandom.erase(m_pRandom.find(pWeapon));
-            }
-
-            if (m_pBloodState.contains(pWeapon))
-            {
-                m_pBloodState.erase(m_pBloodState.find(pWeapon));
-            }
-        }
-    };
+      };
 }
 
-void Remap::AfterRender(void *ptr, eModelEntityType type)
-{
-    for (auto &e : m_pOriginalTextures)
-    {
-        *e.first = e.second;
-    }
-    m_pOriginalTextures.clear();
+void Remap::AfterRender(void *ptr, eModelEntityType type) {
+  for (auto &e : m_pOriginalTextures) {
+    *e.first = e.second;
+  }
+  m_pOriginalTextures.clear();
 }
 
-bool Remap::GetKilledState(CWeapon *pWeapon)
-{
-    if (!pWeapon)
-    {
-        return false;
-    }
+bool Remap::GetKilledState(CWeapon *pWeapon) {
+  if (!pWeapon) {
+    return false;
+  }
 
-    if (m_pBloodState[pWeapon])
-    {
-        return true;
-    }
+  if (m_pBloodState[pWeapon]) {
+    return true;
+  }
 
-    static CPed *lastKilled = nullptr;
-    auto player = FindPlayerPed();
-    if (player && player->m_aWeapons[player->m_nSelectedWepSlot].m_eWeaponType == pWeapon->m_eWeaponType)
-    {
-        CPed *pPed = static_cast<CPed *>(player->m_pDamageEntity);
-        if (!pPed)
-        {
-            pPed = static_cast<CPed *>(player->m_pLastEntityDamage);
-        }
-        if (pPed && pPed->m_nType == ENTITY_TYPE_PED && !pPed->IsAlive() && pPed != lastKilled)
-        {
-            m_pBloodState[pWeapon] = true;
-            lastKilled = pPed;
-        }
+  static CPed *lastKilled = nullptr;
+  auto player = FindPlayerPed();
+  if (player && player->m_aWeapons[player->m_nSelectedWepSlot].m_eWeaponType ==
+                    pWeapon->m_eWeaponType) {
+    CPed *pPed = static_cast<CPed *>(player->m_pDamageEntity);
+    if (!pPed) {
+      pPed = static_cast<CPed *>(player->m_pLastEntityDamage);
     }
-    return m_pBloodState[pWeapon];
+    if (pPed && pPed->m_nType == ENTITY_TYPE_PED && !pPed->IsAlive() &&
+        pPed != lastKilled) {
+      m_pBloodState[pWeapon] = true;
+      lastKilled = pPed;
+    }
+  }
+  return m_pBloodState[pWeapon];
 }
 
-void Remap::BeforeRender(void *ptr, eModelEntityType type)
-{
-    int model = Util::GetEntityModel(ptr, type);
-    CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(model);
+void Remap::BeforeRender(void *ptr, eModelEntityType type) {
+  int model = Util::GetEntityModel(ptr, type);
+  CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(model);
 
-    RemapData &data = xRemaps.Get(model);
-    if (!data.m_bRemapsLoaded)
-    {
-        LoadRemaps(pModelInfo, model, type);
-        data.m_bRemapsLoaded = true;
-    }
+  RemapData &data = xRemaps.Get(model);
+  if (!data.m_bRemapsLoaded) {
+    LoadRemaps(pModelInfo, model, type);
+    data.m_bRemapsLoaded = true;
+  }
 
-    if (data.m_pTextures.empty())
-    {
-        return;
-    }
+  if (data.m_pTextures.empty()) {
+    return;
+  }
 
-    if (type == eModelEntityType::Weapon)
-    {
-        data.useBlood = GetKilledState(static_cast<CWeapon *>(ptr));
-    }
+  if (type == eModelEntityType::Weapon) {
+    data.useBlood = GetKilledState(static_cast<CWeapon *>(ptr));
+  }
 
-    data.curPtr = ptr;
-    RpClumpForAllAtomics(pModelInfo->m_pRwClump, [](RpAtomic *atomic, void *data)
-                         {
+  data.curPtr = ptr;
+  RpClumpForAllAtomics(
+      pModelInfo->m_pRwClump,
+      [](RpAtomic *atomic, void *data) {
         if (atomic->geometry) {
-            RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *mat, void *data) {
+          RpGeometryForAllMaterials(
+              atomic->geometry,
+              [](RpMaterial *mat, void *data) {
                 if (!mat->texture) {
-                    return mat;
+                  return mat;
                 }
 
                 std::string name = mat->texture->name;
-                RemapData *pData = reinterpret_cast<RemapData*>(data);
+                RemapData *pData = reinterpret_cast<RemapData *>(data);
 
                 if (pData->m_pTextures[name].empty()) {
-                    return mat;
+                  return mat;
                 }
                 int sz = pData->m_pTextures[name].size();
-                if (m_pRandom.find(pData->curPtr) == m_pRandom.end() || m_pRandom[pData->curPtr] >= sz) {
-                    m_pRandom[pData->curPtr] = RandomNumberInRange(0, sz-1);
+                if (m_pRandom.find(pData->curPtr) == m_pRandom.end() ||
+                    m_pRandom[pData->curPtr] >= sz) {
+                  m_pRandom[pData->curPtr] = RandomNumberInRange(0, sz - 1);
                 }
 
-                m_pOriginalTextures.push_back({reinterpret_cast<unsigned int*>(&mat->texture), *reinterpret_cast<unsigned int *>(&mat->texture)});
+                m_pOriginalTextures.push_back(
+                    {reinterpret_cast<unsigned int *>(&mat->texture),
+                     *reinterpret_cast<unsigned int *>(&mat->texture)});
 
-                if (pData->useBlood && pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pBlood) {
-                    mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pBlood;
+                if (pData->useBlood &&
+                    pData->m_pTextures[name][m_pRandom[pData->curPtr]]
+                        .m_pBlood) {
+                  mat->texture =
+                      pData->m_pTextures[name][m_pRandom[pData->curPtr]]
+                          .m_pBlood;
                 } else {
-                    mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pNormal;
+                  mat->texture =
+                      pData->m_pTextures[name][m_pRandom[pData->curPtr]]
+                          .m_pNormal;
                 }
                 mat->texture->refCount++;
 
                 return mat;
-            }, data);
+              },
+              data);
         }
-        return atomic; 
-    }, &data);
+        return atomic;
+      },
+      &data);
 }

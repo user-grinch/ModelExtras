@@ -2,11 +2,9 @@
 #include <plugin.h>
 #include <vector>
 
-class HandleBar
-{
+class HandleBar {
 protected:
-  struct VehData
-  {
+  struct VehData {
     RwFrame *m_pOrigin = nullptr;
     RwFrame *m_pTarget = nullptr;
 
