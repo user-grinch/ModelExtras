@@ -3,18 +3,15 @@
 #include <vector>
 class CAudioStream;
 
-enum class eFrameState
-{
+enum class eFrameState {
   AtOrigin,
   IsMoving,
   AtOffset,
 };
 
-class Clutch
-{
+class Clutch {
 protected:
-  struct VehData
-  {
+  struct VehData {
     RwFrame *pFrame = nullptr;
     bool m_bInitialized = false;
     eFrameState m_eState = eFrameState::AtOrigin;
@@ -35,11 +32,9 @@ public:
   static void Initialize();
 };
 
-class GearLever
-{
+class GearLever {
 protected:
-  struct VehData
-  {
+  struct VehData {
     RwFrame *pFrame = nullptr;
     bool m_bInitialized = false;
     eFrameState m_eState = eFrameState::AtOrigin;

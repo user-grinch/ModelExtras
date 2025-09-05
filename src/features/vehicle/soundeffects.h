@@ -1,19 +1,17 @@
 #pragma once
 #include "../audiomgr.h"
 
-class SoundEffects
-{
+class SoundEffects {
 private:
-    struct VehData
-    {
-        float m_fBrakePressure = 0.0f;
-        bool m_bEngineState = false;
-        bool m_bIndicatorState = false;
+  struct VehData {
+    float m_fBrakePressure = 0.0f;
+    bool m_bEngineState = false;
+    bool m_bIndicatorState = false;
 
-        VehData(CVehicle *) {}
-    };
-    static inline VehicleExtendedData<VehData> vehData;
+    VehData(CVehicle *) {}
+  };
+  static inline VehicleExtendedData<VehData> vehData;
 
 public:
-    static void Initialize();
+  static void Initialize();
 };

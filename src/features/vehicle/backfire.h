@@ -1,11 +1,9 @@
 #pragma once
 #include <plugin.h>
 
-class BackFireEffect
-{
+class BackFireEffect {
 protected:
-  struct VehData
-  {
+  struct VehData {
     bool m_bInitialized = false;
     size_t m_nleftFires = 0;
     bool wasFullThrottled = false;

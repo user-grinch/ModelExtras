@@ -1,29 +1,34 @@
 #pragma once
+#include "enums/featurematrix.h"
 #include "pch.h"
+#include <bitset>
+#include <functional>
 #include <plugin.h>
 #include <unordered_map>
-#include <functional>
-#include <bitset>
-#include "enums/featurematrix.h"
 
 class FeatureMgr {
 private:
-    struct FrameExtension {
-        RwFrame* m_pFrame;
-        std::string id;
-    };
+  struct FrameExtension {
+    RwFrame *m_pFrame;
+    std::string id;
+  };
 
-    static inline std::unordered_map<eModelEntityType, std::unordered_map<void*, std::vector<FrameExtension>>> m_EntityTable;
-    static inline std::unordered_map <std::string, std::function<void(void*, RwFrame*, eModelEntityType)>> m_FunctionTable;
+  static inline std::unordered_map<
+      eModelEntityType, std::unordered_map<void *, std::vector<FrameExtension>>>
+      m_EntityTable;
+  static inline std::unordered_map<
+      std::string, std::function<void(void *, RwFrame *, eModelEntityType)>>
+      m_FunctionTable;
 
-    static void FindNodes(void* ptr, RwFrame *frame, eModelEntityType type);
+  static void FindNodes(void *ptr, RwFrame *frame, eModelEntityType type);
 
 public:
-    static inline std::bitset<static_cast<int>(eFeatureMatrix::FeatureCount)> m_bEnabledFeatures;
+  static inline std::bitset<static_cast<int>(eFeatureMatrix::FeatureCount)>
+      m_bEnabledFeatures;
 
-    static void Initialize();
-    static void Reload(CVehicle *pVeh);
-    static void Add(void *ptr, RwFrame* frame, eModelEntityType type);
-    static void Process(void *ptr, eModelEntityType type);
-    static void Remove(void *ptr, eModelEntityType type);
+  static void Initialize();
+  static void Reload(CVehicle *pVeh);
+  static void Add(void *ptr, RwFrame *frame, eModelEntityType type);
+  static void Process(void *ptr, eModelEntityType type);
+  static void Remove(void *ptr, eModelEntityType type);
 };
