@@ -1,11 +1,9 @@
 #pragma once
 #include <plugin.h>
 
-class WheelHub
-{
+class WheelHub {
 protected:
-  struct VehData
-  {
+  struct VehData {
     RwFrame *m_pWRF = NULL, *m_pWRM = NULL, *m_pWRR = NULL;
     RwFrame *m_pWLF = NULL, *m_pWLM = NULL, *m_pWLR = NULL;
 

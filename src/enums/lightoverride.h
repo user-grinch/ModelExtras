@@ -1,8 +1,7 @@
 #pragma once
 
-enum eLightOverride
-{
-    NoOverride,
-    ForceLightsOff,
-    ForceLightsOn,
+enum eLightOverride {
+  NoOverride,
+  ForceLightsOff,
+  ForceLightsOn,
 };

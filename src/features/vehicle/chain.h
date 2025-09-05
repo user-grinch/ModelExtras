@@ -2,11 +2,9 @@
 #include <plugin.h>
 #include <vector>
 
-class ChainFeature
-{
+class ChainFeature {
 protected:
-  struct VehData
-  {
+  struct VehData {
     uint m_nCurChain = 0;
     RwFrame *m_pRootFrame = nullptr;
     std::vector<RwFrame *> m_FrameList;

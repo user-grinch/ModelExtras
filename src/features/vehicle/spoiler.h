@@ -2,18 +2,15 @@
 #include <plugin.h>
 #include <vector>
 
-class Spoiler
-{
+class Spoiler {
 protected:
-  struct SpoilerData
-  {
+  struct SpoilerData {
     RwFrame *m_pFrame = NULL;
     float m_fRotation, m_fCurrentRotation;
     size_t m_nTime, m_nTriggerSpeed;
   };
 
-  struct VehData
-  {
+  struct VehData {
     std::vector<SpoilerData> m_Spoilers;
     VehData(CVehicle *pVeh) {}
     ~VehData() {}
