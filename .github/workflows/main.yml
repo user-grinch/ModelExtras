@@ -3,6 +3,8 @@ name: Build
 on:
   push:
 
+permissions: write-all
+
 jobs:
   build:
     runs-on: windows-latest
@@ -14,4 +16,4 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Run build
-        run: tools/release.bat
+        run: tools/Debug.bat
