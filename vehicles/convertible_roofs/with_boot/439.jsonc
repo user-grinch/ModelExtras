@@ -1,0 +1,25 @@
+{
+    "metadata": {
+        "author": "Unknown",
+        "desc": "Converted from ImVehFt",
+        "minver": 20000
+    },
+    "roofs": {
+        "x_convertible_boot" : {
+            "rotation": 100,
+            "speed" : 2.0
+        },
+        "x_convertible_roof" : {
+            "rotation": 100,
+            "speed" : 2.0
+        },
+        "x_convertible_roof2" : {
+            "rotation": 100,
+            "speed" : 2.0
+        },
+        "x_convertible_roof3" : {
+            "rotation": 200,
+            "speed" : 2.0   
+        }
+    }
+}
