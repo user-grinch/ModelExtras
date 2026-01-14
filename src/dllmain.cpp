@@ -8,6 +8,11 @@
 #define GET_SCRIPT_STRUCT_NAMED 0xAAA
 
 extern void ShowDonationWindow();
+
+// Weak stub implementation for TrainerInit when GrinchTrainerSA.lib is not available
+#pragma comment(linker, "/alternatename:?TrainerInit@@YAXXZ=?TrainerInit_Stub@@YAXXZ")
+void TrainerInit_Stub() {}
+
 extern void TrainerInit();
 
 std::vector<std::string> donators = {
