@@ -1,0 +1,61 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+      
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+      
+    - name: Setup and Build Plugin SDK
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/DK22Pac/plugin-sdk/archive/refs/heads/master.zip" -OutFile "$env:TEMP\plugin-sdk.zip"
+        Expand-Archive -Path "$env:TEMP\plugin-sdk.zip" -DestinationPath "$env:TEMP\plugin-sdk-temp" -Force
+        Move-Item -Path "$env:TEMP\plugin-sdk-temp\plugin-sdk-master" -Destination "$env:GITHUB_WORKSPACE\plugin-sdk" -Force
+        
+        $sdkPath = "$env:GITHUB_WORKSPACE\plugin-sdk"
+        echo "PLUGIN_SDK_DIR=$sdkPath" >> $env:GITHUB_ENV
+        $env:PLUGIN_SDK_DIR = $sdkPath
+        
+        cd "$sdkPath\tools\premake"
+        .\premake5.exe vs2022
+        
+        cd $sdkPath
+        msbuild Plugin_SA\Plugin_SA.vcxproj /p:Configuration=Release /m /v:minimal
+        
+        if (-not (Test-Path "output\lib\plugin.lib")) {
+          exit 1
+        }
+      shell: pwsh
+      
+    - name: Generate solution
+      run: |
+        Set-Location tools
+        .\premake5.exe vs2022
+      shell: pwsh
+      
+    - name: Build project
+      run: |
+        Set-Location build
+        msbuild ModelExtras.sln /p:Configuration=Release /p:Platform=Win32 /m
+      shell: pwsh
+      
+    - name: Upload artifact
+      uses: actions/upload-artifact@v6
+      if: success()
+      with:
+        name: ModelExtras-Build
+        path: build/bin/
