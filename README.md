@@ -6,7 +6,7 @@
 
 <p align="center">
   <em>Enhancing GTA San Andreas with custom features for peds, weapons, and vehicle components.</em><br>
-  Inspired by <a href="https://gtaforums.com/topic/904475-vehfuncs/">VehFuncs</a> and <a href="https://gtaforums.com/topic/528175-improved-vehicle-features/">ImVehFt</a>
+  Inspired by <a href="https://gtaforums.com/topic/904475-vehfuncs/">VehFuncs</a>, <a href="https://gtaforums.com/topic/528175-improved-vehicle-features/">ImVehFt</a> and <a href="https://vk.com/avs_russian/">Advanced Vehicle Sirens</a>
 </p>
 
 <p align="center">
