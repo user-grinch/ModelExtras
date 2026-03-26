@@ -80,12 +80,21 @@ void Sirens::Reload(CVehicle *pVeh)
 	DataMgr::Reload(model);
 }
 
-void __cdecl Sirens::hkAddPointLights(uint8_t type, CVector point, CVector dir, float range, float red, float green, float blue, uint8_t fogEffect, bool bCastsShadowFromPlayerCarAndPed, CEntity *castingEntity)
+void Sirens::hkAddPointLights(
+    uint8_t type, 
+    float px, float py, float pz,
+    float dx, float dy, float dz,
+    float range, 
+    float red, float green, float blue, 
+    uint8_t fogEffect, 
+    bool bCastsShadowFromPlayerCarAndPed, 
+    CEntity* castingEntity
+)
 {
-	if (pCurrentVeh == nullptr) return;
-	if (Sirens::modelData.contains(pCurrentVeh->m_nModelIndex)) return;
+    if (pCurrentVeh == nullptr) return;
+    if (Sirens::modelData.contains(pCurrentVeh->m_nModelIndex)) return;
 
-	CPointLights::AddLight(type, point, dir, range, red, green, blue, fogEffect, bCastsShadowFromPlayerCarAndPed, castingEntity);
+    CPointLights::AddLight(type, {px, py, pz}, {dx, dy, dz}, range, red, green, blue, fogEffect, bCastsShadowFromPlayerCarAndPed, castingEntity);
 }
 
 VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nlohmann::json json)
