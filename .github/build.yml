@@ -1,0 +1,74 @@
+# Based on CanerKaraca23 build script
+name: Build ModelExtras
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TARGET: i686-w64-mingw32
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+      with:
+        submodules: recursive
+
+    - name: Setup xmake
+      uses: xmake-io/github-action-setup-xmake@v1
+      with:
+        xmake-version: latest
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-19 g++-mingw-w64-i686
+
+    - name: Build plugin-sdk
+      run: |
+        set -e
+        # Clone only latest commit
+        git clone --depth=1 https://github.com/DK22Pac/plugin-sdk.git plugin-sdk
+        cd plugin-sdk
+        mkdir -p output/lib
+        # Prepare object directories
+        for dir in shared plugin_sa safetyhook; do
+          find "$dir" -type d -exec mkdir -p "obj/{}" \;
+        done
+
+        # Common flags
+        FLAGS="-I. -Ishared -Ishared/game -Iplugin_sa -Iplugin_sa/game_sa -Iplugin_sa/game_sa/rw -Isafetyhook -DGTASA -DPLUGIN_SGV_10US -DRW"
+        CLANG_FLAGS="--target=$TARGET -fpermissive -fcommon -fms-extensions -Wno-microsoft-include -O2 -D__cpp_concepts=202002L"
+
+        # Parallel build
+        find shared plugin_sa safetyhook -name '*.cpp' -print0 | \
+          xargs -0 -P$(nproc) -I{} clang++-19 $CLANG_FLAGS -std=c++2b $FLAGS -c {} -o obj/{}.o
+
+        find safetyhook -name '*.c' -print0 | \
+          xargs -0 -P$(nproc) -I{} clang-19 $CLANG_FLAGS $FLAGS -c {} -o obj/{}.o
+
+        find obj -name '*.o' | xargs $TARGET-ar rcs output/lib/libplugin.a
+
+        echo "PLUGIN_SDK_DIR=$PWD" >> "$GITHUB_ENV"
+
+    - name: Build ModelExtras with xmake
+      run: |
+        xmake f -m release \
+          --mingw=/usr \
+          --cc=clang-19 \
+          --cxx=clang++-19 \
+          --cxflags="-D__cpp_concepts=202002L" \
+          -c -y
+        xmake -j$(nproc)
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: ModelExtras-Test-Build
+        path: build/mingw/x86/release/ModelExtras.asi
