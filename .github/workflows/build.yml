@@ -43,9 +43,10 @@ jobs:
     - name: Build plugin-sdk
       if: steps.plugin-sdk-cache.outputs.cache-hit != 'true'
       run: |
-        # Clone only latest commit
-        git clone --depth=1 https://github.com/DK22Pac/plugin-sdk.git plugin-sdk
+        # Clone repo and check out the exact commit used in the cache key
+        git clone https://github.com/DK22Pac/plugin-sdk.git plugin-sdk
         cd plugin-sdk
+        git checkout "${{ steps.plugin-sdk-ref.outputs.sha }}"
         mkdir -p output/lib
         # Prepare object directories
         for dir in shared plugin_sa safetyhook; do
