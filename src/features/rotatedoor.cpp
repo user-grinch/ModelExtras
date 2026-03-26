@@ -37,9 +37,8 @@ void RotateDoor::UpdateDoorGroup(CVehicle* pVeh, std::vector<RotateDoorConfig>& 
 
 void RotateDoor::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle* pVeh, RwFrame* pFrame)
+    ModelInfoMgr::RegisterDummy([](CVehicle* pVeh, RwFrame* pFrame, const std::string_view name)
     {
-        std::string name = GetFrameNodeName(pFrame);
         if (!name.starts_with("x_rd_")) return;
 
         auto& jsonData = DataMgr::Get(pVeh->m_nModelIndex);

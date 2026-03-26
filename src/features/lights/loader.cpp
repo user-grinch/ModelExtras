@@ -41,7 +41,7 @@ void LightsFeature::Init() {
 		return eMaterialType::UnknownMaterial; 
     });
 
-	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame) {
+	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName) {
 		for (auto &e : ILightBehaviorBase::ptrs) {
 			if (e->IsValidDummy(pFrame) && e->RegisterDummy(pFrame)) {
 				return;

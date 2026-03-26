@@ -17,7 +17,7 @@ extern int gGlobalShadowIntensity;
 void SpotLights::Init()
 {
 
-	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame)
+	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName)
 							   {
         SpotlightData& data = m_VehData.Get(pVeh);
 		std::string name = GetFrameNodeName(pFrame);

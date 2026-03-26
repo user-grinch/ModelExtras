@@ -29,7 +29,7 @@ void SlideDoor::UpdateDoorGroup(CVehicle *pVeh, std::vector<SlideDoorConfig> &co
 
 void SlideDoor::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName)
                                 {
         std::string name = GetFrameNodeName(pFrame);
 

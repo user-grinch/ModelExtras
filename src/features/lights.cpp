@@ -186,7 +186,7 @@ void Lights::Init()
 		// If no match is found
 		return eMaterialType::UnknownMaterial; });
 
-	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *frame)
+	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *frame, const std::string_view name2)
 								{
 		std::string name = GetFrameNodeName(frame);
 		VehicleDummyConfig c;

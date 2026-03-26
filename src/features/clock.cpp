@@ -7,7 +7,7 @@
 void DigitalClockFeature::Init()
 {
     LOG_VERBOSE("Init {}", __FUNCTION__);
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName)
     {
         std::string name = GetFrameNodeName(pFrame);
         if (name.starts_with("x_dclock")) {

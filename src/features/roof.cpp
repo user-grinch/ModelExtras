@@ -35,7 +35,7 @@ bool ConvertibleRoof::UpdateRotation(RoofConfig &config, CVehicle *pVeh, bool cl
 
 void ConvertibleRoof::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName)
                                 {
                                     std::string name = GetFrameNodeName(pFrame);
                                     bool isBoot = name.starts_with("x_convertible_boot");

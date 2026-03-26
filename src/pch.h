@@ -12,7 +12,6 @@
 #include "AixLog/AixLog.hpp"
 #include <format>
 #include "utils/util.h"
-#include "utils/hash.hpp"
 #include "vkeys.h"
 
 using namespace plugin;

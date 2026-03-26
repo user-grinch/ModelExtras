@@ -15,7 +15,7 @@ struct MatStateColor
 
 constexpr uint32_t MAX_LIGHTS = 256;
 const CRGBA DEFAULT_MAT_COL = CRGBA(255, 255, 255, 255);
-using DummyCallback_t = std::function<void(CVehicle *, RwFrame *)>;
+using DummyCallback_t = std::function<void(CVehicle *, RwFrame *, const std::string_view&)>;
 using RenderCallback_t = std::function<void(CVehicle *)>;
 using MaterialCallback_t = std::function<eMaterialType(CVehicle *, RpMaterial *)>;
 using MaterialColProviderCallback_t = std::function<MatStateColor(CVehicle *, RpMaterial *, eMaterialType)>;

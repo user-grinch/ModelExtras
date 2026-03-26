@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "wheel.h"
 #include "utils/modelinfomgr.h"
+#include <string_view>
 
 void UpdateWheelRotation(CVehicle *pVeh, RwFrame *ori, RwFrame *tar)
 {
@@ -13,60 +14,46 @@ void UpdateWheelRotation(CVehicle *pVeh, RwFrame *ori, RwFrame *tar)
     }
 }
 
+
+static const std::unordered_map<std::string_view, eWheelPos> originalMap = {
+    { "wheel_rf_dummy", eWheelPos::RightFront },
+    { "wheel_rm_dummy", eWheelPos::RightMiddle },
+    { "wheel_rr_dummy", eWheelPos::RightRear },
+    { "wheel_rb_dummy", eWheelPos::RightRear },
+    { "wheel_lf_dummy", eWheelPos::LeftFront },
+    { "wheel_lm_dummy", eWheelPos::LeftMiddle },
+    { "wheel_lr_dummy", eWheelPos::LeftRear },
+    { "wheel_lb_dummy", eWheelPos::LeftRear },
+};
+
+static const std::unordered_map<std::string_view, eWheelPos> extraMap = {
+    { "x_wheel_lf", eWheelPos::LeftFront },
+    { "x_wheel_lm", eWheelPos::LeftMiddle },
+    { "x_wheel_lr", eWheelPos::LeftRear },
+    { "x_wheel_rf", eWheelPos::RightFront },
+    { "x_wheel_rm", eWheelPos::RightMiddle },
+    { "x_wheel_rr", eWheelPos::RightRear },
+};
+
 void ExtraWheel::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle* pVeh, RwFrame* pFrame) {
+    ModelInfoMgr::RegisterDummy([](CVehicle* pVeh, RwFrame* pFrame, const std::string_view& name) {
         ExtraWheelData& data = m_VehData.Get(pVeh);
-        std::string_view name = GetFrameNodeName(pFrame);
-        Hash::Value nameHash = Hash::Get(name);
 
-        switch (nameHash) {
-            case "wheel_rf_dummy"_h:
-                data.pOriginals[static_cast<int>(eWheelPos::RightFront)].push_back(pFrame);
-                break;
-            case "wheel_rm_dummy"_h:
-                data.pOriginals[static_cast<int>(eWheelPos::RightMiddle)].push_back(pFrame);
-                break;
-            case "wheel_rr_dummy"_h:
-            case "wheel_rb_dummy"_h:
-                data.pOriginals[static_cast<int>(eWheelPos::RightRear)].push_back(pFrame);
-                break;
-            case "wheel_lf_dummy"_h:
-                data.pOriginals[static_cast<int>(eWheelPos::LeftFront)].push_back(pFrame);
-                break;
-            case "wheel_lm_dummy"_h:
-                data.pOriginals[static_cast<int>(eWheelPos::LeftMiddle)].push_back(pFrame);
-                break;
-            case "wheel_lr_dummy"_h:
-            case "wheel_lb_dummy"_h:
-                data.pOriginals[static_cast<int>(eWheelPos::LeftRear)].push_back(pFrame);
-                break;
-        }
-
-        if (!Hash::StartsWith(name, "x_wheel") || name.length() < 10) {
+        auto itOrig = originalMap.find(name);
+        if (itOrig != originalMap.end()) {
+            data.pOriginals[(int)itOrig->second].push_back(pFrame);
             return;
         }
 
-        Hash::Value prefixHash = Hash::Get(name.substr(0, 10));
-        switch (prefixHash) {
-            case "x_wheel_lf"_h:
-                data.pExtras[static_cast<int>(eWheelPos::LeftFront)].push_back(pFrame);
-                break;
-            case "x_wheel_lm"_h:
-                data.pExtras[static_cast<int>(eWheelPos::LeftMiddle)].push_back(pFrame);
-                break;
-            case "x_wheel_lr"_h:
-                data.pExtras[static_cast<int>(eWheelPos::LeftRear)].push_back(pFrame);
-                break;
-            case "x_wheel_rf"_h:
-                data.pExtras[static_cast<int>(eWheelPos::RightFront)].push_back(pFrame);
-                break;
-            case "x_wheel_rm"_h:
-                data.pExtras[static_cast<int>(eWheelPos::RightMiddle)].push_back(pFrame);
-                break;
-            case "x_wheel_rr"_h:
-                data.pExtras[static_cast<int>(eWheelPos::RightRear)].push_back(pFrame);
-                break;
+        if (!name.starts_with("x_wheel")) {
+            return;
+        }
+
+        std::string_view prefix = name.substr(0, 10);
+        auto itExtra = extraMap.find(prefix);
+        if (itExtra != extraMap.end()) {
+            data.pExtras[(int)itExtra->second].push_back(pFrame);
         }
     });
 

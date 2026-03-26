@@ -8,6 +8,7 @@
 #include <rpworld.h>
 #include "utils/texmgr.h"
 #include <NodeName.h>
+#include <string_view>
 #include "features/carcols.h"
 #include "utils/meevents.h"
 #include "features/dirtfx.h"
@@ -111,9 +112,10 @@ void ModelInfoMgr::FindDummies(CVehicle *vehicle, RwFrame *frame)
 			FindDummies(vehicle, nextFrame);
 		}
 
+		std::string_view nodeName = GetFrameNodeName(frame);
 		for (auto e : dummy)
 		{
-			e(vehicle, frame);
+			e(vehicle, frame, nodeName);
 		}
 	}
 };

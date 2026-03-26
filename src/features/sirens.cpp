@@ -625,7 +625,7 @@ void Sirens::Init()
 		}
 		return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL}; });
 
-	ModelInfoMgr::RegisterDummy([](CVehicle *vehicle, RwFrame *frame)
+	ModelInfoMgr::RegisterDummy([](CVehicle *vehicle, RwFrame *frame, const std::string_view name2)
 								{
 		std::string name = GetFrameNodeName(frame);
 		if (!modelData.contains(vehicle->m_nModelIndex)) {
