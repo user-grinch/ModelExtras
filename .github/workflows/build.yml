@@ -11,8 +11,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      TARGET: i686-w64-mingw32
 
     steps:
     - name: Checkout repository
@@ -30,12 +28,25 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y clang-19 g++-mingw-w64-i686
 
-    - name: Build plugin-sdk
+    - name: Get latest plugin-sdk commit
+      id: plugin-sdk-ref
       run: |
-        set -e
-        # Clone only latest commit
-        git clone --depth=1 https://github.com/DK22Pac/plugin-sdk.git plugin-sdk
+        echo "sha=$(git ls-remote https://github.com/DK22Pac/plugin-sdk.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+
+    - name: Restore plugin-sdk cache
+      id: plugin-sdk-cache
+      uses: actions/cache@v5
+      with:
+        path: plugin-sdk
+        key: plugin-sdk-${{ steps.plugin-sdk-ref.outputs.sha }}-i686-w64-mingw32
+
+    - name: Build plugin-sdk
+      if: steps.plugin-sdk-cache.outputs.cache-hit != 'true'
+      run: |
+        # Clone repo and check out the exact commit used in the cache key
+        git clone https://github.com/DK22Pac/plugin-sdk.git plugin-sdk
         cd plugin-sdk
+        git checkout "${{ steps.plugin-sdk-ref.outputs.sha }}"
         mkdir -p output/lib
         # Prepare object directories
         for dir in shared plugin_sa safetyhook; do
@@ -44,7 +55,7 @@ jobs:
 
         # Common flags
         FLAGS="-I. -Ishared -Ishared/game -Iplugin_sa -Iplugin_sa/game_sa -Iplugin_sa/game_sa/rw -Isafetyhook -DGTASA -DPLUGIN_SGV_10US -DRW"
-        CLANG_FLAGS="--target=$TARGET -fpermissive -fcommon -fms-extensions -Wno-microsoft-include -O2 -D__cpp_concepts=202002L"
+        CLANG_FLAGS="--target=i686-w64-mingw32 -fpermissive -fcommon -fms-extensions -Wno-microsoft-include -O2 -D__cpp_concepts=202002L"
 
         # Parallel build
         find shared plugin_sa safetyhook -name '*.cpp' -print0 | \
@@ -53,9 +64,13 @@ jobs:
         find safetyhook -name '*.c' -print0 | \
           xargs -0 -P$(nproc) -I{} clang-19 $CLANG_FLAGS $FLAGS -c {} -o obj/{}.o
 
-        find obj -name '*.o' | xargs $TARGET-ar rcs output/lib/libplugin.a
+        find obj -name '*.o' | xargs i686-w64-mingw32-ar rcs output/lib/libplugin.a
 
-        echo "PLUGIN_SDK_DIR=$PWD" >> "$GITHUB_ENV"
+        echo "PLUGIN_SDK_DIR=$GITHUB_WORKSPACE/plugin-sdk" >> "$GITHUB_ENV"
+
+    - name: Use cached plugin-sdk
+      if: steps.plugin-sdk-cache.outputs.cache-hit == 'true'
+      run: echo "PLUGIN_SDK_DIR=$GITHUB_WORKSPACE/plugin-sdk" >> "$GITHUB_ENV"
 
     - name: Build ModelExtras with xmake
       run: |
@@ -67,8 +82,18 @@ jobs:
           -c -y
         xmake -j$(nproc)
 
+    - name: Prepare artifact files
+      run: |
+        mkdir -p artifact/ModelExtras
+        cp build/mingw/x86/release/ModelExtras.asi artifact/ModelExtras.asi
+        cp resource/dist/ModelExtras.ini artifact/ModelExtras.ini
+        cp -r resource/dist/ModelExtras/* artifact/ModelExtras/
+
     - name: Upload artifact
       uses: actions/upload-artifact@v7
       with:
         name: ModelExtras-Test-Build
-        path: build/mingw/x86/release/ModelExtras.asi
+        path: |
+          artifact/ModelExtras.asi
+          artifact/ModelExtras.ini
+          artifact/ModelExtras/**
