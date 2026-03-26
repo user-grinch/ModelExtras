@@ -89,8 +89,10 @@ target("ModelExtras")
     )
 
     after_build(function (target)
-        os.cp(target:targetfile(), GAME_DIR)
-        print(">> Deployed to Game Directory")
+        if GAME_DIR then
+            os.cp(target:targetfile(), GAME_DIR)
+            print(">> Deployed to Game Directory")
+        end
     end)
 
     if is_mode("debug") then
