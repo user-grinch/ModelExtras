@@ -6,20 +6,22 @@ class SlideDoor
 {
 protected:
     struct DoorConfig {
-      RwFrame* frame = nullptr;
-      bool reverse = false;
+        RwFrame* frame = nullptr;
+        float mul = 1.0f;
+        float popOutAmount = 0.2f;
     };
 
     struct VehData {
-      DoorConfig leftFront, rightFront;
-      DoorConfig leftRear, rightRear;
+        std::vector<DoorConfig> leftFront, rightFront;
+        std::vector<DoorConfig> leftRear, rightRear;
 
-      VehData(CVehicle* pVeh) {}
-      ~VehData() {}
+        VehData(CVehicle* pVeh) {}
+        ~VehData() {}
     };
 
     static inline VehicleExtendedData<VehData> xData;
-    static void UpdateSlidingDoor(CVehicle* pVeh, DoorConfig& config, eDoors doorID);
+
+    static void UpdateDoorGroup(CVehicle* pVeh, std::vector<DoorConfig>& configs, eDoors doorID);
 
 public:
     static void Initialize();

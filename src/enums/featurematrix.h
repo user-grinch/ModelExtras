@@ -1,9 +1,10 @@
 #pragma once
 
-enum class eFeatureMatrix {
+enum class eFeatureMatrix
+{
     // Common Features
     TextureRemapper,
-    ModelRandomizer,
+    REMOVED_NULL,
 
     // Bike Features
     AnimatedBrakes,
@@ -35,5 +36,17 @@ enum class eFeatureMatrix {
     // Weapon Features
     BodyStateVariation,
     CustomSounds,
+
+    // Ped Features
+    GangHands,
+    PedCols,
+
+    ExhaustFx,
+    ConvertibleRoof,
+    DashboardLED,
+    RollbackBed,
+    Clock,
+    ExtraWheels,
+
     FeatureCount
 };

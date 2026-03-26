@@ -3,9 +3,11 @@
 #include "bodystate.h"
 #define PARACHUTE_MODEL 371
 
+using namespace plugin;
+
 float GetStatValue(unsigned short stat)
 {
-    return plugin::CallAndReturn<float, 0x558E40, unsigned short>(stat);
+    return CallAndReturn<float, 0x558E40, unsigned short>(stat);
 }
 
 void BodyState::Process(void *ptr, RwFrame *frame, eModelEntityType type)
@@ -62,7 +64,7 @@ void BodyState::Process(void *ptr, RwFrame *frame, eModelEntityType type)
         auto play = FindPlayerPed();
         if (play && play->m_nWeaponModelId == PARACHUTE_MODEL)
         {
-            plugin::Call<0x4395B0>();
+            Call<0x4395B0>();
         }
         data.prevBodyState = bodyState;
     }

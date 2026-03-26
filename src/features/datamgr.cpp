@@ -44,7 +44,7 @@ void DataMgr::Convert()
             }
         }
     } else {
-        gLogger->warn("ModelExtras/data directory doesn't exist");
+        LOG(WARNING) << "ModelExtras/data directory doesn't exist";
     }
 }
 
@@ -93,7 +93,7 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
         }
 
         if (data.contains(model)) {
-            gLogger->warn("Found multiple config files for model id {}", model);
+            LOG(WARNING) << std::format("Found multiple config files for model id {}", model);
         }
 
         if (model == 0)
@@ -116,14 +116,14 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
                     {
                         std::string text = std::format("Model {} requires version [{}] but [{}] is installed.", model, ver, MOD_VERSION_NUMBER);
                         MessageBox(RsGlobal.ps->window, text.c_str(), "ModelExtras version mismatch!", MB_OK);
-                        gLogger->warn(text);
+                        LOG(WARNING) << text;
                     }
                 }
                 modelPath[model] = e.path().string();
             }
             else
             {
-                gLogger->error("Skipping {}. No metadata found!", filename);
+                LOG(ERROR) << std::format("Skipping {}. No metadata found!", filename);
                 return;
             }
 
@@ -131,24 +131,24 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
 
             Sirens::Parse(data[model], model);
             IVFCarcols::Parse(data[model], model);
-            gLogger->info("Successfully registered file '{}'", filename);
+            LOG(INFO) << std::format("Registered file '{}'", filename);
         }
         catch (const nlohmann::json::parse_error &ex)
         {
-            gLogger->error("Failed to parse JSONC in file '{}': {}", e.path().string(), ex.what());
+            LOG(ERROR) << std::format("Failed to parse JSONC file '{}': {}", e.path().string(), ex.what());
         }
     }
     catch (const std::exception &ex)
     {
         std::u8string u8Path = e.path().u8string();
         std::string path(reinterpret_cast<const char *>(u8Path.data()), u8Path.size());
-        gLogger->error("Parsing {} failed. ({})", path, ex.what());
+        LOG(ERROR) << std::format("Parsing {} failed. ({})", path, ex.what());
     }
 }
 
 void DataMgr::Parse()
 {
-    gLogger->info("Loading data files from ModelExtras/data...");
+    LOG(INFO) << "Loading data files from ModelExtras/data...";
     for (const auto &e : std::filesystem::directory_iterator(MOD_DATA_PATH("data/")))
     {
         LoadFile(e);
@@ -156,7 +156,7 @@ void DataMgr::Parse()
     LOG_NO_LEVEL("");
     if (GetModuleHandle("modloader.asi"))
     {
-        gLogger->info("Loading data files from modloader...");
+        LOG(INFO) << "Loading data files from modloader...";
         for (const auto &e : std::filesystem::recursive_directory_iterator(GAME_PATH((char *)"modloader/")))
         {
             LoadFile(e);
@@ -164,8 +164,7 @@ void DataMgr::Parse()
     }
 }
 
-nlohmann::json &
-DataMgr::Get(int model)
+nlohmann::json& DataMgr::Get(int model)
 {
     return data[model];
 }

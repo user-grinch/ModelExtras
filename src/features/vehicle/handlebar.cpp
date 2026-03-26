@@ -1,24 +1,26 @@
 #include "pch.h"
 #include "handlebar.h"
 #include "modelinfomgr.h"
-#define TARGET_NODE "handlebars"
-#define SOURCE_NODE "forks_front"
 
 void HandleBar::Initialize()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame)
-                               { 
+    { 
+        if (gbVehIKInstalled) {
+            return;
+		}
         auto &data = xData.Get(pVeh); 
         std::string name = GetFrameNodeName(pFrame);
         if (name == "forks_front") {
             data.m_pOrigin = pFrame;
         } else  if (name == "handlebars") {
             data.m_pTarget = pFrame;
-        } });
+        } 
+    });
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
-                                {
-        if (!pVeh || !pVeh->GetIsOnScreen())
+    {
+        if (gbVehIKInstalled || !pVeh || !pVeh->GetIsOnScreen())
         {
             return;
         }
@@ -29,7 +31,7 @@ void HandleBar::Initialize()
         }
 
         float rot = MatrixUtil::GetRotationZ(&data.m_pOrigin->modelling);
-        MatrixUtil::ResetRotation(&data.m_pTarget->modelling);
-        MatrixUtil::SetRotationZ(&data.m_pTarget->modelling, rot); 
-        pVeh->UpdateRwFrame(); });
+        MatrixUtil::SetRotationZAbsolute(&data.m_pTarget->modelling, rot - data.prevAngle); 
+        data.prevAngle = rot;
+    });
 }

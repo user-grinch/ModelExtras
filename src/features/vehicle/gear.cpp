@@ -1,11 +1,13 @@
 #include "pch.h"
-#include "Gear.h"
+#include "gear.h"
 #include "datamgr.h"
 #include <extensions/ScriptCommands.h>
 #include "modelinfomgr.h"
 
-void Clutch::Initialize() {
-    ModelInfoMgr::RegisterDummy([](CVehicle* pVeh, RwFrame* pFrame) {
+void Clutch::Initialize()
+{
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame)
+                                {
         std::string name = GetFrameNodeName(pFrame);
         if (name.starts_with("x_clutch") || name.starts_with("fc_cl")) {
             VehData &data = vehData.Get(pVeh);
@@ -17,10 +19,10 @@ void Clutch::Initialize() {
             data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nCurOffset / 10));
             data.pFrame = pFrame;
             data.m_bInitialized = true;
-        }
-    });
+        } });
 
-    ModelInfoMgr::RegisterRender([](CVehicle* pVeh) {
+    ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
+                                 {
         if (!pVeh || !pVeh->GetIsOnScreen()) return;
 
         auto& data = vehData.Get(pVeh);
@@ -61,12 +63,13 @@ void Clutch::Initialize() {
                 FrameUtil::SetRotationZ(data.pFrame, data.m_fCalVal);
                 data.m_nLastFrameMS = now;
                 break;
-        }
-    });
+        } });
 }
 
-void GearLever::Initialize() {
-    ModelInfoMgr::RegisterDummy([](CVehicle* pVeh, RwFrame* pFrame) {
+void GearLever::Initialize()
+{
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame)
+                                {
         std::string name = GetFrameNodeName(pFrame);
         if (name.starts_with("x_gearlever") || name.starts_with("fc_gl")) {
             VehData &data = vehData.Get(pVeh);
@@ -78,10 +81,10 @@ void GearLever::Initialize() {
             data.m_nWaitTime = static_cast<unsigned int>(abs(data.m_nCurOffset / 10));
             data.pFrame = pFrame;
             data.m_bInitialized = true;
-        }
-    });
+        } });
 
-    ModelInfoMgr::RegisterRender([](CVehicle* pVeh) {
+    ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
+                                 {
         if (!pVeh || !pVeh->GetIsOnScreen()) return;
 
         VehData &data = vehData.Get(pVeh);
@@ -138,6 +141,5 @@ void GearLever::Initialize() {
                     data.m_nLastFrameMS = timer;
                 }
             }
-        }
-    });
+        } });
 }

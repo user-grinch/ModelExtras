@@ -4,68 +4,85 @@
 #include "datamgr.h"
 #include <extensions/ScriptCommands.h>
 #include <extensions/scripting/ScriptCommandNames.h>
-#include "../audiomgr.h"
-#include "../../enums/vehdummy.h"
+#include "audiomgr.h"
+#include "enums/vehdummy.h"
 #include <CCamera.h>
+#include "ModelExtrasAPI.h"
 
-void BackFireEffect::BackFireFX(CVehicle *pVeh, float x, float y, float z)
+using namespace plugin;
+
+void BackFireEffect::BackFireFX(CVehicle *pVeh, float x, float y, float z, float dirX, float dirY, float dirZ)
 {
     int handle = NULL;
-    plugin::Command<Commands::CREATE_FX_SYSTEM_ON_CAR_WITH_DIRECTION>("GUNFLASH", CPools::GetVehicleRef(pVeh), x, y, z, 0.0f, -25.0f, 0.0f, 1, &handle);
+    Command<Commands::CREATE_FX_SYSTEM_ON_CAR_WITH_DIRECTION>("GUNFLASH", CPools::GetVehicleRef(pVeh), x, y, z, dirX, dirY, dirZ, 1, &handle);
 
     if (handle == NULL)
     {
         return;
     }
 
-    plugin::Command<Commands::PLAY_AND_KILL_FX_SYSTEM>(handle);
+    Command<Commands::PLAY_AND_KILL_FX_SYSTEM>(handle);
 
     CVector vehPos = pVeh->GetPosition();
     CVector camPos = TheCamera.GetPosition();
     static std::string audioPath = MOD_DATA_PATH("audio/effects/backfire.wav");
     AudioMgr::PlayFileSound(audioPath, pVeh, 1.5f, true);
-    // if (DistanceBetweenPoints(vehPos, camPos) < 80.0f)
-    // {
-    //     plugin::Command<Commands::ADD_ONE_OFF_SOUND>(0.0f, 0.0f, 0.0f, 1131);
-    // }
 }
 
 void BackFireEffect::BackFireSingle(CVehicle *pVeh)
 {
-    // https://github.com/multitheftauto/mtasa-blue/blob/16769b8d1c94e2b9fe6323dcba46d1305f87a190/Client/game_sa/CModelInfoSA.h#L213
-    CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));
-    int handlingID = patch::Get<WORD>((int)pInfo + 74, false);                                       //  CBaseModelInfo + 74 = handlingID
-    tHandlingData *pHandlingData = reinterpret_cast<tHandlingData *>(0xC2B9DC + (handlingID * 224)); // sizeof(tHandlingData) = 224
-    float vx = 0;
-    CVector pos = pInfo->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::EXHAUST];
-    if (pHandlingData->m_bDoubleExhaust)
+
+    size_t count = ME_GetExhaustCount(pVeh);
+    if (count <= 0)
     {
-        vx = pos.x * -1.0f;
-    }
-
-    if (pHandlingData->m_bDoubleExhaust) {
-        BackFireFX(pVeh, vx, pos.y, pos.z);
-    }
-    BackFireFX(pVeh, pos.x, pos.y, pos.z);
-
-    vx = 0.0f;
-    pos = pInfo->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::EXHAUST_SECONDARY];
-    if (!pos.IsZero()) {
-        if (pHandlingData->m_bDoubleExhaust)
+        // https://github.com/multitheftauto/mtasa-blue/blob/16769b8d1c94e2b9fe6323dcba46d1305f87a190/Client/game_sa/CModelInfoSA.h#L213
+        CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));
+        float vx = 0;
+        CVector pos = pInfo->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::EXHAUST];
+        if (pVeh->m_pHandlingData->m_bDoubleExhaust)
         {
             vx = pos.x * -1.0f;
         }
 
-        if (pHandlingData->m_bDoubleExhaust) {
+        if (pVeh->m_pHandlingData->m_bDoubleExhaust)
+        {
             BackFireFX(pVeh, vx, pos.y, pos.z);
         }
         BackFireFX(pVeh, pos.x, pos.y, pos.z);
+
+        vx = 0.0f;
+        pos = pInfo->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::EXHAUST_SECONDARY];
+        if (!pos.IsZero())
+        {
+            if (pVeh->m_pHandlingData->m_bDoubleExhaust)
+            {
+                vx = pos.x * -1.0f;
+            }
+
+            if (pVeh->m_pHandlingData->m_bDoubleExhaust)
+            {
+                BackFireFX(pVeh, vx, pos.y, pos.z);
+            }
+            BackFireFX(pVeh, pos.x, pos.y, pos.z);
+        }
+    }
+    else
+    {
+        for (int i = 0; i < count; i++)
+        {
+            const ME_ExhaustInfo &info = ME_GetExhaustData(pVeh, i);
+            if (info.pFrame)
+            {
+                CVector f = info.pFrame->modelling.up; // Up is Forward
+                BackFireFX(pVeh, info.pFrame->modelling.pos.x, info.pFrame->modelling.pos.y, info.pFrame->modelling.pos.z, f.x * 1.5f, f.y * 1.5f, f.z * 1.5f);
+            }
+        }
     }
 }
 
 void BackFireEffect::BackFireMulti(CVehicle *pVeh)
 {
-    int num = plugin::RandomNumberInRange(0, 3) - 1;
+    int num = RandomNumberInRange(0, 3) - 1;
 
     BackFireSingle(pVeh);
     VehData &data = vehData.Get(pVeh);
@@ -82,16 +99,16 @@ void BackFireEffect::BackFireMulti(CVehicle *pVeh)
 std::vector<int> ValidModels = {};
 bool onlySelected = false;
 
-void BackFireEffect::Initialize(RwFrame *frame, CEntity *pVeh)
+void BackFireEffect::Initialize()
 {
-    plugin::Events::initGameEvent += []()
+    Events::initGameEvent += []()
     {
         std::string line = gConfig.ReadString("TABLE", "BackFireEffect_VehicleModels", "");
         onlySelected = gConfig.ReadBoolean("VEHICLE_FEATURES", "BackfireEffect_OnlySelectedModels", true);
         Util::GetModelsFromIni(line, ValidModels);
     };
 
-    plugin::Events::vehicleRenderEvent.before += [](CVehicle *vehicle)
+    Events::vehicleRenderEvent.before += [](CVehicle *vehicle)
     {
         BackFireEffect::Process(vehicle);
     };
@@ -112,7 +129,8 @@ void BackFireEffect::Process(CVehicle *pVeh)
         return;
     }
 
-    if (pVeh->m_nCurrentGear == 0) {
+    if (pVeh->m_nCurrentGear == 0)
+    {
         return;
     }
 

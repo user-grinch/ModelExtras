@@ -30,7 +30,7 @@ bool Helper_MoveToBackup(const std::string &src)
     }
     catch (const std::filesystem::filesystem_error &e)
     {
-        gLogger->error("Failed to move {} to backup: {}", src, e.what());
+        LOG(ERROR) << std::format("Failed to move {} to backup: {}", src, e.what());
         return false;
     }
 
@@ -42,7 +42,7 @@ bool Helper_OpenFile(const std::string &path, std::ifstream &infile, const std::
     infile.open(path);
     if (!infile)
     {
-        gLogger->warn("{}: Failed to open {}", logPrefix, path);
+        LOG(WARNING) << std::format("{}: Failed to open {}", logPrefix, path);
         return false;
     }
     return true;
@@ -53,7 +53,7 @@ bool Helper_CreateFile(const std::string &path, std::ofstream &outfile, const st
     outfile.open(path);
     if (!outfile)
     {
-        gLogger->error("{}: Failed to create {}", logPrefix, path);
+        LOG(ERROR) << std::format("{}: Failed to create {}", logPrefix, path);
         return false;
     }
     return true;
@@ -67,10 +67,10 @@ void Helper_LoadPrepJson(const std::string &path, nlohmann::json &jsonData, cons
         jsonData = nlohmann::json::parse(temp, NULL, true, true);
         temp.close();
 
-        gLogger->warn("{}: Merging with {}", logPrefix, path);
+        LOG(WARNING) << std::format("{}: Merging with {}", logPrefix, path);
         if (jsonData.contains(clearKey))
         {
-            gLogger->warn("{}: {} already contains {}, replacing...", logPrefix, path, clearKey);
+            LOG(WARNING) << std::format("{}: {} already contains {}, replacing...", logPrefix, path, clearKey);
             jsonData[clearKey] = {};
         }
     }
@@ -92,7 +92,7 @@ int Convert_EmlToJsonc(const std::string &emlPath)
         std::istringstream iss(line);
         if (!(iss >> model))
         {
-            gLogger->warn("EML2JSONC: Failed to parse model ID from {}", emlPath);
+            LOG(WARNING) << std::format("EML2JSONC: Failed to parse model ID from {}", emlPath);
             return -1;
         }
         break;
@@ -168,7 +168,7 @@ int Convert_EmlToJsonc(const std::string &emlPath)
         state["state"] = starting;
         state["pattern"] = pattern;
         state["shadow"]["angleoffset"] = type == 1 ? 180.0f : 0.0f;
-        state["shadow"]["size"] = shadow / 2;
+        state["shadow"]["size"] = shadow / 1.5f;
         state["inertia"] = flash / 100.0f;
         state["shadow"]["type"] = type == 2 ? "pointlight" :  "round";
         state["type"] = type == 0 ? "directional" : (type == 1 ? "inversed-directional" : "non-directional");
@@ -180,7 +180,7 @@ int Convert_EmlToJsonc(const std::string &emlPath)
 
     if (!Helper_MoveToBackup(emlPath))
         return -1;
-    gLogger->info("Successfully converted {} to {}", emlPath, jsonPath);
+    LOG(INFO) << std::format("Successfully converted {} to {}", emlPath, jsonPath);
     return model;
 }
 
@@ -251,7 +251,7 @@ void Convert_JsonToJsonc(const std::string &inPath)
 
     if (!Helper_MoveToBackup(inPath))
         return;
-    gLogger->info("Successfully converted {} to {}", inPath, outPath);
+    LOG(INFO) << std::format("Successfully converted {} to {}", inPath, outPath);
 }
 
 int Convert_IvfcToJsonc(const std::string &inPath)
@@ -320,6 +320,6 @@ int Convert_IvfcToJsonc(const std::string &inPath)
 
     if (!Helper_MoveToBackup(inPath))
         return -1;
-    gLogger->info("Successfully converted {} to {}", inPath, outPath);
+    LOG(INFO) << std::format("Successfully converted {} to {}", inPath, outPath);
     return model;
 }

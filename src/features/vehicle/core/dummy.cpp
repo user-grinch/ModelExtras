@@ -28,6 +28,11 @@ VehicleDummy::VehicleDummy(const VehicleDummyConfig& config)
     auto &jsonData = DataMgr::Get(data.pVeh->m_nModelIndex);
     std::string name = GetFrameNodeName(data.frame);
 
+    std::string parentName = GetFrameNodeName(RwFrameGetParent(data.frame));
+    if (parentName.ends_with("_dummy")) {
+        data.isParentDummy = true;
+    }
+
     if (jsonData.contains("lights"))
     {
         std::string newName = name.substr(0, name.find("_prm"));
@@ -120,6 +125,10 @@ VehicleDummy::VehicleDummy(const VehicleDummyConfig& config)
             {
                 float shadowValue = static_cast<float>(name[prmPos + 12] - '0') / 7.5f;
                 data.shadow.size = std::max(shadowValue, 0.0f);
+
+                if (data.shadow.size > 0.0f) {
+                    data.shadow.render = true;
+                }
             }
             else
             {

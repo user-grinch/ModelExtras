@@ -6,6 +6,8 @@
 #include <rpworld.h>
 #include "texmgr.h"
 
+using namespace plugin;
+
 void DirtFx::Initialize()
 {
 	m_bEnabled = true;
@@ -15,7 +17,7 @@ void DirtFx::Initialize()
 	patch::RedirectCall(0x53CA61, DirtFx::Shutdown);
 	patch::RedirectCall(0x5B8FFD, DirtFx::InitialiseDirtTextures);
 
-	plugin::Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
+	Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
 	{
 		CVehicleModelInfo *pInfo = (CVehicleModelInfo *)CModelInfo::GetModelInfo(model);
 		CTxdStore::PushCurrentTxd();

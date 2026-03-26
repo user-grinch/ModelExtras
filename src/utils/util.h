@@ -1,5 +1,6 @@
 #pragma once
 #include "matrix.h"
+#include "car.h"
 #include "frame.h"
 #include "render.h"
 
@@ -18,7 +19,7 @@ public:
   static float NormalizeAngle(float angle);
   static double RadToDeg(double rad);
   static double DegToRad(double rad);
- 
+
   // Returns the speed of the vehicle handler
   static float GetVehiclePitch(CVehicle *pVeh);
   static bool IsVehicleDoingWheelie(CVehicle *pVeh);

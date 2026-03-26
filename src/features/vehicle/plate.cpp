@@ -6,31 +6,34 @@
 #include <rpworld.h>
 #include <RenderWare.h>
 #include <CTheZones.h>
-#include "defines.h"
-#include "enums/lightoverride.h"
 #include "texmgr.h"
+#include <utility>
+
+using namespace plugin;
 
 static CVehicle *pCurrentVeh = nullptr;
-extern RwSurfaceProperties& gLightSurfProps;
+extern RwSurfaceProperties &gLightSurfProps;
 extern RwSurfaceProperties gLightSurfPropsOff;
 
 void LicensePlate::Initialize()
 {
     m_bEnabled = true;
     // RpMaterial *__cdecl CCustomCarPlateMgr::SetupMaterialPlatebackTexture(RpMaterial *material, char plateType)
-    plugin::patch::PutRetn(0x6FDE50);
-    plugin::patch::ReplaceFunction(0x6FD500, CCustomCarPlateMgr_Initialise);
-    plugin::patch::ReplaceFunction(0x6FD720, CCustomCarPlateMgr_Shudown);
-    plugin::patch::ReplaceFunction(0x6FDEA0, CCustomCarPlateMgr_CreatePlateTexture);
+    patch::PutRetn(0x6FDE50);
+    patch::ReplaceFunction(0x6FD500, (void *)CCustomCarPlateMgr_Initialise);
+    patch::ReplaceFunction(0x6FD720, (void *)CCustomCarPlateMgr_Shudown);
+    patch::ReplaceFunction(0x6FDEA0, (void *)CCustomCarPlateMgr_CreatePlateTexture);
 }
 
-void LicensePlate::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat) {
-    if (!m_bEnabled || !pMat || !pMat->texture) {
+void LicensePlate::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat)
+{
+    if (!m_bEnabled || !pMat || !pMat->texture)
+    {
         return;
     }
-    
+
     pCurrentVeh = pVeh;
-    if ( !_stricmp("carpback", pMat->texture->name))
+    if (!_stricmp("carpback", pMat->texture->name))
     {
         CCustomCarPlateMgr_SetupMaterialPlatebackTexture(pMat, -1);
     }
@@ -72,6 +75,7 @@ bool __cdecl LicensePlate::CCustomCarPlateMgr_Initialise()
 
     for (int i = 0; i < ePlateType::TOTAL_SZ; i++)
     {
+        strcpy(m_Plates[i]->name, "carpback\0");
         RwTextureSetAddressingU(m_Plates[i], rwFILTERMIPNEAREST);
         RwTextureSetAddressingV(m_Plates[i], rwFILTERMIPNEAREST);
         RwTextureSetFilterMode(m_Plates[i], rwFILTERLINEAR);
@@ -107,14 +111,124 @@ RpMaterial *__cdecl LicensePlate::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
         }
     }
 
-    if (Util::IsNightTime() && !Util::IsEngineOff(pCurrentVeh) && pCurrentVeh->m_nOverrideLights != eLightOverride::ForceLightsOff || pCurrentVeh->m_nOverrideLights == eLightOverride::ForceLightsOn) {
+    if ((Util::IsNightTime() || CarUtil::IsLightsForcedOn(pCurrentVeh)) && !Util::IsEngineOff(pCurrentVeh) && !CarUtil::IsLightsForcedOff(pCurrentVeh))
+    {
         material->surfaceProps.ambient = gLightSurfProps.ambient;
         RpMaterialSetTexture(material, m_Plates[plateType + 4]);
-    } else {
+    }
+    else
+    {
         material->surfaceProps.ambient = gLightSurfPropsOff.ambient;
         RpMaterialSetTexture(material, m_Plates[plateType]);
     }
     return material;
+}
+
+std::pair<unsigned int, unsigned int> GetCharacterPositionInCharSet(char c)
+{
+    switch (c)
+    {
+    case '0':
+        return std::make_pair(2, 6);
+    case '1':
+        return std::make_pair(3, 6);
+    case '2':
+        return std::make_pair(0, 7);
+    case '3':
+        return std::make_pair(1, 7);
+    case '4':
+        return std::make_pair(2, 7);
+    case '5':
+        return std::make_pair(3, 7);
+    case '6':
+        return std::make_pair(0, 8);
+    case '7':
+        return std::make_pair(1, 8);
+    case '8':
+        return std::make_pair(2, 8);
+    case '9':
+        return std::make_pair(3, 8);
+    case 'A':
+    case 'a':
+        return std::make_pair(0, 0);
+    case 'B':
+    case 'b':
+        return std::make_pair(1, 0);
+    case 'C':
+    case 'c':
+        return std::make_pair(2, 0);
+    case 'D':
+    case 'd':
+        return std::make_pair(3, 0);
+    case 'E':
+    case 'e':
+        return std::make_pair(0, 1);
+    case 'F':
+    case 'f':
+        return std::make_pair(1, 1);
+    case 'G':
+    case 'g':
+        return std::make_pair(2, 1);
+    case 'H':
+    case 'h':
+        return std::make_pair(3, 1);
+    case 'I':
+    case 'i':
+        return std::make_pair(0, 2);
+    case 'J':
+    case 'j':
+        return std::make_pair(1, 2);
+    case 'K':
+    case 'k':
+        return std::make_pair(2, 2);
+    case 'L':
+    case 'l':
+        return std::make_pair(3, 2);
+    case 'M':
+    case 'm':
+        return std::make_pair(0, 3);
+    case 'N':
+    case 'n':
+        return std::make_pair(1, 3);
+    case 'O':
+    case 'o':
+        return std::make_pair(2, 3);
+    case 'P':
+    case 'p':
+        return std::make_pair(3, 3);
+    case 'Q':
+    case 'q':
+        return std::make_pair(0, 4);
+    case 'R':
+    case 'r':
+        return std::make_pair(1, 4);
+    case 'S':
+    case 's':
+        return std::make_pair(2, 4);
+    case 'T':
+    case 't':
+        return std::make_pair(3, 4);
+    case 'U':
+    case 'u':
+        return std::make_pair(0, 5);
+    case 'V':
+    case 'v':
+        return std::make_pair(1, 5);
+    case 'W':
+    case 'w':
+        return std::make_pair(2, 5);
+    case 'X':
+    case 'x':
+        return std::make_pair(3, 5);
+    case 'Y':
+    case 'y':
+        return std::make_pair(0, 6);
+    case 'Z':
+    case 'z':
+        return std::make_pair(1, 6);
+    default:
+        return std::make_pair(0, 9);
+    }
 }
 
 bool LicensePlate::CCustomCarPlateMgr_RenderLicenseplateTextToRaster(const char *text, RwRaster *charsRaster, RwRaster *plateRaster)
@@ -145,7 +259,9 @@ bool LicensePlate::CCustomCarPlateMgr_RenderLicenseplateTextToRaster(const char 
     for (auto letter = 0; letter < MAX_TEXT_LENGTH; letter++)
     {
         unsigned int charCol, charRow;
-        GetCharacterPositionInCharSet(text[letter], charCol, charRow);
+        auto t = GetCharacterPositionInCharSet(text[letter]);
+        charCol = t.first;
+        charRow = t.second;
 
         // Copy specific character from charset raster to plate raster
 

@@ -6,8 +6,8 @@
 #include "core/colors.h"
 
 #define IS_SAME_COLOR(type, VEHCOL) \
-    ((type.r == VEHCOL.r) && \
-     (type.g == VEHCOL.g) && \
+    ((type.r == VEHCOL.r) &&        \
+     (type.g == VEHCOL.g) &&        \
      (type.b == VEHCOL.b))
 
 void IVFCarcols::Initialize()
@@ -15,63 +15,84 @@ void IVFCarcols::Initialize()
     m_bEnabled = true;
 }
 
-bool IVFCarcols::GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA &col) {
-    CRGBA *colorTable = *reinterpret_cast<CRGBA**>(0x4C8390);
-    CRGBA type =  *reinterpret_cast<CRGBA *>(RpMaterialGetColor(pMat));
+bool IVFCarcols::GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA &col)
+{
+    CRGBA *colorTable = *reinterpret_cast<CRGBA **>(0x4C8390);
+    CRGBA type = *reinterpret_cast<CRGBA *>(RpMaterialGetColor(pMat));
     type.a == 255;
 
     int model = pVeh->m_nModelIndex;
-    if (m_bEnabled && variations.contains(model)) {
-        auto& data = ExData.Get(pVeh);
-        int random = rand() % variations[model].size();
-        auto storeCol = variations[model][random];
-        
-        if (type.r == VEHCOL_PRIMARY.r && type.g == VEHCOL_PRIMARY.g) {  // blue can be anything
-            if (!data.m_bPri) {
+    if (m_bEnabled && variations.contains(model))
+    {
+        auto &data = ExData.Get(pVeh);
+        if (data.randId == -1)
+        {
+            data.randId = rand() % variations[model].size();
+        }
+        auto storeCol = variations[model][data.randId];
+
+        if (type.r == VEHCOL_PRIMARY.r && type.g == VEHCOL_PRIMARY.g)
+        { // blue can be anything
+            if (!data.m_bPri)
+            {
                 data.m_Colors.primary = storeCol.primary;
                 data.m_bPri = true;
             }
             col = data.m_Colors.primary;
         }
-        else if (IS_SAME_COLOR(type, VEHCOL_SECONDARY)) {
-            if (!data.m_bSec) {
+        else if (IS_SAME_COLOR(type, VEHCOL_SECONDARY))
+        {
+            if (!data.m_bSec)
+            {
                 data.m_Colors.secondary = storeCol.secondary;
                 data.m_bSec = true;
             }
             col = data.m_Colors.secondary;
         }
-        else if (IS_SAME_COLOR(type, VEHCOL_TERTIARY)) {
-            if (!data.m_bTer) {
+        else if (IS_SAME_COLOR(type, VEHCOL_TERTIARY))
+        {
+            if (!data.m_bTer)
+            {
                 data.m_Colors.tert = storeCol.tert;
                 data.m_bTer = true;
             }
             col = data.m_Colors.tert;
         }
-        else if (IS_SAME_COLOR(type, VEHCOL_QUATARNARY)) {
-            if (!data.m_bQuat) {
+        else if (IS_SAME_COLOR(type, VEHCOL_QUATARNARY))
+        {
+            if (!data.m_bQuat)
+            {
                 data.m_Colors.quart = storeCol.quart;
                 data.m_bQuat = true;
             }
             col = data.m_Colors.quart;
-        } else {
+        }
+        else
+        {
             return false;
         }
     }
-    else {
+    else
+    {
         int idx = 0;
-        if (type.r == VEHCOL_PRIMARY.r && type.g == VEHCOL_PRIMARY.g) { // blue can be anything
+        if (type.r == VEHCOL_PRIMARY.r && type.g == VEHCOL_PRIMARY.g)
+        { // blue can be anything
             idx = CVehicleModelInfo::ms_currentCol[0];
         }
-        else if (IS_SAME_COLOR(type, VEHCOL_SECONDARY)) {
+        else if (IS_SAME_COLOR(type, VEHCOL_SECONDARY))
+        {
             idx = CVehicleModelInfo::ms_currentCol[1];
         }
-        else if (IS_SAME_COLOR(type, VEHCOL_TERTIARY)) {
+        else if (IS_SAME_COLOR(type, VEHCOL_TERTIARY))
+        {
             idx = CVehicleModelInfo::ms_currentCol[2];
         }
-        else if (IS_SAME_COLOR(type, VEHCOL_QUATARNARY)) {
+        else if (IS_SAME_COLOR(type, VEHCOL_QUATARNARY))
+        {
             idx = CVehicleModelInfo::ms_currentCol[3];
         }
-        else {
+        else
+        {
             return false;
         }
         col = colorTable[idx];
@@ -87,19 +108,20 @@ void IVFCarcols::Parse(const nlohmann::json &data, int model)
         auto &cols = data["carcols"]["colors"];
         auto &var = data["carcols"]["variations"];
 
-        for (auto &e : var) {
+        for (auto &e : var)
+        {
             int pIdx = e.value("primary", 0);
             int sIdx = e.value("secondary", 0);
             int tIdx = e.value("tertiary", 0);
             int qIdx = e.value("quaternary", 0);
 
             auto maxIdx = cols.size();
-            if (pIdx >= maxIdx || sIdx >= maxIdx || tIdx >= maxIdx || qIdx >= maxIdx) {
-                gLogger->error(
+            if (pIdx >= maxIdx || sIdx >= maxIdx || tIdx >= maxIdx || qIdx >= maxIdx)
+            {
+                LOG(ERROR) << std::format(
                     "Carcols index out of bounds for model '{}': "
                     "primary={}, secondary={}, tertiary={}, quaternary={}, max={}",
-                    model, pIdx, sIdx, tIdx, qIdx, maxIdx
-                );
+                    model, pIdx, sIdx, tIdx, qIdx, maxIdx);
                 continue;
             }
 

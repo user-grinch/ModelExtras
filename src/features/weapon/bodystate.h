@@ -1,10 +1,9 @@
 #pragma once
 #include <plugin.h>
-#include "../../interface/ifeature.hpp"
-#include "weaponExtender.h"
-#include <vector>
+#include "utils/weaponextender.h"
 
-enum class eBodyState {
+enum class eBodyState
+{
   Slim,
   SlimPlus,
   Muscle,
@@ -14,15 +13,17 @@ enum class eBodyState {
   MuscleFat
 };
 
-class BodyState {
+class BodyState
+{
 private:
-  struct xData {
-    xData(CWeapon*) {}
+  struct xData
+  {
+    xData(CWeapon *) {}
     eBodyState prevBodyState;
   };
 
   static inline WeaponExtender<xData> wepData;
 
 public:
-  static void Process(void* ptr, RwFrame* frame, eModelEntityType type);
+  static void Process(void *ptr, RwFrame *frame, eModelEntityType type);
 };

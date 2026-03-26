@@ -2,7 +2,7 @@
 #include "remap.h"
 #include <TxdDef.h>
 #include <CTxdStore.h>
-#include "meevents.h"
+#include "utils/meevents.h"
 #include "texmgr.h"
 #include <rw/rwcore.h>
 #include <rw/rpworld.h>
@@ -29,21 +29,21 @@ void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType t
             bool isBloodTex = bloodPos != std::string::npos;
 
             if (isRemapTex || isBloodTex) {
-                RemapData &data = xRemaps.Get(model);
-                if (data.m_pTextures.empty()) {
+                RemapData &data = xRemaps[model];
+                if (data.pTextures.empty()) {
                     std::string bloodName = orgName + "_bld";
                     RwTexture *pOrgTex = TextureMgr::FindInDict(orgName, pDict);
                     RwTexture *pBloodTex = TextureMgr::FindInDict(bloodName, pDict);
-                    data.m_pTextures[orgName].push_back({pOrgTex, pBloodTex});
+                    data.pTextures[orgName].push_back({pOrgTex, pBloodTex});
                 }
             }
             
             if (isRemapTex && !isBloodTex)
             {
-                RemapData &data = xRemaps.Get(model);
+                RemapData &data = xRemaps[model];
                 std::string bloodName = name + "_bld";
                 RwTexture *pBloodTex = TextureMgr::FindInDict(bloodName, pDict);
-                data.m_pTextures[orgName].push_back({pTex, pBloodTex});
+                data.pTextures[orgName].push_back({pTex, pBloodTex});
             }
 			return pTex; 
         }, &model);
@@ -51,9 +51,9 @@ void Remap::LoadRemaps(CBaseModelInfo *pModelInfo, int model, eModelEntityType t
     }
 }
 
-static std::vector<std::pair<unsigned int *, unsigned int>> m_pOriginalTextures;
-static std::map<void *, int> m_pRandom;
-static std::map<void *, bool> m_pBloodState;
+std::vector<std::pair<unsigned int *, unsigned int>> pOriginalTextures;
+std::map<void *, int> pRandom;
+std::map<void *, bool> pBloodState;
 
 void Remap::Initialize()
 {
@@ -110,14 +110,14 @@ void Remap::Initialize()
         CWeapon *pWeapon = &pPed->m_aWeapons[pPed->m_nSelectedWepSlot];
         if (pWeapon)
         {
-            if (m_pRandom.contains(pWeapon))
+            if (pRandom.contains(pWeapon))
             {
-                m_pRandom.erase(m_pRandom.find(pWeapon));
+                pRandom.erase(pRandom.find(pWeapon));
             }
 
-            if (m_pBloodState.contains(pWeapon))
+            if (pBloodState.contains(pWeapon))
             {
-                m_pBloodState.erase(m_pBloodState.find(pWeapon));
+                pBloodState.erase(pBloodState.find(pWeapon));
             }
         }
     };
@@ -126,36 +126,36 @@ void Remap::Initialize()
     {
         if (pWeapon)
         {
-            if (m_pRandom.contains(pWeapon))
+            if (pRandom.contains(pWeapon))
             {
-                m_pRandom.erase(m_pRandom.find(pWeapon));
+                pRandom.erase(pRandom.find(pWeapon));
             }
 
-            if (m_pBloodState.contains(pWeapon))
+            if (pBloodState.contains(pWeapon))
             {
-                m_pBloodState.erase(m_pBloodState.find(pWeapon));
+                pBloodState.erase(pBloodState.find(pWeapon));
             }
         }
     };
 }
 
-void Remap::AfterRender(void *ptr, eModelEntityType type)
+void Remap::AfterRender(void *, eModelEntityType)
 {
-    for (auto &e : m_pOriginalTextures)
+    for (auto &pEnt : pOriginalTextures)
     {
-        *e.first = e.second;
+        *pEnt.first = pEnt.second;
     }
-    m_pOriginalTextures.clear();
+    pOriginalTextures.clear();
 }
 
 bool Remap::GetKilledState(CWeapon *pWeapon)
 {
-    if (!pWeapon)
+    if (pWeapon == nullptr)
     {
         return false;
     }
 
-    if (m_pBloodState[pWeapon])
+    if (pBloodState[pWeapon])
     {
         return true;
     }
@@ -171,11 +171,11 @@ bool Remap::GetKilledState(CWeapon *pWeapon)
         }
         if (pPed && pPed->m_nType == ENTITY_TYPE_PED && !pPed->IsAlive() && pPed != lastKilled)
         {
-            m_pBloodState[pWeapon] = true;
+            pBloodState[pWeapon] = true;
             lastKilled = pPed;
         }
     }
-    return m_pBloodState[pWeapon];
+    return pBloodState[pWeapon];
 }
 
 void Remap::BeforeRender(void *ptr, eModelEntityType type)
@@ -183,24 +183,24 @@ void Remap::BeforeRender(void *ptr, eModelEntityType type)
     int model = Util::GetEntityModel(ptr, type);
     CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(model);
 
-    RemapData &data = xRemaps.Get(model);
-    if (!data.m_bRemapsLoaded)
+    RemapData &data = xRemaps[model];
+    if (!data.bRemapsLoaded)
     {
         LoadRemaps(pModelInfo, model, type);
-        data.m_bRemapsLoaded = true;
+        data.bRemapsLoaded = true;
     }
 
-    if (data.m_pTextures.empty())
+    if (data.pTextures.empty())
     {
         return;
     }
 
     if (type == eModelEntityType::Weapon)
     {
-        data.useBlood = GetKilledState(static_cast<CWeapon *>(ptr));
+        data.bUseBlood = GetKilledState(static_cast<CWeapon *>(ptr));
     }
 
-    data.curPtr = ptr;
+    data.pCurPtr = ptr;
     RpClumpForAllAtomics(pModelInfo->m_pRwClump, [](RpAtomic *atomic, void *data)
                          {
         if (atomic->geometry) {
@@ -212,20 +212,20 @@ void Remap::BeforeRender(void *ptr, eModelEntityType type)
                 std::string name = mat->texture->name;
                 RemapData *pData = reinterpret_cast<RemapData*>(data);
 
-                if (pData->m_pTextures[name].empty()) {
+                if (pData->pTextures[name].empty()) {
                     return mat;
                 }
-                int sz = pData->m_pTextures[name].size();
-                if (m_pRandom.find(pData->curPtr) == m_pRandom.end() || m_pRandom[pData->curPtr] >= sz) {
-                    m_pRandom[pData->curPtr] = RandomNumberInRange(0, sz-1);
+                int sz = pData->pTextures[name].size();
+                if (pRandom.find(pData->pCurPtr) == pRandom.end() || pRandom[pData->pCurPtr] >= sz) {
+                    pRandom[pData->pCurPtr] = RandomNumberInRange(0, sz-1);
                 }
 
-                m_pOriginalTextures.push_back({reinterpret_cast<unsigned int*>(&mat->texture), *reinterpret_cast<unsigned int *>(&mat->texture)});
+                pOriginalTextures.push_back({reinterpret_cast<unsigned int*>(&mat->texture), *reinterpret_cast<unsigned int *>(&mat->texture)});
 
-                if (pData->useBlood && pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pBlood) {
-                    mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pBlood;
+                if (pData->bUseBlood && pData->pTextures[name][pRandom[pData->pCurPtr]].pBlood) {
+                    mat->texture = pData->pTextures[name][pRandom[pData->pCurPtr]].pBlood;
                 } else {
-                    mat->texture = pData->m_pTextures[name][m_pRandom[pData->curPtr]].m_pNormal;
+                    mat->texture = pData->pTextures[name][pRandom[pData->pCurPtr]].pNormal;
                 }
                 mat->texture->refCount++;
 

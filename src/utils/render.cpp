@@ -71,11 +71,20 @@ void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRG
         return;
     }
 
+    static float MUL = gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.0f);
+
+	float coronaSz = size;
+
+    // Only during night time
+    if (Util::IsNightTime() && MUL != 0.0f) {
+        coronaSz *= DistanceBetweenPoints(TheCamera.GetPosition(), pEntity->GetPosition()) * MUL;
+    }
+
     CCoronas::RegisterCorona(coronaID, pEntity, col.r, col.g, col.b, col.a, pos,
-                             size * CORONA_SZ_MUL, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, true, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
+                             coronaSz, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, true, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
 };
 
-void RenderUtil::RegisterCoronaDirectional(const VehicleDummyConfig *pConfig, float angle, float radius, float szMul, bool checks, bool inversed)
+void RenderUtil::RegisterCoronaDirectional(const VehicleDummyConfig *pConfig, float angle, float radius, float szMul, bool inversed, bool skipCheck)
 {
     const float FADE_RANGE = 20.0f;
     float sz = pConfig->corona.size * szMul;
@@ -84,12 +93,12 @@ void RenderUtil::RegisterCoronaDirectional(const VehicleDummyConfig *pConfig, fl
     CMatrix mat = *(CMatrix *)&pConfig->frame->ltm;
     if (!IsDummyPointingUp(mat))
     {
-        if (checks && IsShadowTowardVehicle((CMatrix *)&pConfig->frame->ltm, pConfig->pVeh->GetPosition()))
+        if (inversed)
         {
             angle += 180.0f;
         }
 
-        if (inversed)
+        if (!skipCheck && IsShadowTowardVehicle((CMatrix *)&pConfig->frame->ltm, pConfig->pVeh->GetPosition()))
         {
             angle += 180.0f;
         }
@@ -118,11 +127,10 @@ void RenderUtil::RegisterCoronaDirectional(const VehicleDummyConfig *pConfig, fl
             col.a *= mul;
         }
 
-        if (IsShadowTowardVehicle(&mat, pConfig->pVeh->GetPosition()))
+        if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight)
         {
-            RotateMatrix180Z(mat);
+            CPointLights::AddLight(PLTYPE_SPOTLIGHT, mat.pos, mat.up, 20.0f, col.r / 255.0, col.g / 255.0, col.b / 255.0, 0, 0, 0);
         }
-        CPointLights::AddLight(PLTYPE_SPOTLIGHT, mat.pos, mat.up, 10.0f, col.r / 255.0, col.g / 255.0, col.b / 255.0, 0, 0, 0);
     }
     RegisterCorona(pConfig->pVeh, reinterpret_cast<int32_t>(pConfig), pConfig->position, col, sz);
 }

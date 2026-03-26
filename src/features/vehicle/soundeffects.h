@@ -1,5 +1,5 @@
 #pragma once
-#include "../audiomgr.h"
+#include "audiomgr.h"
 
 class SoundEffects
 {

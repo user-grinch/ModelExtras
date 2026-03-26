@@ -1,12 +1,7 @@
 #pragma once
 #include <plugin.h>
-#include "../../interface/ifeature.hpp"
 #include <vector>
-#include <fstream>
-#include <sstream>
 #include <vector>
-#include <string>
-#include <filesystem>
 #include <unordered_map>
 
 struct ColorSet
@@ -21,6 +16,7 @@ private:
     {
         bool m_bPri = false, m_bSec = false, m_bTer = false, m_bQuat = false;
         ColorSet m_Colors;
+        int randId = -1;
         VehData(CVehicle *pVeh) {}
         ~VehData() {}
     };

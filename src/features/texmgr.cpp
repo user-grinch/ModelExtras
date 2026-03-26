@@ -61,7 +61,7 @@ RwTexture *TextureMgr::Get(std::string name, RwUInt8 alpha)
 
     static auto pDict = CFileLoader::LoadTexDictionary(MOD_DATA_PATH("ME_TEXDB.TXD"));
     RwTexture *pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
-    if (!pTex) {
+    if (pTex == nullptr) {
         return nullptr;
     }
 
@@ -88,9 +88,10 @@ RwTexture *TextureMgr::Get(std::string name, RwUInt8 alpha)
 
 RwTexture *TextureMgr::FindOnTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict, bool fallback)
 {
-    if (!pMat || !pMat->texture) {
+    if ((pMat == nullptr) || (pMat->texture == nullptr)) {
         return nullptr;
     }
+    
 	const std::string baseName = pMat->texture->name;
 	const std::vector<std::string> texNames = {
 		baseName + "on",
@@ -101,7 +102,7 @@ RwTexture *TextureMgr::FindOnTextureInDict(RpMaterial *pMat, RwTexDictionary *pD
 	for (const auto &name : texNames)
 	{
 		pTex = TextureMgr::FindInDict(name, pDict, fallback);
-		if (pTex)
+		if (pTex != nullptr)
 		{
 			break;
 		}
@@ -111,12 +112,14 @@ RwTexture *TextureMgr::FindOnTextureInDict(RpMaterial *pMat, RwTexDictionary *pD
 
 void TextureMgr::SetAlpha(RwTexture *texture, RwUInt8 alpha)
 {
-    if (!texture)
+    if (texture == nullptr) {
         return;
+    }
 
     RwRaster *oldRaster = RwTextureGetRaster(texture);
-    if (!oldRaster)
+    if (oldRaster == nullptr) {
         return;
+    }
 
     int width = RwRasterGetWidth(oldRaster);
     int height = RwRasterGetHeight(oldRaster);

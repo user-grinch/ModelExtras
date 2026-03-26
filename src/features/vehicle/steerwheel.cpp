@@ -1,44 +1,30 @@
 #include "pch.h"
 #include "steerwheel.h"
 #include "modelinfomgr.h"
-#define ROTATION_VAL 90.0f
 
 void SteerWheel::Initialize()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame)
-                               {
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame) {
+		if (gbVehIKInstalled) {
+            return;
+		}
         auto& data = xData.Get(pVeh);
 
         // VehFuncs
         std::string name = GetFrameNodeName(pFrame);
-        if (name.starts_with("f_steer")) {
+        if (Hash::StartsWith(name, "f_steer")) {
             if (name.length() >= 7 && isdigit(name[7]))
             {
                 data.factor = (float)std::stoi(&name[7]) / 2;
             }
-            else
-            {
-                data.factor = ROTATION_VAL;
-            }
             data.pFrame = pFrame;
-        } // IVF
-        else if (name.starts_with("movsteer")) {
-            float maxAngle = 1.0f;
-            if (name[8] == '_') {
-                if (isdigit(name[9])) {
-                    maxAngle = std::stof(&name[9]);
-                }
-            }
-            data.factor = ROTATION_VAL * maxAngle;
+        } else if (Hash::StartsWith(name, "movsteer") || Hash::StartsWith(name, "steering_dummy") || Hash::StartsWith(name, "ik_steer")) {
             data.pFrame = pFrame;
-        } else if (name.starts_with("steering_dummy")) {
-            data.factor = ROTATION_VAL;
-            data.pFrame = pFrame;
-        } });
+        } 
+    });
 
-    ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
-                                {
-        if (!pVeh || !pVeh->GetIsOnScreen())
+    ModelInfoMgr::RegisterRender([](CVehicle *pVeh) {
+        if (gbVehIKInstalled || !pVeh || !pVeh->GetIsOnScreen())
         {
             return;
         }
@@ -48,8 +34,10 @@ void SteerWheel::Initialize()
             return;
         }
 
-        float angle = pVeh->m_fSteerAngle * (1.666666f);
-        MatrixUtil::ResetRotation(&data.pFrame->modelling);
-        MatrixUtil::SetRotationY(&data.pFrame->modelling, angle*data.factor); 
-        pVeh->UpdateRwFrame(); });
+        float angle = Util::RadToDeg(pVeh->m_fSteerAngle);
+        if (std::abs(angle) > 1.0f) {
+            MatrixUtil::SetRotationYAbsolute(&data.pFrame->modelling, (angle - data.prevAngle) * data.factor); 
+            data.prevAngle = angle;
+        }
+    });
 }

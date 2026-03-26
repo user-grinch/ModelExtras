@@ -2,68 +2,71 @@
 #include "defines.h"
 #include "features/mgr.h"
 
-#include <extensions/ScriptCommands.h>
-#include <extensions/scripting/ScriptCommandNames.h>
-
-#define GET_SCRIPT_STRUCT_NAMED 0xAAA
-
 extern void ShowDonationWindow();
-
-// Weak stub implementation for TrainerInit when GrinchTrainerSA.lib is not available
-#pragma comment(linker, "/alternatename:?TrainerInit@@YAXXZ=?TrainerInit_Stub@@YAXXZ")
-void TrainerInit_Stub() {}
-
-extern void TrainerInit();
+extern void InjectImGuiHooks();
 
 std::vector<std::string> donators = {
-    "Agha",
-    "berrymuffin",
-    "blackOS"
+    "Wei Woo",
+    "©Wishy",
+    "Alexander Alexander",
+    "Imad Fikri",
+    "ID_not4ound",
+    "Macc",
+    "lemaze93",
+    "XG417",
+    "Ruethy",
+    "Flaqko _GTA",
+    "MG45",
     "Boris Ilincic",
     "Damix",
-    "Dustin Eastwood",
-    "Dwolf98",
-    "Francisco Flores",
-    "KaiQ",
-    "MC Silver",
-    "Osama aj",
-    "Pol3 Million",
-    "Seemann",
     "spdfnpe",
-    "14todoeltiempoPATREON"};
+    "Pol3 Million",
+    "Bubby Jackson",
+    "Keith Ferrell",
+    "Clayton Morrison",
+    "SimBoRRis",
+    "Agha"
+};
 
 void InitLogFile()
 {
-    static bool flag = true;
-    if (!flag)
-    {
-        return;
-    }
-    gLogger->flush_on(spdlog::level::debug);
-    spdlog::set_level(spdlog::level::debug);
-    gLogger->set_pattern("%v");
-    gLogger->info("Starting " MOD_TITLE " (" __DATE__ ")\nAuthor: Grinch_\nDiscord: " DISCORD_INVITE "\nPatreon: " PATREON_LINK "\nMore Info: " GITHUB_LINK "");
+    static bool initialized = false;
+    if (initialized) return;
+    initialized = true;
 
-    // date time
+    auto sink_cout = std::make_shared<AixLog::SinkCout>(AixLog::Severity::debug);
+    auto sink_file = std::make_shared<AixLog::SinkFile>(AixLog::Severity::debug, std::string(MOD_NAME) + ".log");
+    AixLog::Log::init({sink_cout, sink_file});
+
+    std::string header = "Starting " + std::string(MOD_TITLE) + " (" + __DATE__ + ")\n"
+                         "Author: Grinch_\n"
+                         "Discord: " + DISCORD_INVITE + "\n"
+                         "Patreon: " + PATREON_LINK + "\n"
+                         "More Info: " + GITHUB_LINK + "\n";
+    
     SYSTEMTIME st;
     GetSystemTime(&st);
-    gLogger->info("Date: {}-{}-{} Time: {}:{}\n", st.wYear, st.wMonth, st.wDay,
-                  st.wHour, st.wMinute);
-    gLogger->info("\nDonators:");
-    for (const auto &name : donators)
-    {
-        gLogger->info("- {}", name);
-    }
+    char timeBuf[64];
+    sprintf_s(timeBuf, "Date: %04d-%02d-%02d Time: %02d:%02d\n", 
+              st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute);
+    
+    header += timeBuf;
 
-    gLogger->set_pattern("[%L] %v");
-    flag = false;
+    if (!donators.empty())
+    {
+        header += "Donators:\n";
+        for (const auto& name : donators)
+        {
+            header += "- " + name + "\n";
+        }
+    }
+    LOG(INFO) << header;
 }
 
 BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 {
     if (nReason == DLL_PROCESS_ATTACH)
     {
-        
 #if !PATRON_BUILD
         if (gConfig.ReadBoolean("CONFIG", "ShowDonationPopup", true))
         {
@@ -71,11 +74,19 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
             gConfig.WriteBoolean("CONFIG", "ShowDonationPopup", false);
         }
 #endif
+        if (gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))
+        {
+            InjectImGuiHooks();
+            LOG(INFO) << "DeveloperMode enabled, injecting ImGui hooks...";
+        }
+
         gVerboseLogging = gConfig.ReadBoolean("CONFIG", "VerboseLogging", false);
-        
-        Events::initScriptsEvent.after += []() {
-            if (!gVerboseLogging) {
-                gLogger->info("Enable 'VerboseLogging' in ModelExtras.ini to display model-related errors.");
+
+        Events::initScriptsEvent.after += []()
+        {
+            if (!gVerboseLogging)
+            {
+                LOG(INFO) << "Enable 'VerboseLogging' in ModelExtras.ini to display model-related errors.";
             }
         };
 
@@ -98,46 +109,20 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
             if (!cleo)
             {
                 MessageBox(RsGlobal.ps->window, "CLEO Library 4.4 or above is required!", "ModelExtras", MB_OK);
-                gLogger->error("CLEO Library 4.4 or above is required!");
+                LOG(ERROR) << "CLEO Library 4.4 or above is required!";
             }
         };
 
         Events::initGameEvent += []()
         {
-            bool CLEOInstalled = GetModuleHandle("CLEO.asi");
             bool ImVehFtInstalled = GetModuleHandle("ImVehFt.asi");
             bool ImVehFtFixInstalled = GetModuleHandle("ImVehFtFix.asi");
             bool AVSInstalled = GetModuleHandle("AdvancedVehicleSirens.asi");
-            bool EarShot = GetModuleHandle("EarShot.asi");
             bool PedFuncs = GetModuleHandle("PedFuncs.asi");
-            bool GrinchTrainer = GetModuleHandle("GrinchTrainerSA.asi");
-            bool BackFireZAZInstalled = false;
-            bool BackFireJDRInstalled = false;
-
-            if (CLEOInstalled)
-            {
-                int script = NULL;
-                plugin::Command<GET_SCRIPT_STRUCT_NAMED>("IFLAME", &script);
-                BackFireZAZInstalled = script != NULL;
-                plugin::Command<GET_SCRIPT_STRUCT_NAMED>("Backfir", &script);
-                BackFireJDRInstalled = script != NULL;
-            }
 
             InitLogFile();
 
-            /*
-                Had to put this in place since some people put the folder in root
-                directory and the asi in modloader. Why??
-            */
-            if (!std::filesystem::is_directory(PLUGIN_PATH((char *)MOD_NAME)))
-            {
-                std::string msg = std::format("{} folder not found. You need to put both '{}.asi' & '{}' folder in the same directory", MOD_NAME, MOD_NAME, MOD_NAME);
-                gLogger->error(msg.c_str());
-                MessageBox(RsGlobal.ps->window, msg.c_str(), MOD_NAME, MB_ICONERROR);
-                return;
-            }
-
-            if (gConfig.ReadBoolean("CONFIG", "ShowIncompatibleWarning", true) && (BackFireJDRInstalled || BackFireZAZInstalled || ImVehFtInstalled || ImVehFtFixInstalled || AVSInstalled || EarShot))
+            if (gConfig.ReadBoolean("CONFIG", "ShowIncompatibleWarning", true) && (ImVehFtInstalled || ImVehFtFixInstalled || AVSInstalled))
             {
                 std::string str = "ModelExtras contain the functions of these plugins,\n\n";
 
@@ -147,31 +132,16 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
                     str += "- ImVehFtFix.asi\n";
                 if (AVSInstalled)
                     str += "- AdvancedVehicleSirens.asi\n";
-                if (EarShot)
-                    str += "- EarShot.asi\n";
                 if (PedFuncs)
                     str += "- PedFuncs.asi\n";
-                if (BackFireZAZInstalled)
-                    str += "- Back-fire.cs by ZAZ\n";
-                if (BackFireJDRInstalled)
-                    str += "- Backfire - ALS.cs by Junior-Djjr\n";
 
                 str += "\nRemove them to continue playing the game.";
                 MessageBox(RsGlobal.ps->window, str.c_str(), "Incompatible plugins found!", MB_OK);
-                gLogger->error(str);
+                LOG(ERROR) << str;
                 exit(EXIT_FAILURE);
             }
-
-            if (GrinchTrainer && gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))
-            {
-                gLogger->info("GrinchTrainerSA found. Registering...");
-                Events::processScriptsEvent += []()
-                {
-                    TrainerInit();
-                };
-            }
+            return TRUE;
         };
-
         FeatureMgr::Initialize();
     }
     return TRUE;

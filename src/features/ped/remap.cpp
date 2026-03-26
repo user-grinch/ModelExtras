@@ -8,44 +8,54 @@
 #include <CPedModelInfo.h>
 #include <rw/rwcore.h>
 #include <rw/rpworld.h>
-#include <Renderware.h>
+#include <RenderWare.h>
 
-void PedRemap::CustomAssignRemapTxd(const char* txdName, uint16_t txdId) {
-	if (txdName) {
+using namespace plugin;
+
+void PedRemap::CustomAssignRemapTxd(const char *txdName, uint16_t txdId)
+{
+	if (txdName)
+	{
 		size_t len = strlen(txdName);
 
-		if (len > 1) {
+		if (len > 1)
+		{
 			if (isdigit(txdName[len - 1]))
 			{
 				if (strncmp(txdName, "peds", 3) == 0)
 				{
 					int arrayIndex = txdName[len - 1] - '0' - 1;
-					if (arrayIndex < 4) {
+					if (arrayIndex < 4)
+					{
 						pedstxdIndexArray[arrayIndex] = txdId;
 						CTxdStore::AddRef(pedstxdIndexArray[arrayIndex]);
 						anyAdditionalPedsTxd = true;
 						LOG_VERBOSE("Found additional peds {}.txd", arrayIndex + 1);
 					}
-					else {
-						gLogger->error("peds*.txd limit is only up to 'peds5.txd'");
+					else
+					{
+						LOG(ERROR) << "peds*.txd limit is only up to 'peds5.txd'";
 					}
 				}
 			}
 		}
 	}
-	plugin::CallDynGlobal< const char*, uint16_t>(ORIGINAL_AssignRemapTxd, txdName, txdId);
+	CallDynGlobal<const char *, uint16_t>(ORIGINAL_AssignRemapTxd, txdName, txdId);
 }
 
-void PedRemap::LoadAdditionalTxds() {
+void PedRemap::LoadAdditionalTxds()
+{
 	txdsNotLoadedYet = false;
 	bool anyRequest = false;
 
-	if (anyAdditionalPedsTxd) {
+	if (anyAdditionalPedsTxd)
+	{
 		for (int i = 0; i < 4; ++i)
 		{
-			if (pedstxdIndexArray[i]) {
+			if (pedstxdIndexArray[i])
+			{
 				CStreaming::RequestTxdModel(pedstxdIndexArray[i], (eStreamingFlags::GAME_REQUIRED | eStreamingFlags::KEEP_IN_MEMORY));
-				//CStreaming::RequestTxdModel(pedstxdIndexArray[i], 8);
+				// CStreaming::RequestTxdModel(pedstxdIndexArray[i], 8);
 				LOG_VERBOSE("Loading additional txd id {}", (int)pedstxdIndexArray[i]);
 			}
 		}
@@ -55,45 +65,72 @@ void PedRemap::LoadAdditionalTxds() {
 
 		for (int i = 0; i < 4; ++i)
 		{
-			if (pedstxdIndexArray[i]) {
-				pedstxdArray[i] = ((RwTexDictionary * (__cdecl*)(int)) 0x408340)(pedstxdIndexArray[i]); //size_t __cdecl getTexDictionary(int txdIndex)
+			if (pedstxdIndexArray[i])
+			{
+				pedstxdArray[i] = ((RwTexDictionary * (__cdecl *)(int))0x408340)(pedstxdIndexArray[i]); // size_t __cdecl getTexDictionary(int txdIndex)
 			}
 		}
 	}
 
-	if (anyRequest) {
+	if (anyRequest)
+	{
 		CStreaming::LoadAllRequestedModels(false);
 	}
 }
 
-RwTexture* __cdecl PedRemap::Custom_RwTexDictionaryFindNamedTexture(RwTexDictionary* dict, const char* name) {
-	RwTexture* texture;
-
-	texture = plugin::CallAndReturnDynGlobal<RwTexture*, RwTexDictionary*, const char*>(ORIGINAL_RwTexDictionaryFindNamedTexture, dict, name);
-	//texture = RwTexDictionaryFindNamedTexture(dict, name);
-	if (texture) return texture;
-
+RwTexture *PedRemap::Custom_RwTexDictionaryFindNamedTexture(RwTexDictionary *dict, const char *name)
+{
 	if (anyAdditionalPedsTxd)
 	{
 		for (int i = 0; i < 4; ++i)
 		{
 			if (pedstxdArray[i])
 			{
-				texture = RwTexDictionaryFindNamedTexture(pedstxdArray[i], name);
-				if (texture) return texture;
+				RwTexture *pTex = RwTexDictionaryFindNamedTexture(pedstxdArray[i], name);
+				if (pTex)
+				{
+					return pTex;
+				}
 			}
 		}
 	}
-	//if (useLog) lg << name << " texture not found \n";
-	if (txdsNotLoadedYet && anyAdditionalPedsTxd) LoadAdditionalTxds(); // looks not really safe, but tested a lot, if some problem by using more than 1 peds*.txd, do something here
+
+	if (txdsNotLoadedYet && anyAdditionalPedsTxd)
+	{
+		LoadAdditionalTxds(); // looks not really safe, but tested a lot, if some problem by using more than 1 peds*.txd, do something here
+	}
+
 	return nullptr;
 }
 
+RwTexture *__cdecl PedRemap::hkRwTexDictionaryFindNamedTexture(RwTexDictionary *dict, const char *name)
+{
+	RwTexture *pTex = CallAndReturnDynGlobal<RwTexture *, RwTexDictionary *, const char *>(ORIGINAL_RwTexDictionaryFindNamedTexture, dict, name);
+	if (pTex)
+	{
+		return pTex;
+	}
+
+	return Custom_RwTexDictionaryFindNamedTexture(dict, name);
+}
+
+RwTexture *__cdecl PedRemap::hkRwTexDictionaryFindNamedTexture2(RwTexDictionary *dict, const char *name)
+{
+	RwTexture *pTex = CallAndReturnDynGlobal<RwTexture *, RwTexDictionary *, const char *>(ORIGINAL_RwTexDictionaryFindNamedTexture2, dict, name);
+	if (pTex)
+	{
+		return pTex;
+	}
+
+	return Custom_RwTexDictionaryFindNamedTexture(dict, name);
+}
+
 const int totalOfDontRepeatIt = 30;
-DontRepeatIt* dontRepeatIt[totalOfDontRepeatIt];
+DontRepeatIt *dontRepeatIt[totalOfDontRepeatIt];
 int curDontRepeatItIndex;
 
-void PedRemap::Initialize() {
+void PedRemap::Initialize()
+{
 	srand(time(NULL));
 
 	static std::list<std::pair<unsigned int *, unsigned int>> resetEntries;
@@ -117,29 +154,34 @@ void PedRemap::Initialize() {
 		ORIGINAL_RwTexDictionaryFindNamedTexture = injector::ReadMemory<uintptr_t>(0x4C7533 + 1, true);
 		ORIGINAL_RwTexDictionaryFindNamedTexture += (GetGlobalAddress(0x4C7533) + 5);
 
-		patch::RedirectCall(0x4C7533, Custom_RwTexDictionaryFindNamedTexture, true);
-		patch::RedirectCall(0x731733, Custom_RwTexDictionaryFindNamedTexture, true); // for map etc
+		patch::RedirectCall(0x4C7533, hkRwTexDictionaryFindNamedTexture, true);
+
+		ORIGINAL_RwTexDictionaryFindNamedTexture2 = injector::ReadMemory<uintptr_t>(0x731733 + 1, true);
+		ORIGINAL_RwTexDictionaryFindNamedTexture2 += (GetGlobalAddress(0x731733) + 5);
+		patch::RedirectCall(0x731733, hkRwTexDictionaryFindNamedTexture2, true); // for map etc
 	};
 
 	Events::initGameEvent += []
 	{
-		if (!alreadyLoaded) {
+		if (!alreadyLoaded)
+		{
 			alreadyLoaded = true;
-			if (txdsNotLoadedYet) LoadAdditionalTxds();
+			if (txdsNotLoadedYet)
+				LoadAdditionalTxds();
 		}
 	};
 
 	Events::processScriptsEvent += []
 	{
-		if (CCutsceneMgr::ms_running) cutsceneRunLastTime = CTimer::m_snTimeInMilliseconds;
+		if (CCutsceneMgr::ms_running)
+			cutsceneRunLastTime = CTimer::m_snTimeInMilliseconds;
 	};
-	
 
 	Events::pedSetModelEvent += [](CPed *ped, int model)
 	{
-		if ((CTimer::m_snTimeInMilliseconds - cutsceneRunLastTime) > 3000) PedRemap::FindRemaps(ped);
+		if ((CTimer::m_snTimeInMilliseconds - cutsceneRunLastTime) > 3000)
+			PedRemap::FindRemaps(ped);
 	};
-
 
 	Events::pedRenderEvent.before += [](CPed *ped)
 	{
@@ -150,7 +192,7 @@ void PedRemap::Initialize() {
 			if (info.curRemapNum[0] >= 0)
 			{
 				RpClumpForAllAtomics(ped->m_pRwClump, [](RpAtomic *atomic, void *data)
-				{
+									 {
 					PedExtended * info = reinterpret_cast<PedExtended*>(data);
 					if (atomic->geometry)
 					{
@@ -179,10 +221,8 @@ void PedRemap::Initialize() {
 							return material;
 						}, info);
 					}
-					return atomic;
-				}, &info);
+					return atomic; }, &info);
 			}
-
 		}
 	};
 
@@ -194,7 +234,7 @@ void PedRemap::Initialize() {
 	};
 }
 
-int GetIndexFromTexture(PedExtended *info, std::string name, RwTexDictionary * pedTxdDic)
+int GetIndexFromTexture(PedExtended *info, std::string name, RwTexDictionary *pedTxdDic)
 {
 	int i;
 	for (i = 0; i < TEXTURE_LIMIT; ++i)
@@ -202,12 +242,13 @@ int GetIndexFromTexture(PedExtended *info, std::string name, RwTexDictionary * p
 		if ((int)info->originalRemap[i] > 0)
 		{
 			std::string nameStr = info->originalRemap[i]->name;
-			if (nameStr.compare(name) == 0) return i;
+			if (nameStr.compare(name) == 0)
+				return i;
 		}
 		else
 		{
 			info->originalRemap[i] = RwTexDictionaryFindNamedTexture(pedTxdDic, &name[0]);
-			//lg << "added texture name to list: " << name << endl;
+			// lg << "added texture name to list: " << name << endl;
 			return i;
 		}
 	}
@@ -216,30 +257,30 @@ int GetIndexFromTexture(PedExtended *info, std::string name, RwTexDictionary * p
 
 void StoreSimpleRandom(PedExtended &info, int i)
 {
-	info.curRemapNum[i] = RandomNumberInRange(-1, info.TotalRemapNum[i]-1);
+	info.curRemapNum[i] = RandomNumberInRange(-1, info.TotalRemapNum[i] - 1);
 	dontRepeatIt[curDontRepeatItIndex]->lastNum[i] = info.curRemapNum[i];
-	//lg << info.curRemapNum[i] << " get in simple " << endl;
+	// lg << info.curRemapNum[i] << " get in simple " << endl;
 }
 
-void PedRemap::FindRemaps(CPed * ped)
+void PedRemap::FindRemaps(CPed *ped)
 {
 	PedExtended &info = extData.Get(ped);
 	info = PedExtended(ped);
 
-	CBaseModelInfo * pedModelInfo = (CBaseModelInfo *)CModelInfo::GetModelInfo(ped->m_nModelIndex);
+	CBaseModelInfo *pedModelInfo = (CBaseModelInfo *)CModelInfo::GetModelInfo(ped->m_nModelIndex);
 	if (pedModelInfo)
 	{
 		TxdDef pedTxd = CTxdStore::ms_pTxdPool->m_pObjects[pedModelInfo->m_nTxdIndex];
 
-		RwTexDictionary * pedTxdDic = pedTxd.m_pRwDictionary;
+		RwTexDictionary *pedTxdDic = pedTxd.m_pRwDictionary;
 		if (pedTxdDic)
 		{
 			RwLinkList *objectList = &pedTxdDic->texturesInDict;
 			if (!rwLinkListEmpty(objectList))
 			{
-				RwTexture * texture;
-				RwLLLink * current = rwLinkListGetFirstLLLink(objectList);
-				RwLLLink * end = rwLinkListGetTerminator(objectList);
+				RwTexture *texture;
+				RwLLLink *current = rwLinkListGetFirstLLLink(objectList);
+				RwLLLink *end = rwLinkListGetTerminator(objectList);
 
 				std::string originalRemapName;
 
@@ -258,8 +299,10 @@ void PedRemap::FindRemaps(CPed * ped)
 						{
 							info.remaps[index].push_back(texture);
 							info.TotalRemapNum[index]++;
-						} else {
-							gLogger->warn("Failed to add remap for texture {} due to {} textures limit.", texture->name, TEXTURE_LIMIT);
+						}
+						else
+						{
+							LOG(WARNING) << std::format("Failed to add remap for texture {} due to {} textures limit.", texture->name, TEXTURE_LIMIT);
 						}
 					}
 
@@ -280,7 +323,7 @@ void PedRemap::FindRemaps(CPed * ped)
 									lastNum = dontRepeatIt[arrayIn]->lastNum[i];
 									do
 									{
-										info.curRemapNum[i] = RandomNumberInRange(-1, info.TotalRemapNum[i]-1); //-1 previously
+										info.curRemapNum[i] = RandomNumberInRange(-1, info.TotalRemapNum[i] - 1); //-1 previously
 									} while (info.curRemapNum[i] == lastNum);
 									dontRepeatIt[arrayIn]->lastNum[i] = info.curRemapNum[i];
 								}
@@ -294,7 +337,8 @@ void PedRemap::FindRemaps(CPed * ped)
 					}
 					dontRepeatIt[curDontRepeatItIndex]->modelId = ped->m_nModelIndex;
 					curDontRepeatItIndex++;
-					if (curDontRepeatItIndex >= totalOfDontRepeatIt) curDontRepeatItIndex = 0;
+					if (curDontRepeatItIndex >= totalOfDontRepeatIt)
+						curDontRepeatItIndex = 0;
 					for (int i = 0; i < TEXTURE_LIMIT; ++i)
 					{
 						if (info.TotalRemapNum[i] > 0)
@@ -309,23 +353,34 @@ void PedRemap::FindRemaps(CPed * ped)
 	}
 }
 
-extern "C" {
-    int ME_GetPedRemap(CPed * ped, int index) {
-        PedExtended &info = PedRemap::extData.Get(ped);
-        return info.curRemapNum[index];
-    }
+extern "C"
+{
+	int ME_GetPedRemap(CPed *ped, int index)
+	{
+		PedExtended &info = PedRemap::extData.Get(ped);
+		return info.curRemapNum[index];
+	}
 
-    void ME_SetPedRemap(CPed * ped, int index, int num) {
-        PedExtended &info = PedRemap::extData.Get(ped);
-        info.curRemapNum[index] = num;
+	void ME_SetPedRemap(CPed *ped, int index, int num)
+	{
+		PedExtended &info = PedRemap::extData.Get(ped);
+		info.curRemapNum[index] = num;
 		LOG_VERBOSE("MEAPI: {} called with index: {}, num: {}", __func__, index, num);
-    }
+	}
 
-    void ME_SetAllPedRemaps(CPed * ped, int num) {
-        for (int i = 0; i < TEXTURE_LIMIT; ++i) {
-            PedExtended& info = PedRemap::extData.Get(ped);
-            info.curRemapNum[i] = num;
-        }
+	void ME_SetAllPedRemaps(CPed *ped, int num)
+	{
+		for (int i = 0; i < TEXTURE_LIMIT; ++i)
+		{
+			PedExtended &info = PedRemap::extData.Get(ped);
+			info.curRemapNum[i] = num;
+		}
 		LOG_VERBOSE("MEAPI: {} called with num: {}", __func__, num);
-    }
+	}
+
+	// Dummy function to show on crash logs
+	int __declspec(dllexport) ignore2(int i)
+	{
+		return 1;
+	}
 }

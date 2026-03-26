@@ -37,6 +37,46 @@ uint32_t FrameUtil::GetChildCount(RwFrame *parent)
     return 0U;
 }
 
+void FrameUtil::DestroyNodeHierarchyRecursive(RwFrame * frame)
+{
+    RpAtomic * atomic = (RpAtomic *)GetFirstObject(frame);
+    if (atomic != nullptr)
+    {
+        RpClump * clump = atomic->clump;
+        RpClumpRemoveAtomic(clump, atomic);
+        RpAtomicDestroy(atomic);
+    }
+
+    RwFrameDestroy(frame);
+
+    if (RwFrame * newFrame = frame->child) DestroyNodeHierarchyRecursive(newFrame);
+    if (RwFrame * newFrame = frame->next)  DestroyNodeHierarchyRecursive(newFrame);
+}
+
+void FrameUtil::HideAllAtomicsExcept(RwFrame *frame, int indexToKeep)
+{
+    if (frame && !rwLinkListEmpty(&frame->objectList))
+    {
+        RwObjectHasFrame *atomic;
+        RwLLLink *current = rwLinkListGetFirstLLLink(&frame->objectList);
+        RwLLLink *end = rwLinkListGetTerminator(&frame->objectList);
+        int currentIndex = 0;
+
+        while (current != end)
+        {
+            atomic = rwLLLinkGetData(current, RwObjectHasFrame, lFrame);
+
+            if (currentIndex == indexToKeep)
+                atomic->object.flags |= rpATOMICRENDER;
+            else
+                atomic->object.flags &= ~rpATOMICRENDER;
+
+            current = rwLLLinkGetNext(current);
+            currentIndex++;
+        }
+    }
+}
+
 void FrameUtil::StoreChilds(RwFrame *parent, std::vector<RwFrame *> &store)
 {
     RwFrame *child = parent->child;

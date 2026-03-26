@@ -1,6 +1,6 @@
 #pragma once
 #include <map>
-#include <json.hpp>
+#include <nlohmann\json.hpp>
 
 class DataMgr
 {
@@ -11,7 +11,7 @@ private:
 public:
     static void Convert();
     static void Init();
-    static void LoadFile(const std::filesystem::directory_entry &e);
+    static void LoadFile(const std::filesystem::directory_entry &entry);
     static void Reload(int model);
     static void Parse();
     static nlohmann::json &Get(int model);

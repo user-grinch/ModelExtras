@@ -1,7 +1,5 @@
 #pragma once
 #include <plugin.h>
-#include "../../interface/ifeature.hpp"
-#include <vector>
 
 class SteerWheel
 {
@@ -9,7 +7,7 @@ protected:
   struct VehData
   {
     float prevAngle = 0.0f;
-    float factor = 1.0f;
+    float factor = 1.1f;
     RwFrame *pFrame = NULL;
     VehData(CVehicle *pVeh) {}
     ~VehData() {}

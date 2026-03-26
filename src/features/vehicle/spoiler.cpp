@@ -20,7 +20,7 @@ void Spoiler::Initialize()
             spoilerData.m_fRotation = std::stof(name.substr(first + 1, second - first - 1));
         }
         else {
-            spoilerData.m_fRotation = 30.0f;
+            spoilerData.m_fRotation = 3.0f;
         }
 
         auto last = name.rfind('_');
@@ -44,7 +44,6 @@ void Spoiler::Initialize()
         {
             spoilerData.m_nTriggerSpeed = 20;
         }
-        spoilerData.m_fCurrentRotation = 0.0f; 
         data.m_Spoilers.push_back(spoilerData); });
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
@@ -62,19 +61,19 @@ void Spoiler::Initialize()
         for (auto& e: data.m_Spoilers) {
             bool isEnabled = Util::GetVehicleSpeed(pVeh) > e.m_nTriggerSpeed;
 
-            float targetAngle = isEnabled ? -e.m_fRotation : 0.0f;
-            float totalTime = std::max(1.0f, static_cast<float>(e.m_nTime));
+           float targetAngle = isEnabled ? -e.m_fRotation : 0.0f;
+           float totalTime = std::max(1.0f, static_cast<float>(e.m_nTime));
 
-            float transitionSpeed = (isEnabled ? 10.0f : 15.0f) / totalTime;
+           float transitionSpeed = (isEnabled ? 10.0f : 15.0f) / totalTime;
 
-            // Smoothing
-            float t = 1.0f - std::exp(-transitionSpeed * CTimer::ms_fTimeStep);
+           // Smoothing
+           float t = 1.0f - std::exp(-transitionSpeed * CTimer::ms_fTimeStep);
 
-            e.m_fCurrentRotation =
-            e.m_fCurrentRotation * (1.0f - t) + targetAngle * t;
+           e.m_fCurrentRotation =
+           e.m_fCurrentRotation * (1.0f - t) + targetAngle * t;
 
-            MatrixUtil::ResetRotation(&e.m_pFrame->modelling);
-            MatrixUtil::SetRotationX(&e.m_pFrame->modelling, e.m_fCurrentRotation);
-            RwMatrixUpdate(&e.m_pFrame->modelling);
+           MatrixUtil::ResetRotation(&e.m_pFrame->modelling);
+           MatrixUtil::SetRotationXAbsolute(&e.m_pFrame->modelling, e.m_fCurrentRotation);
+           RwMatrixUpdate(&e.m_pFrame->modelling);
         } });
 }

@@ -7,6 +7,7 @@ class HandleBar
 protected:
   struct VehData
   {
+    float prevAngle = 0.0f;
     RwFrame *m_pOrigin = nullptr;
     RwFrame *m_pTarget = nullptr;
 

@@ -1,7 +1,5 @@
-.gitignore
-.cache/
-resource/ModelExtras.asi
-resource/ModelExtras.7z
-.idea/
-archive/
-build/
+/archive/
+/archive_staging/
+/build/
+/.xmake/
+/.vscode/.cache/

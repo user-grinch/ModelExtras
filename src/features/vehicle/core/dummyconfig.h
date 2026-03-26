@@ -6,7 +6,7 @@
 #include "CVector2D.h"
 #include "enums/dummypos.h"
 #include "enums/lightingmode.h"
-#include "enums/lighttype.h"
+#include "enums/materialtype.h"
 
 class CVehicle;
 class RwFrame;
@@ -17,8 +17,9 @@ struct VehicleDummyConfig {
     CVector position;
     size_t dummyIdx = 0;
     eDummyPos dummyType = eDummyPos::None;
-    eLightType lightType = eLightType::UnknownLight;
+    eMaterialType lightType = eMaterialType::UnknownMaterial;
     bool mirroredX = false;
+    bool isParentDummy = false;
     float angleOffset = 0.0f;
 
     struct {

@@ -4,6 +4,8 @@
 #include "lights.h"
 #include "eVehicleClass.h"
 
+using namespace plugin;
+
 std::vector<int> ValidForReverseSound;
 
 #define ANIMGROUP_TRUCK 2
@@ -12,7 +14,7 @@ std::vector<int> ValidForReverseSound;
 
 void SoundEffects::Initialize()
 {
-    plugin::Events::initGameEvent += []()
+    Events::initGameEvent += []()
     {
         std::string line = gConfig.ReadString("TABLE", "SoundEffects_BigVehicleModels", "");
         Util::GetModelsFromIni(line, ValidForReverseSound);

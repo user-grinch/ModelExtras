@@ -9,6 +9,8 @@
 #include <extensions/scripting/ScriptCommandNames.h>
 #include "modelinfomgr.h"
 
+using namespace plugin;
+
 #define VK_RMB 0x02
 extern int gGlobalShadowIntensity;
 
@@ -68,7 +70,7 @@ void SpotLights::OnHudRender()
 		}
 	}
 
-	if (!plugin::KeyPressed(VK_RMB) || !data.pFrame)
+	if (!KeyPressed(VK_RMB) || !data.pFrame)
 	{
 		return;
 	}
@@ -109,9 +111,9 @@ void SpotLights::OnVehicleRender(CVehicle *pVeh)
 
 	if (searchLight != NULL)
 	{
-		plugin::Command<plugin::Commands::DELETE_SEARCHLIGHT>(searchLight);
+		Command<Commands::DELETE_SEARCHLIGHT>(searchLight);
 		searchLight = NULL;
-		// plugin::Command<plugin::Commands::CREATE_SEARCHLIGHT>(-2025.600342, 176.275925, 48.843737, -2025.600342, 176.275925, 38.843737, 10.0, 1.0, &searchLight);
+		// Command<Commands::CREATE_SEARCHLIGHT>(-2025.600342, 176.275925, 48.843737, -2025.600342, 176.275925, 38.843737, 10.0, 1.0, &searchLight);
 	}
-	plugin::Command<plugin::Commands::CREATE_SEARCHLIGHT>(target.x, target.y, target.z, src.x, src.y, src.z, 1.0, 0.05, &searchLight);
+	Command<Commands::CREATE_SEARCHLIGHT>(target.x, target.y, target.z, src.x, src.y, src.z, 1.0, 0.05, &searchLight);
 };

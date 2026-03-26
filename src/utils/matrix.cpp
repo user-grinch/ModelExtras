@@ -1,27 +1,32 @@
 #include "pch.h"
 #include "matrix.h"
+#include "utils/frameextention.h"
 
-bool MatrixUtil::CreateBackup(RwFrame* frame) {
-    auto* backup = new RwMatrix();
-    if (!backup) {
-        gLogger->error("Failed to create matrix backup");
-        FRAME_EXTENSION(frame)->pOrigMatrix = nullptr;
+bool MatrixUtil::CreateBackup(RwFrame *frame)
+{
+    auto *backup = new RwMatrix();
+    if (!backup)
+    {
+        LOG(ERROR) << "Failed to create matrix backup";
+        RwFrameExtension::Get(frame)->pOrigMatrix = nullptr;
         return false;
     }
 
-    RwMatrix* origin = &frame->modelling;
+    RwMatrix *origin = &frame->modelling;
     backup->at = origin->at;
     backup->pos = origin->pos;
     backup->right = origin->right;
     backup->up = origin->up;
 
-    FRAME_EXTENSION(frame)->pOrigMatrix = backup;
+    RwFrameExtension::Get(frame)->pOrigMatrix = backup;
     return true;
 }
 
-void MatrixUtil::RestoreBackup(RwMatrix* dest, RwMatrix* backup) {
-    if (!backup) {
-        gLogger->error("Failed to restore matrix backup");
+void MatrixUtil::RestoreBackup(RwMatrix *dest, RwMatrix *backup)
+{
+    if (!backup)
+    {
+        LOG(ERROR) << "Failed to restore matrix backup";
         return;
     }
 
@@ -33,73 +38,30 @@ void MatrixUtil::RestoreBackup(RwMatrix* dest, RwMatrix* backup) {
     RwMatrixUpdate(dest);
 }
 
-float GetATanOfXY(float x, float y)
+double MatrixUtil::GetRotationX(RwMatrix *matrix)
 {
-    if (x > 0.0f)
-    {
-        return atan2(y, x);
-    }
-    else if (x < 0.0f)
-    {
-        if (y >= 0.0f)
-        {
-            return atan2(y, x) + 3.1416f;
-        }
-        else
-        {
-            return atan2(y, x) - 3.1416f;
-        }
-    }
-    else
-    { // x is 0.0f
-        if (y > 0.0f)
-        {
-            return 0.5f * 3.1416f;
-        }
-        else if (y < 0.0f)
-        {
-            return -0.5f * 3.1416f;
-        }
-        else
-        {
-            // x and y are both 0, undefined result
-            return 0.0f;
-        }
-    }
-}
-
-float MatrixUtil::GetRotationX(RwMatrix *matrix)
-{
-    float x = matrix->right.x;
-    float y = matrix->right.y;
-    float z = matrix->right.z;
-    float angle = GetATanOfXY(z, sqrt(x * x + y * y)) * 57.295776f - 90.0f;
-    while (angle < 0.0)
-        angle += 360.0;
+    double y = matrix->up.y;
+    double z = matrix->up.z;
+    double angle = Util::RadToDeg(atan2(z, y));
+    angle = Util::NormalizeAngle(angle);
     return angle;
 }
 
-float MatrixUtil::GetRotationY(RwMatrix *matrix)
+double MatrixUtil::GetRotationY(RwMatrix *matrix)
 {
-    float x = matrix->up.x;
-    float y = matrix->up.y;
-    float z = matrix->up.z;
-    float angle = GetATanOfXY(z, sqrt(x * x + y * y)) * 57.295776f - 90.0f;
-    while (angle < 0.0)
-        angle += 360.0;
-
+    double x = matrix->at.x;
+    double z = matrix->at.z;
+    double angle = Util::RadToDeg(atan2(x, z));
+    angle = Util::NormalizeAngle(angle);
     return angle;
 }
 
-float MatrixUtil::GetRotationZ(RwMatrix *matrix)
+double MatrixUtil::GetRotationZ(RwMatrix *matrix)
 {
-    if (!matrix)
-        return 0.0f;
-
-    float angle = GetATanOfXY(matrix->right.x, matrix->right.y) * 57.295776f - 90.0f;
-    while (angle < 0.0)
-        angle += 360.0;
-    return angle;
+    double x = matrix->right.x;
+    double y = matrix->right.y;
+    double angle = Util::RadToDeg(atan2(y, x));
+    return Util::NormalizeAngle(angle);
 }
 
 void MatrixUtil::ResetRotation(RwMatrix *matrix)
@@ -109,23 +71,13 @@ void MatrixUtil::ResetRotation(RwMatrix *matrix)
     matrix->at = {0.0f, 0.0f, 1.0f};
 }
 
-void MatrixUtil::SetRotationX(RwMatrix *matrix, float angle)
+void MatrixUtil::SetRotationXAbsolute(RwMatrix *matrix, double angle)
 {
-    angle -= GetRotationX(matrix);
-
-    // Ensure the angle is within [0, 360) range
-    while (angle >= 360.0f)
-        angle -= 360.0f;
-
-    while (angle < 0.0f)
-        angle += 360.0f;
-
-    // Convert angle to radians
-    float angleRad = angle / 57.295776f;
+    double angleRad = Util::DegToRad(angle);
 
     // Calculate the sine and cosine of the angle
-    float sinAngle = sin(angleRad);
-    float cosAngle = cos(angleRad);
+    double sinAngle = sin(angleRad);
+    double cosAngle = cos(angleRad);
 
     // Store the existing up and at vectors
     RwV3d up = matrix->up;
@@ -143,25 +95,16 @@ void MatrixUtil::SetRotationX(RwMatrix *matrix, float angle)
     // Normalize the vectors to ensure they remain orthogonal
     RwV3dNormalize(&matrix->up, &matrix->up);
     RwV3dNormalize(&matrix->at, &matrix->at);
+    RwMatrixUpdate(matrix);
 }
 
-void MatrixUtil::SetRotationY(RwMatrix *matrix, float angle)
+void MatrixUtil::SetRotationYAbsolute(RwMatrix *matrix, double angle)
 {
-    angle -= GetRotationY(matrix);
-
-    // Ensure the angle is within [0, 360) range
-    while (angle >= 360.0f)
-        angle -= 360.0f;
-
-    while (angle < 0.0f)
-        angle += 360.0f;
-
-    // Convert angle to radians
-    float angleRad = angle / 57.295776f;
+    double angleRad = Util::DegToRad(angle);
 
     // Calculate the sine and cosine of the angle
-    float sinAngle = sin(angleRad);
-    float cosAngle = cos(angleRad);
+    double sinAngle = sin(angleRad);
+    double cosAngle = cos(angleRad);
 
     // Store the existing right and at vectors
     RwV3d right = matrix->right;
@@ -179,25 +122,16 @@ void MatrixUtil::SetRotationY(RwMatrix *matrix, float angle)
     // Normalize the vectors to ensure they remain orthogonal
     RwV3dNormalize(&matrix->right, &matrix->right);
     RwV3dNormalize(&matrix->at, &matrix->at);
+    RwMatrixUpdate(matrix);
 }
 
-void MatrixUtil::SetRotationZ(RwMatrix *matrix, float angle)
+void MatrixUtil::SetRotationZAbsolute(RwMatrix *matrix, double angle)
 {
-    angle -= GetRotationZ(matrix);
-
-    // Ensure the angle is within [0, 360) range
-    while (angle >= 360.0f)
-        angle -= 360.0f;
-
-    while (angle < 0.0f)
-        angle += 360.0f;
-
-    // Convert angle to radians
-    float angleRad = angle / 57.295776f;
+    double angleRad = Util::DegToRad(angle);
 
     // Calculate the sine and cosine of the angle
-    float sinAngle = sin(angleRad);
-    float cosAngle = cos(angleRad);
+    double sinAngle = sin(angleRad);
+    double cosAngle = cos(angleRad);
 
     // Store the existing right and up vectors
     RwV3d right = matrix->right;
@@ -214,4 +148,5 @@ void MatrixUtil::SetRotationZ(RwMatrix *matrix, float angle)
     // Normalize the vectors to ensure they remain orthogonal
     RwV3dNormalize(&matrix->right, &matrix->right);
     RwV3dNormalize(&matrix->up, &matrix->up);
+    RwMatrixUpdate(matrix);
 }

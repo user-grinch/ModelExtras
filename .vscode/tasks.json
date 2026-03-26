@@ -1,88 +1,77 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build Debug",
+            "label": "Package ModelExtras",
             "type": "shell",
-            "command": "${workspaceFolder}/tools/Debug.bat",
+            "command": "./archive.sh",
             "presentation": {
-                "echo": true,
                 "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": false,
+                "panel": "dedicated",
                 "clear": true
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build Debug",
+            "type": "shell",
+            "command": "./debug.sh",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
             },
-            "windows": {
-                "options": {
-                    "shell": {
-                        "executable": "cmd.exe",
-                        "args": [
-                            "/d", "/c"
-                        ]
-                    }
-                }
-            },
+            "group": "build",
+            "problemMatcher": []
         },
         {
             "label": "Build Release",
             "type": "shell",
-            "command": "${workspaceFolder}/tools/Release.bat",
+            "command": "./release.sh",
             "presentation": {
-                "echo": true,
                 "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": false,
+                "panel": "dedicated",
                 "clear": true
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "windows": {
-                "options": {
-                    "shell": {
-                        "executable": "cmd.exe",
-                        "args": [
-                            "/d", "/c"
-                        ]
-                    }
-                }
-            },
+            "group": "build",
+            "problemMatcher": []
         },
         {
-            "label": "Package",
+            "label": "Run GTA SA",
             "type": "shell",
-            "command": "${workspaceFolder}/tools/PackAll7z.bat",
+            "command": "./run.sh",
             "presentation": {
-                "echo": true,
                 "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": false,
+                "panel": "dedicated",
                 "clear": true
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Debug & Run",
+            "type": "shell",
+            "command": "./debug.sh && ./run.sh",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
             },
-            "windows": {
-                "options": {
-                    "shell": {
-                        "executable": "cmd.exe",
-                        "args": [
-                            "/d", "/c"
-                        ]
-                    }
-                }
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Release & Run",
+            "type": "shell",
+            "command": "./release.sh && ./run.sh",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
             },
+            "group": "build",
+            "problemMatcher": []
         }
     ]
 }
