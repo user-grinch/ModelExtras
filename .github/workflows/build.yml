@@ -35,7 +35,7 @@ jobs:
 
     - name: Restore plugin-sdk cache
       id: plugin-sdk-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: plugin-sdk
         key: plugin-sdk-${{ steps.plugin-sdk-ref.outputs.sha }}-i686-w64-mingw32
