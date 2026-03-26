@@ -1,0 +1,99 @@
+# Clang-Tidy Configuration: The "Maximalist but Sane" Setup
+# =========================================================
+
+# 1. Header Filtering (CRITICAL)
+# Restrict checks to your project's headers only. 
+# Change "src|include" to match your source folders.
+HeaderFilterRegex: 'Source/|src/|include/'
+
+# 2. Format Style
+# Use the .clang-format file for fix-its
+FormatStyle: file
+
+# 3. Enable everything (*), then surgically remove the noise
+Checks: >
+  *,
+  -abseil-*,
+  -altera-*,
+  -android-*,
+  -darwin-*,
+  -fuchsia-*,
+  -google-*,
+  -llvm-*,
+  -llvmlibc-*,
+  -objc-*,
+  -zircon-*,
+  
+  # --- Generic Noise & Redundancy ---
+  -clang-analyzer-*,                   # Redundant if you run the static analyzer separately
+  -bugprone-easily-swappable-parameters, # Very noisy on legacy code
+  -modernize-use-trailing-return-type, # Stylistic preference (many prefer `int main()`)
+  -modernize-use-auto,                 # Can hide types, often controversial
+  
+  # --- CppCoreGuidelines Specifics ---
+  -cppcoreguidelines-owning-memory,    # Requires gsl::owner, noisy if not used
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic, # Too strict for low-level code
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-avoid-magic-numbers, # Duplicate of readability-magic-numbers
+  
+  # --- Readability & Hicpp ---
+  -hicpp-signed-bitwise,               # Annoying for flags/bitmasks
+  -readability-braces-around-statements, # styling choice
+  -readability-magic-numbers,          # 0, 1, -1 are often fine
+  -readability-named-parameter,        # Often flags 'void func(int x)' vs definition
+  -readability-implicit-bool-conversion # Very noisy with pointers/integers
+
+# 4. Warnings as Errors
+# Be careful here. New clang-tidy versions often introduce new checks 
+# that can break your build if you use '*'.
+WarningsAsErrors: ''
+
+CheckOptions:
+  # ---------------------------------------------------------------------------
+  # MODERNIZATION
+  # ---------------------------------------------------------------------------
+  - key:             modernize-use-nullptr.NullMacros
+    value:           'NULL'
+  
+  # ---------------------------------------------------------------------------
+  # PERFORMANCE
+  # ---------------------------------------------------------------------------
+  - key:             performance-for-range-copy.WarnOnAllAutoCopies
+    value:           'true'
+  - key:             performance-inefficient-vector-operation.EnableFastMath
+    value:           'true'
+  # Move checks are great, but allow omitting move ctor if not strictly needed
+  - key:             performance-move-const-arg.CheckTriviallyCopyableMove
+    value:           'false'
+
+  # ---------------------------------------------------------------------------
+  # READABILITY & STYLE
+  # ---------------------------------------------------------------------------
+  - key:             readability-function-size.LineThreshold
+    value:           '120'  # Bumped slightly for real-world tolerance
+  
+  # The "Const Correctness" check is powerful but VERY slow. 
+  # If clang-tidy is too slow, disable this check or 'transform-values' false.
+  - key:             misc-const-correctness.AnalyzeValues
+    value:           'true'
+  - key:             misc-const-correctness.TransformValues
+    value:           'true'
+
+  # ---------------------------------------------------------------------------
+  # NAMING CONVENTION (Standard C++ Style)
+  # ---------------------------------------------------------------------------
+  # Enforces variable naming. Adjust to match your style guide.
+  - key:             readability-identifier-naming.ClassCase
+    value:           'CamelCase'
+  - key:             readability-identifier-naming.StructCase
+    value:           'CamelCase'
+  - key:             readability-identifier-naming.FunctionCase
+    value:           'CamelCase' # or CamelCase
+  - key:             readability-identifier-naming.VariableCase
+    value:           'camelBack'
+  - key:             readability-identifier-naming.GlobalConstantCase
+    value:           'UPPER_CASE'
+  - key:             readability-identifier-naming.MemberCase
+    value:           'camelBack'
+  - key:             readability-identifier-naming.PrivateMemberSuffix
+    value:           '_'   # Enforces m_variable or variable_
