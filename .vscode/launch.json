@@ -1,0 +1,33 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Wine Remote Debug (Clang/MinGW)",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Start Wine GDB Server", // Fixed the 'd' typo
+            "program": "/mnt/p2/Games/GTA San Andreas/gta_sa.exe",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/x86_64-w64-mingw32-gdb",
+            "miDebuggerServerAddress": "localhost:12345",
+            "cwd": "${workspaceFolder}",
+            "externalConsole": false,
+            "stopAtEntry": true,
+            "setupCommands": [
+                {
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable async mode",
+                    "text": "set target-async on",
+                    "ignoreFailures": true
+                }
+            ],
+            "sourceFileMap": {
+                "Z:\\": "/",
+                "C:\\": "${env:WINEPREFIX}/drive_c/"
+            }
+        }
+    ]
+}
