@@ -8,14 +8,21 @@
 
 using namespace plugin;
 
+static CdeclEvent<AddressList<0x53CA75, H_CALL, 0x53CA61, H_CALL>, PRIORITY_AFTER, ArgPickNone, void()> CCarFXRenderer__ShutdownEvent;
+static CdeclEvent<AddressList<0x5B8FFD, H_CALL>, PRIORITY_AFTER, ArgPickNone, void()> CCarFXRenderer__InitialiseDirtTextureEvent;
+
 void DirtFx::Init()
 {
 	m_bEnabled = true;
+	
+	if (injector::GetBranchDestination(0x6D0E7E).as_int() != 0x5D5DB0) LOG(ERROR) << "Address conflict on 0x6D0E7E";
 	patch::Nop(0x6D0E7E, 5);
-    patch::Nop(0x4C9648, 5);
-	patch::RedirectCall(0x53CA75, DirtFx::ShutdownHook);
-	patch::RedirectCall(0x53CA61, DirtFx::ShutdownHook);
-	patch::RedirectCall(0x5B8FFD, DirtFx::InitialiseDirtTextures);
+
+	// revert & remove hook from silentpatch
+	patch::SetRaw(0x4C9648, (void *)"\x88\x86\xD2\x02\x00", 5);
+	
+	CCarFXRenderer__ShutdownEvent.after += DirtFx::ShutdownHook;
+	CCarFXRenderer__InitialiseDirtTextureEvent.after += DirtFx::InitialiseDirtTextures;
 
 	Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
 	{
@@ -68,19 +75,14 @@ void DirtFx::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat) {
 	}
 }
 
-void DirtFx::InitialiseDirtTexture() // org
-{
-	((void(__cdecl *)())0x5D5BC0)();
-}
-
 void DirtFx::Shutdown()
 {
+	plugin::Call<0x5D5AD0>(); // CCarFXRenderer__Shutdown
 	ShutdownHook();
 }
 
 void DirtFx::ShutdownHook()
 {
-	((void(__cdecl *)())0x5D5AD0)(); // Shutdown
 	for (int i = 0; i < 16; i++)
 	{
 		if (ms_aDirtTextures_2[i]) RwTextureDestroy(ms_aDirtTextures_2[i]);
@@ -176,8 +178,6 @@ void DirtFx::InitialiseDirtTextureSingle(const char *name, RwTexture **dirtTextu
 
 void DirtFx::InitialiseDirtTextures()
 {
-	InitialiseDirtTexture();
-
 	// Dirt Textures which blend to white
 	InitialiseDirtTextureSingle("vehiclegrunge_iv", ms_aDirtTextures_2);
 	InitialiseDirtTextureSingle("vehiclegrunge512", ms_aDirtTextures_3);
