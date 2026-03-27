@@ -2,7 +2,7 @@
 /archive_staging/
 /build/
 /.xmake/
-/.vscode/
+/.vscode/.cache/
 .cache/clangd/index/AixLog.hpp.6C976E4DA867A8FD.idx
 .cache/clangd/index/audiomgr.cpp.8021147078C35CCF.idx
 .cache/clangd/index/audiomgr.h.725EB9DA1C594630.idx
