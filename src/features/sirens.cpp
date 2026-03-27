@@ -641,7 +641,7 @@ void Sirens::Init()
 		id = Util::GetDigitsAfter(name, "light_em").value_or(id);
 
 		if (id != -1) {
-			VehicleDummyConfig config;
+			DummyConfig config;
 			config.pVeh = vehicle;
 			config.frame = frame;
 			vehicleData[vehicle]->Dummies[id].push_back(new VehicleDummy(config));
@@ -969,7 +969,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 		alpha = static_cast<char>(alpha * material->InertiaMultiplier);
 	}
 
-	VehicleDummyConfig *pDummyConfig = &dummy->Get();
+	DummyConfig *pDummyConfig = &dummy->Get();
 	pDummyConfig->shadow.color = pDummyConfig->corona.color = material->Color;
 	pDummyConfig->corona.size = material->Size;
 	float dummyAngle = Util::NormalizeAngle(pDummyConfig->rotation.angle + material->Shadow.AngleOffset);

@@ -11,7 +11,7 @@
 class CVehicle;
 class RwFrame;
 
-struct VehicleDummyConfig {
+struct DummyConfig {
     CVehicle *pVeh = nullptr;
     RwFrame* frame = nullptr;
     CVector position;
@@ -52,7 +52,7 @@ struct VehicleDummyConfig {
     static inline int gId = 0;
     int id = 0;
 
-    VehicleDummyConfig () : id(gId++) {
+    DummyConfig () : id(gId++) {
         
     } 
 };

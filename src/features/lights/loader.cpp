@@ -34,7 +34,7 @@ void LightsFeature::Init() {
 
     ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat) {
 		for (auto &e : ILightBehaviorBase::ptrs) {
-			if (e->IsValidMaterial(pMat)) {
+			if (e->IsValidMaterial(pMat) && e->RegisterMat(pVeh, pMat)) {
 				return e->GetMatType(pMat);
 			}
 		}
@@ -43,7 +43,7 @@ void LightsFeature::Init() {
 
 	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName) {
 		for (auto &e : ILightBehaviorBase::ptrs) {
-			if (e->IsValidDummy(pFrame) && e->RegisterDummy(pFrame)) {
+			if (e->IsValidDummy(pFrame) && e->RegisterDummy(pVeh, pFrame)) {
 				return;
 			}
 		}

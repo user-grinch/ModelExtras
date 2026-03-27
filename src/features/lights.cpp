@@ -189,7 +189,7 @@ void Lights::Init()
 	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *frame, const std::string_view name2)
 								{
 		std::string name = GetFrameNodeName(frame);
-		VehicleDummyConfig c;
+		DummyConfig c;
 		c.pVeh = pVeh;
 		c.frame = frame;
 		c.corona.color = {255, 255, 255, static_cast<unsigned char>(gGlobalCoronaIntensity)};
@@ -664,7 +664,7 @@ void Lights::RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std:
 	{
 		for (auto e : m_Dummies[pVeh][state])
 		{
-			const VehicleDummyConfig &c = e->GetRef();
+			const DummyConfig &c = e->GetRef();
 			e->Update();
 			RwFrame *parent = RwFrameGetParent(e->Get().frame);
 			eMaterialType type = e->GetRef().lightType;
@@ -774,7 +774,7 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMu
 {
 	if (gConfig.ReadBoolean("FEATURES", "LightCoronas", false))
 	{
-		const VehicleDummyConfig &c = dummy->GetRef();
+		const DummyConfig &c = dummy->GetRef();
 		if (c.corona.lightingType == eLightingMode::NonDirectional)
 		{
 			RenderUtil::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, c.position, c.corona.color, c.corona.size * szMul);

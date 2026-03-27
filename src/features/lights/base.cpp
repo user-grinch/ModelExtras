@@ -3,7 +3,7 @@
 #include "utils/modelinfomgr.h"
 
 bool ILightBehaviorBase::IsDummyAvail(CVehicle* pVeh) {
-    auto types = GetTypes();
+    auto types = GetSupportedMatTypes();
     for (const auto e : types) {
         auto& data = commonData.Get(pVeh);
         if (!data.dummies[e].empty()) {
@@ -13,31 +13,13 @@ bool ILightBehaviorBase::IsDummyAvail(CVehicle* pVeh) {
     return false;
 }
 
-bool ILightBehaviorBase::IsValidDummy(RwFrame *frame) {
-    std::string name = GetFrameNodeName(frame);
-    return IsValidDummy(name);
-}
-
-bool ILightBehaviorBase::RegisterDummy(RwFrame *frame) {
-    std::string name = GetFrameNodeName(frame);
-    return RegisterDummy(name);
-}
-
-bool ILightBehaviorBase::IsValidMaterial(RpMaterial *pMat) { 
-    return IsValidMaterial(Util::GetMaterialColor(pMat)); 
-}
-
-eMaterialType ILightBehaviorBase::GetMatType(RpMaterial *pMat) { 
-    return GetMatType(Util::GetMaterialColor(pMat)); 
-}
-
 bool ILightBehaviorBase::IsDummyAvail(CVehicle* pVeh, eMaterialType state) {
     auto& data = commonData.Get(pVeh);
     return !data.dummies[state].empty();
 }
 
 bool ILightBehaviorBase::IsMatAvail(CVehicle* pVeh) {
-    auto types = GetTypes();
+    auto types = GetSupportedMatTypes();
     for (const auto e : types) {
         if (ModelInfoMgr::IsMaterialAvailable(pVeh, e)) {
             return true;
@@ -50,7 +32,7 @@ void ILightBehaviorBase::EnableDummy(CVehicle *pVeh, VehicleDummy *pDummy)
 {
     if (gConfig.ReadBoolean("FEATURES", "LightCoronas", false))
     {
-        const VehicleDummyConfig &c = pDummy->GetRef();
+        const DummyConfig &c = pDummy->GetRef();
         if (c.corona.lightingType == eLightingMode::NonDirectional)
         {
             RenderUtil::RegisterCorona(pVeh, c.id, c.position, c.corona.color, c.corona.size);
@@ -62,67 +44,49 @@ void ILightBehaviorBase::EnableDummy(CVehicle *pVeh, VehicleDummy *pDummy)
     }
 }
 
-void ILightBehaviorBase::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh)
+template <typename T>
+void ILightBehavior<T>::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh)
 {
     int model = pControlVeh->m_nModelIndex;
 
-    auto types = GetTypes();
+    auto types = GetSupportedMatTypes();
     for (const auto e : types) {
-        if (!LightsGlobal::Get().m_bLightStates[e])
-        {
-            continue;
-        }
-
-        auto &controlData = commonData.Get(pControlVeh);
-
         RenderLight(pControlVeh, e);
         
         if (pControlVeh != pTowedVeh)
         {
-            auto &towedData = commonData.Get(pTowedVeh);
             RenderLight(pTowedVeh, e);
         }
     }
 }
 
-void ILightBehaviorBase::RenderLight(CVehicle *pVeh, eMaterialType state)
+template <typename T>
+void ILightBehavior<T>::RenderLight(CVehicle *pVeh, eMaterialType state)
 {
-    bool litMats = true;
-    
     if (IsDummyAvail(pVeh, state)) 
     {
-        for (auto e : commonData.Get(pVeh).dummies[state])
-        {
-            const VehicleDummyConfig &dummy = e->GetRef();
-            e->Update();
-            RwFrame *parent = RwFrameGetParent(e->Get().frame);
-            eMaterialType type = e->GetRef().lightType;
-            bool atomicCheck = type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && !FrameUtil::IsOkAtomicVisible(parent);
-            
-            auto& data = commonData.Get(pVeh);
-            if (atomicCheck || (dummy.dummyPos == eDummyPos::Rear && pVeh->m_pTrailer) || (!dummy.isParentDummy && !data.shouldRender(pVeh)))
-            {
-                litMats = false;
-                break;
-            }
+        auto& typeData = GetTypeData().Get(pVeh);
 
+        for (auto e : typeData.dummies[state])
+        {
+            const DummyConfig &c = e->GetRef();
+            e->Update();
+            
             EnableDummy(pVeh, e);
 
             // Skip front shadows on bike wheelie
-            if (dummy.dummyPos == eDummyPos::Front && Util::IsVehicleDoingWheelie(pVeh))
+            if (c.dummyPos == eDummyPos::Front && Util::IsVehicleDoingWheelie(pVeh))
             {
                 continue;
             }
 
-            if (dummy.shadow.render)
+            if (c.shadow.render)
             {
-                RenderUtil::RegisterShadowDirectional(&e->Get(), dummy.shadow.texture, dummy.shadow.size);
+                // Textures aren't customizable
+                RenderUtil::RegisterShadowDirectional(&e->Get(), typeData.texName, c.shadow.size);
             }
         }
     }
 
-    if (litMats)
-    {
-        ModelInfoMgr::EnableMaterial(pVeh, state);
-    }
+    ModelInfoMgr::EnableMaterial(pVeh, state);
 }

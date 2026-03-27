@@ -29,8 +29,10 @@ private:
 };
 
 struct LightsCommonData {
+    bool bIsOn = false;
+    DummyConfig config;
     std::map<eMaterialType, std::vector<VehicleDummy*>> dummies;
-    std::function<bool(CVehicle*)> shouldRender;
+    std::function<bool(CVehicle*, eMaterialType)> shouldRender;
 
     LightsCommonData(CVehicle* pVeh) {
     }

@@ -14,13 +14,10 @@ protected:
   VehicleExtendedData<LightsCommonData> commonData;
 
   virtual bool IsDummyAvail(CVehicle *pVeh) final;
-  virtual bool IsDummyAvail(CVehicle *pVeh, eMaterialType state) final;
   virtual bool IsMatAvail(CVehicle *pVeh) final;
+
+  virtual bool IsDummyAvail(CVehicle *pVeh, eMaterialType state) final;
   virtual void EnableDummy(CVehicle *pVeh, VehicleDummy *pDummy) final;
-
-  void RenderLight(CVehicle *pVeh, eMaterialType state);
-
-  virtual void RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh);
 
 public:
   static inline std::vector<ILightBehaviorBase *> ptrs;
@@ -31,20 +28,13 @@ public:
     ptrs.erase(std::remove(ptrs.begin(), ptrs.end(), this), ptrs.end());
   }
 
-  virtual std::vector<eMaterialType> GetTypes() const {
-    return {};
-  }
-
-  virtual bool IsValidDummy(RwFrame *frame) = 0;
-  virtual bool IsValidDummy(const std::string& dummyName) = 0;
+  virtual bool IsValidDummy(RwFrame *pFrame) = 0;
   virtual bool IsValidMaterial(RpMaterial *pMat) = 0;
-  virtual bool IsValidMaterial(const CRGBA &color) = 0;
-  virtual bool RegisterDummy(RwFrame *frame) = 0;
-  virtual bool RegisterDummy(const std::string& dummyName) = 0;
+  virtual bool RegisterDummy(CVehicle *pVeh, RwFrame *pFrame) = 0;
+  virtual bool RegisterMat(CVehicle *pVeh, RpMaterial *pMat) = 0;
 
-  virtual VehicleDummyConfig GetDummyConfig(RwFrame *frame) = 0;
+  virtual std::vector<eMaterialType> GetSupportedMatTypes() = 0;
   virtual eMaterialType GetMatType(RpMaterial *pMat) = 0;
-  virtual eMaterialType GetMatType(const CRGBA &color) = 0;
 
   virtual void Process(CVehicle *pVeh) = 0;
   virtual void Render(CVehicle *pControlVeh, CVehicle *pTowedVeh) = 0;
@@ -63,4 +53,7 @@ public:
   virtual ~ILightBehavior() = default;
 
   VehicleExtendedData<T> &GetTypeData() { return typeData; }
+  
+  virtual void RenderLight(CVehicle *pVeh, eMaterialType state);
+  virtual void RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh);
 };

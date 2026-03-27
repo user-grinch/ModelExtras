@@ -10,16 +10,16 @@
 class VehicleDummy
 {
 private:
-    VehicleDummyConfig data;
+    DummyConfig data;
 
 public:
-    VehicleDummy(const VehicleDummyConfig& config);
+    VehicleDummy(const DummyConfig& config);
 
-    const VehicleDummyConfig& GetRef() {
+    const DummyConfig& GetRef() {
         return data;
     }
 
-    VehicleDummyConfig& Get() {
+    DummyConfig& Get() {
         return data;
     }
 
