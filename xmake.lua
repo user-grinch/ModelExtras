@@ -7,8 +7,11 @@ add_rules("plugin.compile_commands.autoupdate", {
     lsp = "clangd"
 })
 
-local PLUGIN_SDK_DIR = "/mnt/p2/Code/plugin-sdk-mingw64/"--os.getenv("PLUGIN_SDK_DIR")
-local GAME_DIR = "/mnt/p2/Games/GTA San Andreas/"
+local PLUGIN_SDK_DIR = os.getenv("PLUGIN_SDK_DIR")
+if not PLUGIN_SDK_DIR then
+    raise("PLUGIN_SDK_DIR is not set")
+end
+local GAME_DIR = os.getenv("GTASA_DIR")
 
 target("ModelExtras")
     set_kind("shared")
@@ -93,8 +96,10 @@ target("ModelExtras")
     )
 
     after_build(function (target)
-        os.cp(target:targetfile(), GAME_DIR)
-        print(">> Deployed to Game Directory")
+        if GAME_DIR then
+            os.cp(target:targetfile(), GAME_DIR)
+            print(">> Deployed to Game Directory")
+        end
     end)
 
     if is_mode("debug") then
@@ -105,4 +110,4 @@ target("ModelExtras")
         add_links("plugin")
         set_optimize("aggressive")
         set_symbols('hidden')
-    end
+end
