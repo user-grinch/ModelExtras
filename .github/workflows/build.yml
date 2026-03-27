@@ -15,13 +15,12 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v6
-      with:
-        submodules: recursive
 
     - name: Setup xmake
       uses: xmake-io/github-action-setup-xmake@v1
       with:
         xmake-version: latest
+        actions-cache-folder: .xmake-cache
 
     - name: Install dependencies
       run: |
