@@ -9,10 +9,24 @@
 #include "components/rear_lights.h"
 #include "components/fog_light.h"
 #include "components/strobe_light.h"
-#include "components/auxiliary_light.h"
+#include "components/day_light.h"
+#include "components/night_light.h"
+#include "components/allday_light.h"
+#include "components/side_light.h"
 #include "components/spot_light.h"
 
-void LightManager::Init() {}
+void LightManager::Init() {
+    m_Components.push_back(std::make_unique<HeadlightComponent>());
+    m_Components.push_back(std::make_unique<IndicatorComponent>());
+    m_Components.push_back(std::make_unique<RearLightsComponent>());
+    m_Components.push_back(std::make_unique<FogLightComponent>());
+    m_Components.push_back(std::make_unique<StrobeLightComponent>());
+    m_Components.push_back(std::make_unique<DayLightComponent>());
+    m_Components.push_back(std::make_unique<NightLightComponent>());
+    m_Components.push_back(std::make_unique<AllDayLightComponent>());
+    m_Components.push_back(std::make_unique<SideLightComponent>());
+    m_Components.push_back(std::make_unique<SpotLightComponent>());
+}
 
 DummyConfig LightManager::CreateBaseConfig(CVehicle* pVeh, RwFrame* pFrame) {
     DummyConfig c;
@@ -26,28 +40,10 @@ eMaterialType LightManager::GetMatType(RpMaterial* pMat) {
     CRGBA matCol = *reinterpret_cast<CRGBA*>(RpMaterialGetColor(pMat));
     matCol.a = 255;
 
-    eMaterialType type = eMaterialType::UnknownMaterial;
-    
-    type = HeadlightComponent::GetMatType(matCol);
-    if (type != eMaterialType::UnknownMaterial) return type;
-    
-    type = IndicatorComponent::GetMatType(matCol);
-    if (type != eMaterialType::UnknownMaterial) return type;
-
-    type = RearLightsComponent::GetMatType(matCol);
-    if (type != eMaterialType::UnknownMaterial) return type;
-
-    type = FogLightComponent::GetMatType(matCol);
-    if (type != eMaterialType::UnknownMaterial) return type;
-
-    type = StrobeLightComponent::GetMatType(matCol);
-    if (type != eMaterialType::UnknownMaterial) return type;
-
-    type = AuxiliaryLightComponent::GetMatType(matCol);
-    if (type != eMaterialType::UnknownMaterial) return type;
-
-    type = SpotLightComponent::GetMatType(matCol);
-    if (type != eMaterialType::UnknownMaterial) return type;
+    for (const auto& comp : m_Components) {
+        eMaterialType type = comp->GetMatType(matCol);
+        if (type != eMaterialType::UnknownMaterial) return type;
+    }
 
     return eMaterialType::UnknownMaterial;
 }
@@ -55,13 +51,9 @@ eMaterialType LightManager::GetMatType(RpMaterial* pMat) {
 void LightManager::RegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name) {
     VehLightData& data = m_VehData.Get(pVeh);
 
-    if (HeadlightComponent::TryRegisterDummy(pVeh, pFrame, name, data)) return;
-    if (IndicatorComponent::TryRegisterDummy(pVeh, pFrame, name, data)) return;
-    if (RearLightsComponent::TryRegisterDummy(pVeh, pFrame, name, data)) return;
-    if (FogLightComponent::TryRegisterDummy(pVeh, pFrame, name, data)) return;
-    if (StrobeLightComponent::TryRegisterDummy(pVeh, pFrame, name, data)) return;
-    if (AuxiliaryLightComponent::TryRegisterDummy(pVeh, pFrame, name, data)) return;
-    if (SpotLightComponent::TryRegisterDummy(pVeh, pFrame, name, data)) return;
+    for (const auto& comp : m_Components) {
+        if (comp->TryRegisterDummy(pVeh, pFrame, name, data)) return;
+    }
 }
 
 void LightManager::Process(CVehicle* pVeh) {
@@ -77,26 +69,18 @@ void LightManager::Process(CVehicle* pVeh) {
     if (Util::IsEngineOff(pVeh)) return;
 
     VehLightData& data = m_VehData.Get(pVeh);
-    HeadlightComponent::Process(pVeh, data);
-    IndicatorComponent::Process(pVeh, data);
-    RearLightsComponent::Process(pVeh, data);
-    FogLightComponent::Process(pVeh, data);
-    StrobeLightComponent::Process(pVeh, data);
-    AuxiliaryLightComponent::Process(pVeh, data);
-    SpotLightComponent::Process(pVeh, data);
+    for (const auto& comp : m_Components) {
+        comp->Process(pVeh, data);
+    }
 }
 
 void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
     if (Util::IsEngineOff(pControlVeh)) return;
 
     VehLightData& data = m_VehData.Get(pControlVeh);
-    HeadlightComponent::Render(pControlVeh, pTowedVeh, data);
-    IndicatorComponent::Render(pControlVeh, pTowedVeh, data);
-    RearLightsComponent::Render(pControlVeh, pTowedVeh, data);
-    FogLightComponent::Render(pControlVeh, pTowedVeh, data);
-    StrobeLightComponent::Render(pControlVeh, pTowedVeh, data);
-    AuxiliaryLightComponent::Render(pControlVeh, pTowedVeh, data);
-    SpotLightComponent::Render(pControlVeh, pTowedVeh, data);
+    for (const auto& comp : m_Components) {
+        comp->Render(pControlVeh, pTowedVeh, data);
+    }
 }
 
 void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType type, bool isOn, const std::string& texture) {
@@ -131,12 +115,12 @@ bool LightManager::IsDummyAvailable(VehLightData& data, eMaterialType type) {
 
 extern "C"
 {
-    bool ME_GetVehicleLightState(CVehicle *pVeh, ME_MaterialID lightId)
+    bool ME_GetVehicleLightState(CVehicle *pVeh, ME_LightID lightId)
     {
         return LightManager::m_VehData.Get(pVeh).bLightStates[static_cast<eMaterialType>(lightId)];
     }
 
-    void ME_SetVehicleLightState(CVehicle *pVeh, ME_MaterialID lightId, bool state)
+    void ME_SetVehicleLightState(CVehicle *pVeh, ME_LightID lightId, bool state)
     {
         LightManager::m_VehData.Get(pVeh).bLightStates[static_cast<eMaterialType>(lightId)] = state;
     }

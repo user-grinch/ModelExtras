@@ -848,16 +848,16 @@ void Lights::SetLightState(CVehicle *pVeh, eMaterialType lightId, bool state)
 	m_VehData.Get(pVeh).m_bLightStates[lightId] = state;
 }
 
-extern enum ME_MaterialID;
+extern enum ME_LightID;
 
 extern "C"
 {
-	bool ME_GetVehicleLightState(CVehicle *pVeh, ME_MaterialID lightId)
+	bool ME_GetVehicleLightState(CVehicle *pVeh, ME_LightID lightId)
 	{
 		return Lights::GetLightState(pVeh, static_cast<eMaterialType>(lightId));
 	}
 
-	void ME_SetVehicleLightState(CVehicle *pVeh, ME_MaterialID lightId, bool state)
+	void ME_SetVehicleLightState(CVehicle *pVeh, ME_LightID lightId, bool state)
 	{
 		Lights::SetLightState(pVeh, static_cast<eMaterialType>(lightId), state);
 	}

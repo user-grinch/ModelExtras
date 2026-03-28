@@ -11,40 +11,12 @@ bool is_number(const std::string &s)
     return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
 }
 
-extern int Convert_EmlToJsonc(const std::string &inPath);
-extern void Convert_JsonToJsonc(const std::string &inPath);
-extern int Convert_IvfcToJsonc(const std::string &inPath);
-
 void DataMgr::Init()
 {
-    Convert();
-    Parse();
-}
-
-void DataMgr::Convert()
-{
-    std::string path = std::string(MOD_DATA_PATH("data/"));
-
-    if (std::filesystem::exists(path)) {
-        for (auto &p : std::filesystem::directory_iterator(path))
-        {
-            std::string filePath = p.path().string();
-            std::string fileExt = p.path().extension().string();
-            if (fileExt == ".eml")
-            {
-                Convert_EmlToJsonc(filePath);
-            }
-            else if (fileExt == ".json")
-            {
-                Convert_JsonToJsonc(filePath);
-            }
-            else if (fileExt == ".ivfc")
-            {
-                Convert_IvfcToJsonc(filePath);
-            }
-        }
-    } else {
-        LOG(WARNING) << "ModelExtras/data directory doesn't exist";
+    LOG(INFO) << "Loading data files from ModelExtras/data...";
+    for (const auto &e : std::filesystem::directory_iterator(MOD_DATA_PATH("data/")))
+    {
+        LoadFile(e);
     }
 }
 
@@ -65,13 +37,6 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
     {
         // Skipping directories or links here
         if (!e.is_regular_file() || e.is_directory() || e.path().extension() != ".jsonc")
-        {
-            return;
-        }
-
-        // Ignore folders with '.' int their names .data / .profile etc
-        std::string parentPath = e.path().parent_path().string();
-        if (STR_FOUND(parentPath, '.'))
         {
             return;
         }
@@ -143,15 +108,6 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
         std::u8string u8Path = e.path().u8string();
         std::string path(reinterpret_cast<const char *>(u8Path.data()), u8Path.size());
         LOG(ERROR) << std::format("Parsing {} failed. ({})", path, ex.what());
-    }
-}
-
-void DataMgr::Parse()
-{
-    LOG(INFO) << "Loading data files from ModelExtras/data...";
-    for (const auto &e : std::filesystem::directory_iterator(MOD_DATA_PATH("data/")))
-    {
-        LoadFile(e);
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * API provided for ModelExtras v2.1 Release
+ * API provided for ModelExtras v3.0 Release
  */
 
 #pragma once
@@ -62,7 +62,7 @@ enum ME_FeatureID
     ME_FeatureCount
 };
 
-enum ME_MaterialID
+enum ME_LightID
 {
     ME_HeadLightLeft,
     ME_HeadLightRight,
@@ -118,20 +118,9 @@ extern "C"
     ME_WRAPPER bool ME_IsFeatureAvail(ME_FeatureID featureId);
 
     // Vehicle
-    ME_WRAPPER bool ME_GetVehicleLEDState(CVehicle *pVeh, ME_MaterialID ledID);
-    ME_WRAPPER void ME_SetVehicleLEDState(CVehicle *pVeh, ME_MaterialID ledID, bool state);
-
-    ME_WRAPPER bool ME_GetVehicleLightState(CVehicle *pVeh, ME_MaterialID lightId);
-    ME_WRAPPER void ME_SetVehicleLightState(CVehicle *pVeh, ME_MaterialID lightId, bool state);
-
     ME_WRAPPER unsigned int ME_GetExhaustCount(CVehicle *pVeh);
     ME_WRAPPER ME_ExhaustInfo ME_GetExhaustData(CVehicle *pVeh, int index);
     ME_WRAPPER void ME_SetExhaustData(CVehicle *pVeh, int index, ME_ExhaustInfo &data);
-
-    // Ped
-    ME_WRAPPER int ME_GetPedRemap(CPed *ped, int index);
-    ME_WRAPPER void ME_SetPedRemap(CPed *ped, int index, int num);
-    ME_WRAPPER void ME_SetAllPedRemaps(CPed *ped, int num);
 
 #ifdef __cplusplus
 }

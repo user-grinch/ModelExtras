@@ -1,11 +1,12 @@
 #pragma once
+#include "base.h"
 #include "../manager.h"
 
-class StrobeLightComponent {
+class StrobeLightComponent : public BaseLightComponent {
 public:
-    static eMaterialType GetMatType(CRGBA matCol);
-    static bool TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name, VehLightData& data);
+    eMaterialType GetMatType(CRGBA matCol) override;
+    bool TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name, VehLightData& data) override;
 
-    static void Process(CVehicle* pVeh, VehLightData& data);
-    static void Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data);
+    void Process(CVehicle* pVeh, VehLightData& data) override;
+    void Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) override;
 };
