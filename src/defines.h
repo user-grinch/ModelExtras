@@ -1,6 +1,6 @@
 #pragma once
 #include <plugin.h>
-#define PATRON_BUILD 1
+#define PATRON_BUILD 0
 
 #define MOD_DATA_PATH(x) PLUGIN_PATH((char *)("ModelExtras/" x))
 

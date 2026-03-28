@@ -17,10 +17,6 @@ protected:
   eFeatureMatrix m_featureId;
   bool m_bActive = false;
 
-  virtual void Init() = 0;
-  virtual void Shutdown() {}
-  virtual void Reload() {}
-  virtual void Reload(CVehicle *pVeh) {}
 
 public:
   CBaseFeature(std::string name, std::string configSection,
@@ -29,6 +25,11 @@ public:
   virtual ~CBaseFeature() = default;
 
   [[nodiscard]] bool IsActive() const;
+
+  virtual void Init() = 0;
+  virtual void Shutdown() {}
+  virtual void Reload() {}
+  virtual void Reload(CVehicle *pVeh) {}
 };
 
 template <typename T> class CVehFeature : public CBaseFeature {
