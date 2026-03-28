@@ -24,7 +24,6 @@ private:
 
 	void Shutdown() override;
 	static void ShutdownHook();
-	static void InitialiseDirtTexture();
 	static void InitialiseDirtTextures();
 	static void InitialiseBlendTextureSingle(const char *CleanName, const char *DirtName, RwTexture **TextureArray);
 	static void InitialiseBlendTextureSingleEx(RwTexture *src, RwTexture *dest);
