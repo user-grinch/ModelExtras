@@ -1,8 +1,7 @@
 #include "enums/materialtype.h"
 #include "pch.h"
 #include "loader.h"
-#include "config.h"
-#include "base.h"
+#include "manager.h"
 
 void LightsFeature::Init() {
     if (!gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false)) {
@@ -33,47 +32,33 @@ void LightsFeature::Init() {
 	};
 
     ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat) {
-		for (auto &e : ILightBehaviorBase::ptrs) {
-			if (e->IsValidMaterial(pMat) && e->RegisterMat(pVeh, pMat)) {
-				return e->GetMatType(pMat);
-			}
-		}
-		return eMaterialType::UnknownMaterial; 
+        return LightManager::GetMatType(pMat); 
     });
 
 	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName) {
-		for (auto &e : ILightBehaviorBase::ptrs) {
-			if (e->IsValidDummy(pFrame) && e->RegisterDummy(pVeh, pFrame)) {
-				return;
-			}
-		}
+        LightManager::RegisterDummy(pVeh, pFrame, std::string(nodeName));
     });
 
 	Events::processScriptsEvent += []()
 	{
 		CVehicle *pVeh = FindPlayerVehicle(-1, false);
-		for (auto &e : ILightBehaviorBase::ptrs) {
-			e->Process(pVeh);
-		}
+        if (pVeh) {
+            LightManager::Process(pVeh);
+        }
 	};
 
 	ModelInfoMgr::RegisterRender([](CVehicle *pControlVeh) {
 		int model = pControlVeh->m_nModelIndex;
 
-		// skip directly processing trailers
 		if (CModelInfo::IsTrailerModel(model)) {
 			return;
 		}
 
 		CVehicle *pTowedVeh = pControlVeh;
-		
-		if (pControlVeh->m_pTrailer)
-		{
+		if (pControlVeh->m_pTrailer) {
 			pTowedVeh = pControlVeh->m_pTrailer;
 		}
 
-		for (auto &e : ILightBehaviorBase::ptrs) {
-			e->Render(pControlVeh, pTowedVeh);
-		}
+		LightManager::Render(pControlVeh, pTowedVeh);
 	});
 }
