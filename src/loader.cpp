@@ -1,4 +1,4 @@
-#include "lights/loader.h"
+#include "lights/lights.h"
 #include "pch.h"
 #include <plugin.h>
 #include <CHud.h>
@@ -37,11 +37,9 @@
 #include "utils/frameextention.h"
 #include "utils/meevents.h"
 
-void InitLogFile();
-
 constexpr uint32_t TEST_CHEAT = 0x0ADC;
 
-void ModelExtrasLoader::Init()
+void ModelExtras::Init()
 {
     AudioMgr::Init();
     ModelInfoMgr::Init();
@@ -134,14 +132,14 @@ void ModelExtrasLoader::Init()
     new SpotLights();
     for (auto *pFeature : m_Features)
     {
-        // if (pFeature->IsActive())
-        // {
+        if (pFeature->IsActive())
+        {
             pFeature->Init();
-        // }StandardLights
+        }
     }
 }
 
-void ModelExtrasLoader::Reload(CVehicle *pVeh)
+void ModelExtras::Reload(CVehicle *pVeh)
 {
     for (auto* pFeature : m_Features) {
         if (pFeature) {

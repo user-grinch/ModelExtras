@@ -5,7 +5,7 @@
 #include <vector>
 #include "features/core/base.h"
 
-class ModelExtrasLoader {
+class ModelExtras {
 public:
     static inline std::vector<CBaseFeature*> m_Features;
     static inline std::bitset<static_cast<int>(eFeatureMatrix::FeatureCount)> m_bEnabledFeatures;

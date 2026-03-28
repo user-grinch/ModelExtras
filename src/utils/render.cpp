@@ -84,7 +84,7 @@ void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRG
                              coronaSz, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, true, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
 };
 
-void RenderUtil::RegisterCoronaDirectional(const VehicleDummyConfig *pConfig, float angle, float radius, float szMul, bool inversed, bool skipCheck)
+void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float angle, float radius, float szMul, bool inversed, bool skipCheck)
 {
     const float FADE_RANGE = 20.0f;
     float sz = pConfig->corona.size * szMul;
@@ -137,7 +137,7 @@ void RenderUtil::RegisterCoronaDirectional(const VehicleDummyConfig *pConfig, fl
 
 extern int gGlobalShadowIntensity;
 
-void RenderUtil::RegisterShadowDirectional(const VehicleDummyConfig *pConfig, const std::string &shadwTexName, float shdwSz)
+void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std::string &shadwTexName, float shdwSz)
 {
     const float SHDW_SZ_MUL = 2.0f;
     if (!pConfig->pVeh || !pConfig || shdwSz == 0.0f || !gConfig.ReadBoolean("FEATURES", "LightShadows", false))

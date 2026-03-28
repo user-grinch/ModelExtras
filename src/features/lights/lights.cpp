@@ -1,8 +1,7 @@
 #include "enums/materialtype.h"
 #include "pch.h"
-#include "loader.h"
-#include "config.h"
-#include "base.h"
+#include "lights.h"
+#include "manager.h"
 
 void LightsFeature::Init() {
     if (!gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false)) {
@@ -16,14 +15,6 @@ void LightsFeature::Init() {
 	patch::SetUChar(0x6E0CF8, 0);
 	patch::SetUChar(0x6E0DEE, 0);
 
-	// NOP CVehicle::DoHeadLightBeam
-	if (!gConfig.ReadBoolean("TWEAKS", "HeadLightBeams", true))
-	{
-		// cmp ax, ax
-		patch::SetRaw(0x6A2EA5, (void *)"\x66\x39\xC0\x90", 4);
-		patch::SetRaw(0x6BDE63, (void *)"\x66\x39\xC0\x90\x90\x90\x90", 7);
-	}
-
 	Events::initGameEvent += []()
 	{
 		LightsGlobal::Get().gbGlobalIndicatorLights = gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false);
@@ -33,47 +24,33 @@ void LightsFeature::Init() {
 	};
 
     ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat) {
-		for (auto &e : ILightBehaviorBase::ptrs) {
-			if (e->IsValidMaterial(pMat)) {
-				return e->GetMatType(pMat);
-			}
-		}
-		return eMaterialType::UnknownMaterial; 
+        return LightManager::GetMatType(pMat); 
     });
 
 	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName) {
-		for (auto &e : ILightBehaviorBase::ptrs) {
-			if (e->IsValidDummy(pFrame) && e->RegisterDummy(pFrame)) {
-				return;
-			}
-		}
+        LightManager::RegisterDummy(pVeh, pFrame, std::string(nodeName));
     });
 
 	Events::processScriptsEvent += []()
 	{
 		CVehicle *pVeh = FindPlayerVehicle(-1, false);
-		for (auto &e : ILightBehaviorBase::ptrs) {
-			e->Process(pVeh);
-		}
+        if (pVeh) {
+            LightManager::Process(pVeh);
+        }
 	};
 
 	ModelInfoMgr::RegisterRender([](CVehicle *pControlVeh) {
 		int model = pControlVeh->m_nModelIndex;
 
-		// skip directly processing trailers
 		if (CModelInfo::IsTrailerModel(model)) {
 			return;
 		}
 
 		CVehicle *pTowedVeh = pControlVeh;
-		
-		if (pControlVeh->m_pTrailer)
-		{
+		if (pControlVeh->m_pTrailer) {
 			pTowedVeh = pControlVeh->m_pTrailer;
 		}
 
-		for (auto &e : ILightBehaviorBase::ptrs) {
-			e->Render(pControlVeh, pTowedVeh);
-		}
+		LightManager::Render(pControlVeh, pTowedVeh);
 	});
 }

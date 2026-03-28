@@ -17,7 +17,7 @@ int ReadHex(char a, char b)
     return (a << 4) + b;
 }
 
-VehicleDummy::VehicleDummy(const VehicleDummyConfig& config)
+VehicleDummy::VehicleDummy(const DummyConfig& config)
 {
     data = config;
     float angleVal = 0.0f;
