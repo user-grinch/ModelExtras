@@ -32,10 +32,8 @@ struct VehLightData {
     eIndicatorState nIndicatorState = eIndicatorState::Off;
     bool bUsingGlobalIndicators = false;
     
-    // Maps material types to their associated dummies
     std::map<eMaterialType, std::vector<VehicleDummy*>> dummies;
     
-    // Cache for material availability if needed
     bool bLightStates[eMaterialType::TotalMaterial];
 
     VehLightData(CVehicle* pVeh) {

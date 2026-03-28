@@ -1,6 +1,6 @@
 #include "enums/materialtype.h"
 #include "pch.h"
-#include "loader.h"
+#include "lights.h"
 #include "manager.h"
 
 void LightsFeature::Init() {

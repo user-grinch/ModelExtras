@@ -1,4 +1,4 @@
-#include "lights/loader.h"
+#include "lights/lights.h"
 #include "pch.h"
 #include <plugin.h>
 #include <CHud.h>
@@ -134,10 +134,10 @@ void ModelExtrasLoader::Init()
     new SpotLights();
     for (auto *pFeature : m_Features)
     {
-        // if (pFeature->IsActive())
-        // {
+        if (pFeature->IsActive())
+        {
             pFeature->Init();
-        // }StandardLights
+        }
     }
 }
 
