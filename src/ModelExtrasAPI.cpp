@@ -13,7 +13,7 @@ bool ME_IsFeatureAvail(ME_FeatureID featureId) {
   if (idx < 0 || idx >= static_cast<int>(eFeatureMatrix::FeatureCount)) {
     return false;
   }
-  return ModelExtrasLoader::m_bEnabledFeatures.test(idx);
+  return ModelExtras::m_bEnabledFeatures.test(idx);
 }
 
 // Dummy function to show on crash logs

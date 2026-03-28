@@ -41,8 +41,8 @@
 },
 {
   "directory": "/m2/Code/ModelExtras",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-m32", "--target=i686-w64-windows-gnu", "-g", "-O0", "-std=c++23", "-include", "src/pch.h", "-include-pch", "build/.objs/ModelExtras/mingw/x86/debug/src/cxx/pch.h.pch", "-Iinclude", "-Iinclude/coreutils", "-I/m2/Code/plugin-sdk", "-I/m2/Code/plugin-sdk/plugin_sa", "-I/m2/Code/plugin-sdk/plugin_sa/game_sa", "-I/m2/Code/plugin-sdk/plugin_sa/game_sa/rw", "-I/m2/Code/plugin-sdk/shared", "-I/m2/Code/plugin-sdk/shared/game", "-I/m2/Code/plugin-sdk/injector", "-I/m2/Code/plugin-sdk/safetyhook", "-Isrc", "-Isrc/features", "-Ibuild/.gens/ModelExtras/mingw/x86/debug/platform/windows/idl", "-DPLUGIN_SGV_10US", "-DMODELEXTRAS_DEV", "-DGTASA", "-DRW", "--target=i686-w64-mingw32", "-fpermissive", "-fcommon", "-fms-extensions", "-Wno-microsoft-include", "-gdwarf-4", "-gstrict-dwarf", "-gcodeview", "-fdebug-macro", "-o", "build/.objs/ModelExtras/mingw/x86/debug/src/features/lights/loader.cpp.obj", "src/features/lights/loader.cpp"],
-  "file": "src/features/lights/loader.cpp"
+  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-m32", "--target=i686-w64-windows-gnu", "-g", "-O0", "-std=c++23", "-include", "src/pch.h", "-include-pch", "build/.objs/ModelExtras/mingw/x86/debug/src/cxx/pch.h.pch", "-Iinclude", "-Iinclude/coreutils", "-I/m2/Code/plugin-sdk", "-I/m2/Code/plugin-sdk/plugin_sa", "-I/m2/Code/plugin-sdk/plugin_sa/game_sa", "-I/m2/Code/plugin-sdk/plugin_sa/game_sa/rw", "-I/m2/Code/plugin-sdk/shared", "-I/m2/Code/plugin-sdk/shared/game", "-I/m2/Code/plugin-sdk/injector", "-I/m2/Code/plugin-sdk/safetyhook", "-Isrc", "-Isrc/features", "-Ibuild/.gens/ModelExtras/mingw/x86/debug/platform/windows/idl", "-DPLUGIN_SGV_10US", "-DMODELEXTRAS_DEV", "-DGTASA", "-DRW", "--target=i686-w64-mingw32", "-fpermissive", "-fcommon", "-fms-extensions", "-Wno-microsoft-include", "-gdwarf-4", "-gstrict-dwarf", "-gcodeview", "-fdebug-macro", "-o", "build/.objs/ModelExtras/mingw/x86/debug/src/features/lights/lights.cpp.obj", "src/features/lights/lights.cpp"],
+  "file": "src/features/lights/lights.cpp"
 },
 {
   "directory": "/m2/Code/ModelExtras",
