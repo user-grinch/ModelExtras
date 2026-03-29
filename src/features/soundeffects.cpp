@@ -50,8 +50,8 @@ void SoundEffects::Init()
                 bool isValid = !CModelInfo::IsPlaneModel(model) && !CModelInfo::IsBmxModel(model) && !CModelInfo::IsHeliModel(model) && !CModelInfo::IsBoatModel(model);
                 if (isValid && data.m_bEngineState != pVeh->bEngineOn)
                 {
-                    static std::string carPath = MOD_DATA_PATH("audio/effects/engine_start.wav");
-                    static std::string bikePath = MOD_DATA_PATH("audio/effects/bike_engine_start.wav");
+                    static std::string carPath = MOD_DATA_PATH("audio/engine_start.wav");
+                    static std::string bikePath = MOD_DATA_PATH("audio/bike_engine_start.wav");
                     if (pVeh->bEngineOn)
                     {
                         if (CModelInfo::IsBikeModel(model) || CModelInfo::IsQuadBikeModel(model))
@@ -72,8 +72,8 @@ void SoundEffects::Init()
                 bool state = Lights::IsIndicatorOn(pVeh);
                 if (state != data.m_bIndicatorState)
                 {
-                    static std::string onpath = MOD_DATA_PATH("audio/effects/indicator_on.wav");
-                    static std::string offpath = MOD_DATA_PATH("audio/effects/indicator_off.wav");
+                    static std::string onpath = MOD_DATA_PATH("audio/indicator_on.wav");
+                    static std::string offpath = MOD_DATA_PATH("audio/indicator_off.wav");
 
                     if (state)
                     {
@@ -109,7 +109,7 @@ void SoundEffects::Init()
 
                 if (pedal <= 0.05f && val != NULL)
                 {
-                    static std::string path = MOD_DATA_PATH("audio/effects/airbreak.wav");
+                    static std::string path = MOD_DATA_PATH("audio/airbreak.wav");
                     AudioMgr::PlayFileSound(path, pVeh, data.m_fBrakePressure, true);
                     val = NULL;
                     data.m_fBrakePressure = 0.0f;
@@ -118,7 +118,7 @@ void SoundEffects::Init()
 
             if (bReverseSounds)
             {
-                static std::string path = MOD_DATA_PATH("audio/effects/reverse.wav");
+                static std::string path = MOD_DATA_PATH("audio/reverse.wav");
 
                 if (isBigVeh && pVeh->m_nCurrentGear == 0 && pVeh->bEngineOn && !pVeh->bEngineBroken && speed >= 3.0f)
                 {

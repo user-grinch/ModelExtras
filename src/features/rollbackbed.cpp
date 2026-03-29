@@ -71,7 +71,7 @@ bool RollbackBed::UpdateMove(HydraulicPiston &piston, float moveSpeed, bool bExp
 
 void RollbackBed::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
     {
         std::string name = GetFrameNodeName(pFrame);
         if (!name.starts_with("x_rb"))

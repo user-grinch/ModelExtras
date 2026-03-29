@@ -7,7 +7,7 @@ eMaterialType SpotLightComponent::GetMatType(CRGBA matCol) {
     return eMaterialType::UnknownMaterial;
 }
 
-bool SpotLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name, VehLightData& data) {
+bool SpotLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
     if (name.starts_with("spotlight_light")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.lightType = eMaterialType::SpotLight;

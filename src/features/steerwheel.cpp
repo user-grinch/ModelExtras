@@ -4,7 +4,7 @@
 
 void SteerWheel::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& name) {
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view name) {
 		if (gbVehIKInstalled) {
             return;
 		}

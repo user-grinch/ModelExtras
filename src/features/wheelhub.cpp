@@ -5,7 +5,7 @@
 
 void WheelHub::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& name)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view name)
     {
         WheelHubData& data = m_VehData.Get(pVeh);
         

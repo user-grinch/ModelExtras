@@ -8,7 +8,7 @@ eMaterialType SideLightComponent::GetMatType(CRGBA matCol) {
     return eMaterialType::UnknownMaterial;
 }
 
-bool SideLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name, VehLightData& data) {
+bool SideLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
     if (auto d = Util::GetCharsAfterPrefix(name, "sidelight_", 1)) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.lightType = (d == "L") ? eMaterialType::SideLightLeft : eMaterialType::SideLightRight;

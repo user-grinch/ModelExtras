@@ -11,7 +11,7 @@ eMaterialType HeadlightComponent::GetMatType(CRGBA matCol) {
     return eMaterialType::UnknownMaterial;
 }
 
-bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name, VehLightData& data) {
+bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
     if (name == "headlights" || name == "headlights2") {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Front;

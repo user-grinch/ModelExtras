@@ -48,7 +48,7 @@ eMaterialType LightManager::GetMatType(RpMaterial* pMat) {
     return eMaterialType::UnknownMaterial;
 }
 
-void LightManager::RegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name) {
+void LightManager::RegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name) {
     VehLightData& data = m_VehData.Get(pVeh);
 
     for (const auto& comp : m_Components) {

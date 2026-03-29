@@ -18,7 +18,7 @@ eMaterialType RearLightsComponent::GetMatType(CRGBA matCol) {
     return eMaterialType::UnknownMaterial;
 }
 
-bool RearLightsComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name, VehLightData& data) {
+bool RearLightsComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
     if (name.starts_with("rev") && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r"))) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Rear;

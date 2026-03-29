@@ -14,7 +14,7 @@ static inline float ClampRotation(float value, float maxRot)
 
 void GearIndicator::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
                                 {
         std::string name = GetFrameNodeName(pFrame);
         if (name.starts_with("x_gearmeter") || name.starts_with("fc_gm")) {
@@ -47,7 +47,7 @@ void GearIndicator::Init()
 
 void MileageIndicator::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName) {
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName) {
         std::string name = GetFrameNodeName(pFrame);
         if (name.starts_with("x_odometer") || name.starts_with("fc_om")) {
             VehMileageData &data = m_VehData.Get(pVeh);
@@ -112,7 +112,7 @@ void MileageIndicator::Init()
 
 void RPMGauge::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
                                 {
         std::string name = GetFrameNodeName(pFrame);
         if (name.starts_with("x_rpm") || name.starts_with("fc_rpm") || name.starts_with("tahook")) {
@@ -165,7 +165,7 @@ void RPMGauge::Init()
 
 void SpeedGauge::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
                                 {
     std::string name = GetFrameNodeName(pFrame);
     if (name.starts_with("x_sm") || name.starts_with("fc_sm") || name.starts_with("speedook")) {
@@ -215,7 +215,7 @@ void SpeedGauge::Init()
 
 void TurboGauge::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
                                 {
         std::string name = GetFrameNodeName(pFrame);
         if (name.starts_with("x_tm")) {
@@ -269,7 +269,7 @@ void TurboGauge::Init()
 
 void FixedGauge::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
                                 {
         std::string name = GetFrameNodeName(pFrame);
 

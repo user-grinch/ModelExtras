@@ -27,8 +27,8 @@ void LightsFeature::Init() {
         return LightManager::GetMatType(pMat); 
     });
 
-	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName) {
-        LightManager::RegisterDummy(pVeh, pFrame, std::string(nodeName));
+	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName) {
+        LightManager::RegisterDummy(pVeh, pFrame, nodeName);
     });
 
 	Events::processScriptsEvent += []()

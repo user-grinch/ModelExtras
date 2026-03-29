@@ -4,7 +4,7 @@
 
 void HandleBar::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
     { 
         if (gbVehIKInstalled) {
             return;
