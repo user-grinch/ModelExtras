@@ -80,8 +80,8 @@ float Util::GetVehicleSpeedRealistic(CVehicle *vehicle)
     if (vehicle->m_nVehicleSubClass == VEHICLE_BIKE || vehicle->m_nVehicleSubClass == VEHICLE_BMX)
     {
         CBike *bike = (CBike *)vehicle;
-        wheelSpeed = ((bike->m_fWheelSpeed[0] * vehicleModelInfo->m_fWheelSizeFront) +
-                      (bike->m_fWheelSpeed[1] * vehicleModelInfo->m_fWheelSizeRear)) /
+        wheelSpeed = ((bike->m_aWheelAngularVelocity[0] * vehicleModelInfo->m_fWheelSizeFront) +
+                      (bike->m_aWheelAngularVelocity[1] * vehicleModelInfo->m_fWheelSizeRear)) /
                      2.0f;
     }
     else if (vehicle->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || vehicle->m_nVehicleSubClass == VEHICLE_MTRUCK || vehicle->m_nVehicleSubClass == VEHICLE_QUAD)

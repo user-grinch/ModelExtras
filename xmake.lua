@@ -59,6 +59,7 @@ target("ModelExtras")
         "-fpermissive", 
         "-fcommon", 
         "-fms-extensions", 
+        "-Wno-invalid-offsetof",
         "-Wno-microsoft-include",
         "-g",               
         "-gdwarf-4",         

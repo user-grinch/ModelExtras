@@ -1,4 +1,4 @@
-# Based on CanerKaraca23 build script 
+# Based on CanerKaraca20 build script
 name: Build ModelExtras
 
 on:
@@ -25,12 +25,24 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang-19 g++-mingw-w64-i686
+        sudo apt-get install -y wget gnupg software-properties-common lsb-release g++-mingw-w64-i686
+
+        # Download LLVM installer script
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+
+        # Install Clang 23
+        sudo ./llvm.sh 23
+
+    - name: Verify Clang
+      run: |
+        clang --version
+        clang++ --version
 
     - name: Get latest plugin-sdk commit
       id: plugin-sdk-ref
       run: |
-        echo "sha=$(git ls-remote https://github.com/DK22Pac/plugin-sdk.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+        echo "sha=$(git ls-remote https://github.com/user-grinch/plugin-sdk-mingw.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
 
     - name: Restore plugin-sdk cache
       id: plugin-sdk-cache
@@ -42,26 +54,22 @@ jobs:
     - name: Build plugin-sdk
       if: steps.plugin-sdk-cache.outputs.cache-hit != 'true'
       run: |
-        # Clone repo and check out the exact commit used in the cache key
-        git clone https://github.com/DK22Pac/plugin-sdk.git plugin-sdk
+        git clone https://github.com/user-grinch/plugin-sdk-mingw.git plugin-sdk
         cd plugin-sdk
         git checkout "${{ steps.plugin-sdk-ref.outputs.sha }}"
         mkdir -p output/lib
-        # Prepare object directories
         for dir in shared plugin_sa safetyhook; do
           find "$dir" -type d -exec mkdir -p "obj/{}" \;
         done
 
-        # Common flags
         FLAGS="-I. -Ishared -Ishared/game -Iplugin_sa -Iplugin_sa/game_sa -Iplugin_sa/game_sa/rw -Isafetyhook -DGTASA -DPLUGIN_SGV_10US -DRW"
-        CLANG_FLAGS="--target=i686-w64-mingw32 -fpermissive -fcommon -fms-extensions -Wno-microsoft-include -O2 -D__cpp_concepts=202002L"
+        CLANG_FLAGS="--target=i686-w64-mingw32 -fpermissive -fcommon -fms-extensions -Wno-microsoft-include -Wno-invalid-offsetof -Wno-builtin-macro-redefined -O2 -D__cpp_concepts=202202L"
 
-        # Parallel build
         find shared plugin_sa safetyhook -name '*.cpp' -print0 | \
-          xargs -0 -P$(nproc) -I{} clang++-19 $CLANG_FLAGS -std=c++2b $FLAGS -c {} -o obj/{}.o
+          xargs -0 -P$(nproc) -I{} clang++-23 $CLANG_FLAGS -std=c++2b $FLAGS -c {} -o obj/{}.o
 
         find safetyhook -name '*.c' -print0 | \
-          xargs -0 -P$(nproc) -I{} clang-19 $CLANG_FLAGS $FLAGS -c {} -o obj/{}.o
+          xargs -0 -P$(nproc) -I{} clang-23 $CLANG_FLAGS $FLAGS -c {} -o obj/{}.o
 
         find obj -name '*.o' | xargs i686-w64-mingw32-ar rcs output/lib/libplugin.a
 
@@ -75,9 +83,8 @@ jobs:
       run: |
         xmake f -m release \
           --mingw=/usr \
-          --cc=clang-19 \
-          --cxx=clang++-19 \
-          --cxflags="-D__cpp_concepts=202002L" \
+          --cc=clang-23 \
+          --cxx=clang++-23 \
           -c -y
         xmake -j$(nproc)
 

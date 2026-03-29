@@ -76,7 +76,7 @@ void MileageIndicator::Init()
         if (indicator.vecFrameList.size() < 6) continue;
 
         float curWheelRot = (pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
-            ? static_cast<CBike *>(pVeh)->m_afWheelRotationX[1]
+            ? static_cast<CBike *>(pVeh)->m_aWheelPitchAngles[1]
             : static_cast<CAutomobile *>(pVeh)->m_fWheelRotation[3];
 
         float diff = curWheelRot - indicator.fLastWheelRot;
