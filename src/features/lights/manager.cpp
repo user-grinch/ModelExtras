@@ -50,7 +50,9 @@ eMaterialType LightManager::GetMatType(RpMaterial* pMat) {
 
     for (const auto& comp : m_Components) {
         eMaterialType type = comp->GetMatType(matCol);
-        if (type != eMaterialType::UnknownMaterial) return type;
+        if (type != eMaterialType::UnknownMaterial) {
+            return type;
+        }
     }
 
     return eMaterialType::UnknownMaterial;

@@ -4,9 +4,9 @@
 #include "manager.h"
 
 void LightsFeature::Init() {
-    if (!gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false)) {
-		return;
-	}
+    // if (!gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false)) {
+	// 	return;
+	// }
 
     LightManager::Init();
 

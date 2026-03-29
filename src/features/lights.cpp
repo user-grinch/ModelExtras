@@ -53,6 +53,7 @@ inline float GetZAngleForPoint(CVector2D const &point)
 
 void Lights::Init()
 {
+	return;
 	if (gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false)) {
 		return;
 	}
