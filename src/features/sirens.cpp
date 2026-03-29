@@ -63,12 +63,8 @@ char __fastcall Sirens::hkUsesSiren(CVehicle *ptr)
 	return ptr->IsLawEnforcementVehicle();
 }
 
+static ThiscallEvent<AddressList<0x6AAB71, H_CALL>, PRIORITY_BEFORE, ArgPickN<CVehicle*, 0>, void(CVehicle*)> Automobile__PreRenderEvent;
 static CVehicle *pCurrentVeh = nullptr;
-void __fastcall hkVehiclePreRender(CVehicle *ptr)
-{
-	pCurrentVeh = ptr;
-	CallMethod<0x6D6480>(ptr);
-}
 
 void Sirens::Reload(CVehicle *pVeh)
 {
@@ -81,20 +77,22 @@ void Sirens::Reload(CVehicle *pVeh)
 }
 
 void Sirens::hkAddPointLights(
-    uint8_t type, 
-    float px, float py, float pz,
-    float dx, float dy, float dz,
-    float range, 
-    float red, float green, float blue, 
-    uint8_t fogEffect, 
-    bool bCastsShadowFromPlayerCarAndPed, 
-    CEntity* castingEntity
+	std::function<hkAddPointLightsFunc> originalCall, 
+    uint8_t& type, 
+    CVector& position, 
+    CVector& direction, 
+    float& range, 
+    float& red, float& green, float& blue, 
+    uint8_t& fogEffect, 
+    bool& bCastsShadowFromPlayerCarAndPed, 
+    CEntity*& castingEntity
 )
 {
-    if (pCurrentVeh == nullptr) return;
-    if (Sirens::modelData.contains(pCurrentVeh->m_nModelIndex)) return;
+    if (pCurrentVeh && modelData.contains(pCurrentVeh->m_nModelIndex)) {
+		return;
+	}
 
-    CPointLights::AddLight(type, {px, py, pz}, {dx, dy, dz}, range, red, green, blue, fogEffect, bCastsShadowFromPlayerCarAndPed, castingEntity);
+    originalCall(type, position, direction, range, red, green, blue, fogEffect, bCastsShadowFromPlayerCarAndPed, castingEntity);
 }
 
 VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nlohmann::json json)
@@ -927,8 +925,13 @@ void Sirens::Init()
 		} });
 
 	patch::ReplaceFunctionCall(0x6D8492, (void *)hkUsesSiren);
-	patch::ReplaceFunctionCall(0x6AB80F, (void *)hkAddPointLights);
-	patch::ReplaceFunctionCall(0x6AAB71, (void *)hkVehiclePreRender);
+
+	Automobile__PreRenderEvent += [](CVehicle* pVeh) {
+		pCurrentVeh = pVeh; // Captured for hkAddPointLights()
+	};
+
+	using hkAddPointLightsHook = injector::function_hooker<injector::scoped_call, 0x6AB80F, hkAddPointLightsFunc>;
+	injector::make_static_hook<hkAddPointLightsHook>(hkAddPointLights);
 
 	Events::initGameEvent += []
 	{
