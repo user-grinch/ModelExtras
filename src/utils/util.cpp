@@ -113,35 +113,51 @@ void Util::GetModelsFromIni(std::string &line, std::vector<int> &vec)
     }
 }
 
-std::optional<int> Util::GetDigitsAfter(const std::string &str, const std::string &prefix)
+std::optional<int> Util::GetDigitsAfter(
+    std::string_view str,
+    std::string_view prefix)
 {
-    if (str.rfind(prefix, 0) == 0)
-    {
-        std::string numberPart = str.substr(prefix.size());
-        if (!numberPart.empty() &&
-            std::all_of(numberPart.begin(), numberPart.end(), [](char c)
-                        { return std::isdigit(c) || c == '.'; }) &&
-            std::count(numberPart.begin(), numberPart.end(), '.') <= 1)
-        {
-            try
-            {
-                return std::stoi(numberPart);
-            }
-            catch (...)
-            {
-                return std::nullopt;
-            }
-        }
+    if (!str.starts_with(prefix)) {
+        return std::nullopt;
     }
-    return std::nullopt;
+
+    std::string_view numberPart = str.substr(prefix.size());
+
+    if (numberPart.empty()) {
+        return std::nullopt;
+    }
+
+    if (!std::all_of(numberPart.begin(), numberPart.end(),
+        [](unsigned char c) { return std::isdigit(c); })) {
+            return std::nullopt;
+        }
+
+    int value = 0;
+    auto [ptr, ec] = std::from_chars(
+        numberPart.data(),
+        numberPart.data() + numberPart.size(),
+        value);
+
+    if (ec != std::errc()) {
+        return std::nullopt;
+    }
+
+    return value;
 }
 
-std::optional<std::string> Util::GetCharsAfterPrefix(const std::string &str, const std::string &prefix, size_t num_chars)
+std::optional<std::string> Util::GetCharsAfterPrefix(
+    std::string_view str,
+    std::string_view prefix,
+    size_t num_chars)
 {
-    if (str.size() > prefix.size() && str.substr(0, prefix.size()) == prefix)
+    if (str.size() >= prefix.size() &&
+        str.compare(0, prefix.size(), prefix) == 0)
     {
-        std::string suffix = str.substr(prefix.size(), num_chars);
-        std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::toupper);
+        std::string suffix(str.substr(prefix.size(), num_chars));
+
+        std::transform(suffix.begin(), suffix.end(), suffix.begin(),
+                       [](unsigned char c) { return std::toupper(c); });
+
         return suffix;
     }
     return std::nullopt;

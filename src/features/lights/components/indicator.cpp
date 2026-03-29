@@ -14,7 +14,7 @@ eMaterialType IndicatorComponent::GetMatType(CRGBA matCol) {
     return eMaterialType::UnknownMaterial;
 }
 
-bool IndicatorComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name, VehLightData& data) {
+bool IndicatorComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
     if (name.starts_with("turnl_") || name.starts_with("indicator_")) {
         auto d = Util::GetCharsAfterPrefix(name, "turnl_", 2);
         if (!d) d = Util::GetCharsAfterPrefix(name, "indicator_", 2);

@@ -80,7 +80,7 @@ void AudioMgr::PlaySwitchSound(CEntity *pEntity)
     {
         return;
     }
-    static std::string path = MOD_DATA_PATH("audio/effects/switch_toggle.wav");
+    static std::string path = MOD_DATA_PATH("audio/switch_toggle.wav");
     PlayFileSound(path, pEntity, 1.0f, true);
 }
 

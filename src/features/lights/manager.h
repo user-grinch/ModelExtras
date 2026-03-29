@@ -13,7 +13,7 @@ public:
 
     static void Init();
     static eMaterialType GetMatType(RpMaterial* pMat);
-    static void RegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name);
+    static void RegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name);
     
     static void Process(CVehicle* pVeh);
     static void Render(CVehicle* pControlVeh, CVehicle* pTowedVeh);

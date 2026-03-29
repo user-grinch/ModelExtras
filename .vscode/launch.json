@@ -2,32 +2,37 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Wine Remote Debug (Clang/MinGW)",
+            "name": "Attach via gdbserver",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Start Wine GDB Server", // Fixed the 'd' typo
-            "program": "/mnt/p2/Games/GTA San Andreas/gta_sa.exe",
-            "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/x86_64-w64-mingw32-gdb",
             "miDebuggerServerAddress": "localhost:12345",
+            "miDebuggerPath": "/usr/bin/gdb-multiarch",
+            "MIMode": "gdb",
+            "program": "${workspaceFolder}/build/mingw/x86/debug/ModelExtras.asi",
             "cwd": "${workspaceFolder}",
-            "externalConsole": false,
-            "stopAtEntry": true,
             "setupCommands": [
                 {
-                    "text": "-enable-pretty-printing",
+                    "description": "Ensure GDB knows we are talking to a 32-bit target",
+                    "text": "set architecture i386",
+                    "ignoreFailures": false
+                },
+                {
+                    "text": "set sysroot /",
                     "ignoreFailures": true
                 },
                 {
-                    "description": "Enable async mode",
-                    "text": "set target-async on",
+                    "text": "set substitute-path Z:/ /",
+                    "ignoreFailures": true
+                },
+                {
+                    "text": "handle SIGUSR1 nostop noprint pass",
+                    "ignoreFailures": true
+                },
+                {
+                    "text": "handle SIGUSR2 nostop noprint pass",
                     "ignoreFailures": true
                 }
-            ],
-            "sourceFileMap": {
-                "Z:\\": "/",
-                "C:\\": "${env:WINEPREFIX}/drive_c/"
-            }
+            ]
         }
     ]
 }

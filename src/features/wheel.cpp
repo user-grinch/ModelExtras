@@ -37,7 +37,7 @@ static const std::unordered_map<std::string_view, eWheelPos> extraMap = {
 
 void ExtraWheel::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle* pVeh, RwFrame* pFrame, const std::string_view& name) {
+    ModelInfoMgr::RegisterDummy([](CVehicle* pVeh, RwFrame* pFrame, const std::string_view name) {
         ExtraWheelData& data = m_VehData.Get(pVeh);
 
         auto itOrig = originalMap.find(name);

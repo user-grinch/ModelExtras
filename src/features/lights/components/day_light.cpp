@@ -7,7 +7,7 @@ eMaterialType DayLightComponent::GetMatType(CRGBA matCol) {
     return eMaterialType::UnknownMaterial;
 }
 
-bool DayLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name, VehLightData& data) {
+bool DayLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
     if (name.starts_with("light_d")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.lightType = eMaterialType::DayLight;

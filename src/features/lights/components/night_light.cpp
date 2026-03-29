@@ -7,7 +7,7 @@ eMaterialType NightLightComponent::GetMatType(CRGBA matCol) {
     return eMaterialType::UnknownMaterial;
 }
 
-bool NightLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name, VehLightData& data) {
+bool NightLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
     if (name.starts_with("light_n")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.lightType = eMaterialType::NightLight;

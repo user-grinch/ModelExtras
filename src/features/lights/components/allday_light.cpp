@@ -7,7 +7,7 @@ eMaterialType AllDayLightComponent::GetMatType(CRGBA matCol) {
     return eMaterialType::UnknownMaterial;
 }
 
-bool AllDayLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string& name, VehLightData& data) {
+bool AllDayLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
     if (name.starts_with("light_a")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.lightType = eMaterialType::AllDayLight;

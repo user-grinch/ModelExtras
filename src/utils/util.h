@@ -28,8 +28,8 @@ public:
   static float GetVehicleSpeedRealistic(CVehicle *vehicle);
   static void GetModelsFromIni(std::string &line, std::vector<int> &vec);
 
-  static std::optional<int> GetDigitsAfter(const std::string &str, const std::string &prefix);
-  static std::optional<std::string> GetCharsAfterPrefix(const std::string &str, const std::string &prefix, size_t num_chars);
+  static std::optional<int> GetDigitsAfter(const std::string_view str, const std::string_view prefix);
+  static std::optional<std::string> GetCharsAfterPrefix(const std::string_view str, const std::string_view prefix, size_t num_chars);
 
   static CRGBA GetMaterialColor(RpMaterial*pMat);
 };

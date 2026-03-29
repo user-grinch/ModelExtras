@@ -8,7 +8,7 @@ const float maxInterval = 200.0f;
 const float minInterval = 20.0f;
 
 void ChainFeature::Init() {
-  ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName) {
+  ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName) {
     std::string name = GetFrameNodeName(pFrame);
     if (name.starts_with("x_chain") || name.starts_with("fc_chain")) {
       ChainData &data = m_VehData.Get(pVeh);

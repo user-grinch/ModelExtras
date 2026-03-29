@@ -4,7 +4,10 @@
         {
             "label": "Package ModelExtras",
             "type": "shell",
-            "command": "./archive.sh",
+            "command": "bash",
+            "args": [
+                "./archive.sh"
+            ],
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
@@ -16,7 +19,10 @@
         {
             "label": "Build Debug",
             "type": "shell",
-            "command": "./debug.sh",
+            "command": "bash",
+            "args": [
+                "./debug.sh"
+            ],
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
@@ -28,7 +34,10 @@
         {
             "label": "Build Release",
             "type": "shell",
-            "command": "./release.sh",
+            "command": "bash",
+            "args": [
+                "./release.sh"
+            ],
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
@@ -41,15 +50,10 @@
             "label": "Start Wine GDB Server",
             "type": "shell",
             "group": "build",
-            "command": "env",
+            "command": "bash",
             "args": [
-                "-u",
-                "VIRTUAL_ENV",
-                "winedbg",
-                "--gdb",
-                "--port",
-                "12345",
-                "/mnt/p2/Games/GTA San Andreas/gta_sa.exe"
+                "-c",
+                "winedbg --gdb --port 12345 '/mnt/p2/Games/GTA San Andreas/gta_sa.exe'"
             ],
             "isBackground": true,
             "problemMatcher": {
@@ -70,7 +74,25 @@
         {
             "label": "Run GTA SA",
             "type": "shell",
-            "command": "./run.sh",
+            "command": "bash",
+            "args": [
+                "./run.sh"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            },
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Debug GTA SA",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "./debug_run.sh"
+            ],
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
@@ -82,7 +104,11 @@
         {
             "label": "Debug & Run",
             "type": "shell",
-            "command": "./debug.sh && ./run.sh",
+            "command": "bash",
+            "args": [
+                "-c",
+                "./debug.sh && ./run.sh"
+            ],
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",
@@ -94,7 +120,11 @@
         {
             "label": "Release & Run",
             "type": "shell",
-            "command": "./release.sh && ./run.sh",
+            "command": "bash",
+            "args": [
+                "-c",
+                "./release.sh && ./run.sh"
+            ],
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",

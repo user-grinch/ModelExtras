@@ -5,7 +5,7 @@
 
 void Spoiler::Init()
 {
-    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view& nodeName)
+    ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
                                {
         std::string name = GetFrameNodeName(pFrame);
         if (!name.starts_with("movspoiler")) {
