@@ -207,10 +207,11 @@ private:
     static inline std::map<int, VehicleSirenData *> modelData;
     static inline std::map<int, std::vector<VehicleDummy *>> modelRotators;
 
+    using hkUsesSirenFunc = bool(CVehicle*);
     using hkRegisterCoronaFunc = void(unsigned int&, CEntity *&, unsigned char&, unsigned char&, unsigned char&, unsigned char&, const CVector&, float&, float&, eCoronaType&, eCoronaFlareType&, bool&, bool&, int&, float&, bool&, float&, unsigned char&, float&, bool&, bool&);
     using hkAddPointLightsFunc = void(unsigned char&, CVector&, CVector&, float&, float&, float&, float&, unsigned char&, bool&, CEntity*&);
     
-    static char __fastcall hkUsesSiren(CVehicle *ptr);
+    static bool hkUsesSiren(std::function<hkUsesSirenFunc> originalCall, CVehicle* ptr);
     static void hkRegisterCorona(std::function<hkRegisterCoronaFunc> originalCall, unsigned int& id, CEntity*& attachTo, unsigned char& red, unsigned char& green, unsigned char& blue, unsigned char& alpha, const CVector& posn, float& radius, float& farClip, eCoronaType& coronaType, eCoronaFlareType& flaretype, bool& enableReflection, bool& checkObstacles, int& _param_not_used, float& angle, bool& longDistance, float& nearClip, unsigned char& fadeState, float& fadeSpeed, bool& onlyFromBelow, bool& reflectionDelay);
     static void hkAddPointLights(std::function<hkAddPointLightsFunc> originalCall, uint8_t& type, CVector& position, CVector& direction, float& range, float& red, float& green, float& blue, uint8_t& fogEffect, bool& bCastsShadowFromPlayerCarAndPed, CEntity*& castingEntity);
 

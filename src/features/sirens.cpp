@@ -42,7 +42,7 @@ bool IsValidSirenVehicle(RwFrame *pFrame)
 
 std::map<CVehicle *, bool> sirenExtraUsedFlag;
 
-char __fastcall Sirens::hkUsesSiren(CVehicle *ptr)
+bool Sirens::hkUsesSiren(std::function<hkUsesSirenFunc> originalCall, CVehicle* ptr)
 {
 	if (Util::IsEngineOff(ptr))
 	{
@@ -55,12 +55,13 @@ char __fastcall Sirens::hkUsesSiren(CVehicle *ptr)
 		sirenExtraUsedFlag[ptr] = IsValidSirenVehicle((RwFrame *)ptr->m_pRwClump->object.parent);
 	}
 
-	if (Sirens::modelData.contains(ptr->m_nModelIndex) && sirenExtraUsedFlag[ptr])
+	if (modelData.contains(ptr->m_nModelIndex) && sirenExtraUsedFlag[ptr])
 	{
 		ptr->m_vehicleAudio.m_bModelWithSiren = true;
 		return true;
 	}
-	return ptr->IsLawEnforcementVehicle();
+	
+	return originalCall(ptr);
 }
 
 static ThiscallEvent<AddressList<0x6AAB71, H_CALL>, PRIORITY_BEFORE, ArgPickN<CVehicle*, 0>, void(CVehicle*)> Automobile__PreRenderEvent;
@@ -924,7 +925,8 @@ void Sirens::Init()
 			ModelInfoMgr::EnableSirenMaterial(vehicle, mat.first);
 		} });
 
-	patch::ReplaceFunctionCall(0x6D8492, (void *)hkUsesSiren);
+	using hkUsesSirenHook = injector::function_hooker_thiscall<injector::scoped_call, 0x6D8492, hkUsesSirenFunc>;
+	injector::make_static_hook<hkUsesSirenHook>(hkUsesSiren);
 
 	Automobile__PreRenderEvent += [](CVehicle* pVeh) {
 		pCurrentVeh = pVeh; // Captured for hkAddPointLights()
