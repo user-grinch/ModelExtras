@@ -6,7 +6,11 @@
 #include "defines.h"
 #include "components/headlight.h"
 #include "components/indicator.h"
-#include "components/rear_lights.h"
+#include "components/reverse_light.h"
+#include "components/brake_light.h"
+#include "components/tail_light.h"
+#include "components/stt_light.h"
+#include "components/nabrake_light.h"
 #include "components/fog_light.h"
 #include "components/strobe_light.h"
 #include "components/day_light.h"
@@ -18,7 +22,11 @@
 void LightManager::Init() {
     m_Components.push_back(std::make_unique<HeadlightComponent>());
     m_Components.push_back(std::make_unique<IndicatorComponent>());
-    m_Components.push_back(std::make_unique<RearLightsComponent>());
+    m_Components.push_back(std::make_unique<ReverseLightComponent>());
+    m_Components.push_back(std::make_unique<BrakeLightComponent>());
+    m_Components.push_back(std::make_unique<TailLightComponent>());
+    m_Components.push_back(std::make_unique<STTLightComponent>());
+    m_Components.push_back(std::make_unique<NABrakeLightComponent>());
     m_Components.push_back(std::make_unique<FogLightComponent>());
     m_Components.push_back(std::make_unique<StrobeLightComponent>());
     m_Components.push_back(std::make_unique<DayLightComponent>());
