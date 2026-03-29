@@ -207,8 +207,10 @@ private:
     static inline std::map<int, VehicleSirenData *> modelData;
     static inline std::map<int, std::vector<VehicleDummy *>> modelRotators;
 
+    using hkRegisterCoronaFunc = void(unsigned int&, CEntity *&, unsigned char&, unsigned char&, unsigned char&, unsigned char&, const CVector&, float&, float&, eCoronaType&, eCoronaFlareType&, bool&, bool&, int&, float&, bool&, float&, unsigned char&, float&, bool&, bool&);
+
     static char __fastcall hkUsesSiren(CVehicle *ptr);
-    static void hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const &posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay);
+    static void hkRegisterCorona(std::function<hkRegisterCoronaFunc> originalCall, unsigned int& id, CEntity*& attachTo, unsigned char& red, unsigned char& green, unsigned char& blue, unsigned char& alpha, const CVector& posn, float& radius, float& farClip, eCoronaType& coronaType, eCoronaFlareType& flaretype, bool& enableReflection, bool& checkObstacles, int& _param_not_used, float& angle, bool& longDistance, float& nearClip, unsigned char& fadeState, float& fadeSpeed, bool& onlyFromBelow, bool& reflectionDelay);
     static void __cdecl hkAddPointLights(uint8_t type, float px, float py, float pz, float dx, float dy, float dz, float range, float red, float green, float blue, uint8_t fogEffect, bool bCastsShadowFromPlayerCarAndPed, CEntity* castingEntity);
 
     static void RegisterMaterial(CVehicle *vehicle, RpMaterial *material);

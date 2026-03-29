@@ -932,30 +932,25 @@ void Sirens::Init()
 
 	Events::initGameEvent += []
 	{
-		injector::MakeCALL((void *)0x6ABA60, hkRegisterCorona, true);
-		injector::MakeCALL((void *)0x6ABB35, hkRegisterCorona, true);
-		injector::MakeCALL((void *)0x6ABC69, hkRegisterCorona, true);
-		injector::MakeCALL((void *)0x6BD4DD, hkRegisterCorona, true);
-		injector::MakeCALL((void *)0x6BD531, hkRegisterCorona, true);
+		using hkRegisterCoronaHook = injector::function_hooker<injector::scoped_call, 0x0, hkRegisterCoronaFunc>;
+		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6ABA60);
+		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6ABB35);
+		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6ABC69);
+		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6BD4DD);
+		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6BD531);
 	};
 };
 
-void Sirens::hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const &posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay)
+void Sirens::hkRegisterCorona(std::function<hkRegisterCoronaFunc> originalCall, unsigned int& id, CEntity*& attachTo, unsigned char& red, unsigned char& green, unsigned char& blue, unsigned char& alpha, const CVector& posn, float& radius, float& farClip, eCoronaType& coronaType, eCoronaFlareType& flaretype, bool& enableReflection, bool& checkObstacles, int& _param_not_used, float& angle, bool& longDistance, float& nearClip, unsigned char& fadeState, float& fadeSpeed, bool& onlyFromBelow, bool& reflectionDelay)
 {
-	CVehicle *vehicle = NULL;
-
-	_asm {
-		pushad
-		mov vehicle, esi
-		popad
-	}
+	CVehicle *vehicle = (CVehicle*)attachTo;
 
 	if (vehicle && modelData.contains(vehicle->m_nModelIndex))
 	{
 		return;
 	}
 
-	CCoronas::RegisterCorona(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
+	originalCall(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
 }
 
 void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time)
