@@ -8,6 +8,8 @@ void LightsFeature::Init() {
 		return;
 	}
 
+    LightManager::Init();
+
     patch::Nop(0x6E2722, 19);	  // CVehicle::DoHeadLightReflection
 	patch::SetUChar(0x6E1A22, 0); // CVehicle::DoTailLightEffect
 

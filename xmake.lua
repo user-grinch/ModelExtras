@@ -60,9 +60,8 @@ target("ModelExtras")
         "-fcommon", 
         "-fms-extensions", 
         "-Wno-microsoft-include",
-        "-gdwarf-4",            
-        "-gstrict-dwarf",       
-        "-gcodeview",
+        "-g",               
+        "-gdwarf-4",         
         "-fdebug-macro"        
     )
     

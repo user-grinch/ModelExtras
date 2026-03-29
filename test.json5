@@ -1,0 +1,67 @@
+// ModelExtras config
+{
+  metadata: {
+    author: "KaiQ",
+    desc: "Revamped Vehicles Project Resmoothed",
+    creationtime: "2025-08-26",
+    minver: 10700, // minimum version
+  },
+
+  sirens: {
+    states: {
+      "1. emergency": {
+        1: {
+          color: {
+            red: 255,
+            green: 149,
+            blue: 0,
+            alpha: 160,
+          },
+          type: "rotator",
+          rotator: {
+            time: 800,
+            radius: 360,
+            direction: "clockwise",
+            type: "linear",
+          },
+        },
+      },
+    },
+  },
+
+  lights: {
+    light_n: {
+      corona: {
+        color: { red: 255, green: 255, blue: 255, alpha: 200 },
+        size: 0.5,
+        type: "directional",
+      },
+      shadow: {
+        color: { red: 255, green: 255, blue: 255, alpha: 200 },
+        offsetx: 0.0,
+        offsety: 0.0,
+        angleoffset: 0,
+        width: 1.0,
+        length: 1.0,
+        texture: "comet",
+      },
+    },
+
+    light_n2: {
+      corona: {
+        color: { red: 255, green: 255, blue: 255, alpha: 200 },
+        size: 0.5,
+        type: "Inversed",
+      },
+      shadow: {
+        color: { red: 255, green: 255, blue: 255, alpha: 200 },
+        offsetx: 0.0,
+        offsety: 0.0,
+        angleoffset: 0,
+        width: 1.0,
+        length: 1.0,
+        texture: "comet",
+      },
+    },
+  },
+}
