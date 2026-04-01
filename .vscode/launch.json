@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Attach via gdbserver",
+            "name": "Attach Debugger",
             "type": "cppdbg",
             "request": "launch",
             "miDebuggerServerAddress": "localhost:12345",
