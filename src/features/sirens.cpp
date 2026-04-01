@@ -42,7 +42,7 @@ bool IsValidSirenVehicle(RwFrame *pFrame)
 
 std::map<CVehicle *, bool> sirenExtraUsedFlag;
 
-char __fastcall Sirens::hkUsesSiren(CVehicle *ptr)
+bool Sirens::hkUsesSiren(std::function<hkUsesSirenFunc> originalCall, CVehicle* ptr)
 {
 	if (Util::IsEngineOff(ptr))
 	{
@@ -55,20 +55,17 @@ char __fastcall Sirens::hkUsesSiren(CVehicle *ptr)
 		sirenExtraUsedFlag[ptr] = IsValidSirenVehicle((RwFrame *)ptr->m_pRwClump->object.parent);
 	}
 
-	if (Sirens::modelData.contains(ptr->m_nModelIndex) && sirenExtraUsedFlag[ptr])
+	if (modelData.contains(ptr->m_nModelIndex) && sirenExtraUsedFlag[ptr])
 	{
 		ptr->m_vehicleAudio.m_bModelWithSiren = true;
 		return true;
 	}
-	return ptr->IsLawEnforcementVehicle();
+	
+	return originalCall(ptr);
 }
 
+static ThiscallEvent<AddressList<0x6AAB71, H_CALL>, PRIORITY_BEFORE, ArgPickN<CVehicle*, 0>, void(CVehicle*)> Automobile__PreRenderEvent;
 static CVehicle *pCurrentVeh = nullptr;
-void __fastcall hkVehiclePreRender(CVehicle *ptr)
-{
-	pCurrentVeh = ptr;
-	CallMethod<0x6D6480>(ptr);
-}
 
 void Sirens::Reload(CVehicle *pVeh)
 {
@@ -81,20 +78,22 @@ void Sirens::Reload(CVehicle *pVeh)
 }
 
 void Sirens::hkAddPointLights(
-    uint8_t type, 
-    float px, float py, float pz,
-    float dx, float dy, float dz,
-    float range, 
-    float red, float green, float blue, 
-    uint8_t fogEffect, 
-    bool bCastsShadowFromPlayerCarAndPed, 
-    CEntity* castingEntity
+	std::function<hkAddPointLightsFunc> originalCall, 
+    uint8_t& type, 
+    CVector& position, 
+    CVector& direction, 
+    float& range, 
+    float& red, float& green, float& blue, 
+    uint8_t& fogEffect, 
+    bool& bCastsShadowFromPlayerCarAndPed, 
+    CEntity*& castingEntity
 )
 {
-    if (pCurrentVeh == nullptr) return;
-    if (Sirens::modelData.contains(pCurrentVeh->m_nModelIndex)) return;
+    if (pCurrentVeh && modelData.contains(pCurrentVeh->m_nModelIndex)) {
+		return;
+	}
 
-    CPointLights::AddLight(type, {px, py, pz}, {dx, dy, dz}, range, red, green, blue, fogEffect, bCastsShadowFromPlayerCarAndPed, castingEntity);
+    originalCall(type, position, direction, range, red, green, blue, fogEffect, bCastsShadowFromPlayerCarAndPed, castingEntity);
 }
 
 VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nlohmann::json json)
@@ -926,36 +925,37 @@ void Sirens::Init()
 			ModelInfoMgr::EnableSirenMaterial(vehicle, mat.first);
 		} });
 
-	patch::ReplaceFunctionCall(0x6D8492, (void *)hkUsesSiren);
-	patch::ReplaceFunctionCall(0x6AB80F, (void *)hkAddPointLights);
-	patch::ReplaceFunctionCall(0x6AAB71, (void *)hkVehiclePreRender);
+	using hkUsesSirenHook = injector::function_hooker_thiscall<injector::scoped_call, 0x6D8492, hkUsesSirenFunc>;
+	injector::make_static_hook<hkUsesSirenHook>(hkUsesSiren);
+
+	Automobile__PreRenderEvent += [](CVehicle* pVeh) {
+		pCurrentVeh = pVeh; // Captured for hkAddPointLights()
+	};
+
+	using hkAddPointLightsHook = injector::function_hooker<injector::scoped_call, 0x6AB80F, hkAddPointLightsFunc>;
+	injector::make_static_hook<hkAddPointLightsHook>(hkAddPointLights);
 
 	Events::initGameEvent += []
 	{
-		injector::MakeCALL((void *)0x6ABA60, hkRegisterCorona, true);
-		injector::MakeCALL((void *)0x6ABB35, hkRegisterCorona, true);
-		injector::MakeCALL((void *)0x6ABC69, hkRegisterCorona, true);
-		injector::MakeCALL((void *)0x6BD4DD, hkRegisterCorona, true);
-		injector::MakeCALL((void *)0x6BD531, hkRegisterCorona, true);
+		using hkRegisterCoronaHook = injector::function_hooker<injector::scoped_call, 0x0, hkRegisterCoronaFunc>;
+		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6ABA60);
+		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6ABB35);
+		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6ABC69);
+		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6BD4DD);
+		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6BD531);
 	};
 };
 
-void Sirens::hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const &posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay)
+void Sirens::hkRegisterCorona(std::function<hkRegisterCoronaFunc> originalCall, unsigned int& id, CEntity*& attachTo, unsigned char& red, unsigned char& green, unsigned char& blue, unsigned char& alpha, const CVector& posn, float& radius, float& farClip, eCoronaType& coronaType, eCoronaFlareType& flaretype, bool& enableReflection, bool& checkObstacles, int& _param_not_used, float& angle, bool& longDistance, float& nearClip, unsigned char& fadeState, float& fadeSpeed, bool& onlyFromBelow, bool& reflectionDelay)
 {
-	CVehicle *vehicle = NULL;
-
-	_asm {
-		pushad
-		mov vehicle, esi
-		popad
-	}
+	CVehicle *vehicle = (CVehicle*)attachTo;
 
 	if (vehicle && modelData.contains(vehicle->m_nModelIndex))
 	{
 		return;
 	}
 
-	CCoronas::RegisterCorona(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
+	originalCall(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
 }
 
 void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time)

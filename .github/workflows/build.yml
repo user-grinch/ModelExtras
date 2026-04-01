@@ -85,6 +85,7 @@ jobs:
           --mingw=/usr \
           --cc=clang-23 \
           --cxx=clang++-23 \
+          --cxflags="-D__cpp_concepts=202002L" \
           -c -y
         xmake -j$(nproc)
 
