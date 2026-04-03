@@ -80,7 +80,7 @@ class ModelInfoMgr
 private:
 	static inline std::vector<DummyCallback_t> dummy;
 	static inline std::vector<MaterialCallback_t> materials;
-	static inline std::vector<MaterialColProviderCallback_t> matColProviders;
+	static inline std::vector<MaterialColProviderCallback_t> matColProviders[eMaterialType::TotalMaterial + 1];
 	static inline std::vector<RenderCallback_t> renders;
 
 	static inline VehicleExtendedData<VehModelData> m_VehData;
@@ -102,7 +102,7 @@ public:
 	static void Init();
 	static void RegisterDummy(DummyCallback_t function);
 	static void RegisterMaterial(MaterialCallback_t material);
-	static void RegisterMaterialColProvider(MaterialColProviderCallback_t material);
+	static void RegisterMaterialColProvider(MaterialColProviderCallback_t material, eMaterialType type = eMaterialType::TotalMaterial);
 	static void RegisterRender(RenderCallback_t render);
 	static void Reload(CVehicle *pVeh);
 };

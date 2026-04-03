@@ -607,22 +607,20 @@ void Sirens::Init()
 
 	ModelInfoMgr::RegisterMaterialColProvider([](CVehicle *pVeh, RpMaterial *pMat, eMaterialType type)
 											  {
-		if (type == eMaterialType::SirenLight) {
-			int matIdx = GetSirenIndex(pVeh, pMat);
+		int matIdx = GetSirenIndex(pVeh, pMat);
 
-			if (matIdx != - 1) {
-				int curState = vehicleData[pVeh]->GetCurrentState();
-				auto& state = modelData[pVeh->m_nModelIndex]->States[curState];
-				if (state->Materials.contains(matIdx)) {
-					if (modelData[pVeh->m_nModelIndex]->isImVehFtSiren) {
-						return MatStateColor{state->Materials[matIdx]->Color, state->Materials[matIdx]->Color};
-					} else {
-						return MatStateColor{state->Materials[matIdx]->Color, DEFAULT_MAT_COL};
-					}
+		if (matIdx != - 1) {
+			int curState = vehicleData[pVeh]->GetCurrentState();
+			auto& state = modelData[pVeh->m_nModelIndex]->States[curState];
+			if (state->Materials.contains(matIdx)) {
+				if (modelData[pVeh->m_nModelIndex]->isImVehFtSiren) {
+					return MatStateColor{state->Materials[matIdx]->Color, state->Materials[matIdx]->Color};
+				} else {
+					return MatStateColor{state->Materials[matIdx]->Color, DEFAULT_MAT_COL};
 				}
 			}
 		}
-		return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL}; });
+		return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL}; }, eMaterialType::SirenLight);
 
 	ModelInfoMgr::RegisterDummy([](CVehicle *vehicle, RwFrame *frame, const std::string_view name2)
 								{

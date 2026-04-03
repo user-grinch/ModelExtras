@@ -145,9 +145,9 @@ void ModelInfoMgr::RegisterMaterial(MaterialCallback_t mat)
 	materials.push_back(mat);
 }
 
-void ModelInfoMgr::RegisterMaterialColProvider(MaterialColProviderCallback_t mat)
+void ModelInfoMgr::RegisterMaterialColProvider(MaterialColProviderCallback_t mat, eMaterialType type)
 {
-	matColProviders.push_back(mat);
+	matColProviders[type].push_back(mat);
 }
 
 void ModelInfoMgr::SetupRender(CVehicle *ptr)
@@ -179,16 +179,28 @@ struct tRestoreEntry
 
 MatStateColor ModelInfoMgr::FetchMaterialCol(CVehicle *pVeh, RpMaterial *pMat, eMaterialType type)
 {
-	MatStateColor col = {DEFAULT_MAT_COL, DEFAULT_MAT_COL};
-	for (auto &e : matColProviders)
+	auto CheckProviders = [&](const std::vector<MaterialColProviderCallback_t> &providers) -> MatStateColor
 	{
-		col = e(pVeh, pMat, type);
+		for (auto &e : providers)
+		{
+			MatStateColor col = e(pVeh, pMat, type);
+			if (col.on != DEFAULT_MAT_COL || col.off != DEFAULT_MAT_COL)
+			{
+				return col;
+			}
+		}
+		return {DEFAULT_MAT_COL, DEFAULT_MAT_COL};
+	};
+
+	if (type >= 0 && type < eMaterialType::TotalMaterial)
+	{
+		MatStateColor col = CheckProviders(matColProviders[type]);
 		if (col.on != DEFAULT_MAT_COL || col.off != DEFAULT_MAT_COL)
 		{
-			break;
+			return col;
 		}
 	}
-	return col;
+	return CheckProviders(matColProviders[eMaterialType::TotalMaterial]);
 }
 
 eMaterialType ModelInfoMgr::FetchMaterialType(CVehicle *pVeh, RpMaterial *pMat)
