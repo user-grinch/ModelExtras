@@ -31,7 +31,7 @@ struct ExhaustData
 struct ExhaustVehData {
     bool isUsed = false;
     size_t reloadCount = 0;
-    std::unordered_map<std::string, ExhaustData> m_pDummies;
+    std::vector<std::pair<std::string, ExhaustData>> m_pDummies;
     ExhaustVehData(CVehicle *pVeh) { isUsed = false; }
 
     ~ExhaustVehData() {

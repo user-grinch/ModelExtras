@@ -77,7 +77,7 @@ void ExhaustFx::FindNodes(CVehicle *pVeh, RwFrame *pFrame)
         {
             auto &data = m_VehData.Get(pVeh);
             data.isUsed = true;
-            data.m_pDummies[std::move(name)] = std::move(LoadData(pVeh, pFrame));
+            data.m_pDummies.emplace_back(std::move(name), std::move(LoadData(pVeh, pFrame)));
         }
 
         if (RwFrame *newFrame = pFrame->child)
@@ -367,22 +367,13 @@ extern "C"
         if (!data.isUsed || index < 0 || index >= static_cast<int>(data.m_pDummies.size()))
             return info;
 
-        int i = 0;
-        for (const auto &pair : data.m_pDummies)
-        {
-            if (i == index)
-            {
-                const ExhaustData &e = pair.second;
-                info.pFrame = e.pFrame;
-                info.Color = e.Color;
-                info.fSpeedMul = e.fSpeedMul;
-                info.fLifeTime = e.fLifeTime;
-                info.fSizeMul = e.fSizeMul;
-                info.bNitroEffect = e.bNitroEffect;
-                break;
-            }
-            ++i;
-        }
+        const ExhaustData &e = data.m_pDummies[index].second;
+        info.pFrame = e.pFrame;
+        info.Color = e.Color;
+        info.fSpeedMul = e.fSpeedMul;
+        info.fLifeTime = e.fLifeTime;
+        info.fSizeMul = e.fSizeMul;
+        info.bNitroEffect = e.bNitroEffect;
 
         return info;
     }
@@ -396,22 +387,13 @@ extern "C"
         if (!vData.isUsed || index < 0 || index >= static_cast<int>(vData.m_pDummies.size()))
             return;
 
-        int i = 0;
-        for (auto &pair : vData.m_pDummies)
-        {
-            if (i == index)
-            {
-                ExhaustData &e = pair.second;
-                data.pFrame = e.pFrame;
-                data.Color = e.Color;
-                data.fSpeedMul = e.fSpeedMul;
-                data.fLifeTime = e.fLifeTime;
-                data.fSizeMul = e.fSizeMul;
-                data.bNitroEffect = e.bNitroEffect;
-                break;
-            }
-            ++i;
-        }
+        ExhaustData &e = vData.m_pDummies[index].second;
+        e.pFrame = data.pFrame;
+        e.Color = data.Color;
+        e.fSpeedMul = data.fSpeedMul;
+        e.fLifeTime = data.fLifeTime;
+        e.fSizeMul = data.fSizeMul;
+        e.bNitroEffect = data.bNitroEffect;
     }
 
     // Dummy function to show on crash logs
