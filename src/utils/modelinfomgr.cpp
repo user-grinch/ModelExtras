@@ -240,12 +240,6 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 	{
 		auto &data = m_VehData.Get(pCurVeh);
 
-		// Sirens crash fix TODO: remove this and fix it
-		if (iLightIndex == eMaterialType::SirenLight && data.nFrameCount <= 10)
-		{
-			return material;
-		}
-
 		bool lightOn = false;
 		data.m_MatAvail[iLightIndex] = true;
 
