@@ -3,6 +3,7 @@
 #include "utils/modelinfomgr.h"
 #include "utils/datamgr.h"
 #include "utils/audiomgr.h"
+#include "utils/frameextention.h"
 
 using namespace plugin;
 
@@ -11,8 +12,6 @@ bool RollbackBed::UpdateRotation(CVehicle *pVeh, RwFrame *pFrame, float targetRo
     RollbackBedData &data = m_VehData.Get(pVeh);
     if (data.bInit && pFrame)
     {
-        // TODO FIX
-        // MatrixUtil::SetRotationX(&pFrame->modelling, curRot);
         float target = data.bExpanded ? targetRot : 0.0f;
         float delta = target - curRot;
         float step = CTimer::ms_fTimeStep * std::abs(targetRot) / 360.0f * speed;
@@ -24,6 +23,23 @@ bool RollbackBed::UpdateRotation(CVehicle *pVeh, RwFrame *pFrame, float targetRo
         else
         {
             curRot = target;
+        }
+
+        auto ext = RwFrameExtension::Get(pFrame);
+        if (ext && ext->pOrigMatrix)
+        {
+            MatrixUtil::RestoreBackup(&pFrame->modelling, ext->pOrigMatrix);
+        }
+        else
+        {
+            MatrixUtil::ResetRotation(&pFrame->modelling);
+        }
+
+        MatrixUtil::SetRotationXAbsolute(&pFrame->modelling, curRot);
+        RwMatrixUpdate(&pFrame->modelling);
+
+        if (curRot == target)
+        {
             return true;
         }
     }
