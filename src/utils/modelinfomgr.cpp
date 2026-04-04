@@ -263,11 +263,19 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 
 		if (iLightIndex == eMaterialType::SirenLight)
 		{
-			lightOn = data.m_SirenStatus[GetSirenIndex(pCurVeh, material)];
+			int idx = GetSirenIndex(pCurVeh, material);
+			if (idx >= 0 && idx < MAX_LIGHTS)
+			{
+				lightOn = data.m_SirenStatus[idx];
+			}
 		}
 		else if (iLightIndex == eMaterialType::StrobeLight)
 		{
-			lightOn = data.m_StrobeStatus[GetStrobeIndex(pCurVeh, material)];
+			int idx = GetStrobeIndex(pCurVeh, material);
+			if (idx >= 0 && idx < MAX_LIGHTS)
+			{
+				lightOn = data.m_StrobeStatus[idx];
+			}
 		}
 		else if (iLightIndex != eMaterialType::UnknownMaterial)
 		{
