@@ -252,40 +252,39 @@ bool LicensePlate::CCustomCarPlateMgr_RenderLicenseplateTextToRaster(const char 
     if (!charsRasterStride)
         return false;
 
-    // Copy each character from charset raster to plate raster
-    // Going from left to right
+    // Size of a pixel (texel) in `pCharsetLockedData`. It's in 32 bit BGRA format
+    constexpr auto texelSize = 4;
 
-    auto plateRasterCharIter = lockedPlateRaster; // Always points to the top left corner of each character
+    // Pre-calculate character source pointers to improve memory locality and avoid redundant calculations
+    RwUInt8* charRasterBases[MAX_TEXT_LENGTH];
     for (auto letter = 0; letter < MAX_TEXT_LENGTH; letter++)
     {
         unsigned int charCol, charRow;
         auto t = GetCharacterPositionInCharSet(text[letter]);
         charCol = t.first;
         charRow = t.second;
+        charRasterBases[letter] = &pCharsetLockedData[(CHARSET_COL_WIDTH * CHARSET_ROW_HEIGHT * charRow + CHARSET_CHAR_WIDTH * charCol) * texelSize];
+    }
 
-        // Copy specific character from charset raster to plate raster
+    // Copy characters row by row (outer loop) to improve cache locality on destination raster
+    auto plateRasterRowIter = lockedPlateRaster;
+    for (auto r = 0u; r < CHARSET_CHAR_HEIGHT; r++)
+    {
+        auto plateRasterIt = plateRasterRowIter;
 
-        // Size of a pixel (texel) in `pCharsetLockedData`. It's in 32 bit BGRA format
-        constexpr auto texelSize = 4;
-
-        // Character's top left corner in charset raster
-        auto charRasterIt = &pCharsetLockedData[(CHARSET_COL_WIDTH * CHARSET_ROW_HEIGHT * charRow + CHARSET_CHAR_WIDTH * charCol) * texelSize];
-
-        // Character's top left corner in target (plate) raster
-        auto plateRasterIt = plateRasterCharIter;
-
-        // Copy character row by row (going from top to bottom) to target (plate) raster
-        for (auto r = 0u; r < CHARSET_CHAR_HEIGHT; r++)
+        for (auto letter = 0; letter < MAX_TEXT_LENGTH; letter++)
         {
-            memcpy(plateRasterIt, charRasterIt, CHARSET_CHAR_WIDTH * texelSize); // Copy row
+            memcpy(plateRasterIt, charRasterBases[letter], CHARSET_CHAR_WIDTH * texelSize); // Copy row for this character
 
-            // Advance to next row
-            plateRasterIt += plateRasterStride;
-            charRasterIt += charsRasterStride;
+            // Advance character raster base to next row
+            charRasterBases[letter] += charsRasterStride;
+
+            // Advance plate raster pointer to next character's column
+            plateRasterIt += CHARSET_CHAR_WIDTH * texelSize;
         }
 
-        // Advance to next character's column
-        plateRasterCharIter += CHARSET_CHAR_WIDTH * texelSize;
+        // Advance to next row in target (plate) raster
+        plateRasterRowIter += plateRasterStride;
     }
 
     RwRasterUnlock(plateRaster);
