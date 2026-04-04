@@ -14,6 +14,7 @@ class PedData {
 public:
     std::vector<RpMaterial*> materials;
     std::vector<CRGBA> m_Colors;
+    std::vector<std::pair<RwRGBA*, RwRGBA>> m_OriginalColors;
     bool m_bUsingPedCols = false;
     bool m_bInitialized = false;
     int randId = -1;

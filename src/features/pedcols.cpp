@@ -9,7 +9,6 @@
 using namespace plugin;
 
 #define RwRGBAGetRGB(a) (*(DWORD *)&(a) & 0xFFFFFF)
-std::unordered_map<CPed*, std::vector<std::pair<void *, int>>> store;
 
 void PedColors::SetEditableMaterials(RpClump *pClump) {
 	RpClumpForAllAtomics(pClump, [](RpAtomic * pAtomic, void *data) {
@@ -35,7 +34,7 @@ void PedColors::SetEditableMaterials(RpClump *pClump) {
 					default:
 						return pMaterial;
 					}
-					store[PedColors::m_pCurrentPed].push_back(std::make_pair(&pMaterial->color, *reinterpret_cast<int *>(&pMaterial->color)));
+					data.m_OriginalColors.push_back(std::make_pair(&pMaterial->color, pMaterial->color));
 					pMaterial->color.red = data.m_Colors[idx].r;
 					pMaterial->color.green = data.m_Colors[idx].g;
 					pMaterial->color.blue = data.m_Colors[idx].b;
@@ -105,9 +104,10 @@ void PedColors::Init() {
 	};
 
 	Events::pedRenderEvent.after += [](CPed *pPed) {
-		for (auto &e : store[pPed]) {
-			*static_cast<int *>(e.first) = e.second;
+		auto &data = PedColors::m_PedData.Get(pPed);
+		for (auto &e : data.m_OriginalColors) {
+			*e.first = e.second;
 		}
-		store[pPed].clear();
+		data.m_OriginalColors.clear();
 	};
 }
