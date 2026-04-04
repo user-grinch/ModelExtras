@@ -100,25 +100,33 @@ void ModelInfoMgr::EnableStrobeMaterial(CVehicle *pVeh, int idx)
 
 void ModelInfoMgr::FindDummies(CVehicle *vehicle, RwFrame *frame)
 {
-	if (frame)
-	{
-		if (RwFrame *nextFrame = frame->child)
-		{
-			FindDummies(vehicle, nextFrame);
-		}
+	if (!frame) return;
 
-		if (RwFrame *nextFrame = frame->next)
-		{
-			FindDummies(vehicle, nextFrame);
-		}
+	std::vector<RwFrame*> stack;
+	std::vector<RwFrame*> nodes;
+	stack.reserve(128);
+	nodes.reserve(128);
 
-		std::string_view nodeName = GetFrameNodeName(frame);
-		for (auto e : dummy)
-		{
-			e(vehicle, frame, nodeName);
+	stack.push_back(frame);
+
+	while (!stack.empty()) {
+		RwFrame* curr = stack.back();
+		stack.pop_back();
+
+		nodes.push_back(curr);
+
+		if (curr->child) stack.push_back(curr->child);
+		if (curr->next) stack.push_back(curr->next);
+	}
+
+	for (auto it = nodes.rbegin(); it != nodes.rend(); ++it) {
+		RwFrame* curr = *it;
+		std::string_view nodeName = GetFrameNodeName(curr);
+		for (auto e : dummy) {
+			e(vehicle, curr, nodeName);
 		}
 	}
-};
+}
 
 void ModelInfoMgr::Reload(CVehicle *pVeh)
 {
