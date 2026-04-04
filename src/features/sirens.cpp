@@ -557,7 +557,9 @@ void Sirens::EventCtor(CVehicle *pVeh)
 {
 	if (Sirens::modelData.contains(pVeh->m_nModelIndex))
 	{
-		vehicleData[pVeh] = new VehicleSiren(pVeh);
+		if (!vehicleData.contains(pVeh)) {
+			vehicleData[pVeh] = new VehicleSiren(pVeh);
+		}
 	}
 }
 
@@ -611,13 +613,19 @@ void Sirens::Init()
 			int matIdx = GetSirenIndex(pVeh, pMat);
 
 			if (matIdx != - 1) {
+				if (!vehicleData.contains(pVeh)) {
+					vehicleData[pVeh] = new VehicleSiren(pVeh);
+				}
 				int curState = vehicleData[pVeh]->GetCurrentState();
-				auto& state = modelData[pVeh->m_nModelIndex]->States[curState];
-				if (state->Materials.contains(matIdx)) {
-					if (modelData[pVeh->m_nModelIndex]->isImVehFtSiren) {
-						return MatStateColor{state->Materials[matIdx]->Color, state->Materials[matIdx]->Color};
-					} else {
-						return MatStateColor{state->Materials[matIdx]->Color, DEFAULT_MAT_COL};
+
+				if (curState >= 0 && curState < modelData[pVeh->m_nModelIndex]->States.size()) {
+					auto& state = modelData[pVeh->m_nModelIndex]->States[curState];
+					if (state->Materials.contains(matIdx)) {
+						if (modelData[pVeh->m_nModelIndex]->isImVehFtSiren) {
+							return MatStateColor{state->Materials[matIdx]->Color, state->Materials[matIdx]->Color};
+						} else {
+							return MatStateColor{state->Materials[matIdx]->Color, DEFAULT_MAT_COL};
+						}
 					}
 				}
 			}
