@@ -1,4 +1,4 @@
-# Based on CanerKaraca20 build script
+# Based on CanerKaraca23 build script
 name: Build ModelExtras
 
 on:
@@ -25,19 +25,17 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y wget gnupg software-properties-common lsb-release g++-mingw-w64-i686
+        sudo apt-get install -y gnupg software-properties-common lsb-release g++-mingw-w64-i686
 
         # Download LLVM installer script
-        wget https://apt.llvm.org/llvm.sh
+        curl -fsSL https://apt.llvm.org/llvm.sh -o llvm.sh
         chmod +x llvm.sh
 
         # Install Clang 23
         sudo ./llvm.sh 23
 
-    - name: Verify Clang
-      run: |
-        clang --version
-        clang++ --version
+        # Prefer LLVM 23 binaries (clang/clang++)
+        echo "/usr/lib/llvm-23/bin" >> "$GITHUB_PATH"
 
     - name: Get latest plugin-sdk commit
       id: plugin-sdk-ref
@@ -63,7 +61,7 @@ jobs:
         done
 
         FLAGS="-I. -Ishared -Ishared/game -Iplugin_sa -Iplugin_sa/game_sa -Iplugin_sa/game_sa/rw -Isafetyhook -DGTASA -DPLUGIN_SGV_10US -DRW"
-        CLANG_FLAGS="--target=i686-w64-mingw32 -fpermissive -fcommon -fms-extensions -Wno-microsoft-include -Wno-invalid-offsetof -Wno-builtin-macro-redefined -O2 -D__cpp_concepts=202202L"
+        CLANG_FLAGS="--target=i686-w64-mingw32 -fpermissive -fcommon -fms-extensions -Wno-microsoft-include -Wno-builtin-macro-redefined -Wno-macro-redefined -Wno-comment -Wno-new-returns-null -Wno-deprecated-enum-enum-conversion -Wno-pragma-once-outside-header -Wno-invalid-offsetof -O2 -D__cpp_concepts=202202L"
 
         find shared plugin_sa safetyhook -name '*.cpp' -print0 | \
           xargs -0 -P$(nproc) -I{} clang++-23 $CLANG_FLAGS -std=c++2b $FLAGS -c {} -o obj/{}.o
@@ -85,7 +83,6 @@ jobs:
           --mingw=/usr \
           --cc=clang-23 \
           --cxx=clang++-23 \
-          --cxflags="-D__cpp_concepts=202002L" \
           -c -y
         xmake -j$(nproc)
 

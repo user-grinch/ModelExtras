@@ -55,17 +55,23 @@ target("ModelExtras")
     )
 
     add_cxflags(
-        "--target=i686-w64-mingw32", 
-        "-fpermissive", 
-        "-fcommon", 
-        "-fms-extensions", 
+        "--target=i686-w64-mingw32",
+        "-fpermissive",
+        "-fcommon",
+        "-fms-extensions",
+        "-fno-finite-math-only",
         "-Wno-invalid-offsetof",
-        "-Wno-microsoft-include",
-        "-g",               
-        "-gdwarf-2",         
-        "-fdebug-macro"        
+        "-Wno-return-type-c-linkage",
+        "-D__cpp_concepts=202002L",
+        "-Wno-builtin-macro-redefined",
+        "-Wno-deprecated-enum-enum-conversion",
+        "-Wno-pointer-bool-conversion",
+        "-Wno-missing-declarations",
+        "-g",
+        "-gdwarf-2",
+        "-fdebug-macro"
     )
-    
+
     add_shflags(
         "-static", 
         "-static-libgcc", 
@@ -101,6 +107,6 @@ target("ModelExtras")
         set_symbols('debug')
     else
         add_links("plugin")
-        set_optimize("aggressive")
+        set_optimize("fastest")
         set_symbols('hidden')
     end
