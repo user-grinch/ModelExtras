@@ -31,11 +31,11 @@ jobs:
         curl -fsSL https://apt.llvm.org/llvm.sh -o llvm.sh
         chmod +x llvm.sh
 
-        # Install Clang 23
-        sudo ./llvm.sh 23
+        # Install Clang 22
+        sudo ./llvm.sh 22
 
-        # Prefer LLVM 23 binaries (clang/clang++)
-        echo "/usr/lib/llvm-23/bin" >> "$GITHUB_PATH"
+        # Prefer LLVM 22 binaries (clang/clang++)
+        echo "/usr/lib/llvm-22/bin" >> "$GITHUB_PATH"
 
     - name: Get latest plugin-sdk commit
       id: plugin-sdk-ref
@@ -64,10 +64,10 @@ jobs:
         CLANG_FLAGS="--target=i686-w64-mingw32 -fpermissive -fcommon -fms-extensions -Wno-microsoft-include -Wno-builtin-macro-redefined -Wno-macro-redefined -Wno-comment -Wno-new-returns-null -Wno-deprecated-enum-enum-conversion -Wno-pragma-once-outside-header -Wno-invalid-offsetof -O2 -D__cpp_concepts=202202L"
 
         find shared plugin_sa safetyhook -name '*.cpp' -print0 | \
-          xargs -0 -P$(nproc) -I{} clang++-23 $CLANG_FLAGS -std=c++2b $FLAGS -c {} -o obj/{}.o
+          xargs -0 -P$(nproc) -I{} clang++-22 $CLANG_FLAGS -std=c++2b $FLAGS -c {} -o obj/{}.o
 
         find safetyhook -name '*.c' -print0 | \
-          xargs -0 -P$(nproc) -I{} clang-23 $CLANG_FLAGS $FLAGS -c {} -o obj/{}.o
+          xargs -0 -P$(nproc) -I{} clang-22 $CLANG_FLAGS $FLAGS -c {} -o obj/{}.o
 
         find obj -name '*.o' | xargs i686-w64-mingw32-ar rcs output/lib/libplugin.a
 
@@ -81,8 +81,8 @@ jobs:
       run: |
         xmake f -m release \
           --mingw=/usr \
-          --cc=clang-23 \
-          --cxx=clang++-23 \
+          --cc=clang-22 \
+          --cxx=clang++-22 \
           -c -y
         xmake -j$(nproc)
 
