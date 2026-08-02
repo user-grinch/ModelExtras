@@ -329,7 +329,7 @@ void Lights::Init()
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
 				{
-					VehLightData &data = m_VehData.Get(pVeh);
+					VehLightDatav1 &data = m_VehData.Get(pVeh);
 					data.m_bFogLightsOn = !data.m_bFogLightsOn;
 					prev = now;
 					AudioMgr::PlaySwitchSound(pVeh);
@@ -342,7 +342,7 @@ void Lights::Init()
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
 				{
-					VehLightData &data = m_VehData.Get(pVeh);
+					VehLightDatav1 &data = m_VehData.Get(pVeh);
 					data.m_bLongLightsOn = !data.m_bLongLightsOn;
 					prev = now;
 					AudioMgr::PlaySwitchSound(pVeh);
@@ -385,7 +385,7 @@ void Lights::Init()
 			pTowedVeh = pControlVeh->m_pTrailer;
 		}
 
-		VehLightData &data = m_VehData.Get(pControlVeh);
+		VehLightDatav1 &data = m_VehData.Get(pControlVeh);
 		eIndicatorState indState = data.m_nIndicatorState;
 
 		// Fix for UIF SAMP server https://github.com/user-grinch/ModelExtras/issues/112
@@ -738,7 +738,7 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eMaterialT
 void Lights::RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRightOn, bool realTime)
 {
 	CVehicle *pTowedVeh = pControlVeh;
-	VehLightData &data = m_VehData.Get(pControlVeh);
+	VehLightDatav1 &data = m_VehData.Get(pControlVeh);
 
 	if (pControlVeh->m_pTrailer)
 	{
@@ -833,7 +833,7 @@ bool Lights::IsIndicatorOn(CVehicle *pVeh)
 	return !Util::IsEngineOff(pVeh) && (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) && indicatorsDelay && m_VehData.Get(pVeh).m_nIndicatorState != eIndicatorState::Off;
 }
 
-VehLightData Lights::GetVehicleData(CVehicle *pVeh)
+VehLightDatav1 Lights::GetVehicleData(CVehicle *pVeh)
 {
 	return m_VehData.Get(pVeh);
 }

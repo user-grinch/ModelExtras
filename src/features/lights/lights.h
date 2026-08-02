@@ -6,5 +6,5 @@ protected:
     void Init() override;
 
 public:
-    LightsFeature() : CBaseFeature("Lights", "FEATURES", eFeatureMatrix::StandardLights) {}
+    LightsFeature() : CBaseFeature("StandardLightsv2", "FEATURES", eFeatureMatrix::StandardLights) {}
 };

@@ -9,7 +9,7 @@
 #include "enums/materialtype.h"
 #include "enums/indicatorstate.h"
 
-struct VehLightData
+struct VehLightDatav1
 {
 	bool m_bFogLightsOn = false;
 	bool m_bLongLightsOn = false;
@@ -17,18 +17,18 @@ struct VehLightData
 	bool m_bUsingGlobalIndicators = false;
 	bool m_bLightStates[eMaterialType::TotalMaterial];
 
-	VehLightData(CVehicle *pVeh) {
+	VehLightDatav1(CVehicle *pVeh) {
 		std::fill(std::begin(m_bLightStates), std::end(m_bLightStates), true);
 	}
-	~VehLightData() {}
+	~VehLightDatav1() {}
 };
 
-class Lights : public CVehFeature<VehLightData>
+class Lights : public CVehFeature<VehLightDatav1>
 {
 private:
 	static inline bool m_bEnabled = false;
 	static inline bool indicatorsDelay;
-	static inline VehicleExtendedData<VehLightData> m_VehData;
+	static inline VehicleExtendedData<VehLightDatav1> m_VehData;
 
 	static inline std::map<CVehicle *, std::map<eMaterialType, std::vector<VehicleDummy *>>> m_Dummies;
 
@@ -50,9 +50,9 @@ protected:
 
 public:
 	public:
-    Lights() : CVehFeature<VehLightData>("StandardLights", "FEATURES", eFeatureMatrix::StandardLights) {}
+    Lights() : CVehFeature<VehLightDatav1>("StandardLights", "FEATURES", eFeatureMatrix::StandardLights) {}
 	static bool IsIndicatorOn(CVehicle *pVeh);
-	static VehLightData GetVehicleData(CVehicle *pVeh);
+	static VehLightDatav1 GetVehicleData(CVehicle *pVeh);
 
 	friend int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat);
 	void Reload(CVehicle* pVeh) override;
