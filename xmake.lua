@@ -36,6 +36,8 @@ target("ModelExtras")
         PLUGIN_SDK_DIR,
         PLUGIN_SDK_DIR .. "/plugin_sa/",
         PLUGIN_SDK_DIR .. "/plugin_sa/game_sa/",
+        PLUGIN_SDK_DIR .. "/plugin_sa/game_sa/enums/",
+        PLUGIN_SDK_DIR .. "/plugin_sa/game_sa/meta/",
         PLUGIN_SDK_DIR .. "/plugin_sa/game_sa/rw/",
         PLUGIN_SDK_DIR .. "/shared/",
         PLUGIN_SDK_DIR .. "/shared/game/",

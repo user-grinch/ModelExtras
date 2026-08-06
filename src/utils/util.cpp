@@ -223,7 +223,7 @@ float Util::GetVehiclePitch(CVehicle* pVeh) {
 	}
 
     CVector forward = pVeh->m_matrix->at;
-    forward.Normalise();
+    forward.Normalize();
 
     float pitchRad = asinf(forward.y);
     return pitchRad * 57.2957795f;

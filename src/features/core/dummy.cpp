@@ -140,7 +140,7 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
 }
 
 void VehicleDummy::Update() {
-    CMatrix &vehMatrix = *(CMatrix *)data.pVeh->GetMatrix();
+    CMatrix vehMatrix = data.pVeh->GetMatrix();
     CVector pos = data.pVeh->GetPosition();
     CVector dummyPos = data.frame->ltm.pos;
     CVector offset = dummyPos - pos;

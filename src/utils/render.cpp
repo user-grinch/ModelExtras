@@ -33,15 +33,15 @@ bool IsShadowTowardVehicle(CMatrix *dummyMatrix, CVector vehicleCenter)
     // Shadow direction (assume 'up' is forward in dummy frame)
     CVector shadowDir = dummyMatrix->up;
     shadowDir.z = 0.0f;
-    shadowDir.Normalise();
+    shadowDir.Normalize();
 
     // Vector from dummy to vehicle center
     CVector toVehicle = vehicleCenter - dummyPos;
     toVehicle.z = 0.0f;
-    toVehicle.Normalise();
+    toVehicle.Normalize();
 
     // If dot > 0, shadow is cast toward vehicle
-    return DotProduct(shadowDir, toVehicle) > 0.0f;
+    return CVector::Dot(shadowDir, toVehicle) > 0.0f;
 }
 
 void RotateMatrix180Z(CMatrix &mat)
@@ -60,7 +60,7 @@ bool IsDummyPointingUp(CMatrix mat)
 {
     CVector forward = mat.up;
     CVector up = {0.0f, 0.0f, 1.0f};
-    float alignment = DotProduct(forward, up);
+    float alignment = CVector::Dot(forward, up);
     return alignment > 0.7f;
 }
 
@@ -77,7 +77,7 @@ void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRG
 
     // Only during night time
     if (Util::IsNightTime() && MUL != 0.0f) {
-        coronaSz *= DistanceBetweenPoints(TheCamera.GetPosition(), pEntity->GetPosition()) * MUL;
+        coronaSz *= CVector::Distance(TheCamera.GetPosition(), pEntity->GetPosition()) * MUL;
     }
 
     CCoronas::RegisterCorona(coronaID, pEntity, col.r, col.g, col.b, col.a, pos,
@@ -164,14 +164,14 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     }
 
     // Dummy offset in local space
-    CMatrix vehMat = *(CMatrix *)pConfig->pVeh->GetMatrix();
+    CMatrix vehMat = pConfig->pVeh->GetMatrix();
     CVector worldOffset = mat.pos - vehMat.pos; // world-space vector from vehicle to dummy
 
     // Apply inverse rotation manually
     CVector dummyOffset;
-    dummyOffset.x = DotProduct(worldOffset, vehMat.right);
-    dummyOffset.y = DotProduct(worldOffset, vehMat.up);
-    dummyOffset.z = DotProduct(worldOffset, vehMat.at);
+    dummyOffset.x = CVector::Dot(worldOffset, vehMat.right);
+    dummyOffset.y = CVector::Dot(worldOffset, vehMat.up);
+    dummyOffset.z = CVector::Dot(worldOffset, vehMat.at);
 
     if (pConfig->mirroredX)
     {
@@ -181,7 +181,7 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     // Light direction from dummy (forward vector)
     CVector lightDir = mat.up; // up is forward in psdk
     lightDir.z = 0.0f;
-    lightDir.Normalise();
+    lightDir.Normalize();
 
     CVector rotatedLightDir = lightDir;
 
@@ -190,7 +190,7 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     CVector2D rotatedOffset = Rotate2D(localOffset, heading);
 
     // Push shadow forward along light direction
-    rotatedOffset += CVector(rotatedLightDir.x, rotatedLightDir.y, 0.0f) * (shdwSz * SHDW_SZ_MUL + 0.2f);
+    rotatedOffset += CVector2D(rotatedLightDir.x, rotatedLightDir.y) * (shdwSz * SHDW_SZ_MUL + 0.2f);
 
     CVector2D shdwFront(rotatedLightDir.x * (shdwSz * SHDW_SZ_MUL), rotatedLightDir.y * (shdwSz * SHDW_SZ_MUL));
     CVector2D perpVec(rotatedLightDir.x * shdwSz, rotatedLightDir.y * shdwSz);
@@ -241,8 +241,8 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
     CVector rightDir = entityMatrix.right;
 
     upDir.z = rightDir.z = 0.0f; // Flatten vertical influence
-    upDir.Normalise();
-    rightDir.Normalise();
+    upDir.Normalize();
+    rightDir.Normalize();
 
     CVector up = RotateVector2D(upDir * shdwSz.y);
     CVector right = RotateVector2D(rightDir * shdwSz.x);

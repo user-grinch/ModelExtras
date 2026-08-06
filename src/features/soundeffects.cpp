@@ -28,7 +28,7 @@ void SoundEffects::Init()
 
     Events::processScriptsEvent += []() {
 		for (CVehicle *pVeh : CPools::ms_pVehiclePool) {
-			if (DistanceBetweenPoints(pVeh->GetPosition(), TheCamera.GetPosition()) > 50.0f ) {
+			if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 50.0f ) {
 				continue;
 			}
 
