@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Setup xmake
       uses: xmake-io/github-action-setup-xmake@v1
@@ -40,11 +40,11 @@ jobs:
     - name: Get latest plugin-sdk commit
       id: plugin-sdk-ref
       run: |
-        echo "sha=$(git ls-remote https://github.com/user-grinch/plugin-sdk-mingw.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+        echo "sha=$(git ls-remote https://github.com/DK22Pac/plugin-sdk.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
 
     - name: Restore plugin-sdk cache
       id: plugin-sdk-cache
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: plugin-sdk
         key: plugin-sdk-${{ steps.plugin-sdk-ref.outputs.sha }}-i686-w64-mingw32
@@ -52,7 +52,7 @@ jobs:
     - name: Build plugin-sdk
       if: steps.plugin-sdk-cache.outputs.cache-hit != 'true'
       run: |
-        git clone https://github.com/user-grinch/plugin-sdk-mingw.git plugin-sdk
+        git clone https://github.com/DK22Pac/plugin-sdk.git plugin-sdk
         cd plugin-sdk
         git checkout "${{ steps.plugin-sdk-ref.outputs.sha }}"
         mkdir -p output/lib
@@ -60,7 +60,7 @@ jobs:
           find "$dir" -type d -exec mkdir -p "obj/{}" \;
         done
 
-        FLAGS="-I. -Ishared -Ishared/game -Iplugin_sa -Iplugin_sa/game_sa -Iplugin_sa/game_sa/rw -Isafetyhook -DGTASA -DPLUGIN_SGV_10US -DRW"
+        FLAGS="-I. -Ishared -Ishared/game -Iplugin_sa -Iplugin_sa/game_sa -Iplugin_sa/game_sa/enums -Iplugin_sa/game_sa/meta -Iplugin_sa/game_sa/rw -Isafetyhook -DGTASA -DPLUGIN_SGV_10US -DRW"
         CLANG_FLAGS="--target=i686-w64-mingw32 -fpermissive -fcommon -fms-extensions -Wno-microsoft-include -Wno-builtin-macro-redefined -Wno-macro-redefined -Wno-comment -Wno-new-returns-null -Wno-deprecated-enum-enum-conversion -Wno-pragma-once-outside-header -Wno-invalid-offsetof -O2 -D__cpp_concepts=202202L"
 
         find shared plugin_sa safetyhook -name '*.cpp' -print0 | \
