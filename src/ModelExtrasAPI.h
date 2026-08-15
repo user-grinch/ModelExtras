@@ -11,11 +11,15 @@
 #define ME_WRAPPER __declspec(dllimport)
 #endif
 
+struct ME_Color
+{
+    unsigned char r, g, b, a;
+};
+
 struct ME_ExhaustInfo
 {
-public:
     RwFrame *pFrame;
-    CRGBA Color;
+    ME_Color Color;
     float fSpeedMul;
     float fLifeTime;
     float fSizeMul;

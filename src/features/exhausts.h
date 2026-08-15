@@ -6,7 +6,7 @@
 
 using namespace plugin;
 
-extern struct ME_ExhaustInfo;
+struct ME_ExhaustInfo;
 
 
 
