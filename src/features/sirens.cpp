@@ -23,7 +23,7 @@ bool IsValidSirenVehicle(RwFrame *pFrame)
 	if (pFrame)
 	{
 		const std::string name = GetFrameNodeName(pFrame);
-		if (name.starts_with("siren"))
+		if (name.starts_with("siren") || name.starts_with("light_em"))
 		{
 			return true;
 		}

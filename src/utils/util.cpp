@@ -123,14 +123,9 @@ std::optional<int> Util::GetDigitsAfter(
 
     std::string_view numberPart = str.substr(prefix.size());
 
-    if (numberPart.empty()) {
+    if (numberPart.empty() || !std::isdigit(static_cast<unsigned char>(numberPart.front()))) {
         return std::nullopt;
     }
-
-    if (!std::all_of(numberPart.begin(), numberPart.end(),
-        [](unsigned char c) { return std::isdigit(c); })) {
-            return std::nullopt;
-        }
 
     int value = 0;
     auto [ptr, ec] = std::from_chars(
@@ -138,7 +133,7 @@ std::optional<int> Util::GetDigitsAfter(
         numberPart.data() + numberPart.size(),
         value);
 
-    if (ec != std::errc()) {
+    if (ec != std::errc() || ptr == numberPart.data()) {
         return std::nullopt;
     }
 
