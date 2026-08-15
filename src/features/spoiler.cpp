@@ -37,12 +37,12 @@ void Spoiler::Init()
         if (jsonData["spoilers"].contains(name))
         {
             spoilerData.m_fRotation = jsonData["spoilers"][name].value("rotation", 30.0f);
-            spoilerData.m_nTime = jsonData["spoilers"][name].value("time", 3000);
-            spoilerData.m_nTriggerSpeed = jsonData["spoilers"][name].value("triggerspeed", 20);
+            spoilerData.m_nTime = jsonData["spoilers"][name].value("time", 3000.0f);
+            spoilerData.m_nTriggerSpeed = jsonData["spoilers"][name].value("triggerspeed", 20.0f);
         }
         else
         {
-            spoilerData.m_nTriggerSpeed = 20;
+            spoilerData.m_nTriggerSpeed = 20.0f;
         }
         data.m_Spoilers.push_back(spoilerData); });
 

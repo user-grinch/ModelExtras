@@ -103,8 +103,8 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
             angle += 180.0f;
         }
 
-        float vehicleAngle = Util::NormalizeAngle(Util::RadToDeg(pConfig->pVeh->GetHeading()));
-        float cameraAngle = Util::NormalizeAngle(Util::RadToDeg(TheCamera.GetHeading()));
+        float vehicleAngle = Util::NormalizeAngle(static_cast<float>(Util::RadToDeg(pConfig->pVeh->GetHeading())));
+        float cameraAngle = Util::NormalizeAngle(static_cast<float>(Util::RadToDeg(TheCamera.GetHeading())));
         float dummyAngle = Util::NormalizeAngle(vehicleAngle + angle);
         float diffAngle = Util::NormalizeAngle(cameraAngle - dummyAngle);
         float cutoff = (radius / 2.0f);
@@ -118,18 +118,18 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
         {
             float adjustedAngle = cutoff - diffAngle;
             float mul = std::fabs(adjustedAngle / FADE_RANGE);
-            col.a *= mul;
+            col.a = static_cast<unsigned char>(col.a * mul);
         }
         else if (diffAngle > (360.0f - cutoff - FADE_RANGE))
         {
             float adjustedAngle = FADE_RANGE - (diffAngle - (360.0f - cutoff - FADE_RANGE));
             float mul = std::fabs(adjustedAngle / FADE_RANGE);
-            col.a *= mul;
+            col.a = static_cast<unsigned char>(col.a * mul);
         }
 
         if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight)
         {
-            CPointLights::AddLight(PLTYPE_SPOTLIGHT, mat.pos, mat.up, 20.0f, col.r / 255.0, col.g / 255.0, col.b / 255.0, 0, 0, 0);
+            CPointLights::AddLight(PLTYPE_SPOTLIGHT, mat.pos, mat.up, 20.0f, col.r / 255.0f, col.g / 255.0f, col.b / 255.0f, 0, 0, 0);
         }
     }
     RegisterCorona(pConfig->pVeh, reinterpret_cast<int32_t>(pConfig), pConfig->position, col, sz);

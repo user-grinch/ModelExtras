@@ -9,7 +9,7 @@
 #include "enums/materialtype.h"
 
 class CVehicle;
-class RwFrame;
+struct RwFrame;
 
 struct DummyConfig {
     CVehicle *pVeh = nullptr;

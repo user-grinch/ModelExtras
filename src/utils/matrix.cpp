@@ -61,25 +61,23 @@ double MatrixUtil::GetRotationX(RwMatrix *matrix)
 {
     double y = matrix->up.y;
     double z = matrix->up.z;
-    double angle = Util::RadToDeg(atan2(z, y));
-    angle = Util::NormalizeAngle(angle);
-    return angle;
+    float angle = static_cast<float>(Util::RadToDeg(atan2(z, y)));
+    return Util::NormalizeAngle(angle);
 }
 
 double MatrixUtil::GetRotationY(RwMatrix *matrix)
 {
     double x = matrix->at.x;
     double z = matrix->at.z;
-    double angle = Util::RadToDeg(atan2(x, z));
-    angle = Util::NormalizeAngle(angle);
-    return angle;
+    float angle = static_cast<float>(Util::RadToDeg(atan2(x, z)));
+    return Util::NormalizeAngle(angle);
 }
 
 double MatrixUtil::GetRotationZ(RwMatrix *matrix)
 {
     double x = matrix->right.x;
     double y = matrix->right.y;
-    double angle = Util::RadToDeg(atan2(y, x));
+    float angle = static_cast<float>(Util::RadToDeg(atan2(y, x)));
     return Util::NormalizeAngle(angle);
 }
 
@@ -95,8 +93,8 @@ void MatrixUtil::SetRotationXAbsolute(RwMatrix *matrix, double angle)
     double angleRad = Util::DegToRad(angle);
 
     // Calculate the sine and cosine of the angle
-    double sinAngle = sin(angleRad);
-    double cosAngle = cos(angleRad);
+    float sinAngle = static_cast<float>(sin(angleRad));
+    float cosAngle = static_cast<float>(cos(angleRad));
 
     // Store the existing up and at vectors
     RwV3d up = matrix->up;
@@ -122,8 +120,8 @@ void MatrixUtil::SetRotationYAbsolute(RwMatrix *matrix, double angle)
     double angleRad = Util::DegToRad(angle);
 
     // Calculate the sine and cosine of the angle
-    double sinAngle = sin(angleRad);
-    double cosAngle = cos(angleRad);
+    float sinAngle = static_cast<float>(sin(angleRad));
+    float cosAngle = static_cast<float>(cos(angleRad));
 
     // Store the existing right and at vectors
     RwV3d right = matrix->right;
@@ -149,8 +147,8 @@ void MatrixUtil::SetRotationZAbsolute(RwMatrix *matrix, double angle)
     double angleRad = Util::DegToRad(angle);
 
     // Calculate the sine and cosine of the angle
-    double sinAngle = sin(angleRad);
-    double cosAngle = cos(angleRad);
+    float sinAngle = static_cast<float>(sin(angleRad));
+    float cosAngle = static_cast<float>(cos(angleRad));
 
     // Store the existing right and up vectors
     RwV3d right = matrix->right;

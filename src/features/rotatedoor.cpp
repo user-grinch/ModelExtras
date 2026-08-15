@@ -52,7 +52,7 @@ void RotateDoor::Init()
             popOutAmount = jsonData["doors"][name].value("popout", 0.15f);
         }
 
-        float orgRot = MatrixUtil::GetRotationZ(&pFrame->modelling);
+        float orgRot = static_cast<float>(MatrixUtil::GetRotationZ(&pFrame->modelling));
         RotateDoorConfig cfg = { pFrame, orgRot, mul, popOutAmount };
 
         if (name.starts_with("x_rd_lf"))      data.leftFront.push_back(cfg);

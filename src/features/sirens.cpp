@@ -618,7 +618,7 @@ void Sirens::Init()
 				}
 				int curState = vehicleData[pVeh]->GetCurrentState();
 
-				if (curState >= 0 && curState < modelData[pVeh->m_nModelIndex]->States.size()) {
+				if (curState >= 0 && static_cast<size_t>(curState) < modelData[pVeh->m_nModelIndex]->States.size()) {
 					auto& state = modelData[pVeh->m_nModelIndex]->States[curState];
 					if (state->Materials.contains(matIdx)) {
 						if (modelData[pVeh->m_nModelIndex]->isImVehFtSiren) {

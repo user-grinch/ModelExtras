@@ -68,7 +68,7 @@ void ExtraWheel::Init()
 
         for (int i = 0; i < static_cast<int>(eWheelPos::COUNT); i++)
         {
-            for (int j = 0; j < data.pExtras[i].size(); j++) {
+            for (size_t j = 0; j < data.pExtras[i].size(); j++) {
                 UpdateWheelRotation(pVeh, data.pOriginals[i][j], data.pExtras[i][j]);
             }
         } });

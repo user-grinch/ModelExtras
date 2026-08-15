@@ -57,7 +57,7 @@ public:
 
 struct RPMGaugeData {
   RwFrame *pFrame = nullptr;
-  int iMaxRPM = 5000.0f;
+  int iMaxRPM = 5000;
   int iPrevGear = -1;
   float fCurRotation = 0.0f;
   float fMaxRotation = 260.0f;
@@ -83,7 +83,7 @@ public:
 
 struct SpeedGaugeData {
   RwFrame *pFrame = nullptr;
-  int iMaxSpeed = 100.0f;
+  int iMaxSpeed = 100;
   float fMul = 160.9f;
   float fCurRotation = 0.0f;
   float fMaxRotation = 100.0f;
