@@ -116,7 +116,9 @@ void Carcols::Parse(const nlohmann::json &data, int model)
             int qIdx = e.value("quaternary", 0);
 
             auto maxIdx = cols.size();
-            if (pIdx >= maxIdx || sIdx >= maxIdx || tIdx >= maxIdx || qIdx >= maxIdx)
+            if (pIdx < 0 || sIdx < 0 || tIdx < 0 || qIdx < 0 ||
+                static_cast<size_t>(pIdx) >= maxIdx || static_cast<size_t>(sIdx) >= maxIdx ||
+                static_cast<size_t>(tIdx) >= maxIdx || static_cast<size_t>(qIdx) >= maxIdx)
             {
                 LOG(ERROR) << std::format(
                     "Carcols index out of bounds for model '{}': "

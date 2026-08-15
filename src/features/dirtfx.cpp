@@ -56,7 +56,7 @@ void DirtFx::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat) {
 	}
 	
 	std::string texName = pMat->texture->name;
-	int dirtLvl = pVeh->m_fDirtLevel;
+	int dirtLvl = std::clamp(static_cast<int>(pVeh->m_fDirtLevel), 0, 15);
 
 	if (texName == "vehiclegrunge256")
         RpMaterialSetTexture(pMat, ms_aDirtTextures[dirtLvl]);
@@ -99,8 +99,8 @@ void DirtFx::InitialiseBlendTextureSingleEx(RwTexture *src, RwTexture *dest)
 		dest->filterAddressing = rwFILTERLINEAR;
 		for (size_t i = 0; i < 16; i++)
 		{
-			float FacB = (1.0 / 15.0) * i;
-			float FacA = 1 - FacB;
+			float FacB = (1.0f / 15.0f) * static_cast<float>(i);
+			float FacA = 1.0f - FacB;
 			RwTexture *pTex = CClothesBuilder::CopyTexture(src);
 			RwTextureSetName(pTex, src->name);
 			CClothesBuilder::BlendTextures(pTex, dest, FacA, FacB);
@@ -130,8 +130,8 @@ void DirtFx::InitialiseBlendTextureSingle(const char *CleanName, const char *Dir
 	{
 		for (size_t i = 0; i < 16; i++)
 		{
-			float FacB = (1.0 / 15.0) * i;
-			float FacA = 1 - FacB;
+			float FacB = (1.0f / 15.0f) * static_cast<float>(i);
+			float FacA = 1.0f - FacB;
 			TextureArray[i] = CClothesBuilder::CopyTexture(SrcTexture);
 			RwTextureSetName(TextureArray[i], CleanName);
 			CClothesBuilder::BlendTextures(TextureArray[i], DestTexture, FacA, FacB);

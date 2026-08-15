@@ -23,7 +23,7 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
     float angleVal = 0.0f;
 
     // Calculate the angle based on the frame's orientation
-    data.rotation.angle = Util::RadToDeg(CGeneral::GetATanOfXY(data.frame->modelling.right.x, data.frame->modelling.right.y));
+    data.rotation.angle = static_cast<float>(Util::RadToDeg(CGeneral::GetATanOfXY(data.frame->modelling.right.x, data.frame->modelling.right.y)));
 
     auto &jsonData = DataMgr::Get(data.pVeh->m_nModelIndex);
     std::string name = GetFrameNodeName(data.frame);

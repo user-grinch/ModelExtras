@@ -7,7 +7,7 @@
 class CEntity;
 class CRGBA;
 enum class eDummyPos;
-class DummyConfig;
+struct DummyConfig;
 
 class RenderUtil
 {

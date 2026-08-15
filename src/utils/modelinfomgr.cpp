@@ -21,7 +21,7 @@ extern int GetStrobeIndex(CVehicle *pVeh, RpMaterial *pMat);
 
 static CVehicle *pCurVeh = nullptr;
 RwSurfaceProperties &gLightSurfProps = *(RwSurfaceProperties *)0x8A645C;
-RwSurfaceProperties gLightSurfPropsOff = {0.45, 0.0, 0.0};
+RwSurfaceProperties gLightSurfPropsOff = {0.45f, 0.0f, 0.0f};
 
 void ModelInfoMgr::Init()
 {
