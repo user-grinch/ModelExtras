@@ -558,7 +558,7 @@ void Lights::Init()
 				return;
 			}
 
-			static bool bSAMP = GetModuleHandle("SAMP.asi") || GetModuleHandle("SAMP.dll");
+			static bool bSAMP = GetModuleHandle("samp.dll") != nullptr;
 
 			if (pControlVeh->m_pDriver == FindPlayerPed() &&
 				(pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE || pControlVeh->m_nVehicleSubClass == VEHICLE_QUAD || pControlVeh->m_nVehicleSubClass == VEHICLE_MTRUCK))

@@ -44,7 +44,7 @@ static CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
 }
 
 void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
-    static bool bSAMP = GetModuleHandle("SAMP.asi") || GetModuleHandle("SAMP.dll");
+    static bool bSAMP = GetModuleHandle("samp.dll") != nullptr;
 
     if (pVeh->m_pDriver == FindPlayerPed()) {
         static uint32_t indicatorNoneKey = gConfig.ReadInteger("KEYS", "IndicatorLightNoneKey", VK_SHIFT);

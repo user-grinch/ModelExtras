@@ -53,6 +53,11 @@ void ModelExtras::Init()
         {
             LOG(INFO) << "Proper Shaders detected, enabling compatibility mode for ModelExtras lights.";
         }
+
+        if (GetModuleHandle("samp.dll") != nullptr)
+        {
+            LOG(INFO) << "SAMP detected, disabling Carcols feature.";
+        }
     };
 
     if (gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))
@@ -117,7 +122,7 @@ void ModelExtras::Init()
     new ExhaustFx();
     new ExtraWheel();
     new LicensePlate();
-    if (GetModuleHandle("SAMP.asi") == nullptr) {
+    if (GetModuleHandle("samp.dll") == nullptr) {
         new Carcols();
     }
     new RollbackBed();
