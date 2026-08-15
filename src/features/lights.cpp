@@ -355,7 +355,7 @@ void Lights::Init()
 	{
 		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
 		{
-			if (pVeh->m_pDriver == FindPlayerPed() || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER || Util::IsEngineOff(pVeh))
+			if (pVeh->m_pDriver == FindPlayerPed() || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn))
 			{
 				continue;
 			}
@@ -389,7 +389,8 @@ void Lights::Init()
 		eIndicatorState indState = data.m_nIndicatorState;
 
 		// Fix for UIF SAMP server https://github.com/user-grinch/ModelExtras/issues/112
-		if (Util::IsEngineOff(pControlVeh) || CarUtil::IsLightsForcedOff(pControlVeh)) {
+		// Don't clear light state when lights are forced on/already on via SAMP
+		if (((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn) || CarUtil::IsLightsForcedOff(pControlVeh)) {
 			pControlVeh->bLightsOn = false;
 			pControlVeh->m_renderLights.m_bLeftFront = false;
 			pControlVeh->m_renderLights.m_bRightFront = false;
@@ -398,7 +399,8 @@ void Lights::Init()
 		}
 
 		// Fix for park car alarm lights
-		if (pControlVeh->m_fHealth == 0 || (Util::IsEngineOff(pControlVeh) && !CarUtil::IsLightsForcedOn(pControlVeh))) {
+		// Allow through if lights or indicators are explicitly on
+		if (pControlVeh->m_fHealth <= 0.0f || ((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn)) {
 			return;
 		}
 
@@ -421,16 +423,19 @@ void Lights::Init()
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::DayLight);
 		}
 		
-		if (data.m_bFogLightsOn) {
+		static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true);
+		bool headlightStatus = (!foglightTiedtoHeadlight || pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
+		if (data.m_bFogLightsOn && headlightStatus) {
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::FogLightLeft, true, "foglight", 3.0f);
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::FogLightRight, true, "foglight", 3.0f);
 		}
 
 		bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
 
-		// RenderLights checks are required for popup lights
-		if (pControlVeh->m_pDriver == FindPlayerPed()) {
-			RenderHeadlights(pControlVeh, pControlVeh->m_renderLights.m_bLeftFront && isLeftFrontOk, pControlVeh->m_renderLights.m_bRightFront && isRightFrontOk);
+		// Render headlights for: player vehicle, or any vehicle with forced-on/active lights
+		// This ensures headlights render correctly even after exit when SAMP server keeps lights on
+		if (pControlVeh->m_pDriver == FindPlayerPed() || CarUtil::IsLightsForcedOn(pControlVeh) || pControlVeh->bLightsOn) {
+			RenderHeadlights(pControlVeh, isLeftFrontOk, isRightFrontOk);
 		}
 
 		if (SpotLights::IsEnabled(pControlVeh)) {
@@ -498,7 +503,7 @@ void Lights::Init()
 			}
 
 			bool indicatorOn = data.m_bUsingGlobalIndicators && data.m_nIndicatorState != eIndicatorState::Off;
-			bool tailLightFlag = (Util::IsNightTime() || CarUtil::IsLightsForcedOn(pControlVeh)) && !CarUtil::IsLightsForcedOff(pControlVeh);
+			bool tailLightFlag = (Util::IsNightTime() || pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh)) && !CarUtil::IsLightsForcedOff(pControlVeh);
 			if (tailLightFlag || indicatorOn) {
 				if (sttInstalled) {
 					if (isLeftRearOk) {
@@ -755,16 +760,18 @@ void Lights::RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRight
 	{
 		bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
 		std::string texName = data.m_bLongLightsOn ? "headlight_long" : "headlight_short";
+		bool shadow = !gbProperShadersDetected;
+		bool highlight = isFoggy || (!gbProperShadersDetected && data.m_bLongLightsOn);
 
 		if (isLeftOn || isRightOn)
 		{
 			if (isLeftOn && GetLightState(pControlVeh, eMaterialType::HeadLightLeft))
 			{
-				RenderLights(pControlVeh, pTowedVeh, eMaterialType::HeadLightLeft, true, texName, headlightSz, isFoggy || data.m_bLongLightsOn);
+				RenderLights(pControlVeh, pTowedVeh, eMaterialType::HeadLightLeft, shadow, texName, headlightSz, highlight);
 			}
 			if (isRightOn && GetLightState(pControlVeh, eMaterialType::HeadLightRight))
 			{
-				RenderLights(pControlVeh, pTowedVeh, eMaterialType::HeadLightRight, true, texName, headlightSz, isFoggy || data.m_bLongLightsOn);
+				RenderLights(pControlVeh, pTowedVeh, eMaterialType::HeadLightRight, shadow, texName, headlightSz, highlight);
 			}
 		}
 	}
@@ -830,7 +837,7 @@ bool Lights::IsMatAvail(CVehicle *pVeh, std::initializer_list<eMaterialType> sta
 
 bool Lights::IsIndicatorOn(CVehicle *pVeh)
 {
-	return !Util::IsEngineOff(pVeh) && (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) && indicatorsDelay && m_VehData.Get(pVeh).m_nIndicatorState != eIndicatorState::Off;
+	return pVeh->m_fHealth > 0.0f && (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) && indicatorsDelay && m_VehData.Get(pVeh).m_nIndicatorState != eIndicatorState::Off;
 }
 
 VehLightDatav1 Lights::GetVehicleData(CVehicle *pVeh)

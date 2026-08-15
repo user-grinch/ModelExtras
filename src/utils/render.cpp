@@ -93,19 +93,24 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
     CMatrix mat = *(CMatrix *)&pConfig->frame->ltm;
     if (!IsDummyPointingUp(mat))
     {
+        float targetAngle = angle;
+        if (pConfig->dummyPos == eDummyPos::Front)
+            targetAngle = 0.0f;
+        else if (pConfig->dummyPos == eDummyPos::Rear)
+            targetAngle = 180.0f;
+        else if (pConfig->dummyPos == eDummyPos::Left)
+            targetAngle = 90.0f;
+        else if (pConfig->dummyPos == eDummyPos::Right)
+            targetAngle = 270.0f;
+
         if (inversed)
         {
-            angle += 180.0f;
-        }
-
-        if (!skipCheck && IsShadowTowardVehicle((CMatrix *)&pConfig->frame->ltm, pConfig->pVeh->GetPosition()))
-        {
-            angle += 180.0f;
+            targetAngle += 180.0f;
         }
 
         float vehicleAngle = Util::NormalizeAngle(static_cast<float>(Util::RadToDeg(pConfig->pVeh->GetHeading())));
         float cameraAngle = Util::NormalizeAngle(static_cast<float>(Util::RadToDeg(TheCamera.GetHeading())));
-        float dummyAngle = Util::NormalizeAngle(vehicleAngle + angle);
+        float dummyAngle = Util::NormalizeAngle(vehicleAngle + targetAngle);
         float diffAngle = Util::NormalizeAngle(cameraAngle - dummyAngle);
         float cutoff = (radius / 2.0f);
 
@@ -141,6 +146,12 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
 {
     const float SHDW_SZ_MUL = 2.0f;
     if (!pConfig->pVeh || !pConfig || shdwSz == 0.0f || !gConfig.ReadBoolean("FEATURES", "LightShadows", false))
+    {
+        return;
+    }
+
+    extern bool gbProperShadersDetected;
+    if (gbProperShadersDetected && (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight))
     {
         return;
     }

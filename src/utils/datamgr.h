@@ -10,6 +10,7 @@ private:
 
 public:
     static void Init();
+    static void Convert();
     static void LoadFile(const std::filesystem::directory_entry &entry);
     static void Reload(int model);
     static nlohmann::json &Get(int model);

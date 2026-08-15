@@ -1142,15 +1142,12 @@ static std::ostream& operator<<(std::ostream& os, const Severity& log_severity)
     if (log != nullptr)
     {
         std::lock_guard<std::recursive_mutex> lock(log->mutex_);
-        if (log->metadata_.severity != log_severity)
-        {
-            log->sync();
-            log->metadata_.severity = log_severity;
-            log->metadata_.timestamp = nullptr;
-            log->metadata_.tag = nullptr;
-            log->metadata_.function = nullptr;
-            log->do_log_ = true;
-        }
+        log->sync();
+        log->metadata_.severity = log_severity;
+        log->metadata_.timestamp = nullptr;
+        log->metadata_.tag = nullptr;
+        log->metadata_.function = nullptr;
+        log->do_log_ = true;
     }
     else
     {

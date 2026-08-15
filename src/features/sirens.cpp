@@ -44,12 +44,6 @@ std::map<CVehicle *, bool> sirenExtraUsedFlag;
 
 bool Sirens::hkUsesSiren(std::function<hkUsesSirenFunc> originalCall, CVehicle* ptr)
 {
-	if (Util::IsEngineOff(ptr))
-	{
-		ptr->bSirenOrAlarm = false;
-		return false;
-	}
-
 	if (!sirenExtraUsedFlag.count(ptr))
 	{
 		sirenExtraUsedFlag[ptr] = IsValidSirenVehicle((RwFrame *)ptr->m_pRwClump->object.parent);
@@ -672,7 +666,7 @@ void Sirens::Init()
 	Events::processScriptsEvent += []()
 	{
 		CVehicle *vehicle = FindPlayerVehicle(-1, false);
-		if (!vehicle || vehicle->m_nOverrideLights == eLightOverride::ForceLightsOff)
+		if (!vehicle)
 		{
 			return;
 		}
@@ -787,12 +781,7 @@ void Sirens::Init()
 								 {
 		int model = vehicle->m_nModelIndex;
 
-		if (!vehicle->GetIsOnScreen() || !modelData.contains(model) || vehicle->m_nOverrideLights == eLightOverride::ForceLightsOff || vehicle->ms_forceVehicleLightsOff) {
-			return;
-		}
-
-		if (Util::IsEngineOff(vehicle)) {
-			vehicle->bSirenOrAlarm = false;
+		if (!vehicle->GetIsOnScreen() || !modelData.contains(model)) {
 			return;
 		}
 
@@ -945,25 +934,30 @@ void Sirens::Init()
 
 	Events::initGameEvent += []
 	{
-		using hkRegisterCoronaHook = injector::function_hooker<injector::scoped_call, 0x0, hkRegisterCoronaFunc>;
-		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6ABA60);
-		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6ABB35);
-		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6ABC69);
-		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6BD4DD);
-		injector::make_static_hook_dyn<hkRegisterCoronaHook>(hkRegisterCorona, 0x6BD531);
+		injector::MakeCALL((void *)0x6ABA60, hkRegisterCorona, true);
+		injector::MakeCALL((void *)0x6ABB35, hkRegisterCorona, true);
+		injector::MakeCALL((void *)0x6ABC69, hkRegisterCorona, true);
+		injector::MakeCALL((void *)0x6BD4DD, hkRegisterCorona, true);
+		injector::MakeCALL((void *)0x6BD531, hkRegisterCorona, true);
 	};
 };
 
-void Sirens::hkRegisterCorona(std::function<hkRegisterCoronaFunc> originalCall, unsigned int& id, CEntity*& attachTo, unsigned char& red, unsigned char& green, unsigned char& blue, unsigned char& alpha, const CVector& posn, float& radius, float& farClip, eCoronaType& coronaType, eCoronaFlareType& flaretype, bool& enableReflection, bool& checkObstacles, int& _param_not_used, float& angle, bool& longDistance, float& nearClip, unsigned char& fadeState, float& fadeSpeed, bool& onlyFromBelow, bool& reflectionDelay)
+void Sirens::hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const &posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay)
 {
-	CVehicle *vehicle = (CVehicle*)attachTo;
+	CVehicle *vehicle = NULL;
+
+	_asm {
+		pushad
+		mov vehicle, esi
+		popad
+	}
 
 	if (vehicle && modelData.contains(vehicle->m_nModelIndex))
 	{
 		return;
 	}
 
-	originalCall(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
+	CCoronas::RegisterCorona(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
 }
 
 void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time)

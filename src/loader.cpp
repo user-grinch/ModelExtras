@@ -37,6 +37,8 @@
 
 constexpr uint32_t TEST_CHEAT = 0x0ADC;
 
+bool gbProperShadersDetected = false;
+
 void ModelExtras::Init()
 {
     AudioMgr::Init();
@@ -46,6 +48,11 @@ void ModelExtras::Init()
     Events::initGameEvent.after += []()
     {
         DataMgr::Init();
+        gbProperShadersDetected = GetModuleHandle("ProperShaders.asi") != nullptr;
+        if (gbProperShadersDetected)
+        {
+            LOG(INFO) << "Proper Shaders detected, enabling compatibility mode for ModelExtras lights.";
+        }
     };
 
     if (gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))
