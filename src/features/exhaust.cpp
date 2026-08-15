@@ -369,7 +369,7 @@ extern "C"
 
         const ExhaustData &e = data.m_pDummies[index].second;
         info.pFrame = e.pFrame;
-        info.Color = e.Color;
+        info.Color = { e.Color.r, e.Color.g, e.Color.b, e.Color.a };
         info.fSpeedMul = e.fSpeedMul;
         info.fLifeTime = e.fLifeTime;
         info.fSizeMul = e.fSizeMul;
@@ -389,7 +389,7 @@ extern "C"
 
         ExhaustData &e = vData.m_pDummies[index].second;
         e.pFrame = data.pFrame;
-        e.Color = data.Color;
+        e.Color = CRGBA(data.Color.r, data.Color.g, data.Color.b, data.Color.a);
         e.fSpeedMul = data.fSpeedMul;
         e.fLifeTime = data.fLifeTime;
         e.fSizeMul = data.fSizeMul;

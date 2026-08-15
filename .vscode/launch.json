@@ -2,37 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Attach Debugger",
-            "type": "cppdbg",
-            "request": "launch",
-            "miDebuggerServerAddress": "localhost:12345",
-            "miDebuggerPath": "/usr/bin/gdb-multiarch",
-            "MIMode": "gdb",
-            "program": "${workspaceFolder}/build/mingw/x86/debug/ModelExtras.asi",
-            "cwd": "${workspaceFolder}",
-            "setupCommands": [
-                {
-                    "description": "Ensure GDB knows we are talking to a 32-bit target",
-                    "text": "set architecture i386",
-                    "ignoreFailures": false
-                },
-                {
-                    "text": "set sysroot /",
-                    "ignoreFailures": true
-                },
-                {
-                    "text": "set substitute-path Z:/ /",
-                    "ignoreFailures": true
-                },
-                {
-                    "text": "handle SIGUSR1 nostop noprint pass",
-                    "ignoreFailures": true
-                },
-                {
-                    "text": "handle SIGUSR2 nostop noprint pass",
-                    "ignoreFailures": true
-                }
-            ]
+            "name": "Attach to GTA SA",
+            "type": "cppvsdbg",
+            "request": "attach",
+            "processName": "gta_sa.exe"
         }
     ]
 }

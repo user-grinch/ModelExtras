@@ -848,7 +848,7 @@ void Lights::SetLightState(CVehicle *pVeh, eMaterialType lightId, bool state)
 	m_VehData.Get(pVeh).m_bLightStates[lightId] = state;
 }
 
-extern enum ME_LightID;
+#include "ModelExtrasAPI.h"
 
 extern "C"
 {

@@ -118,23 +118,3 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
 bool LightManager::IsDummyAvailable(VehLightData& data, eMaterialType type) {
     return data.dummies.count(type) > 0 && !data.dummies[type].empty();
 }
-
-#include "ModelExtrasAPI.h"
-
-extern "C"
-{
-    bool ME_GetVehicleLightState(CVehicle *pVeh, ME_LightID lightId)
-    {
-        return LightManager::m_VehData.Get(pVeh).bLightStates[static_cast<eMaterialType>(lightId)];
-    }
-
-    void ME_SetVehicleLightState(CVehicle *pVeh, ME_LightID lightId, bool state)
-    {
-        LightManager::m_VehData.Get(pVeh).bLightStates[static_cast<eMaterialType>(lightId)] = state;
-    }
-
-    int __declspec(dllexport) ignore4(int i)
-    {
-        return 1;
-    }
-}
