@@ -9,8 +9,6 @@
 #include "loader.h"
 #include "features/chain.h"
 #include "features/gauge.h"
-#include "features/handlebar.h"
-#include "features/steerwheel.h"
 #include "features/spotlights.h"
 #include "features/wheelhub.h"
 #include "features/remap.h"
@@ -48,12 +46,6 @@ void ModelExtras::Init()
     Events::initGameEvent.after += []()
     {
         DataMgr::Init();
-        gbVehIKInstalled = GetModuleHandle("VehIK.asi") != nullptr;
-
-        if (gbVehIKInstalled)
-        {
-            LOG(INFO) << "VehIK detected, disabling SteerWheel and HandleBar features.";
-        }
     };
 
     if (gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))
@@ -100,7 +92,6 @@ void ModelExtras::Init()
     }
     new Remap();
     new PedColors();
-    new HandleBar();
     new ChainFeature();
     new SlideDoor();
     new RotateDoor();
@@ -123,7 +114,6 @@ void ModelExtras::Init()
         new Carcols();
     }
     new RollbackBed();
-    new SteerWheel();
     new WheelHub();
     new Lights();
     new LightsFeature();
