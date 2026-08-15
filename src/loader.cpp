@@ -27,7 +27,6 @@
 #include "features/backfire.h"
 #include "features/slidedoor.h"
 #include "features/rotatedoor.h"
-#include "features/pedcols.h"
 #include "features/clock.h"
 #include "features/exhausts.h"
 #include "features/roof.h"
@@ -99,7 +98,6 @@ void ModelExtras::Init()
         };
     }
     new Remap();
-    new PedColors();
     new HandleBar();
     new ChainFeature();
     new SlideDoor();

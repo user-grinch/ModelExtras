@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "util.h"
 #include <regex>
-#include <CWeaponInfo.h>
 #include <CCamera.h>
 #include <CCoronas.h>
 #include <CShadows.h>
