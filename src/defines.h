@@ -19,4 +19,6 @@
 #define GITHUB_LINK "https://github.com/user-grinch/ModelExtras"
 #define PATREON_LINK "https://www.patreon.com/grinch_"
 
+extern bool gbProperShadersDetected;
+
 #define STR_FOUND(x, y) x.find(y) != std::string::npos

@@ -37,6 +37,8 @@
 
 constexpr uint32_t TEST_CHEAT = 0x0ADC;
 
+bool gbProperShadersDetected = false;
+
 void ModelExtras::Init()
 {
     AudioMgr::Init();
@@ -46,6 +48,16 @@ void ModelExtras::Init()
     Events::initGameEvent.after += []()
     {
         DataMgr::Init();
+        gbProperShadersDetected = GetModuleHandle("ProperShaders.asi") != nullptr;
+        if (gbProperShadersDetected)
+        {
+            LOG(INFO) << "Proper Shaders detected, enabling compatibility mode for ModelExtras lights.";
+        }
+
+        if (GetModuleHandle("samp.dll") != nullptr)
+        {
+            LOG(INFO) << "SAMP detected, disabling Carcols feature.";
+        }
     };
 
     if (gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))
@@ -110,7 +122,7 @@ void ModelExtras::Init()
     new ExhaustFx();
     new ExtraWheel();
     new LicensePlate();
-    if (GetModuleHandle("SAMP.asi") == nullptr) {
+    if (GetModuleHandle("samp.dll") == nullptr) {
         new Carcols();
     }
     new RollbackBed();

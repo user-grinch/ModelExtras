@@ -163,7 +163,7 @@ void RollbackBed::Init()
     {
         size_t now = CTimer::m_snTimeInMilliseconds;
         static size_t prev = 0;
-        static uint32_t toggleKey = gConfig.ReadInteger("KEYS", "RollbackBedToggleKey", VK_B);
+        static uint32_t toggleKey = gConfig.ReadInteger("KEYS", "RollbackBedToggleKey", 'K');
 
         if (KeyPressed(toggleKey) && now - prev > 500.0f)
         {

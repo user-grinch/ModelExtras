@@ -67,7 +67,7 @@ void SoundEffects::Init()
                 }
             }
 
-            if (bIndicatorSounds)
+            if (bIndicatorSounds && pVeh == FindPlayerVehicle())
             {
                 bool state = Lights::IsIndicatorOn(pVeh);
                 if (state != data.m_bIndicatorState)

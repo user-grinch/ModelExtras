@@ -11,12 +11,45 @@ bool is_number(const std::string &s)
     return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
 }
 
+extern int Convert_EmlToJsonc(const std::string &inPath);
+extern void Convert_JsonToJsonc(const std::string &inPath);
+extern int Convert_IvfcToJsonc(const std::string &inPath);
+
 void DataMgr::Init()
 {
+    Convert();
+
     LOG(INFO) << "Loading data files from ModelExtras/data...";
     for (const auto &e : std::filesystem::directory_iterator(MOD_DATA_PATH("data/")))
     {
         LoadFile(e);
+    }
+}
+
+void DataMgr::Convert()
+{
+    std::string path = std::string(MOD_DATA_PATH("data\\"));
+
+    if (std::filesystem::exists(path)) {
+        for (auto &p : std::filesystem::directory_iterator(path))
+        {
+            std::string filePath = p.path().string();
+            std::string fileExt = p.path().extension().string();
+            if (fileExt == ".eml")
+            {
+                Convert_EmlToJsonc(filePath);
+            }
+            else if (fileExt == ".json")
+            {
+                Convert_JsonToJsonc(filePath);
+            }
+            else if (fileExt == ".ivfc")
+            {
+                Convert_IvfcToJsonc(filePath);
+            }
+        }
+    } else {
+        LOG(WARNING) << "ModelExtras/data directory doesn't exist";
     }
 }
 
