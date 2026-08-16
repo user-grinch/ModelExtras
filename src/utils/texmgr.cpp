@@ -2,55 +2,7 @@
 #include "defines.h"
 #include "utils/texmgr.h"
 #include <CTxdStore.h>
-#include <rwcore.h>
-#include <rwplcore.h>
-#include <rpworld.h>
-#include <RenderWare.h>
 #include <CFileLoader.h>
-
-RwTexture *LoadPNGFromFile(const char *filename, RwUInt8 alpha)
-{
-    RwImage *image = RtPNGImageRead(filename);
-    if (!image)
-    {
-        return nullptr;
-    }
-
-    RwInt32 width, height, depth, flags;
-    RwImageFindRasterFormat(image, rwRASTERTYPETEXTURE | rwRASTERFORMAT888, &width, &height, &depth, &flags);
-
-    RwRaster *raster = RwRasterCreate(width, height, depth, flags);
-    if (!raster)
-    {
-        RwImageDestroy(image);
-        return nullptr;
-    }
-    if (alpha != 255)
-    {
-        // Set the alpha value for each pixel
-        RwRGBA *pixels = (RwRGBA *)RwImageGetPixels(image);
-        for (RwInt32 y = 0; y < height; y++)
-        {
-            for (RwInt32 x = 0; x < width; x++)
-            {
-                RwRGBA *pixel = pixels + (y * width + x);
-                pixel->red = (pixel->red * alpha) / 255;
-                pixel->green = (pixel->green * alpha) / 255;
-                pixel->blue = (pixel->blue * alpha) / 255;
-                pixel->alpha = alpha;
-            }
-        }
-    }
-
-    RwRasterSetFromImage(raster, image);
-    RwImageDestroy(image);
-    return RwTextureCreate(raster);
-}
-
-RwTexture *TextureMgr::RwReadTexture(const char *name, char *Maskname)
-{
-    return ((RwTexture * (__cdecl *)(char const *, char const *))0x4C7510)(name, Maskname);
-}
 
 RwTexture *TextureMgr::Get(std::string name, RwUInt8 alpha)
 {

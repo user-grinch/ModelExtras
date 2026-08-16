@@ -1,8 +1,5 @@
 #include "pch.h"
 #include "carcols.h"
-#include <rwcore.h>
-#include <rpworld.h>
-#include <RenderWare.h>
 #include "core/colors.h"
 
 #define IS_SAME_COLOR(type, VEHCOL) \

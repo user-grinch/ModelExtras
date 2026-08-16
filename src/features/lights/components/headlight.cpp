@@ -3,7 +3,6 @@
 #include "utils/util.h"
 #include "utils/car.h"
 #include "utils/audiomgr.h"
-#include <CWeather.h>
 
 eMaterialType HeadlightComponent::GetMatType(CRGBA matCol) {
     if (matCol == VEHCOL_HEADLIGHT_LEFT) return eMaterialType::HeadLightLeft;

@@ -1,16 +1,10 @@
 #pragma once
-#include "plugin.h"
 #include "core/base.h"
-#include <unordered_map>
 #include <Fx_c.h>
 
 using namespace plugin;
 
 struct ME_ExhaustInfo;
-
-
-
-
 
 // Function types
 using ExhaustFn_t = void (__fastcall *)(CVehicle *);
@@ -45,20 +39,15 @@ private:
     static inline size_t nReloadCount = 0;
 
     static void RenderSmokeFx(CVehicle *pVeh, const ExhaustData &info);
-
     static void RenderNitroFx(CVehicle *pVeh, float power);
-
     static ExhaustData LoadData(CVehicle *pVeh, RwFrame *pFrame);
 
     static void __fastcall hkAddExhaustParticles1(CVehicle *pVeh);
-
     static void __fastcall hkAddExhaustParticles2(CVehicle *pVeh);
 
     // Fixed Nitro hooks with edx parameter
     static char __fastcall hkDoNitroEffect1(CAutomobile *pVeh, float power);
-
     static char __fastcall hkDoNitroEffect2(CAutomobile *pVeh, float power);
-
     static char __fastcall hkDoNitroEffect3(CAutomobile *pVeh, float power);
 
     static void FindNodes(CVehicle *pVeh, RwFrame *frame);
@@ -67,9 +56,6 @@ protected:
     void Init() override;
 
 public:
-
-    public:
     ExhaustFx() : CVehFeature<ExhaustVehData>("ExhaustFx", "FEATURES", eFeatureMatrix::ExhaustFx) {}
-
     void Reload(CVehicle* pVeh) override;
 };

@@ -1,21 +1,12 @@
 #pragma once
-
 #include <map>
-#include "core/base.h"
 #include <string>
 #include <vector>
-#include <plugin.h>
+#include "core/base.h"
 #include <CCoronas.h>
 #include "core/dummy.h"
 #include "utils/modelinfomgr.h"
 #include "enums/lightingmode.h"
-
-enum class VehicleSirenStates
-{
-    Off = 0,
-    On,
-    Mute
-};
 
 #define DEFAULT_SIREN_SHADOW "round"
 

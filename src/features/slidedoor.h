@@ -1,7 +1,5 @@
 #pragma once
-#include <plugin.h>
 #include "core/base.h"
-#include <vector>
 
 struct SlideDoorConfig {
         RwFrame* frame = nullptr;

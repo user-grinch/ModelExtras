@@ -1,19 +1,7 @@
 #include "pch.h"
 #include "leds.h"
-#include <CClock.h>
 #include "defines.h"
-#include <CShadows.h>
-#include <eVehicleClass.h>
-#include <rwcore.h>
-#include <rpworld.h>
-#include "spotlights.h"
-#include <CWeather.h>
-#include <CCoronas.h>
-#include "enums/vehdummy.h"
-#include "utils/datamgr.h"
 #include "core/colors.h"
-#include <CPointLights.h>
-
 #include "roof.h"
 #include "lights.h"
 
@@ -59,8 +47,6 @@ void DashboardLEDs::Init()
 	});
 
 	ModelInfoMgr::RegisterRender([](CVehicle *pControlVeh) {
-		int model = pControlVeh->m_nModelIndex;
-
 		if (pControlVeh->bEngineOn) {
 			EnableLED(pControlVeh, eMaterialType::EngineOnLed);
 		}
@@ -106,10 +92,6 @@ void DashboardLEDs::Init()
 			EnableLED(pControlVeh, eMaterialType::HighBeamLed);
 		} else {
 			EnableLED(pControlVeh, eMaterialType::LowBeamLed);
-		}
-		
-		if (data.m_bFogLightsOn) {
-			EnableLED(pControlVeh, eMaterialType::FogLightLed);
 		}
 
 		if (Lights::IsIndicatorOn(pControlVeh)) {

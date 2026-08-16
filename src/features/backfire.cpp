@@ -23,45 +23,30 @@ void BackFireEffect::BackFireFX(CVehicle *pVeh, float x, float y, float z, float
 
     Command<Commands::PLAY_AND_KILL_FX_SYSTEM>(handle);
 
-    CVector vehPos = pVeh->GetPosition();
-    CVector camPos = TheCamera.GetPosition();
     static std::string audioPath = MOD_DATA_PATH("audio/backfire.wav");
     AudioMgr::PlayFileSound(audioPath, pVeh, 1.5f, true);
 }
 
 void BackFireEffect::BackFireSingle(CVehicle *pVeh)
 {
-
     size_t count = ME_GetExhaustCount(pVeh);
     if (count <= 0)
     {
         // https://github.com/multitheftauto/mtasa-blue/blob/16769b8d1c94e2b9fe6323dcba46d1305f87a190/Client/game_sa/CModelInfoSA.h#L213
         CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));
-        float vx = 0;
         CVector pos = pInfo->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::EXHAUST];
         if (pVeh->m_pHandlingData->m_bDoubleExhaust)
         {
-            vx = pos.x * -1.0f;
-        }
-
-        if (pVeh->m_pHandlingData->m_bDoubleExhaust)
-        {
-            BackFireFX(pVeh, vx, pos.y, pos.z);
+            BackFireFX(pVeh, pos.x * -1.0f, pos.y, pos.z);
         }
         BackFireFX(pVeh, pos.x, pos.y, pos.z);
 
-        vx = 0.0f;
         pos = pInfo->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::EXHAUST_SECONDARY];
         if (!pos.IsZero())
         {
             if (pVeh->m_pHandlingData->m_bDoubleExhaust)
             {
-                vx = pos.x * -1.0f;
-            }
-
-            if (pVeh->m_pHandlingData->m_bDoubleExhaust)
-            {
-                BackFireFX(pVeh, vx, pos.y, pos.z);
+                BackFireFX(pVeh, pos.x * -1.0f, pos.y, pos.z);
             }
             BackFireFX(pVeh, pos.x, pos.y, pos.z);
         }
@@ -96,8 +81,8 @@ void BackFireEffect::BackFireMulti(CVehicle *pVeh)
     }
 }
 
-std::vector<int> ValidModels = {};
-bool onlySelected = false;
+static std::vector<int> ValidModels = {};
+static bool onlySelected = false;
 
 void BackFireEffect::Init()
 {

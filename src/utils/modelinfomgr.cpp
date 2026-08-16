@@ -2,12 +2,7 @@
 #include "utils/modelinfomgr.h"
 #include <CTxdStore.h>
 #include <CCamera.h>
-#include <RenderWare.h>
-#include <rwcore.h>
-#include <rwplcore.h>
-#include <rpworld.h>
 #include "utils/texmgr.h"
-#include <NodeName.h>
 #include <string_view>
 #include "features/carcols.h"
 #include "utils/meevents.h"

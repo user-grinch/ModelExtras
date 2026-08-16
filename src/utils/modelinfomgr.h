@@ -1,10 +1,6 @@
 #pragma once
-#include <string>
-#include <map>
-#include "game_sa/CVehicle.h"
-#include "game_sa/CPools.h"
-#include "game_sa/CModelInfo.h"
-#include "RenderWare.h"
+#include <functional>
+#include <vector>
 #include "enums/dummypos.h"
 #include "enums/materialtype.h"
 

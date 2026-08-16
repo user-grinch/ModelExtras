@@ -1,18 +1,8 @@
 #include "pch.h"
 #include "util.h"
-#include <regex>
-#include <CWeaponInfo.h>
-#include <CCamera.h>
-#include <CCoronas.h>
-#include <CShadows.h>
 #include <CBike.h>
-#include <CWorld.h>
 #include <CClock.h>
-#include "utils/texmgr.h"
 #include "defines.h"
-#include "features/core/dummy.h"
-#include "enums/lightoverride.h"
-#include <math.h>
 
 float Util::NormalizeAngle(float angle)
 {
@@ -168,13 +158,10 @@ bool Util::IsEngineOff(CVehicle *pVeh)
 	return !pVeh->bEngineOn || pVeh->bEngineBroken;
 }
 
-float mx1, my1, mz1;
-float mx2, my2, mz2;
-
 CVector Util::UpdateRelativeToBoundingBox(CVehicle *pVeh, eDummyPos dummyPos, CVector shdwPos, CVector up, CVector right) {
     CVehicleModelInfo* pInfo = (CVehicleModelInfo*)CModelInfo::GetModelInfo(pVeh->m_nModelIndex);
-    CVector min = pInfo->m_pColModel->m_boundBox.m_vecMin + CVector(mx1, my1, mz1);
-    CVector max = pInfo->m_pColModel->m_boundBox.m_vecMax + CVector(mx2, my2, mz2);
+    CVector min = pInfo->m_pColModel->m_boundBox.m_vecMin;
+    CVector max = pInfo->m_pColModel->m_boundBox.m_vecMax;
 
     shdwPos += (min + max) * 0.5f;
     CVector corner1 = shdwPos + up + right;

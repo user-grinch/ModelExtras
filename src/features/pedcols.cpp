@@ -1,9 +1,5 @@
 #include "pch.h"
 #include "pedcols.h"
-#include <vector>
-#include <RenderWare.h>
-#include <rw/rpworld.h>
-#include <rw/rwplcore.h>
 #include "utils/datamgr.h"
 
 using namespace plugin;
@@ -88,13 +84,6 @@ PedData::PedData(CPed *pPed) {
 }
 
 void PedColors::Init() {
-	Events::pedSetModelEvent.after += [](CPed *pPed, int model) {
-		auto &data = PedColors::m_PedData.Get(pPed);
-		if (!data.m_bInitialized) {
-			data.m_bInitialized = true;
-		}
-	};
-
 	Events::pedRenderEvent.before += [](CPed *pPed) {
 		auto &data = PedColors::m_PedData.Get(pPed);
 		if (data.m_bUsingPedCols) {

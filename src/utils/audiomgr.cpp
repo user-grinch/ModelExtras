@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "utils/audiomgr.h"
 #include "defines.h"
-#include <cstdint>
 #include <extensions/ScriptCommands.h>
 #include <CAudioEngine.h>
 

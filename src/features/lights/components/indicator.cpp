@@ -2,7 +2,6 @@
 #include "indicator.h"
 #include "utils/util.h"
 #include "utils/car.h"
-#include <CPathFind.h>
 
 eMaterialType IndicatorComponent::GetMatType(CRGBA matCol) {
     if (matCol == VEHCOL_INDICATOR_LEFT_REAR) return eMaterialType::IndicatorLightLeftRear;

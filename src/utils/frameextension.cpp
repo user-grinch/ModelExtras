@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "frameextention.h"
-#include "rwplcore.h"
 
 RwFrameExtension* RwFrameExtension::Get(RwFrame* frame) {
     if (frame == nullptr)  {

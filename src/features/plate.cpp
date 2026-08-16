@@ -1,10 +1,6 @@
 #include "pch.h"
 #include "plate.h"
 #include <CCustomCarPlateMgr.h>
-#include <CWeather.h>
-#include <rwcore.h>
-#include <rpworld.h>
-#include <RenderWare.h>
 #include <CTheZones.h>
 #include "utils/texmgr.h"
 #include <utility>

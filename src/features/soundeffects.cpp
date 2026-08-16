@@ -2,11 +2,10 @@
 #include "defines.h"
 #include "soundeffects.h"
 #include "lights.h"
-#include "eVehicleClass.h"
 
 using namespace plugin;
 
-std::vector<int> ValidForReverseSound;
+static std::vector<int> ValidForReverseSound;
 
 #define ANIMGROUP_TRUCK 2
 #define ANIMGROUP_BUS 15
@@ -89,9 +88,6 @@ void SoundEffects::Init()
 
             data.m_bEngineState = pVeh->bEngineOn;
 
-            CVector vehPos = pVeh->GetPosition();
-            CVector camPos = TheCamera.GetPosition();
-
             if (bAirbreakSounds && isBigVeh)
             {
                 float pedal = pVeh->m_fBreakPedal;
@@ -107,11 +103,11 @@ void SoundEffects::Init()
                     }
                 }
 
-                if (pedal <= 0.05f && val != NULL)
+                if (pedal <= 0.05f && val != 0.0f)
                 {
                     static std::string path = MOD_DATA_PATH("audio/airbreak.wav");
                     AudioMgr::PlayFileSound(path, pVeh, data.m_fBrakePressure, true);
-                    val = NULL;
+                    val = 0.0f;
                     data.m_fBrakePressure = 0.0f;
                 }
             }

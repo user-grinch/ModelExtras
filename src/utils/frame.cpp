@@ -21,22 +21,6 @@ void FrameUtil::SetRotationZ(RwFrame *frame, float angle)
     RwFrameUpdateObjects(frame);
 }
 
-uint32_t FrameUtil::GetChildCount(RwFrame *parent)
-{
-    RwFrame *child = parent->child;
-    uint32_t count = 0U;
-    if (child)
-    {
-        while (child)
-        {
-            ++count;
-            child = child->next;
-        }
-        return count;
-    }
-    return 0U;
-}
-
 void FrameUtil::DestroyNodeHierarchyRecursive(RwFrame * frame)
 {
     RpAtomic * atomic = (RpAtomic *)GetFirstObject(frame);
@@ -123,34 +107,6 @@ void FrameUtil::HideAllAtomics(RwFrame *frame)
 
             current = rwLLLinkGetNext(current);
         }
-    }
-}
-
-void FrameUtil::HideChildWithName(RwFrame *parent_frame, const char *name)
-{
-    RwFrame *child = parent_frame->child;
-    while (child)
-    {
-        if (!strcmp(GetFrameNodeName(child), name))
-        {
-            FrameUtil::HideAllAtomics(child);
-            return;
-        }
-        child = child->next;
-    }
-}
-
-void FrameUtil::ShowChildWithName(RwFrame *parent_frame, const char *name)
-{
-    RwFrame *child = parent_frame->child;
-    while (child)
-    {
-        if (!strcmp(GetFrameNodeName(child), name))
-        {
-            FrameUtil::ShowAllAtomics(child);
-            return;
-        }
-        child = child->next;
     }
 }
 

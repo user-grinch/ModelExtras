@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "matrix.h"
-#include "utils/frameextention.h"
 
 void MatrixUtil::ForceRightVector(RwMatrix* matrix, RwV3d& newRight)
 {
@@ -19,42 +18,6 @@ void MatrixUtil::ForceRightVector(RwMatrix* matrix, RwV3d& newRight)
 
     RwV3dNormalize(&matrix->up, &matrix->up);
     RwV3dNormalize(&matrix->at, &matrix->at);
-}
-
-bool MatrixUtil::CreateBackup(RwFrame *frame)
-{
-    auto *backup = new RwMatrix();
-    if (!backup)
-    {
-        LOG(ERROR) << "Failed to create matrix backup";
-        RwFrameExtension::Get(frame)->pOrigMatrix = nullptr;
-        return false;
-    }
-
-    RwMatrix *origin = &frame->modelling;
-    backup->at = origin->at;
-    backup->pos = origin->pos;
-    backup->right = origin->right;
-    backup->up = origin->up;
-
-    RwFrameExtension::Get(frame)->pOrigMatrix = backup;
-    return true;
-}
-
-void MatrixUtil::RestoreBackup(RwMatrix *dest, RwMatrix *backup)
-{
-    if (!backup)
-    {
-        LOG(ERROR) << "Failed to restore matrix backup";
-        return;
-    }
-
-    dest->at = backup->at;
-    dest->pos = backup->pos;
-    dest->right = backup->right;
-    dest->up = backup->up;
-
-    RwMatrixUpdate(dest);
 }
 
 double MatrixUtil::GetRotationX(RwMatrix *matrix)
@@ -111,33 +74,6 @@ void MatrixUtil::SetRotationXAbsolute(RwMatrix *matrix, double angle)
 
     // Normalize the vectors to ensure they remain orthogonal
     RwV3dNormalize(&matrix->up, &matrix->up);
-    RwV3dNormalize(&matrix->at, &matrix->at);
-    RwMatrixUpdate(matrix);
-}
-
-void MatrixUtil::SetRotationYAbsolute(RwMatrix *matrix, double angle)
-{
-    double angleRad = Util::DegToRad(angle);
-
-    // Calculate the sine and cosine of the angle
-    float sinAngle = static_cast<float>(sin(angleRad));
-    float cosAngle = static_cast<float>(cos(angleRad));
-
-    // Store the existing right and at vectors
-    RwV3d right = matrix->right;
-    RwV3d at = matrix->at;
-
-    // Update the right and at vectors for the Y-axis rotation
-    matrix->right.x = cosAngle * right.x + sinAngle * at.x;
-    matrix->right.y = cosAngle * right.y + sinAngle * at.y;
-    matrix->right.z = cosAngle * right.z + sinAngle * at.z;
-
-    matrix->at.x = -sinAngle * right.x + cosAngle * at.x;
-    matrix->at.y = -sinAngle * right.y + cosAngle * at.y;
-    matrix->at.z = -sinAngle * right.z + cosAngle * at.z;
-
-    // Normalize the vectors to ensure they remain orthogonal
-    RwV3dNormalize(&matrix->right, &matrix->right);
     RwV3dNormalize(&matrix->at, &matrix->at);
     RwMatrixUpdate(matrix);
 }

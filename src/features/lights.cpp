@@ -1,12 +1,8 @@
 #include "pch.h"
 #include "lights.h"
+#include "spotlights.h"
 #include <CClock.h>
 #include "defines.h"
-#include <CShadows.h>
-#include <eVehicleClass.h>
-#include <rwcore.h>
-#include <rpworld.h>
-#include "spotlights.h"
 #include "utils/audiomgr.h"
 #include <CWeather.h>
 #include <CCoronas.h>
@@ -33,7 +29,7 @@ int GetStrobeIndex(CVehicle *pVeh, RpMaterial *pMat)
 // Indicator lights
 static uint64_t delay;
 
-CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address)
+static CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address)
 {
 	if (address.m_nAreaId >= 0 && address.m_nCarPathLinkId >= 0 && ThePaths.m_pNaviNodes && ThePaths.m_pNaviNodes[address.m_nAreaId])
 	{

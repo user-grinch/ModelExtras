@@ -1,12 +1,10 @@
 #include "pch.h"
 #include "defines.h"
 #include "utils/datamgr.h"
-#include <string>
-#include <CModelInfo.h>
 #include "features/sirens.h"
 #include "features/carcols.h"
 
-bool is_number(const std::string &s)
+static bool is_number(const std::string &s)
 {
     return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
 }

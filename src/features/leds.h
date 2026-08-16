@@ -1,8 +1,6 @@
 #pragma once
 #include <map>
 #include "core/base.h"
-#include <plugin.h>
-#include "utils/modelinfomgr.h"
 #include "enums/materialtype.h"
 
 struct VehLEDData
@@ -23,6 +21,5 @@ protected:
     void Init() override;
 
 public:
-	public:
     DashboardLEDs() : CVehFeature<VehLEDData>("DashboardLED", "FEATURES", eFeatureMatrix::DashboardLED) {}
 };

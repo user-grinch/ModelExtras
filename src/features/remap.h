@@ -1,8 +1,7 @@
 #pragma once
-#include <plugin.h>
-#include "core/base.h"
 #include <map>
 #include <vector>
+#include "core/base.h"
 
 struct RemapData {
   bool bRemapsLoaded = false;
@@ -22,7 +21,5 @@ protected:
     void Init() override;
 
 public:
-  public:
     Remap() : CBaseFeature("TextureRemaper", "FEATURES", eFeatureMatrix::TextureRemapper) {}
-  
 };

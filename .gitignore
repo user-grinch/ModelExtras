@@ -1,11 +1,26 @@
+# Build output & artifacts
 /archive/
 /archive_staging/
 /build/
 /.xmake/
-/.vscode/.cache/
 /.cache/
+/.clangd/
+compile_commands.json
+
+# Visual Studio & IDE temporary files
 /.vs/
+/.vscode/.cache/
+/.vscode/ipch/
 *.vcxproj*
 *.sln
 *.suo
 *.user
+*.DotSettings*
+
+# Logs & temporary files
+*.log
+*.tmp
+*.bak
+*.orig
+Thumbs.db
+.DS_Store

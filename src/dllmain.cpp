@@ -2,7 +2,7 @@
 #include "defines.h"
 #include "loader.h"
 
-void InitLog()
+static void InitLog()
 {
     auto sink_cout = std::make_shared<AixLog::SinkCout>(AixLog::Severity::debug);
     auto sink_file = std::make_shared<AixLog::SinkFile>(AixLog::Severity::debug, std::string(MOD_NAME) + ".log");

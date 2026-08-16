@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "spotlights.h"
 #include <CCamera.h>
-#include <CCoronas.h>
 #include "defines.h"
 #include "utils/texmgr.h"
 #include <CWorld.h>
@@ -12,11 +11,9 @@
 using namespace plugin;
 
 #define VK_RMB 0x02
-extern int gGlobalShadowIntensity;
 
 void SpotLights::Init()
 {
-
 	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
 							   {
         SpotlightData& data = m_VehData.Get(pVeh);
@@ -35,10 +32,6 @@ void SpotLights::Init()
 	Events::drawingEvent += []()
 	{
 		OnHudRender();
-	};
-	Events::initGameEvent += []()
-	{
-		pSpotlightTex = TextureMgr::Get("spotlight", gGlobalShadowIntensity);
 	};
 }
 
@@ -93,27 +86,18 @@ void SpotLights::OnVehicleRender(CVehicle *pVeh)
 
 	pVeh->DoHeadLightReflectionSingle(matrix, 1);
 	RwV3d offset{0, 0, 0}, target, src;
-	CVector vehPos = pVeh->GetPosition();
 	RwV3dTransformPoint(&src, &offset, &data.pFrame->modelling);
 	RwV3dTransformPoint(&target, &offset, (RwMatrix *)&matrix);
-
-	// target.x += vehPos.x;
-	// target.y += vehPos.y;
-	// target.z += vehPos.z;
-	// src.x += vehPos.x;
-	// src.y += vehPos.y;
-	// src.z += vehPos.z;
 
 	bool flag;
 	CEntity *pEnt;
 	target.z = CWorld::FindGroundZFor3DCoord(target.x, target.y, target.z + 20, &flag, &pEnt);
-	static int searchLight = NULL;
+	static int searchLight = 0;
 
-	if (searchLight != NULL)
+	if (searchLight != 0)
 	{
 		Command<Commands::DELETE_SEARCHLIGHT>(searchLight);
-		searchLight = NULL;
-		// Command<Commands::CREATE_SEARCHLIGHT>(-2025.600342, 176.275925, 48.843737, -2025.600342, 176.275925, 38.843737, 10.0, 1.0, &searchLight);
+		searchLight = 0;
 	}
 	Command<Commands::CREATE_SEARCHLIGHT>(target.x, target.y, target.z, src.x, src.y, src.z, 1.0, 0.05, &searchLight);
 };

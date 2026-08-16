@@ -10,9 +10,9 @@
 #include "nlohmann/json.hpp"
 #include "db/ini.hpp"
 #include "AixLog/AixLog.hpp"
+#include "vkeys.h"
 #include <format>
 #include "utils/util.h"
-#include "vkeys.h"
 
 using namespace plugin;
 

@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "pch.h"
 #include "exhausts.h"
 #include <CWorld.h>
 #include <CCamera.h>
@@ -11,14 +10,12 @@
 #include "utils/datamgr.h"
 #include "ModelExtrasAPI.h"
 #include "backfire.h"
-#include <rwcore.h>
-#include <rwplcore.h>
 
 #define NODE_NAME "x_exhaust"
 
 // Global trampolines
-ExhaustFn_t ogFunc1 = nullptr, ogFunc2 = nullptr;
-NitroFn_t ogNitro1 = nullptr, ogNitro2 = nullptr, ogNitro3 = nullptr;
+static ExhaustFn_t ogFunc1 = nullptr, ogFunc2 = nullptr;
+static NitroFn_t ogNitro1 = nullptr, ogNitro2 = nullptr, ogNitro3 = nullptr;
 
 void __fastcall ExhaustFx::hkAddExhaustParticles1(CVehicle * pVeh)
 {

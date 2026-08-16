@@ -37,8 +37,6 @@ bool Helper_MoveToBackup(const std::string &src)
     return true;
 }
 
-#include <windows.h>
-
 bool Helper_OpenFile(const std::string &path, std::ifstream &infile, const std::string &logPrefix)
 {
     auto p = std::filesystem::path(path);

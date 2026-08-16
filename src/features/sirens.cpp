@@ -1,9 +1,6 @@
 #include "pch.h"
 #include "sirens.h"
-#include <common.h>
 #include <CShadows.h>
-#include <rwcore.h>
-#include <rpworld.h>
 #include <CPointLights.h>
 #include "defines.h"
 #include "lights.h"
@@ -17,7 +14,7 @@ bool VehicleSiren::GetSirenState()
 	return (Mute == false) ? (vehicle->bSirenOrAlarm) : (true);
 }
 
-bool IsValidSirenVehicle(RwFrame *pFrame)
+static bool IsValidSirenVehicle(RwFrame *pFrame)
 {
 	bool flag = false;
 	if (pFrame)
@@ -40,7 +37,7 @@ bool IsValidSirenVehicle(RwFrame *pFrame)
 	return flag;
 }
 
-std::map<CVehicle *, bool> sirenExtraUsedFlag;
+static std::map<CVehicle *, bool> sirenExtraUsedFlag;
 
 bool Sirens::hkUsesSiren(std::function<hkUsesSirenFunc> originalCall, CVehicle* ptr)
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include <plugin.h>
+#include <array>
 #include <extender/PedExtender.h>
 #include <CRGBA.h>
 #include "core/base.h"
@@ -12,12 +12,9 @@ using namespace plugin;
 
 class PedData {
 public:
-    std::vector<RpMaterial*> materials;
-    std::vector<CRGBA> m_Colors;
+    std::array<CRGBA, 4> m_Colors = {CRGBA(255, 255, 255), CRGBA(255, 255, 255), CRGBA(255, 255, 255), CRGBA(255, 255, 255)};
     std::vector<std::pair<RwRGBA*, RwRGBA>> m_OriginalColors;
     bool m_bUsingPedCols = false;
-    bool m_bInitialized = false;
-    int randId = -1;
 
     PedData(CPed *pPed);
     ~PedData() {}

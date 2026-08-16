@@ -17,14 +17,9 @@ protected:
     void Init() override;
 
 public:
-	static inline RwTexture *pSpotlightTex = nullptr;
-
-	
-
 	static void OnHudRender();
 	static void OnVehicleRender(CVehicle *pVeh);
 
-public:
     SpotLights() : CVehFeature<SpotlightData>("SpotLights", "FEATURES", eFeatureMatrix::StandardLights) {}
 	static bool IsEnabled(CVehicle *pVeh);
 };

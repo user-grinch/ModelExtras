@@ -1,12 +1,7 @@
 #pragma once
-#include <rwcore.h>
-#include <string>
-#include <CVector.h>
-#include <CVector2D.h>
 
 class CEntity;
-class CRGBA;
-enum class eDummyPos;
+#include "enums/dummypos.h"
 struct DummyConfig;
 
 class RenderUtil

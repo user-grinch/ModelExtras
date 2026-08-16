@@ -5,8 +5,6 @@
 #include "frame.h"
 #include "render.h"
 
-typedef enum class eModelEntityType eModelEntityType;
-
 class Util
 {
 public:

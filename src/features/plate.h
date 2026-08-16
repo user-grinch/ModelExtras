@@ -1,9 +1,5 @@
 #pragma once
-#include <plugin.h>
 #include "core/base.h"
-#include <vector>
-
-
 
 enum ePlateType
 {
@@ -42,7 +38,6 @@ private:
   static constexpr uint32_t MAX_TEXT_LENGTH{8u};
   static inline RwUInt8 *pCharsetLockedData;
 
-  
   static RpMaterial *__cdecl CCustomCarPlateMgr_SetupMaterialPlatebackTexture(RpMaterial *material, char plateType);
   static bool __cdecl CCustomCarPlateMgr_Initialise();
   static void __cdecl CCustomCarPlateMgr_Shudown();
@@ -53,7 +48,6 @@ protected:
     void Init() override;
 
 public:
-  public:
     LicensePlate() : CVehFeature<PlateData>("HDLicensePlate", "FEATURES", eFeatureMatrix::HDLicensePlate) {}
   static void ProcessTextures(CVehicle *pVeh, RpMaterial *pMat);
 };

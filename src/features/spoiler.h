@@ -1,7 +1,5 @@
 #pragma once
-#include <plugin.h>
 #include "core/base.h"
-#include <vector>
 
 struct SpoilerData
 {
@@ -23,11 +21,7 @@ class Spoiler : public CVehFeature<SpoilerVehData>
 {
 protected:
     void Init() override;
-  
-
-  
 
 public:
-  public:
     Spoiler() : CVehFeature<SpoilerVehData>("AnimatedSpoiler", "FEATURES", eFeatureMatrix::AnimatedSpoiler) {}
 };

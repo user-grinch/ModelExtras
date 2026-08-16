@@ -31,7 +31,6 @@ void WheelHub::Init()
         }
 
         WheelHubData& data = m_VehData.Get(pVeh);
-        bool modified = false;
         
         // Thanks to Ameer & SanVive team for their rotation fix
         auto updateRotation = [&](RwFrame* ori, RwFrame* tar, bool isLeft) 
@@ -56,9 +55,5 @@ void WheelHub::Init()
         updateRotation(data.m_pWLF, data.m_pHLF, true);
         updateRotation(data.m_pWLM, data.m_pHLM, true);
         updateRotation(data.m_pWLR, data.m_pHLR, true);
-
-        if (modified) {
-            pVeh->UpdateRwFrame();
-        }
     });
 }

@@ -278,7 +278,7 @@ void FixedGauge::Init()
 
             float minAngle = 20.0f;
             float maxAngle = 70.0f;
-            if (jsonData.contains("gauges") && jsonData["gauges"][name].contains("angle")) {
+            if (jsonData.contains("gauges") && jsonData["gauges"].contains(name) && jsonData["gauges"][name].contains("angle")) {
                 minAngle = jsonData["gauges"][name]["minangle"];
                 maxAngle = jsonData["gauges"][name]["maxangle"];
             }

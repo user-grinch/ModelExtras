@@ -1,3 +1,4 @@
+#pragma once
 enum eVehicleDummies
 {
     LIGHT_FRONT_MAIN = 0,

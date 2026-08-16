@@ -1,22 +1,23 @@
 #pragma once
-#include <plugin.h>
 #include "core/base.h"
 #include <vector>
 
 struct RoofConfig {
-      RwFrame* pFrame = nullptr;
-      float speed = 1.0f;
-      float currentRot = 0.0f;
-      float prevRot = 0.0f;
-      float targetRot = 30.0f;
-    };
+    RwFrame* pFrame = nullptr;
+    float speed = 1.0f;
+    float currentRot = 0.0f;
+    float prevRot = 0.0f;
+    float targetRot = 30.0f;
+};
 
 enum class AnimPhase {
-        Idle,
-        OpeningBoots,
-        MovingRoof,
-        ClosingBoots
-    };struct RoofData {
+    Idle,
+    OpeningBoots,
+    MovingRoof,
+    ClosingBoots
+};
+
+struct RoofData {
     bool m_bInit = false;
     bool m_bRoofTargetExpanded = false;
     bool m_bPrevTarget = false;
@@ -33,12 +34,8 @@ class ConvertibleRoof : public CVehFeature<RoofData>
 {
 protected:
     void Init() override;
-    
-
-    
-
-    
     static bool UpdateRotation(RoofConfig& config, CVehicle *pVeh, bool closed);
+
 public:
     ConvertibleRoof() : CVehFeature<RoofData>("ConvertibleRoof", "FEATURES", eFeatureMatrix::ConvertibleRoof) {}
 

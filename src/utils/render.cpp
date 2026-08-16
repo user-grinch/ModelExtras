@@ -4,19 +4,18 @@
 
 #include <CCoronas.h>
 #include <CShadows.h>
-#include <CBike.h>
 #include <CWorld.h>
+#include <CPointLights.h>
 #include "utils/texmgr.h"
 #include "defines.h"
 #include "features/core/dummy.h"
-#include <CPointLights.h>
 
-inline CVector2D GetPerpRight(const CVector2D &vec)
+static inline CVector2D GetPerpRight(const CVector2D &vec)
 {
     return {vec.y, -vec.x};
 }
 
-inline CVector2D Rotate2D(const CVector2D &vec, float angle)
+static inline CVector2D Rotate2D(const CVector2D &vec, float angle)
 {
     float cosA = cos(angle);
     float sinA = sin(angle);
@@ -25,7 +24,7 @@ inline CVector2D Rotate2D(const CVector2D &vec, float angle)
         vec.x * sinA + vec.y * cosA);
 }
 
-bool IsShadowTowardVehicle(CMatrix *dummyMatrix, CVector vehicleCenter)
+static bool IsShadowTowardVehicle(CMatrix *dummyMatrix, CVector vehicleCenter)
 {
     // Dummy world position
     CVector dummyPos = dummyMatrix->pos;
@@ -44,7 +43,7 @@ bool IsShadowTowardVehicle(CMatrix *dummyMatrix, CVector vehicleCenter)
     return CVector::Dot(shadowDir, toVehicle) > 0.0f;
 }
 
-void RotateMatrix180Z(CMatrix &mat)
+static void RotateMatrix180Z(CMatrix &mat)
 {
     // Flip X and Y of right and up vectors
     mat.right.x = -mat.right.x;
@@ -56,7 +55,7 @@ void RotateMatrix180Z(CMatrix &mat)
     // forward stays unchanged (Z axis)
 }
 
-bool IsDummyPointingUp(CMatrix mat)
+static bool IsDummyPointingUp(CMatrix mat)
 {
     CVector forward = mat.up;
     CVector up = {0.0f, 0.0f, 1.0f};

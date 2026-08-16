@@ -12,10 +12,9 @@ void DigitalClockFeature::Init()
         std::string name = GetFrameNodeName(pFrame);
         if (name.starts_with("x_dclock")) {
             ClockData &data = m_VehData.Get(pVeh);
-            data.m_pRootFrame = pFrame;
 
             auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-            if (jsonData["clocks"].contains(name))
+            if (jsonData.contains("clocks") && jsonData["clocks"].contains(name))
             {
                 data.m_b12HourFormat = jsonData["clocks"][name].value("12hformat", false);
             }

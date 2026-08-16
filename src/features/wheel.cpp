@@ -3,12 +3,10 @@
 #include "utils/modelinfomgr.h"
 #include <string_view>
 
-void UpdateWheelRotation(CVehicle *pVeh, RwFrame *ori, RwFrame *tar)
+static void UpdateWheelRotation(CVehicle *pVeh, RwFrame *ori, RwFrame *tar)
 {
     if (ori && tar)
     {
-        // MatrixUtil::SetRotationZ(&tar->modelling, MatrixUtil::GetRotationZ(&ori->modelling));
-        // MatrixUtil::SetRotationY(&tar->modelling, MatrixUtil::GetRotationY(&ori->modelling));
         MatrixUtil::SetRotationXAbsolute(&tar->modelling, MatrixUtil::GetRotationX(&ori->modelling) - MatrixUtil::GetRotationX(&tar->modelling));
         pVeh->UpdateRwFrame();
     }
@@ -68,8 +66,9 @@ void ExtraWheel::Init()
 
         for (int i = 0; i < static_cast<int>(eWheelPos::COUNT); i++)
         {
+            if (data.pOriginals[i].empty()) continue;
             for (size_t j = 0; j < data.pExtras[i].size(); j++) {
-                UpdateWheelRotation(pVeh, data.pOriginals[i][j], data.pExtras[i][j]);
+                UpdateWheelRotation(pVeh, data.pOriginals[i].front(), data.pExtras[i][j]);
             }
         } });
 }

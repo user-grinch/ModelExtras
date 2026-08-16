@@ -3,13 +3,12 @@
 #include "defines.h"
 #include "utils/datamgr.h"
 #include "enums/dummypos.h"
-#include <CWorld.h>
 
 extern float gfGlobalCoronaSize;
 extern int gGlobalCoronaIntensity;
 extern int gGlobalShadowIntensity;
 
-int ReadHex(char a, char b)
+static int ReadHex(char a, char b)
 {
     a = (a <= '9') ? a - '0' : (a & 0x7) + 9;
     b = (b <= '9') ? b - '0' : (b & 0x7) + 9;
@@ -20,7 +19,6 @@ int ReadHex(char a, char b)
 VehicleDummy::VehicleDummy(const DummyConfig& config)
 {
     data = config;
-    float angleVal = 0.0f;
 
     // Calculate the angle based on the frame's orientation
     data.rotation.angle = static_cast<float>(Util::RadToDeg(CGeneral::GetATanOfXY(data.frame->modelling.right.x, data.frame->modelling.right.y)));

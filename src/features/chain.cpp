@@ -1,11 +1,11 @@
-#include "chain.h"
 #include "pch.h"
+#include "chain.h"
 #include "utils/modelinfomgr.h"
 
-const float minSpeed = 0.3f;
-const float maxSpeed = 10.0f;
-const float maxInterval = 200.0f;
-const float minInterval = 20.0f;
+static constexpr float minSpeed = 0.3f;
+static constexpr float maxSpeed = 10.0f;
+static constexpr float maxInterval = 200.0f;
+static constexpr float minInterval = 20.0f;
 
 void ChainFeature::Init() {
   ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName) {

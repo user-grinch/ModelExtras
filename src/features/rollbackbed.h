@@ -1,15 +1,14 @@
 #pragma once
-#include <plugin.h>
 #include "core/base.h"
 #include <vector>
 
 struct HydraulicPiston
-    {
-        RwFrame* pFrame = nullptr;
-        float fCurMove = 0.0f;
-        float fLastMove = 0.0f;
-        float fTargetMove = 2.0f; // Unique target distance for this piston
-    };
+{
+    RwFrame* pFrame = nullptr;
+    float fCurMove = 0.0f;
+    float fLastMove = 0.0f;
+    float fTargetMove = 2.0f; // Unique target distance for this piston
+};
 
 struct RollbackBedData
 {
@@ -37,13 +36,8 @@ class RollbackBed : public CVehFeature<RollbackBedData>
 {
 protected:
     void Init() override;
-    // Struct to hold state for EACH piston individually
-    
 
-    
-    static bool UpdateRotation(CVehicle *pVe, RwFrame *pFrame, float targetRot, float &curRot, float speed);
-    
-    // Updated signature
+    static bool UpdateRotation(CVehicle *pVeh, RwFrame *pFrame, float targetRot, float &curRot, float speed);
     static bool UpdateMove(HydraulicPiston &piston, float moveSpeed, bool bExpanded);
 
 public:

@@ -1,4 +1,3 @@
-#include "enums/materialtype.h"
 #include "pch.h"
 #include "lights.h"
 #include "manager.h"

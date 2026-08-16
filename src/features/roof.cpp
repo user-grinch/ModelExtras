@@ -12,7 +12,6 @@ bool ConvertibleRoof::UpdateRotation(RoofConfig &config, CVehicle *pVeh, bool cl
 {
     if (config.pFrame)
     {
-        RoofData &data = m_VehData.Get(pVeh);
         MatrixUtil::SetRotationXAbsolute(&config.pFrame->modelling, config.currentRot - config.prevRot);
         config.prevRot = config.currentRot;
 
@@ -50,9 +49,9 @@ void ConvertibleRoof::Init()
                                     auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
                                     if (jsonData.contains("roofs") && jsonData["roofs"].contains(name))
                                     {
-                                        auto &data = jsonData["roofs"][name];
-                                        c.targetRot = jsonData["roofs"][name].value("rotation", c.targetRot);
-                                        c.speed = jsonData["roofs"][name].value("speed", c.speed);
+                                        auto &roofJson = jsonData["roofs"][name];
+                                        c.targetRot = roofJson.value("rotation", c.targetRot);
+                                        c.speed = roofJson.value("speed", c.speed);
                                     }
 
                                     RoofData &data = m_VehData.Get(pVeh);

@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include "RenderWare.h"
 #include "CRGBA.h"
 #include "CVector.h"
 #include "CVector2D.h"

@@ -1,10 +1,7 @@
 #pragma once
-#include "plugin.h"
 #include "core/base.h"
 #include "CTxdStore.h"
 #include "CClothesBuilder.h"
-#include <vector>
-#include <map>
 
 using namespace plugin;
 
@@ -33,7 +30,6 @@ protected:
     void Init() override;
 
 public:
-	public:
     DirtFx() : CBaseFeature("DirtFX", "FEATURES", eFeatureMatrix::DirtFX) {}
 	static void ProcessTextures(CVehicle *pVeh, RpMaterial *pMat);
 };

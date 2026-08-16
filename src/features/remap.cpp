@@ -1,10 +1,7 @@
 #include "pch.h"
 #include "remap.h"
-#include <TxdDef.h>
 #include <CTxdStore.h>
 #include "utils/texmgr.h"
-#include <rw/rwcore.h>
-#include <rw/rpworld.h>
 
 void Remap::LoadRemaps(CVehicle* vehicle)
 {
@@ -47,8 +44,8 @@ void Remap::LoadRemaps(CVehicle* vehicle)
     }
 }
 
-std::vector<std::pair<unsigned int *, unsigned int>> pOriginalTextures;
-std::map<void *, int> pRandom;
+static std::vector<std::pair<unsigned int *, unsigned int>> pOriginalTextures;
+static std::map<void *, int> pRandom;
 
 void Remap::Init()
 {
