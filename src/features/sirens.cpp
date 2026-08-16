@@ -615,11 +615,17 @@ void Sirens::Init()
 				if (curState >= 0 && static_cast<size_t>(curState) < modelData[pVeh->m_nModelIndex]->States.size()) {
 					auto& state = modelData[pVeh->m_nModelIndex]->States[curState];
 					if (state->Materials.contains(matIdx)) {
-						if (modelData[pVeh->m_nModelIndex]->isImVehFtSiren) {
-							return MatStateColor{state->Materials[matIdx]->Color, state->Materials[matIdx]->Color};
-						} else {
-							return MatStateColor{state->Materials[matIdx]->Color, DEFAULT_MAT_COL};
+						CRGBA onCol = state->Materials[matIdx]->Color;
+						CRGBA offCol = modelData[pVeh->m_nModelIndex]->isImVehFtSiren ? state->Materials[matIdx]->Color : DEFAULT_MAT_COL;
+
+						if (state->Materials[matIdx]->PatternTotal != 0 && state->Materials[matIdx]->Inertia != 0.0f) {
+							float mult = state->Materials[matIdx]->InertiaMultiplier;
+							onCol.r = static_cast<unsigned char>(offCol.r + (onCol.r - offCol.r) * mult);
+							onCol.g = static_cast<unsigned char>(offCol.g + (onCol.g - offCol.g) * mult);
+							onCol.b = static_cast<unsigned char>(offCol.b + (onCol.b - offCol.b) * mult);
 						}
+
+						return MatStateColor{onCol, offCol};
 					}
 				}
 			}
