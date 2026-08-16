@@ -900,16 +900,19 @@ void Sirens::Init()
 
 			if (mat.second->PatternTotal != 0 && mat.second->Inertia != 0.0f) {
 				float currentTime = (float)(time - mat.second->PatternTime);
-				float changeTime = (((float)mat.second->Pattern[mat.second->PatternCount]) / 2.0f) * mat.second->Inertia;
 				float patternTotalTime = (float)mat.second->Pattern[mat.second->PatternCount];
+				float inertia = std::clamp(mat.second->Inertia, 0.0f, 1.0f);
+				float changeTime = (patternTotalTime / 2.0f) * inertia;
 				mat.second->InertiaMultiplier = 1.0f;
 
-				if (currentTime < changeTime) {
-					mat.second->InertiaMultiplier = (currentTime / changeTime);
-				}
-				else if (currentTime > (patternTotalTime - changeTime)) {
-					currentTime = patternTotalTime - currentTime;
-					mat.second->InertiaMultiplier = (currentTime / changeTime);
+				if (changeTime > 0.0f) {
+					if (currentTime < changeTime) {
+						mat.second->InertiaMultiplier = std::clamp(currentTime / changeTime, 0.0f, 1.0f);
+					}
+					else if (currentTime > (patternTotalTime - changeTime)) {
+						float fadeOutTime = patternTotalTime - currentTime;
+						mat.second->InertiaMultiplier = std::clamp(fadeOutTime / changeTime, 0.0f, 1.0f);
+					}
 				}
 			}
 
@@ -964,15 +967,15 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 {
 	dummy->Update();
 	CVector position = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
-	unsigned char alpha = material->Color.a;
+	CRGBA activeColor = material->Color;
 
 	if (material->PatternTotal != 0 && material->Inertia != 0.0f)
 	{
-		alpha = static_cast<char>(alpha * material->InertiaMultiplier);
+		activeColor.a = static_cast<unsigned char>(std::clamp(static_cast<float>(activeColor.a) * material->InertiaMultiplier, 0.0f, 255.0f));
 	}
 
 	DummyConfig *pDummyConfig = &dummy->Get();
-	pDummyConfig->shadow.color = pDummyConfig->corona.color = material->Color;
+	pDummyConfig->shadow.color = pDummyConfig->corona.color = activeColor;
 	pDummyConfig->corona.size = material->Size;
 	float dummyAngle = Util::NormalizeAngle(pDummyConfig->rotation.angle + material->Shadow.AngleOffset);
 
@@ -1008,7 +1011,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 	}
 	else
 	{
-		RenderUtil::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, pDummyConfig->position, material->Color, material->Size);
+		RenderUtil::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, pDummyConfig->position, activeColor, material->Size);
 	}
 
 	if (material->Type == eLightingMode::Directional)
@@ -1017,7 +1020,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 	}
 	else
 	{
-		RenderUtil::RegisterShadow(vehicle, pDummyConfig->position, *(CRGBA *)&material->Color, dummyAngle + pDummyConfig->rotation.currentAngle, pDummyConfig->dummyPos, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
+		RenderUtil::RegisterShadow(vehicle, pDummyConfig->position, activeColor, dummyAngle + pDummyConfig->rotation.currentAngle, pDummyConfig->dummyPos, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
 	}
 };
 
