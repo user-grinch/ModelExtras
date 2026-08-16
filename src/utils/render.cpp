@@ -94,13 +94,16 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
     if (!IsDummyPointingUp(mat))
     {
         float targetAngle = angle;
-        if (pConfig->dummyPos == eDummyPos::Front)
+        if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight)
             targetAngle = 0.0f;
-        else if (pConfig->dummyPos == eDummyPos::Rear)
+        else if (pConfig->lightType == eMaterialType::TailLightLeft || pConfig->lightType == eMaterialType::TailLightRight
+              || pConfig->lightType == eMaterialType::BrakeLightLeft || pConfig->lightType == eMaterialType::BrakeLightRight
+              || pConfig->lightType == eMaterialType::ReverseLightLeft || pConfig->lightType == eMaterialType::ReverseLightRight
+              || pConfig->lightType == eMaterialType::STTLightLeft || pConfig->lightType == eMaterialType::STTLightRight)
             targetAngle = 180.0f;
-        else if (pConfig->dummyPos == eDummyPos::Left)
+        else if (pConfig->lightType == eMaterialType::SideLightLeft)
             targetAngle = 90.0f;
-        else if (pConfig->dummyPos == eDummyPos::Right)
+        else if (pConfig->lightType == eMaterialType::SideLightRight)
             targetAngle = 270.0f;
 
         if (inversed)

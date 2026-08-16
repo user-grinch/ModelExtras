@@ -236,24 +236,13 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 	}
 
 	eMaterialType iLightIndex = FetchMaterialType(pCurVeh, material);
+
 	if (iLightIndex != eMaterialType::UnknownMaterial)
 	{
 		auto &data = m_VehData.Get(pCurVeh);
 
 		bool lightOn = false;
 		data.m_MatAvail[iLightIndex] = true;
-
-		// Hide show night, day mats
-		bool nightTime = Util::IsNightTime();
-		if (iLightIndex == eMaterialType::DayLight)
-		{
-			RpMaterialGetColor(material)->alpha = nightTime ? 0 : 255;
-		}
-
-		if (iLightIndex == eMaterialType::NightLight)
-		{
-			RpMaterialGetColor(material)->alpha = nightTime ? 255 : 0;
-		}
 
 		if (iLightIndex == eMaterialType::SirenLight)
 		{
