@@ -183,16 +183,20 @@ bool FrameUtil::IsOkAtomicVisible(RwFrame* frame) {
         RwLLLink *current = rwLinkListGetFirstLLLink(&frame->objectList);
         RwLLLink *end = rwLinkListGetTerminator(&frame->objectList);
 
+        bool hasAtomics = false;
         do {
             atomic = rwLLLinkGetData(current, RwObjectHasFrame, lFrame);
-            bool isOkAtomic = (CVisibilityPlugins::GetAtomicId((RpAtomic*)atomic) & 3) == 1; // 1 = Ok, 2 = Damaged, 3 = None
-
-			if (isOkAtomic) {
-				return atomic->object.flags & rpATOMICRENDER;
-			}
+            hasAtomics = true;
+            if (atomic->object.flags & rpATOMICRENDER) {
+                return true;
+            }
 
             current = rwLLLinkGetNext(current);
         } while (current != end);
+
+        if (hasAtomics) {
+            return false;
+        }
     }
 
     return true;
