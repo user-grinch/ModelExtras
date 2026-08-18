@@ -148,7 +148,16 @@ extern int gGlobalShadowIntensity;
 void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std::string &shadwTexName, float shdwSz)
 {
     const float SHDW_SZ_MUL = 2.0f;
-    if (!pConfig->pVeh || !pConfig || shdwSz == 0.0f || !gConfig.ReadBoolean("FEATURES", "LightShadows", false))
+    const float SHDW_MAX_DIST = 120.0f;
+    const float SHDW_FADE_DIST = 70.0f;
+    if (!pConfig || !pConfig->pVeh || shdwSz == 0.0f || !gConfig.ReadBoolean("FEATURES", "LightShadows", false))
+    {
+        return;
+    }
+
+    // Cull first, the shadow isn't visible past this range anyway
+    float distToCam = CVector::Distance(pConfig->pVeh->GetPosition(), TheCamera.GetPosition());
+    if (distToCam > SHDW_MAX_DIST)
     {
         return;
     }
@@ -217,17 +226,29 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     }
 
     CVector shdwPos = pConfig->pVeh->GetPosition() + CVector(rotatedOffset.x, rotatedOffset.y, 2.0f);
-    CShadows::StoreCarLightShadow(
-        pConfig->pVeh,
-        reinterpret_cast<int32_t>(pConfig),
+
+    // Fade towards the cutoff so distant shadows don't pop in and out
+    float alphaMul = 1.0f;
+    if (distToCam > SHDW_FADE_DIST)
+    {
+        alphaMul = (SHDW_MAX_DIST - distToCam) / (SHDW_MAX_DIST - SHDW_FADE_DIST);
+    }
+
+    CShadows::StoreShadowToBeRendered(
+        2,
         pTex,
         &shdwPos,
         shdwFront.x, shdwFront.y,
         shdwSide.x, shdwSide.y,
+        static_cast<short>(255 * alphaMul),
         pConfig->shadow.color.r,
         pConfig->shadow.color.g,
         pConfig->shadow.color.b,
-        7.0f);
+        7.0f,
+        false,
+        1.0f,
+        0,
+        true);
 }
 
 void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, float angle,

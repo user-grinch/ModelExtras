@@ -351,11 +351,16 @@ void Lights::Init()
 		}
 	};
 
+	// Headlight coronas & shadows for every vehicle the local player isn't driving.
+	// Kept on the script tick on purpose: it keeps running while the vehicle itself is
+	// culled off-screen, the vehicle render callback below doesn't.
 	Events::processScriptsEvent += []()
 	{
 		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
 		{
-			if (pVeh->m_pDriver == FindPlayerPed() || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn))
+			// Mirrors the checks in the render callback below so both paths agree on
+			// which vehicles get headlights
+			if (pVeh->m_pDriver == FindPlayerPed() || pVeh->m_fHealth <= 0.0f || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn))
 			{
 				continue;
 			}
@@ -364,7 +369,10 @@ void Lights::Init()
 			{
 				bool isLeftFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT);
 				bool isRightFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT);
-				RenderHeadlights(pVeh, isLeftFrontOk, isRightFrontOk, false);
+				RenderHeadlights(pVeh, isLeftFrontOk, isRightFrontOk);
+
+				// Claim this frame so the render callback doesn't register them twice
+				m_VehData.Get(pVeh).m_nHeadlightTickFrame = CTimer::m_FrameCounter;
 			}
 		}
 	};
@@ -432,11 +440,14 @@ void Lights::Init()
 
 		bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
 
-		// Render headlights for: player vehicle, or any vehicle with forced-on/active lights
-		// This ensures headlights render correctly even after exit when SAMP server keeps lights on
-		if (pControlVeh->m_pDriver == FindPlayerPed() || CarUtil::IsLightsForcedOn(pControlVeh) || pControlVeh->bLightsOn) {
-			RenderHeadlights(pControlVeh, isLeftFrontOk, isRightFrontOk);
-		}
+		// Only register coronas & shadows here if the script tick above didn't already
+		// claim this frame. Testing m_pDriver on both sides instead would drop a frame
+		// while entering/exiting, since the driver pointer changes between the script
+		// tick and the render pass, leaving neither path responsible for that frame.
+		// Lit materials are always set from here, SetupRender clears the material states
+		// every frame right before the vehicle is drawn.
+		bool bTickRegistered = data.m_nHeadlightTickFrame == CTimer::m_FrameCounter;
+		RenderHeadlights(pControlVeh, isLeftFrontOk, isRightFrontOk, bTickRegistered);
 
 		if (SpotLights::IsEnabled(pControlVeh)) {
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::SpotLight, false);
@@ -661,7 +672,7 @@ void Lights::Init()
 			} });
 };
 
-void Lights::RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std::string texture, float sz, bool highlight, bool isDummyOk)
+void Lights::RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std::string texture, float sz, bool highlight, bool isDummyOk, bool materialsOnly)
 {
 	int id = static_cast<int>(state) * 1000;
 	bool litMats = true;
@@ -673,12 +684,13 @@ void Lights::RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std:
 			e->Update();
 			RwFrame *parent = RwFrameGetParent(e->Get().frame);
 			eMaterialType type = e->GetRef().lightType;
-			bool atomicCheck = type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && !FrameUtil::IsOkAtomicVisible(parent);
+			bool isBike = pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
+			bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && !FrameUtil::IsOkAtomicVisible(parent);
 
 			if (atomicCheck || (c.dummyPos == eDummyPos::Rear && pVeh->m_pTrailer) || (!c.isParentDummy && !isDummyOk))
 			{
 				litMats = false;
-				break;
+				continue;
 			}
 
 			if (state == eMaterialType::StrobeLight)
@@ -699,6 +711,12 @@ void Lights::RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std:
 					continue;
 				}
 			}
+			// Coronas & shadows are handled by the processScripts loop for this vehicle
+			if (materialsOnly)
+			{
+				continue;
+			}
+
 			EnableDummy((int)pVeh + 42 + id++, e, pVeh, highlight ? 3.00f : 1.0f);
 
 			// Skip front shadows on bike wheelie
@@ -721,7 +739,7 @@ void Lights::RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std:
 	}
 }
 
-void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eMaterialType state, bool shadows, std::string texture, float sz, bool highlight, bool isDummyOk)
+void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eMaterialType state, bool shadows, std::string texture, float sz, bool highlight, bool isDummyOk, bool materialsOnly)
 {
 	int model = pControlVeh->m_nModelIndex;
 	// if (CModelInfo::IsHeliModel(model) || CModelInfo::IsPlaneModel(model)) {
@@ -731,16 +749,16 @@ void Lights::RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eMaterialT
 
 	if (GetLightState(pControlVeh, state))
 	{
-		RenderLight(pControlVeh, state, shadows, texture, sz, highlight, isDummyOk);
+		RenderLight(pControlVeh, state, shadows, texture, sz, highlight, isDummyOk, materialsOnly);
 	}
 
 	if (pControlVeh != pTowedVeh && GetLightState(pTowedVeh, state))
 	{
-		RenderLight(pTowedVeh, state, shadows, texture, sz, highlight, isDummyOk);
+		RenderLight(pTowedVeh, state, shadows, texture, sz, highlight, isDummyOk, materialsOnly);
 	}
 }
 
-void Lights::RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRightOn, bool realTime)
+void Lights::RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRightOn, bool materialsOnly)
 {
 	CVehicle *pTowedVeh = pControlVeh;
 	VehLightDatav1 &data = m_VehData.Get(pControlVeh);
@@ -767,11 +785,11 @@ void Lights::RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRight
 		{
 			if (isLeftOn && GetLightState(pControlVeh, eMaterialType::HeadLightLeft))
 			{
-				RenderLights(pControlVeh, pTowedVeh, eMaterialType::HeadLightLeft, shadow, texName, headlightSz, highlight);
+				RenderLights(pControlVeh, pTowedVeh, eMaterialType::HeadLightLeft, shadow, texName, headlightSz, highlight, true, materialsOnly);
 			}
 			if (isRightOn && GetLightState(pControlVeh, eMaterialType::HeadLightRight))
 			{
-				RenderLights(pControlVeh, pTowedVeh, eMaterialType::HeadLightRight, shadow, texName, headlightSz, highlight);
+				RenderLights(pControlVeh, pTowedVeh, eMaterialType::HeadLightRight, shadow, texName, headlightSz, highlight, true, materialsOnly);
 			}
 		}
 	}

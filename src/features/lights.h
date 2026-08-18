@@ -15,6 +15,10 @@ struct VehLightDatav1
 	bool m_bLongLightsOn = false;
 	eIndicatorState m_nIndicatorState = eIndicatorState::Off;
 	bool m_bUsingGlobalIndicators = false;
+	// Frame on which the script tick last registered this vehicle's headlight coronas
+	// and shadows. The render callback compares it against CTimer::m_FrameCounter so
+	// that exactly one of the two paths registers them per frame.
+	unsigned int m_nHeadlightTickFrame = 0;
 	bool m_bLightStates[eMaterialType::TotalMaterial];
 
 	VehLightDatav1(CVehicle *pVeh) {
@@ -34,9 +38,9 @@ private:
 
 	static void EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, float szMul = 1.0f);
 
-	static void RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std::string texture, float sz, bool highlight, bool isDummyOk = true);
-	static void RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eMaterialType state, bool shadows = true, std::string texture = "indicator", float sz = 1.0f, bool highlight = false, bool isDummyOk = true);
-	static void RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRightOn, bool realTime = true);
+	static void RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std::string texture, float sz, bool highlight, bool isDummyOk = true, bool materialsOnly = false);
+	static void RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eMaterialType state, bool shadows = true, std::string texture = "indicator", float sz = 1.0f, bool highlight = false, bool isDummyOk = true, bool materialsOnly = false);
+	static void RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRightOn, bool materialsOnly = false);
 	static void __cdecl hkTailLightCCoronas_RegisterCorona(uint32_t id, CVehicle *pVeh, uint8_t r, uint8_t g, uint8_t b, uint8_t a, CVector *pos, float size, float range, int coronaType, uint8_t flareType, uint8_t reflectionType, bool checkObstacles, int bUsesTrails, float fNormalAngle, bool bNeonFade, float fPullTowardsCam, bool bFullBrightAtStart, float fadeSpeed, bool bOnlyFromBelow, bool bWhiteCore);
 
 	// Helper functions
