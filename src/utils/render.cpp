@@ -72,6 +72,7 @@ void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRG
     }
 
     static float MUL = gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.0f);
+    static float nearClip = gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 1.5f);
 
 	float coronaSz = size;
 
@@ -81,7 +82,7 @@ void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRG
     }
 
     CCoronas::RegisterCorona(coronaID, pEntity, col.r, col.g, col.b, col.a, pos,
-                             coronaSz, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, true, false, 0, 0.0f, false, 0.3f, 0, 30.0f, false, false);
+                             coronaSz, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, true, false, 0, 0.0f, false, nearClip, 0, 30.0f, false, false);
 };
 
 void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float angle, float radius, float szMul, bool inversed, bool skipCheck)
