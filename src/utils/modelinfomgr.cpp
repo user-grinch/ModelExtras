@@ -40,6 +40,11 @@ void ModelInfoMgr::Init()
 
 	MEEvents::vehRenderEvent.before += [](CVehicle *pVeh)
 	{
+		if (!pVeh || !pVeh->m_pRwClump)
+		{
+			return;
+		}
+
 		// Wait for VehFuncs to init extras
 		auto &data = m_VehData.Get(pVeh);
 		if (data.nFrameCount > 10)
