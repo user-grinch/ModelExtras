@@ -38,8 +38,13 @@ void ModelInfoMgr::Init()
 		gLightSurfPropsOff.ambient = gConfig.ReadFloat("VISUAL", "MaterialAmbientOff", gLightSurfPropsOff.ambient);
 	};
 
-	MEEvents::vehRenderEvent.before += [](CVehicle *pVeh)
+	Events::vehicleRenderEvent.before += [](CVehicle *pVeh)
 	{
+		if (!pVeh || !pVeh->m_pRwClump)
+		{
+			return;
+		}
+
 		// Wait for VehFuncs to init extras
 		auto &data = m_VehData.Get(pVeh);
 		if (data.nFrameCount > 10)

@@ -351,16 +351,16 @@ void Lights::Init()
 		}
 	};
 
-	Events::processScriptsEvent += []()
+	Events::drawingEvent += []()
 	{
 		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
 		{
-			if (pVeh->m_pDriver == FindPlayerPed() || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn))
+			if (pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn))
 			{
 				continue;
 			}
 
-			if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) < 150.0f || pVeh->GetIsOnScreen())
+			if (!pVeh->GetIsOnScreen() && CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) < 120.0f)
 			{
 				bool isLeftFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT);
 				bool isRightFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT);
@@ -673,12 +673,13 @@ void Lights::RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std:
 			e->Update();
 			RwFrame *parent = RwFrameGetParent(e->Get().frame);
 			eMaterialType type = e->GetRef().lightType;
-			bool atomicCheck = type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && !FrameUtil::IsOkAtomicVisible(parent);
+			bool isBike = pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
+			bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && !FrameUtil::IsOkAtomicVisible(parent);
 
 			if (atomicCheck || (c.dummyPos == eDummyPos::Rear && pVeh->m_pTrailer) || (!c.isParentDummy && !isDummyOk))
 			{
 				litMats = false;
-				break;
+				continue;
 			}
 
 			if (state == eMaterialType::StrobeLight)

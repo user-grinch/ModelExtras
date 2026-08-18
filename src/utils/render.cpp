@@ -217,17 +217,38 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     }
 
     CVector shdwPos = pConfig->pVeh->GetPosition() + CVector(rotatedOffset.x, rotatedOffset.y, 2.0f);
-    CShadows::StoreCarLightShadow(
-        pConfig->pVeh,
-        reinterpret_cast<int32_t>(pConfig),
+    float distToCam = CVector::Distance(pConfig->pVeh->GetPosition(), TheCamera.GetPosition());
+    if (distToCam > 120.0f)
+    {
+        return;
+    }
+
+    float alphaMul = 1.0f;
+    if (distToCam > 70.0f)
+    {
+        alphaMul = (120.0f - distToCam) / 50.0f;
+    }
+
+    short intensity = static_cast<short>(255 * alphaMul);
+    unsigned char red = pConfig->shadow.color.r;
+    unsigned char green = pConfig->shadow.color.g;
+    unsigned char blue = pConfig->shadow.color.b;
+
+    CShadows::StoreShadowToBeRendered(
+        2,
         pTex,
         &shdwPos,
         shdwFront.x, shdwFront.y,
         shdwSide.x, shdwSide.y,
-        pConfig->shadow.color.r,
-        pConfig->shadow.color.g,
-        pConfig->shadow.color.b,
-        7.0f);
+        intensity,
+        red,
+        green,
+        blue,
+        7.0f,
+        false,
+        1.0f,
+        0,
+        true);
 }
 
 void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, float angle,

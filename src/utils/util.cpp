@@ -225,7 +225,7 @@ float Util::GetVehiclePitch(CVehicle* pVeh) {
 }
 
 bool Util::IsVehicleDoingWheelie(CVehicle *pVeh) {
-    return pVeh->m_nVehicleSubClass == VEHICLE_BIKE && (Util::GetVehiclePitch(pVeh) > 30.0f || pVeh->GetNumContactWheels() < 2);
+    return pVeh->m_nVehicleSubClass == VEHICLE_BIKE && Util::GetVehiclePitch(pVeh) > 45.0f;
 }
 
 CRGBA Util::GetMaterialColor(RpMaterial*pMat) {
