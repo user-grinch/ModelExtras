@@ -87,6 +87,14 @@ void Sirens::hkAddPointLights(
 		return;
 	}
 
+    // SkyGfx renders the vanilla siren point light bright enough that it tints the
+    // vehicle and whatever is beside it. Adapted models already skip it above.
+    static bool bSkyGfx = GetModuleHandle("skygfx.asi") != nullptr;
+    if (bSkyGfx)
+    {
+        return;
+    }
+
     originalCall(type, position, direction, range, red, green, blue, fogEffect, bCastsShadowFromPlayerCarAndPed, castingEntity);
 }
 
