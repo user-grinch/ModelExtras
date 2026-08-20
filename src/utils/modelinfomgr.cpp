@@ -23,11 +23,117 @@ static CVehicle *pCurVeh = nullptr;
 RwSurfaceProperties &gLightSurfProps = *(RwSurfaceProperties *)0x8A645C;
 RwSurfaceProperties gLightSurfPropsOff = {0.45f, 0.0f, 0.0f};
 
+// The upgrade code pulls frames out of CVehicle::m_apModelNodes and hands them to RenderWare
+// unchecked. A vehicle whose model is missing the dummy for a slot leaves a null in there and
+// the game faults reading RwFrame::objectList (+0x90) or RwFrame::child (+0x98). Everything
+// here is reached through ADD_VEHICLE_UPGRADE (opcode 0x6E7), so a script tuning one of those
+// vehicles takes the game down. Guarding one call at a time only moved the crash between
+// CreateUpgradeAtomic, GetReplacementUpgrade and AddReplacementUpgrade, so cover every such
+// call in these functions instead. Skipping costs a missing upgrade part; RenderWare would
+// have dereferenced the same null.
+//
+// This does not cover calls another plugin has already taken over, and VehFuncs owns at least
+// one of them, so with VehFuncs loaded the crash can still happen inside vehfuncs.asi. Fixing
+// that from here would mean calling back into a function whose signature we can't see, which
+// is worse than the crash. See the note in ModelInfoMgr::Init about the real root cause.
+static const uint32_t RwFrameForAllObjectsAddr = 0x7F1200;
+static const uint32_t RwFrameAddChildAddr = 0x7F0B00;
+static const uint32_t GetCurrentAtomicObjectCBAddr = 0x6D33B0;
+
+static void LogSkippedUpgradePart()
+{
+	static int count = 0;
+	if (count < 10)
+	{
+		++count;
+		LOG_VERBOSE("Skipped an upgrade part, the vehicle model has no frame for that slot");
+		if (count == 10)
+		{
+			LOG_VERBOSE("Silencing further upgrade slot messages");
+		}
+	}
+}
+
+static RwFrame *UpgradeFrameForAllObjects(RwFrame *frame, RwObjectCallBack callback, void *data)
+{
+	if (!frame)
+	{
+		// GetCurrentAtomicObjectCB fills in a pointer the caller never initialises, so clear
+		// it or the caller reads whatever the stack held. Only when that really is the
+		// callback being passed, everyone else owns their own data.
+		if (data && callback == reinterpret_cast<RwObjectCallBack>(GetCurrentAtomicObjectCBAddr))
+		{
+			*reinterpret_cast<void **>(data) = nullptr;
+		}
+		LogSkippedUpgradePart();
+		return frame;
+	}
+	return RwFrameForAllObjects(frame, callback, data);
+}
+
+static RwFrame *UpgradeFrameAddChild(RwFrame *parent, RwFrame *child)
+{
+	if (!parent)
+	{
+		LogSkippedUpgradePart();
+		return parent;
+	}
+	return RwFrameAddChild(parent, child);
+}
+
+// Only take over calls that still point at the vanilla RenderWare functions, matched on the
+// resolved target so this can't trip over data that merely starts with an E8 byte. Calls that
+// another plugin has already redirected are left alone: hooking those means calling back into
+// a function whose signature and calling convention we don't know, which corrupts the stack.
+static size_t GuardUpgradeFrameCalls(uint32_t start, uint32_t end)
+{
+	size_t patched = 0;
+	for (uint32_t addr = start; addr < end; ++addr)
+	{
+		if (*reinterpret_cast<uint8_t *>(addr) != 0xE8)
+		{
+			continue;
+		}
+
+		uint32_t target = addr + 5 + *reinterpret_cast<int32_t *>(addr + 1);
+		if (target == RwFrameForAllObjectsAddr)
+		{
+			patch::ReplaceFunctionCall(addr, (void *)UpgradeFrameForAllObjects);
+			++patched;
+		}
+		else if (target == RwFrameAddChildAddr)
+		{
+			patch::ReplaceFunctionCall(addr, (void *)UpgradeFrameAddChild);
+			++patched;
+		}
+	}
+	return patched;
+}
+
 void ModelInfoMgr::Init()
 {
 	// Nop frame collasping
+	//
+	// Worth a look if upgrade parts go missing: this is the code that fills in
+	// CVehicle::m_apModelNodes, and the guards below fire constantly on some servers,
+	// meaning those slots come out null. Either those models genuinely have no dummy for
+	// the slot, or keeping the hierarchy leaves the nodes unpopulated and this is where
+	// the real fix belongs.
 	patch::Nop(0x4C8E53, 5);
 	patch::Nop(0x4C8F6E, 5);
+
+	// CreateUpgradeAtomic, AddReplacementUpgrade and GetReplacementUpgrade sit together, and
+	// AddUpgrade is the other caller that reaches for a model node.
+	size_t guarded = GuardUpgradeFrameCalls(0x6D3300, 0x6D3C00);
+	guarded += GuardUpgradeFrameCalls(0x6DF900, 0x6DFC00);
+	if (guarded > 0)
+	{
+		LOG_VERBOSE("Guarded {} vehicle upgrade frame calls", guarded);
+	}
+	else
+	{
+		LOG(ERROR) << "Found no vehicle upgrade frame calls to guard, the addresses may have moved";
+	}
 
 	patch::ReplaceFunctionCall(0x5532A9, (void *)ModelInfoMgr::SetupRender);
 	patch::ReplaceFunction(0x4C8220, (void *)ModelInfoMgr::SetEditableMaterialsCB);
@@ -233,11 +339,21 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 				material->texture = CVehicleModelInfo::ms_pRemapTexture;
 			}
 		}
-		else
+		else if (pCurVeh)
 		{
 			DirtFx::ProcessTextures(pCurVeh, material);
 			LicensePlate::ProcessTextures(pCurVeh, material);
 		}
+	}
+
+	// Only SetupRender assigns pCurVeh, and this callback also runs when a model is
+	// being set up rather than a vehicle drawn. SilentPatch walks an atomic's materials
+	// through the vanilla function for its special vehicle check, and the vanilla one
+	// never needed a vehicle. Everything past the remap swap above does, so leave the
+	// materials alone until there's a vehicle to read them for.
+	if (!pCurVeh)
+	{
+		return material;
 	}
 
 	eMaterialType iLightIndex = FetchMaterialType(pCurVeh, material);
