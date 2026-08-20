@@ -263,8 +263,12 @@ void Lights::Init()
 			c.corona.lightingType = eLightingMode::Directional; 				
 			c.shadow.render = name != "taillights2";
 			dummies[c.lightType].push_back(new VehicleDummy(c));
-			c.mirroredX = true;
-			c.lightType = eMaterialType::TailLightLeft;
+			if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
+				c.mirroredX = true;
+				c.lightType = eMaterialType::TailLightLeft;
+				dummies[c.lightType].push_back(new VehicleDummy(c));
+			}
+			return;
 		}
 		else if (name == "headlights" || name == "headlights2") {
 			c.dummyPos = eDummyPos::Front;
@@ -274,8 +278,14 @@ void Lights::Init()
 			c.shadow.render = name != "headlights2";
 			c.mirroredX = true;
 			dummies[c.lightType].push_back(new VehicleDummy(c));
-			c.mirroredX = false;
-			c.lightType = eMaterialType::HeadLightRight;
+			// A single centered dummy would only produce a second corona in the same
+			// spot, so mirror it for bikes that actually have it off to one side
+			if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
+				c.mirroredX = false;
+				c.lightType = eMaterialType::HeadLightRight;
+				dummies[c.lightType].push_back(new VehicleDummy(c));
+			}
+			return;
 		}
 		else if (name.starts_with("turnl_") || name.starts_with("indicator_")) {
 			auto d = Util::GetCharsAfterPrefix(name, "turnl_", 2);

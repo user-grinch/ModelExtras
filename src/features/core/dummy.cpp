@@ -4,6 +4,7 @@
 #include "utils/datamgr.h"
 #include "enums/dummypos.h"
 #include <CWorld.h>
+#include <CBike.h>
 
 extern float gfGlobalCoronaSize;
 extern int gGlobalCoronaIntensity;
@@ -31,6 +32,16 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
     std::string parentName = GetFrameNodeName(RwFrameGetParent(data.frame));
     if (parentName.ends_with("_dummy")) {
         data.isParentDummy = true;
+    }
+
+    // The bike lean is applied to chassis_dummy, so only frames somewhere below it get
+    // rolled with the bike. Lights parented straight to the root keep the plain entity
+    // matrix, and using the lean matrix on those would tilt them the wrong way instead.
+    for (RwFrame *pParent = RwFrameGetParent(data.frame); pParent; pParent = RwFrameGetParent(pParent)) {
+        if (std::string(GetFrameNodeName(pParent)).ends_with("_dummy")) {
+            data.leanAffected = true;
+            break;
+        }
     }
 
     if (jsonData.contains("lights"))
@@ -140,15 +151,32 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
 }
 
 void VehicleDummy::Update() {
-    CMatrix vehMatrix = data.pVeh->GetMatrix();
-    CVector pos = data.pVeh->GetPosition();
-    CVector dummyPos = data.frame->ltm.pos;
-    CVector offset = dummyPos - pos;
+    // The corona is expanded again through the entity matrix, so the offset has to be
+    // taken apart with the matrix that placed the frame. On a bike the lights sit under
+    // chassis_dummy, which is rolled by m_mLeanMatrix, so using the entity matrix here
+    // leaves the lean in the offset and the corona tilts with it. The lean matrix is
+    // only valid for the frame that calculated it, so refresh it when the flag is down
+    // and put the flag back so the game still recalculates it when it needs to.
+    CMatrix basis = data.pVeh->GetMatrix();
+    if (data.pVeh->m_nVehicleSubClass == VEHICLE_BIKE && data.leanAffected)
+    {
+        CBike *pBike = static_cast<CBike *>(data.pVeh);
+        bool wasCalculated = pBike->m_bLeanMatrixCalculated;
+        if (!wasCalculated)
+        {
+            pBike->CalculateLeanMatrix();
+        }
+
+        basis = pBike->m_mLeanMatrix;
+        pBike->m_bLeanMatrixCalculated = wasCalculated;
+    }
+
+    CVector offset = data.frame->ltm.pos - basis.pos;
 
     // Transform to local space using  transpose of the rotation matrix
-    data.shadow.position.x = data.position.x = vehMatrix.right.x * offset.x + vehMatrix.right.y * offset.y + vehMatrix.right.z * offset.z;
-    data.shadow.position.y = data.position.y = vehMatrix.up.x * offset.x + vehMatrix.up.y * offset.y + vehMatrix.up.z * offset.z;
-    data.shadow.position.z = data.position.z = vehMatrix.at.x * offset.x + vehMatrix.at.y * offset.y + vehMatrix.at.z * offset.z;
+    data.shadow.position.x = data.position.x = basis.right.x * offset.x + basis.right.y * offset.y + basis.right.z * offset.z;
+    data.shadow.position.y = data.position.y = basis.up.x * offset.x + basis.up.y * offset.y + basis.up.z * offset.z;
+    data.shadow.position.z = data.position.z = basis.at.x * offset.x + basis.at.y * offset.y + basis.at.z * offset.z;
 
     if (data.mirroredX)
     {
