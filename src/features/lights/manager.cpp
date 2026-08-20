@@ -107,6 +107,18 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
                 }
             }
 
+            // Extra reach for the high beam, the light that falls on peds, cars and the
+            // road. Kept out of the corona helper above because that one returns early
+            // on a camera facing check that's true in the normal driving view.
+            // High beam only, the low beam light comes from the game itself.
+            if ((type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) && data.bLongLightsOn) {
+                // Clamped so a bad ini value can't hand the game a silly or negative range
+                static float rawMul = gConfig.ReadFloat("TWEAKS", "HighBeamPointLightMul", 2.0f);
+                static float highBeamMul = (rawMul < 1.0f) ? 1.0f : ((rawMul > 4.0f) ? 4.0f : rawMul);
+
+                RenderUtil::RegisterHeadlightPointLight(&dummy->Get(), highBeamMul);
+            }
+
             if (c.shadow.render && !texture.empty()) {
                 RenderUtil::RegisterShadowDirectional(&dummy->Get(), texture, c.shadow.size);
             }
