@@ -39,6 +39,22 @@ uint32_t FrameUtil::GetChildCount(RwFrame *parent)
 
 void FrameUtil::DestroyNodeHierarchyRecursive(RwFrame * frame)
 {
+    if (frame == nullptr)
+    {
+        return;
+    }
+
+    // Read the links before the frame goes away. RwFrameDestroy frees it and unlinks
+    // it from its parent, so reaching for frame->child afterwards walks freed memory,
+    // and whether the rest of the hierarchy gets destroyed is down to whatever lands
+    // in that block next. The children have to go first anyway, RwFrameDestroy only
+    // detaches the frame it's given.
+    RwFrame * child = frame->child;
+    RwFrame * next = frame->next;
+
+    DestroyNodeHierarchyRecursive(child);
+    DestroyNodeHierarchyRecursive(next);
+
     RpAtomic * atomic = (RpAtomic *)GetFirstObject(frame);
     if (atomic != nullptr)
     {
@@ -48,9 +64,6 @@ void FrameUtil::DestroyNodeHierarchyRecursive(RwFrame * frame)
     }
 
     RwFrameDestroy(frame);
-
-    if (RwFrame * newFrame = frame->child) DestroyNodeHierarchyRecursive(newFrame);
-    if (RwFrame * newFrame = frame->next)  DestroyNodeHierarchyRecursive(newFrame);
 }
 
 void FrameUtil::HideAllAtomicsExcept(RwFrame *frame, int indexToKeep)
