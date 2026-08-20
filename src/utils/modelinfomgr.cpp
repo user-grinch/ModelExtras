@@ -288,6 +288,47 @@ struct tRestoreEntry
 	void *m_pValue;
 };
 
+// SetEditableMaterials collects what has to be put back after the vehicle is drawn in a
+// fixed array and marks the end with a null address, so there is no count to compare
+// against. It holds 256 entries, ending where CVehicleModelInfo::ms_lightsOn and the
+// texture pointers beside it begin. The vanilla callback spends at most one entry per
+// material, this one spends two whenever a light is lit, so a model carrying a few
+// hundred materials writes past the end and into those texture pointers - which is what
+// the renderer faults on. Stop recording once it's full; the material then keeps its own
+// colour and texture, which merely looks wrong.
+static tRestoreEntry *const gRestoreEntries = reinterpret_cast<tRestoreEntry *>(0xB4DBE8);
+static constexpr ptrdiff_t RESTORE_ENTRY_COUNT = 256;
+// A pointer a little past the end is this array overrun by someone else, not a different
+// one, so keep enforcing there. Anything far away belongs to another plugin, whose size
+// we can't know: leave those alone rather than refuse every material.
+static constexpr ptrdiff_t RESTORE_ENTRY_RANGE = RESTORE_ENTRY_COUNT * 2;
+
+static bool CanStoreRestoreEntries(tRestoreEntry **ppEntries, ptrdiff_t needed)
+{
+	tRestoreEntry *pEntry = *ppEntries;
+	if (pEntry < gRestoreEntries || pEntry >= gRestoreEntries + RESTORE_ENTRY_RANGE)
+	{
+		return true;
+	}
+
+	// One entry has to stay free for the terminator SetEditableMaterials writes.
+	return (pEntry - gRestoreEntries) + needed + 1 <= RESTORE_ENTRY_COUNT;
+}
+
+static void LogRestoreEntriesFull()
+{
+	static int count = 0;
+	if (count < 10)
+	{
+		++count;
+		LOG_VERBOSE("Ran out of material restore entries, this model has too many editable materials");
+		if (count == 10)
+		{
+			LOG_VERBOSE("Silencing further material restore entry messages");
+		}
+	}
+}
+
 MatStateColor ModelInfoMgr::FetchMaterialCol(CVehicle *pVeh, RpMaterial *pMat, eMaterialType type)
 {
 	MatStateColor col = {DEFAULT_MAT_COL, DEFAULT_MAT_COL};
@@ -331,7 +372,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 		bool isRemapTex = RwTextureGetName(RpMaterialGetTexture(material))[0] == '#';
 		if (isRemapTex)
 		{
-			if (CVehicleModelInfo::ms_pRemapTexture)
+			if (CVehicleModelInfo::ms_pRemapTexture && CanStoreRestoreEntries(ppEntries, 1))
 			{
 				(*ppEntries)->m_pAddress = &material->texture;
 				(*ppEntries)->m_pValue = material->texture;
@@ -387,6 +428,12 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 		}
 
 		MatStateColor matCol = FetchMaterialCol(pCurVeh, material, iLightIndex);
+		if (!CanStoreRestoreEntries(ppEntries, lightOn ? 2 : 1))
+		{
+			LogRestoreEntriesFull();
+			return material;
+		}
+
 		(*ppEntries)->m_pAddress = RpMaterialGetColor(material);
 		(*ppEntries)->m_pValue = *reinterpret_cast<void **>(RpMaterialGetColor(material));
 		(*ppEntries)++;
@@ -433,7 +480,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 	else
 	{
 		CRGBA col = {255, 255, 255, 255};
-		if (Carcols::GetColor(pCurVeh, material, col))
+		if (Carcols::GetColor(pCurVeh, material, col) && CanStoreRestoreEntries(ppEntries, 1))
 		{
 			(*ppEntries)->m_pAddress = RpMaterialGetColor(material);
 			(*ppEntries)->m_pValue = *reinterpret_cast<void **>(RpMaterialGetColor(material));
