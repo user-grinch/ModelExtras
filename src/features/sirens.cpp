@@ -602,8 +602,24 @@ void Sirens::Init()
 					return eMaterialType::SirenLight;
 				}
 			} else {
+				// The red channel carries the siren index, so a plain white material
+				// (255, 255, 255) reads as index 255 and every ordinary material on the
+				// model gets claimed as a siren light. Besides being shaded like an unlit
+				// light, each one takes a slot in the game's fixed material restore list,
+				// and a model carrying a few hundred materials runs that list past its end
+				// into the texture pointers kept right after it, which the renderer then
+				// faults on. Configurations number sirens upwards from 1, so only honour
+				// 255 when one actually asks for it.
 				if (col.r > 0 && col.g == 255 && col.b == 255) {
-					return eMaterialType::SirenLight;
+					if (col.r != 255) {
+						return eMaterialType::SirenLight;
+					}
+
+					for (auto* state : modelData[pVeh->m_nModelIndex]->States) {
+						if (state->Materials.contains(255)) {
+							return eMaterialType::SirenLight;
+						}
+					}
 				}
 			}
 		}
