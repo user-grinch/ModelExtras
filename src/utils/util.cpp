@@ -104,12 +104,30 @@ float Util::GetVehicleSpeedRealistic(CVehicle *vehicle)
 
 void Util::GetModelsFromIni(std::string &line, std::vector<int> &vec)
 {
-    std::stringstream ss(line);
-    while (ss.good())
+    // These lists are hand maintained, so read every run of digits as an id instead
+    // of splitting on commas. Splitting threw std::invalid_argument out of stoi when
+    // an entry was blank or the key was missing entirely, and a mistyped separator
+    // silently swallowed the id that followed it.
+    size_t i = 0;
+    while (i < line.size())
     {
-        std::string model;
-        getline(ss, model, ',');
-        vec.push_back(std::stoi(model));
+        if (!std::isdigit(static_cast<unsigned char>(line[i])))
+        {
+            ++i;
+            continue;
+        }
+
+        int id = 0;
+        while (i < line.size() && std::isdigit(static_cast<unsigned char>(line[i])))
+        {
+            id = id * 10 + (line[i] - '0');
+            ++i;
+        }
+
+        if (id > 0 && id < 65536)
+        {
+            vec.push_back(id);
+        }
     }
 }
 

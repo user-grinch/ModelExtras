@@ -20,6 +20,8 @@ struct DummyConfig {
     eMaterialType lightType = eMaterialType::UnknownMaterial;
     bool mirroredX = false;
     bool isParentDummy = false;
+    // Set when the frame hangs off the chassis, so it is rolled by the bike lean
+    bool leanAffected = false;
     
     struct {
         float angle = 0.0f;

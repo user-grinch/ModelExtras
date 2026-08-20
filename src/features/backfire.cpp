@@ -142,7 +142,17 @@ void BackFireEffect::Process(CVehicle *pVeh)
         unsigned char gchanging = *(unsigned char *)((int)pVeh + 0x284);
         unsigned char nitroActivated = *(unsigned char *)((int)pVeh + 0x37C);
         float speed = Util::GetVehicleSpeed(pVeh);
-        unsigned char acclPadel = *(unsigned char *)((int)pVeh + 0x966);
+
+        // sizeof(CBike) is 0x814, so reading pVeh + 0x966 ran past the end of the
+        // object on every bike and fed the throttle checks below whatever happened to
+        // sit in the heap after it. It only stayed in bounds because sizeof(CAutomobile)
+        // is 0x988, which is why this looked like it worked on cars. m_fGasPedal is a
+        // CVehicle member, so it is valid for both classes.
+        float throttle = pVeh->m_fGasPedal;
+        if (throttle < 0.0f)
+        {
+            throttle = -throttle;
+        }
 
         if (pVeh->m_pDriver && gchanging == 0 && rpm != 65535 && rpm > 100.0f && speed > 5.0f)
         {
@@ -155,7 +165,7 @@ void BackFireEffect::Process(CVehicle *pVeh)
 
         if (data.wasFullThrottled)
         {
-            if (acclPadel < 100)
+            if (throttle < 0.78f)
             {
                 BackFireMulti(pVeh);
                 data.wasFullThrottled = false;
@@ -163,7 +173,7 @@ void BackFireEffect::Process(CVehicle *pVeh)
         }
         else
         {
-            if (acclPadel == 128 || (acclPadel > 50 && nitroActivated))
+            if (throttle >= 0.99f || (throttle > 0.39f && nitroActivated))
             {
                 data.wasFullThrottled = true;
             }

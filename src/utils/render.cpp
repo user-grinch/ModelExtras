@@ -78,7 +78,9 @@ void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRG
 
     // Only during night time
     if (Util::IsNightTime() && MUL != 0.0f) {
-        coronaSz *= CVector::Distance(TheCamera.GetPosition(), pEntity->GetPosition()) * MUL;
+        // pEntity is null for unattached coronas, pos is already in world space then
+        CVector refPos = pEntity ? pEntity->GetPosition() : pos;
+        coronaSz *= CVector::Distance(TheCamera.GetPosition(), refPos) * MUL;
     }
 
     CCoronas::RegisterCorona(coronaID, pEntity, col.r, col.g, col.b, col.a, pos,
@@ -95,16 +97,20 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
     if (!IsDummyPointingUp(mat))
     {
         float targetAngle = angle;
-        if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight)
+        if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight
+            || pConfig->lightType == eMaterialType::IndicatorLightLeftFront || pConfig->lightType == eMaterialType::IndicatorLightRightFront
+            || pConfig->lightType == eMaterialType::FogLightLeft || pConfig->lightType == eMaterialType::FogLightRight)
             targetAngle = 0.0f;
         else if (pConfig->lightType == eMaterialType::TailLightLeft || pConfig->lightType == eMaterialType::TailLightRight
               || pConfig->lightType == eMaterialType::BrakeLightLeft || pConfig->lightType == eMaterialType::BrakeLightRight
               || pConfig->lightType == eMaterialType::ReverseLightLeft || pConfig->lightType == eMaterialType::ReverseLightRight
-              || pConfig->lightType == eMaterialType::STTLightLeft || pConfig->lightType == eMaterialType::STTLightRight)
+              || pConfig->lightType == eMaterialType::STTLightLeft || pConfig->lightType == eMaterialType::STTLightRight
+              || pConfig->lightType == eMaterialType::IndicatorLightLeftRear || pConfig->lightType == eMaterialType::IndicatorLightRightRear
+              || pConfig->lightType == eMaterialType::NABrakeLightLeft || pConfig->lightType == eMaterialType::NABrakeLightRight)
             targetAngle = 180.0f;
-        else if (pConfig->lightType == eMaterialType::SideLightLeft)
+        else if (pConfig->lightType == eMaterialType::SideLightLeft || pConfig->lightType == eMaterialType::IndicatorLightLeftMiddle)
             targetAngle = 90.0f;
-        else if (pConfig->lightType == eMaterialType::SideLightRight)
+        else if (pConfig->lightType == eMaterialType::SideLightRight || pConfig->lightType == eMaterialType::IndicatorLightRightMiddle)
             targetAngle = 270.0f;
 
         if (inversed)
@@ -212,6 +218,24 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     // Rotate dummy offset into world space
     CVector2D localOffset(dummyOffset.x, dummyOffset.y);
     CVector2D rotatedOffset = Rotate2D(localOffset, heading);
+
+    // Rotate2D only applies yaw, so a bike's roll never reaches the ground position and
+    // the shadow stays put while it banks. shadow.position is the lean free local offset,
+    // so expanding it through the lean matrix gives the light's actual leaned position.
+    if (pConfig->pVeh->m_nVehicleSubClass == VEHICLE_BIKE && pConfig->leanAffected)
+    {
+        CBike *pBike = static_cast<CBike *>(pConfig->pVeh);
+        bool wasCalculated = pBike->m_bLeanMatrixCalculated;
+        if (!wasCalculated)
+        {
+            pBike->CalculateLeanMatrix();
+        }
+
+        CVector leaned = pBike->m_mLeanMatrix * pConfig->shadow.position;
+        pBike->m_bLeanMatrixCalculated = wasCalculated;
+
+        rotatedOffset = CVector2D(leaned.x - vehMat.pos.x, leaned.y - vehMat.pos.y);
+    }
 
     // Push shadow forward along light direction
     rotatedOffset += CVector2D(rotatedLightDir.x, rotatedLightDir.y) * (shdwSz * SHDW_SZ_MUL + 0.2f);
