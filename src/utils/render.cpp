@@ -87,6 +87,29 @@ void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRG
                              coronaSz, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, true, false, 0, 0.0f, false, nearClip, 0, 30.0f, false, false);
 };
 
+// Vanilla reach of the headlight spotlight
+static const float HEADLIGHT_PLIGHT_RANGE = 20.0f;
+
+void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float rangeMul)
+{
+    if (!pConfig || !pConfig->frame)
+    {
+        return;
+    }
+
+    CMatrix mat = *(CMatrix *)&pConfig->frame->ltm;
+
+    // An upward facing dummy isn't a headlight pointing down the road
+    if (IsDummyPointingUp(mat))
+    {
+        return;
+    }
+
+    CRGBA col = pConfig->corona.color;
+    CPointLights::AddLight(PLTYPE_SPOTLIGHT, mat.pos, mat.up, HEADLIGHT_PLIGHT_RANGE * rangeMul,
+                           col.r / 255.0f, col.g / 255.0f, col.b / 255.0f, 0, 0, 0);
+}
+
 void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float angle, float radius, float szMul, bool inversed, bool skipCheck)
 {
     const float FADE_RANGE = 20.0f;
@@ -140,11 +163,6 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
             float adjustedAngle = FADE_RANGE - (diffAngle - (360.0f - cutoff - FADE_RANGE));
             float mul = std::fabs(adjustedAngle / FADE_RANGE);
             col.a = static_cast<unsigned char>(col.a * mul);
-        }
-
-        if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight)
-        {
-            CPointLights::AddLight(PLTYPE_SPOTLIGHT, mat.pos, mat.up, 20.0f, col.r / 255.0f, col.g / 255.0f, col.b / 255.0f, 0, 0, 0);
         }
     }
     RegisterCorona(pConfig->pVeh, reinterpret_cast<int32_t>(pConfig), pConfig->position, col, sz);

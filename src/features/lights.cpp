@@ -387,6 +387,55 @@ void Lights::Init()
 		}
 	};
 
+	// Extra reach for the high beam, the light that falls on peds, vehicles and the road.
+	// This has to happen on the game tick, not from the vehicle render callback. Point
+	// lights are collected into CPointLights during the tick and read back while the
+	// world is lit, so anything added midway through rendering arrives too late to reach
+	// the peds and vehicles around you. Traffic went through the script tick already, but
+	// the car you're driving is skipped there and only ever reached the render callback,
+	// which is why pressing the key did nothing in your own vehicle.
+	Events::processScriptsEvent += []()
+	{
+		// Clamped so a bad ini value can't hand the game a silly or negative range
+		static float rawMul = gConfig.ReadFloat("TWEAKS", "HighBeamPointLightMul", 2.0f);
+		static float highBeamMul = (rawMul < 1.0f) ? 1.0f : ((rawMul > 4.0f) ? 4.0f : rawMul);
+
+		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
+		{
+			if (!pVeh || pVeh->m_fHealth <= 0.0f || CarUtil::IsLightsForcedOff(pVeh))
+			{
+				continue;
+			}
+
+			// High beam only. The low beam light is the game's own, doubling up there
+			// would just brighten it instead of extending the reach.
+			if (!m_VehData.Get(pVeh).m_bLongLightsOn || !(pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh)))
+			{
+				continue;
+			}
+
+			// Nothing to light up beyond this, and it keeps the light count down
+			if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 100.0f)
+			{
+				continue;
+			}
+
+			for (eMaterialType type : {eMaterialType::HeadLightLeft, eMaterialType::HeadLightRight})
+			{
+				if (!IsDummyAvail(pVeh, type) || !GetLightState(pVeh, type))
+				{
+					continue;
+				}
+
+				for (auto e : m_Dummies[pVeh][type])
+				{
+					e->Update();
+					RenderUtil::RegisterHeadlightPointLight(&e->Get(), highBeamMul);
+				}
+			}
+		}
+	};
+
 	ModelInfoMgr::RegisterRender([](CVehicle *pControlVeh)
 								 {
 		int model = pControlVeh->m_nModelIndex;
