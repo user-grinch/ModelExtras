@@ -7,6 +7,20 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Configuration (release or debug)'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+      include_pdb:
+        description: 'Include .pdb symbol file in artifact'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   build:
@@ -42,43 +56,77 @@ jobs:
       if: steps.plugin-sdk-cache.outputs.cache-hit != 'true'
       shell: cmd
       run: |
-        git clone https://github.com/DK22Pac/plugin-sdk.git plugin-sdk
-        cd plugin-sdk
-        git checkout ${{ steps.plugin-sdk-ref.outputs.sha }}
-        git submodule update --init --recursive
+        if not exist plugin-sdk (
+          git clone https://github.com/DK22Pac/plugin-sdk.git plugin-sdk
+          cd plugin-sdk
+          git checkout ${{ steps.plugin-sdk-ref.outputs.sha }}
+          git submodule update --init --recursive
+        ) else (
+          cd plugin-sdk
+        )
         set PLUGIN_SDK_DIR=%GITHUB_WORKSPACE%\plugin-sdk
         cd tools\premake
         premake5.exe vs2022
         cd ..\..
         if exist plugin.sln (
           msbuild plugin.sln /t:plugin_sa /p:Configuration=Release /m
+          msbuild plugin.sln /t:plugin_sa /p:Configuration=zDebug /m
         ) else if exist tools\premake\plugin.sln (
           msbuild tools\premake\plugin.sln /t:plugin_sa /p:Configuration=Release /m
+          msbuild tools\premake\plugin.sln /t:plugin_sa /p:Configuration=zDebug /m
         ) else (
-          for /r %%f in (*plugin_sa.vcxproj) do msbuild "%%f" /p:Configuration=Release /m
+          for /r %%f in (*plugin_sa.vcxproj) do (
+            msbuild "%%f" /p:Configuration=Release /m
+            msbuild "%%f" /p:Configuration=zDebug /m
+          )
         )
+
+        if not exist output\lib mkdir output\lib
+        for /r %%f in (*plugin*d*.lib *plugin_sa*d*.lib) do (
+          if not exist output\lib\plugin_d.lib copy /y "%%f" output\lib\plugin_d.lib
+        )
+        for /r %%f in (*plugin.lib *plugin_sa.lib) do (
+          if not exist output\lib\plugin.lib copy /y "%%f" output\lib\plugin.lib
+        )
+        dir output\lib
 
     - name: Build ModelExtras with xmake
       shell: cmd
       env:
         PLUGIN_SDK_DIR: ${{ github.workspace }}\plugin-sdk
+        BUILD_MODE: ${{ github.event.inputs.build_type || 'release' }}
       run: |
-        xmake f -p windows -a x86 -m release -c -y
+        xmake f -p windows -a x86 -m %BUILD_MODE% -c -y
         xmake
 
     - name: Prepare artifact files
       shell: pwsh
+      env:
+        BUILD_MODE: ${{ github.event.inputs.build_type || 'release' }}
+        INCLUDE_PDB: ${{ github.event.inputs.include_pdb }}
       run: |
+        $mode = $env:BUILD_MODE
+        $pdbFlag = $env:INCLUDE_PDB
+        if ([string]::IsNullOrEmpty($pdbFlag)) {
+            $pdbFlag = if ($mode -eq "debug") { "true" } else { "false" }
+        }
+
         New-Item -ItemType Directory -Force -Path "artifact/ModelExtras"
-        Copy-Item -Path "build/windows/x86/release/ModelExtras.asi" -Destination "artifact/ModelExtras.asi"
+        Copy-Item -Path "build/windows/x86/$mode/ModelExtras.asi" -Destination "artifact/ModelExtras.asi"
+
+        if ($pdbFlag -eq "true" -and (Test-Path "build/windows/x86/$mode/ModelExtras.pdb")) {
+            Copy-Item -Path "build/windows/x86/$mode/ModelExtras.pdb" -Destination "artifact/ModelExtras.pdb"
+        }
+
         Copy-Item -Path "resource/dist/ModelExtras.ini" -Destination "artifact/ModelExtras.ini"
         Copy-Item -Path "resource/dist/ModelExtras/*" -Destination "artifact/ModelExtras/" -Recurse
 
     - name: Upload artifact
       uses: actions/upload-artifact@v7
       with:
-        name: ModelExtras-Test-Build
+        name: ModelExtras-${{ github.event.inputs.build_type || 'Release' }}-Build
         path: |
           artifact/ModelExtras.asi
+          artifact/ModelExtras.pdb
           artifact/ModelExtras.ini
           artifact/ModelExtras/**
