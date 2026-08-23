@@ -72,6 +72,64 @@ bool Util::IsPanelDamaged(CVehicle *pVeh, ePanels panel) {
     return pAutoMobile->m_damageManager.GetPanelStatus(panel);
 }
 
+bool Util::IsFrameDamaged(CVehicle *pVeh, RwFrame *frame) {
+    if (!pVeh || !frame || pVeh->m_nVehicleSubClass != VEHICLE_AUTOMOBILE) {
+        return false;
+    }
+
+    RwFrame *current = frame;
+    while (current) {
+        const char *name = GetFrameNodeName(current);
+        if (name) {
+            std::string_view sName(name);
+            if (sName.starts_with("bump_front") || sName.starts_with("bump_f")) {
+                return Util::IsPanelDamaged(pVeh, ePanels::BUMP_FRONT);
+            }
+            if (sName.starts_with("bump_rear") || sName.starts_with("bump_r")) {
+                return Util::IsPanelDamaged(pVeh, ePanels::BUMP_REAR);
+            }
+            if (sName.starts_with("wing_lf")) {
+                return Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_LEFT);
+            }
+            if (sName.starts_with("wing_rf")) {
+                return Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_RIGHT);
+            }
+            if (sName.starts_with("wing_lr")) {
+                return Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_LEFT);
+            }
+            if (sName.starts_with("wing_rr")) {
+                return Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_RIGHT);
+            }
+            if (sName.starts_with("bonnet")) {
+                return Util::IsDoorDamaged(pVeh, eDoors::BONNET);
+            }
+            if (sName.starts_with("boot")) {
+                return Util::IsDoorDamaged(pVeh, eDoors::BOOT);
+            }
+            if (sName.starts_with("windscreen")) {
+                return Util::IsPanelDamaged(pVeh, ePanels::WINDSCREEN);
+            }
+            if (sName.starts_with("door_lf")) {
+                return Util::IsDoorDamaged(pVeh, eDoors::DOOR_FRONT_LEFT);
+            }
+            if (sName.starts_with("door_rf")) {
+                return Util::IsDoorDamaged(pVeh, eDoors::DOOR_FRONT_RIGHT);
+            }
+            if (sName.starts_with("door_lr")) {
+                return Util::IsDoorDamaged(pVeh, eDoors::DOOR_REAR_LEFT);
+            }
+            if (sName.starts_with("door_rr")) {
+                return Util::IsDoorDamaged(pVeh, eDoors::DOOR_REAR_RIGHT);
+            }
+            if (sName.starts_with("chassis") || sName == "Root") {
+                break;
+            }
+        }
+        current = RwFrameGetParent(current);
+    }
+    return false;
+}
+
 // Taken from vehfuncs
 float Util::GetVehicleSpeedRealistic(CVehicle *vehicle)
 {

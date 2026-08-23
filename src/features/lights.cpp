@@ -783,8 +783,10 @@ void Lights::Init()
 void Lights::RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std::string texture, float sz, bool highlight, bool isDummyOk, bool materialsOnly)
 {
 	int id = static_cast<int>(state) * 1000;
-	bool litMats = true;
-	if (IsDummyAvail(pVeh, state))
+	bool hasActiveDummy = false;
+	bool isDummyAvailable = IsDummyAvail(pVeh, state);
+
+	if (isDummyAvailable)
 	{
 		for (auto e : m_Dummies[pVeh][state])
 		{
@@ -793,13 +795,15 @@ void Lights::RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std:
 			RwFrame *parent = RwFrameGetParent(e->Get().frame);
 			eMaterialType type = e->GetRef().lightType;
 			bool isBike = pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
-			bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && !FrameUtil::IsOkAtomicVisible(parent);
+			bool isDamaged = Util::IsFrameDamaged(pVeh, parent) || !FrameUtil::IsOkAtomicVisible(parent);
+			bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && isDamaged;
 
 			if (atomicCheck || (c.dummyPos == eDummyPos::Rear && pVeh->m_pTrailer) || !isDummyOk)
 			{
-				litMats = false;
 				continue;
 			}
+
+			hasActiveDummy = true;
 
 			if (state == eMaterialType::StrobeLight)
 			{
@@ -841,7 +845,7 @@ void Lights::RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std:
 		}
 	}
 
-	if (litMats)
+	if (!isDummyAvailable || hasActiveDummy)
 	{
 		ModelInfoMgr::EnableMaterial(pVeh, state);
 	}
