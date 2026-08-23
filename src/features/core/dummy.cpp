@@ -122,7 +122,12 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
             if (prmPos + 10 < name.size())
             {
                 int type = name[prmPos + 10] - '0';
-                data.corona.lightingType = (type == 2) ? eLightingMode::NonDirectional : eLightingMode::Directional;
+                if (type == 2)
+                    data.corona.lightingType = eLightingMode::NonDirectional;
+                else if (type == 1)
+                    data.corona.lightingType = eLightingMode::Inversed;
+                else
+                    data.corona.lightingType = eLightingMode::Directional;
             }
             else
             {
