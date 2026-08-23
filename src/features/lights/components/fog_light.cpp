@@ -40,9 +40,7 @@ void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
 
 void FogLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
     if (!data.bFogLightsOn) return;
-    bool isLeftFrontOk = !Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT);
-    bool isRightFrontOk = !Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT);
-    bool isFogOk = isLeftFrontOk && isRightFrontOk;
+    bool isFogOk = !Util::IsPanelDamaged(pControlVeh, ePanels::BUMP_FRONT);
     LightManager::RenderLight(pTowedVeh, data, eMaterialType::FogLightLeft, isFogOk, "foglight");
     LightManager::RenderLight(pTowedVeh, data, eMaterialType::FogLightRight, isFogOk, "foglight");
 }

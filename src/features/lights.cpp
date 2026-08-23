@@ -508,8 +508,16 @@ void Lights::Init()
 			return;
 		}
 
-		bool isLeftFrontOk = !Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT);
-		bool isRightFrontOk = !Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT);
+		bool isLeftFrontDamaged = Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT);
+		bool isRightFrontDamaged = Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT);
+		bool isHeadlightLeftOk = !isLeftFrontDamaged;
+		bool isHeadlightRightOk = !isRightFrontDamaged;
+		// When sirens are active on SAMP/UIF, server flasher scripts rapidly toggle light damage
+		// Don't let flasher damage toggles disable indicator lights
+		bool isLeftFrontOk = !isLeftFrontDamaged || pControlVeh->bSirenOrAlarm;
+		bool isRightFrontOk = !isRightFrontDamaged || pControlVeh->bSirenOrAlarm;
+
+		bool isFrontBumperDamaged = Util::IsPanelDamaged(pControlVeh, ePanels::BUMP_FRONT);
 		bool isRearBumperDamaged = Util::IsPanelDamaged(pTowedVeh, ePanels::BUMP_REAR);
 		bool isLeftRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_LEFT)
 								|| Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_LEFT)
@@ -533,7 +541,7 @@ void Lights::Init()
 		static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true);
 		bool headlightStatus = (!foglightTiedtoHeadlight || pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
 		if (data.m_bFogLightsOn && headlightStatus) {
-			bool isFogOk = isLeftFrontOk && isRightFrontOk;
+			bool isFogOk = !isFrontBumperDamaged;
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::FogLightLeft, true, "foglight", 3.0f, false, isFogOk);
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::FogLightRight, true, "foglight", 3.0f, false, isFogOk);
 		}
@@ -547,7 +555,7 @@ void Lights::Init()
 		// Lit materials are always set from here, SetupRender clears the material states
 		// every frame right before the vehicle is drawn.
 		bool bTickRegistered = data.m_nHeadlightTickFrame == CTimer::m_FrameCounter;
-		RenderHeadlights(pControlVeh, isLeftFrontOk, isRightFrontOk, bTickRegistered);
+		RenderHeadlights(pControlVeh, isHeadlightLeftOk, isHeadlightRightOk, bTickRegistered);
 
 		if (SpotLights::IsEnabled(pControlVeh)) {
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::SpotLight, false);
