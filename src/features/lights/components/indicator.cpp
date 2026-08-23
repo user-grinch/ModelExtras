@@ -35,10 +35,23 @@ bool IndicatorComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
     return false;
 }
 
+struct CarPathLinkAddress {
+    unsigned short m_nCarPathLinkId : 10;
+    unsigned short m_nAreaId : 6;
+
+    constexpr static auto* Cast(CCarPathLinkAddress* oldFormat) {
+        return (CarPathLinkAddress*)(oldFormat);
+    }
+    constexpr static const auto* Cast(const CCarPathLinkAddress* oldFormat) {
+        return (const CarPathLinkAddress*)(oldFormat);
+    }
+};
+
 static CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
-    if (address.m_nAreaId >= 0 && address.m_nCarPathLinkId >= 0 && ThePaths.m_pNaviNodes && ThePaths.m_pNaviNodes[address.m_nAreaId]) {
-        return CVector2D(static_cast<float>(ThePaths.m_pNaviNodes[address.m_nAreaId][address.m_nCarPathLinkId].m_vecPosn.x) / 8.0f,
-                         static_cast<float>(ThePaths.m_pNaviNodes[address.m_nAreaId][address.m_nCarPathLinkId].m_vecPosn.y) / 8.0f);
+    auto* addr = CarPathLinkAddress::Cast(&address);
+    if (ThePaths.m_pNaviNodes && addr->m_nAreaId < 64 && ThePaths.m_pNaviNodes[addr->m_nAreaId]) {
+        return CVector2D(static_cast<float>(ThePaths.m_pNaviNodes[addr->m_nAreaId][addr->m_nCarPathLinkId].m_vecPosn.x) / 8.0f,
+                         static_cast<float>(ThePaths.m_pNaviNodes[addr->m_nAreaId][addr->m_nCarPathLinkId].m_vecPosn.y) / 8.0f);
     }
     return CVector2D(0.0f, 0.0f);
 }
