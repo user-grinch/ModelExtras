@@ -12,6 +12,7 @@ bool NightLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, cons
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.lightType = eMaterialType::NightLight;
         c.dummyPos = eDummyPos::Front;
+        c.shadow.size = 1.85f;
         data.dummies[c.lightType].push_back(new VehicleDummy(c));
         return true;
     }
@@ -19,5 +20,5 @@ bool NightLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, cons
 }
 
 void NightLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
-    LightManager::RenderLight(pTowedVeh, data, eMaterialType::NightLight, Util::IsNightTime());
+    LightManager::RenderLight(pTowedVeh, data, eMaterialType::NightLight, Util::IsNightTime(), "indicator");
 }
