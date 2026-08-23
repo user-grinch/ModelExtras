@@ -141,7 +141,11 @@ void ModelInfoMgr::Init()
 	Events::initScriptsEvent += []()
 	{
 		gLightSurfProps.ambient = gConfig.ReadFloat("VISUAL", "MaterialAmbientOn", gLightSurfProps.ambient);
+		gLightSurfProps.diffuse = gConfig.ReadFloat("VISUAL", "MaterialDiffuseOn", 0.0f);
+		gLightSurfProps.specular = 0.0f;
 		gLightSurfPropsOff.ambient = gConfig.ReadFloat("VISUAL", "MaterialAmbientOff", gLightSurfPropsOff.ambient);
+		gLightSurfPropsOff.diffuse = 0.0f;
+		gLightSurfPropsOff.specular = 0.0f;
 	};
 
 	MEEvents::vehRenderEvent.before += [](CVehicle *pVeh)
@@ -467,14 +471,14 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material, void *dat
 					}
 				}
 			}
-			material->surfaceProps.ambient = gLightSurfProps.ambient;
+			material->surfaceProps = gLightSurfProps;
 		}
 		else
 		{
 			RpMaterialGetColor(material)->red = matCol.off.r;
 			RpMaterialGetColor(material)->green = matCol.off.g;
 			RpMaterialGetColor(material)->blue = matCol.off.b;
-			material->surfaceProps.ambient = gLightSurfPropsOff.ambient;
+			material->surfaceProps = gLightSurfPropsOff;
 		}
 	}
 	else
