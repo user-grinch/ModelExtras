@@ -5,6 +5,7 @@
 #include "enums/dummypos.h"
 #include <CWorld.h>
 #include <CBike.h>
+#include <CModelInfo.h>
 
 extern float gfGlobalCoronaSize;
 extern int gGlobalCoronaIntensity;
@@ -177,6 +178,22 @@ void VehicleDummy::Update() {
     data.shadow.position.x = data.position.x = basis.right.x * offset.x + basis.right.y * offset.y + basis.right.z * offset.z;
     data.shadow.position.y = data.position.y = basis.up.x * offset.x + basis.up.y * offset.y + basis.up.z * offset.z;
     data.shadow.position.z = data.position.z = basis.at.x * offset.x + basis.at.y * offset.y + basis.at.z * offset.z;
+
+    // Protection against buggy DFF models where child dummies are exported with root-space coordinates
+    // (causing RenderWare hierarchy translation to double-offset the position far beyond the vehicle body)
+    CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(data.pVeh->m_nModelIndex));
+    if (pInfo && pInfo->m_pColModel)
+    {
+        const auto &box = pInfo->m_pColModel->m_boundBox;
+        const float MARGIN = 0.5f;
+        if (data.position.y > box.m_vecMax.y + MARGIN || data.position.y < box.m_vecMin.y - MARGIN
+            || data.position.x > box.m_vecMax.x + MARGIN || data.position.x < box.m_vecMin.x - MARGIN
+            || data.position.z > box.m_vecMax.z + MARGIN || data.position.z < box.m_vecMin.z - MARGIN)
+        {
+            data.position = data.frame->modelling.pos;
+            data.shadow.position = data.frame->modelling.pos;
+        }
+    }
 
     if (data.mirroredX)
     {
