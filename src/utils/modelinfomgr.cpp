@@ -140,7 +140,7 @@ void ModelInfoMgr::Init()
 
 	Events::initScriptsEvent += []()
 	{
-		gLightSurfProps.ambient = gConfig.ReadFloat("VISUAL", "MaterialAmbientOn", gLightSurfProps.ambient);
+		gLightSurfProps.ambient = gConfig.ReadFloat("VISUAL", "MaterialAmbientOn", 50.0f);
 		gLightSurfProps.diffuse = gConfig.ReadFloat("VISUAL", "MaterialDiffuseOn", 0.0f);
 		gLightSurfProps.specular = 0.0f;
 		gLightSurfPropsOff.ambient = gConfig.ReadFloat("VISUAL", "MaterialAmbientOff", gLightSurfPropsOff.ambient);

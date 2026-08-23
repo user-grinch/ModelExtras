@@ -18,6 +18,8 @@ struct LightsGlobal {
     float gfGlobalCoronaSize = 0.3f;
     int gGlobalCoronaIntensity = 80;
     int gGlobalShadowIntensity = 80;
+    float gfTailLightCoronaSize = 1.4f;
+    int gTailLightCoronaIntensity = 60;
     float headlightSz = 5.0f;
     bool bIndicatorsDelay = false;
     uint64_t nDelayTimer = 0;
