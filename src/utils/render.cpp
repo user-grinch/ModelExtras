@@ -110,7 +110,7 @@ static const float HEADLIGHT_PLIGHT_RANGE = 20.0f;
 
 void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float rangeMul)
 {
-    if (!pConfig || !pConfig->frame)
+    if (!pConfig || !pConfig->frame || !pConfig->pVeh)
     {
         return;
     }
@@ -123,8 +123,17 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
         return;
     }
 
+    CVector localPos = pConfig->frame->modelling.pos;
+    if (pConfig->mirroredX)
+    {
+        localPos.x *= -1.0f;
+    }
+
+    CVector lightPos = pConfig->pVeh->TransformFromObjectSpace(localPos);
+    CVector lightDir = pConfig->pVeh->GetMatrix().up;
+
     CRGBA col = pConfig->corona.color;
-    CPointLights::AddLight(PLTYPE_SPOTLIGHT, mat.pos, mat.up, HEADLIGHT_PLIGHT_RANGE * rangeMul,
+    CPointLights::AddLight(PLTYPE_SPOTLIGHT, lightPos, lightDir, HEADLIGHT_PLIGHT_RANGE * rangeMul,
                            col.r / 255.0f, col.g / 255.0f, col.b / 255.0f, 0, 0, 0);
 }
 
