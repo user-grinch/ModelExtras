@@ -45,35 +45,54 @@ void SoundEffects::Init()
             auto &data = m_VehData.Get(pVeh);
             float speed = Util::GetVehicleSpeed(pVeh);
             int model = pVeh->m_nModelIndex;
+            bool isPlayerDriver = (pVeh->m_pDriver == FindPlayerPed());
+
+            // Initialize previous state on first detection so newly seen running vehicles don't trigger sound
+            if (!data.m_bInitialized)
+            {
+                data.m_bEngineState = pVeh->bEngineOn;
+                data.m_bIndicatorState = Lights::IsIndicatorOn(pVeh);
+                data.m_bInitialized = true;
+                continue;
+            }
 
             int animGroup = pVeh->m_pHandlingData->m_nAnimGroup;
             bool isAllowed = pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE &&
                             (animGroup == ANIMGROUP_TRUCK || animGroup == ANIMGROUP_BUS || animGroup == ANIMGROUP_COACH);
             bool isBigVeh = isAllowed || std::find(ValidForReverseSound.begin(), ValidForReverseSound.end(), pVeh->m_nModelIndex) != ValidForReverseSound.end();
 
-            if (bEngineSounds && pVeh == FindPlayerVehicle())
+            if (bEngineSounds)
             {
                 bool isValid = !CModelInfo::IsPlaneModel(model) && !CModelInfo::IsBmxModel(model) && !CModelInfo::IsHeliModel(model) && !CModelInfo::IsBoatModel(model);
-                if (isValid && data.m_bEngineState != pVeh->bEngineOn)
+                bool isEligible = isPlayerDriver || (!bOnlyPlayerVehicle && pVeh->m_pDriver != nullptr);
+
+                if (isValid && isEligible)
                 {
-                    static std::string carPath = MOD_DATA_PATH("audio/engine_start.wav");
-                    static std::string bikePath = MOD_DATA_PATH("audio/bike_engine_start.wav");
-                    if (pVeh->bEngineOn)
+                    // Engine transitioned from OFF (false) to ON (true)
+                    if (!data.m_bEngineState && pVeh->bEngineOn)
                     {
-                        if (CModelInfo::IsBikeModel(model) || CModelInfo::IsQuadBikeModel(model))
+                        unsigned int curTime = CTimer::m_snTimeInMilliseconds;
+                        if (curTime - data.m_nLastEngineSoundTime > 2000)
                         {
-                            AudioMgr::PlayFileSound(bikePath, pVeh, 1.0f, true);
-                        }
-                        else
-                        {
-                            AudioMgr::PlayFileSound(carPath, pVeh, 1.0f, true);
+                            static std::string carPath = MOD_DATA_PATH("audio/engine_start.wav");
+                            static std::string bikePath = MOD_DATA_PATH("audio/bike_engine_start.wav");
+                            if (CModelInfo::IsBikeModel(model) || CModelInfo::IsQuadBikeModel(model))
+                            {
+                                AudioMgr::PlayFileSound(bikePath, pVeh, 1.0f, true);
+                            }
+                            else
+                            {
+                                AudioMgr::PlayFileSound(carPath, pVeh, 1.0f, true);
+                            }
+                            data.m_nLastEngineSoundTime = curTime;
                         }
                     }
-                    data.m_bEngineState = pVeh->bEngineOn;
                 }
+
+                data.m_bEngineState = pVeh->bEngineOn;
             }
 
-            if (bIndicatorSounds && pVeh == FindPlayerVehicle())
+            if (bIndicatorSounds && isPlayerDriver)
             {
                 bool state = Lights::IsIndicatorOn(pVeh);
                 if (state != data.m_bIndicatorState)
@@ -92,8 +111,6 @@ void SoundEffects::Init()
                     data.m_bIndicatorState = state;
                 }
             }
-
-            data.m_bEngineState = pVeh->bEngineOn;
 
             CVector vehPos = pVeh->GetPosition();
             CVector camPos = TheCamera.GetPosition();
@@ -127,7 +144,12 @@ void SoundEffects::Init()
 
                 if (isBigVeh && pVeh->m_nCurrentGear == 0 && pVeh->bEngineOn && !pVeh->bEngineBroken && speed >= 3.0f)
                 {
-                    AudioMgr::PlayFileSound(path, pVeh, 0.5f, true);
+                    unsigned int curTime = CTimer::m_snTimeInMilliseconds;
+                    if (curTime - data.m_nLastReverseSoundTime >= 1000)
+                    {
+                        AudioMgr::PlayFileSound(path, pVeh, 0.5f, true);
+                        data.m_nLastReverseSoundTime = curTime;
+                    }
                 }
             }
 		}
