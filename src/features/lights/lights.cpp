@@ -23,6 +23,8 @@ void LightsFeature::Init() {
 		LightsGlobal::Get().gfGlobalCoronaSize = gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f);
 		LightsGlobal::Get().gGlobalShadowIntensity = gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 220);
 		LightsGlobal::Get().gGlobalCoronaIntensity = gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 250);
+		LightsGlobal::Get().gfTailLightCoronaSize = gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 1.4f);
+		LightsGlobal::Get().gTailLightCoronaIntensity = gConfig.ReadInteger("VISUAL", "TailLightCoronaIntensity", 60);
 	};
 
     ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat) {

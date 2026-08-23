@@ -24,6 +24,8 @@ static bool gbLightCoronasFeature = false;
 float gfGlobalCoronaSize = 0.3f;
 int gGlobalCoronaIntensity = 80;
 int gGlobalShadowIntensity = 80;
+float gfTailLightCoronaSize = 1.4f;
+int gTailLightCoronaIntensity = 60;
 float headlightSz = 5.0f;
 
 int GetStrobeIndex(CVehicle *pVeh, RpMaterial *pMat)
@@ -82,6 +84,8 @@ void Lights::Init()
 		gfGlobalCoronaSize = gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f);
 		gGlobalShadowIntensity = gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 220);
 		gGlobalCoronaIntensity = gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 250);
+		gfTailLightCoronaSize = gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 1.4f);
+		gTailLightCoronaIntensity = gConfig.ReadInteger("VISUAL", "TailLightCoronaIntensity", 60);
 	};
 
 	Events::vehicleDtorEvent += [](CVehicle *pVeh)
@@ -196,13 +200,15 @@ void Lights::Init()
 		// If no match is found
 		return eMaterialType::UnknownMaterial; });
 
-	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *frame, const std::string_view name2)
+	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view name)
 								{
-		std::string name = GetFrameNodeName(frame);
 		DummyConfig c;
+		c.frame = pFrame;
+		c.position = pFrame->modelling.pos;
 		c.pVeh = pVeh;
-		c.frame = frame;
+		c.corona.size = gfGlobalCoronaSize;
 		c.corona.color = {255, 255, 255, static_cast<unsigned char>(gGlobalCoronaIntensity)};
+		c.corona.lightingType = eLightingMode::NonDirectional;
 		
 		auto &dummies = m_Dummies[pVeh];
 		
@@ -228,12 +234,14 @@ void Lights::Init()
 		else if (name.starts_with("light_d")) {
 			c.lightType = eMaterialType::DayLight;
 			c.dummyPos = eDummyPos::Front;
-			c.shadow.size = 1.85f;
+			c.shadow.size = 1.0f;
+			c.shadow.color = {220, 220, 220, static_cast<unsigned char>(gGlobalShadowIntensity)};
 		}
 		else if (name.starts_with("light_n")) {
 			c.lightType = eMaterialType::NightLight;
 			c.dummyPos = eDummyPos::Front;
-			c.shadow.size = 1.85f;
+			c.shadow.size = 1.0f;
+			c.shadow.color = {220, 220, 220, static_cast<unsigned char>(gGlobalShadowIntensity)};
 		}
 		else if (auto d = Util::GetDigitsAfter(name, "strobe_light")) {
 			c.lightType = eMaterialType::StrobeLight;
@@ -267,12 +275,15 @@ void Lights::Init()
 		else if (name.starts_with("light_a")) {
 			c.lightType = eMaterialType::AllDayLight;
 			c.dummyPos = eDummyPos::Front;
-			c.shadow.size = 1.85f;
+			c.shadow.size = 1.0f;
+			c.shadow.color = {220, 220, 220, static_cast<unsigned char>(gGlobalShadowIntensity)};
 		}
 		else if (name == "taillights" || name == "taillights2") { // some models have dummies starting with taillights
 			c.dummyPos = eDummyPos::Rear;
 			c.lightType = eMaterialType::TailLightRight;
-			c.corona.color = c.shadow.color = {250, 0, 0, static_cast<unsigned char>(gGlobalCoronaIntensity)};
+			c.corona.size = gfTailLightCoronaSize;
+			c.corona.color = {250, 0, 0, static_cast<unsigned char>(gTailLightCoronaIntensity)};
+			c.shadow.color = {250, 0, 0, static_cast<unsigned char>(gGlobalShadowIntensity)};
 			c.corona.lightingType = eLightingMode::Directional; 				
 			c.shadow.render = name != "taillights2";
 			dummies[c.lightType].push_back(new VehicleDummy(c));
@@ -492,15 +503,15 @@ void Lights::Init()
 		bool isRightRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_RIGHT)
 								|| Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_RIGHT) 
 							);
-		RenderLights(pControlVeh, pTowedVeh, eMaterialType::AllDayLight, true, "indicator", 1.85f);
+		RenderLights(pControlVeh, pTowedVeh, eMaterialType::AllDayLight, true, "indicator", 1.0f);
 		RenderLights(pControlVeh, pTowedVeh, eMaterialType::StrobeLight);
 		RenderLights(pControlVeh, pTowedVeh, eMaterialType::SideLightLeft);
 		RenderLights(pControlVeh, pTowedVeh, eMaterialType::SideLightRight);
 		
 		if (Util::IsNightTime()) {
-			RenderLights(pControlVeh, pTowedVeh, eMaterialType::NightLight, true, "indicator", 1.85f);
+			RenderLights(pControlVeh, pTowedVeh, eMaterialType::NightLight, true, "indicator", 1.0f);
 		} else {
-			RenderLights(pControlVeh, pTowedVeh, eMaterialType::DayLight, true, "indicator", 1.85f);
+			RenderLights(pControlVeh, pTowedVeh, eMaterialType::DayLight, true, "indicator", 1.0f);
 		}
 		
 		static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true);
