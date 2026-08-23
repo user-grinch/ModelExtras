@@ -68,8 +68,12 @@ void ExtraWheel::Init()
 
         for (int i = 0; i < static_cast<int>(eWheelPos::COUNT); i++)
         {
+            if (data.pOriginals[i].empty()) {
+                continue;
+            }
             for (size_t j = 0; j < data.pExtras[i].size(); j++) {
-                UpdateWheelRotation(pVeh, data.pOriginals[i][j], data.pExtras[i][j]);
+                RwFrame *pOrig = (j < data.pOriginals[i].size()) ? data.pOriginals[i][j] : data.pOriginals[i][0];
+                UpdateWheelRotation(pVeh, pOrig, data.pExtras[i][j]);
             }
         } });
 }

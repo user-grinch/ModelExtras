@@ -14,6 +14,15 @@ using namespace plugin;
 #define VK_RMB 0x02
 extern int gGlobalShadowIntensity;
 
+SpotlightData::~SpotlightData()
+{
+	if (searchLight != 0)
+	{
+		plugin::Command<plugin::Commands::DELETE_SEARCHLIGHT>(searchLight);
+		searchLight = 0;
+	}
+}
+
 void SpotLights::Init()
 {
 
@@ -107,13 +116,11 @@ void SpotLights::OnVehicleRender(CVehicle *pVeh)
 	bool flag;
 	CEntity *pEnt;
 	target.z = CWorld::FindGroundZFor3DCoord(target.x, target.y, target.z + 20, &flag, &pEnt);
-	static int searchLight = NULL;
 
-	if (searchLight != NULL)
+	if (data.searchLight != 0)
 	{
-		Command<Commands::DELETE_SEARCHLIGHT>(searchLight);
-		searchLight = NULL;
-		// Command<Commands::CREATE_SEARCHLIGHT>(-2025.600342, 176.275925, 48.843737, -2025.600342, 176.275925, 38.843737, 10.0, 1.0, &searchLight);
+		Command<Commands::DELETE_SEARCHLIGHT>(data.searchLight);
+		data.searchLight = 0;
 	}
-	Command<Commands::CREATE_SEARCHLIGHT>(target.x, target.y, target.z, src.x, src.y, src.z, 1.0, 0.05, &searchLight);
+	Command<Commands::CREATE_SEARCHLIGHT>(target.x, target.y, target.z, src.x, src.y, src.z, 1.0, 0.05, &data.searchLight);
 };

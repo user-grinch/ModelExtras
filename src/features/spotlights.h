@@ -7,8 +7,9 @@ struct SpotlightData
 {
 	RwFrame *pFrame = nullptr;
 	bool bEnabled = false;
+	int searchLight = 0;
 	SpotlightData(CVehicle *pVeh) {}
-	~SpotlightData() {}
+	~SpotlightData();
 };
 
 class SpotLights : public CVehFeature<SpotlightData>

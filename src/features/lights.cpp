@@ -20,6 +20,7 @@ using namespace plugin;
 
 // flags
 bool gbGlobalIndicatorLights = false;
+static bool gbLightCoronasFeature = false;
 float gfGlobalCoronaSize = 0.3f;
 int gGlobalCoronaIntensity = 80;
 int gGlobalShadowIntensity = 80;
@@ -76,6 +77,7 @@ void Lights::Init()
 	Events::initGameEvent += []()
 	{
 		gbGlobalIndicatorLights = gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false);
+		gbLightCoronasFeature = gConfig.ReadBoolean("FEATURES", "LightCoronas", false);
 
 		gfGlobalCoronaSize = gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f);
 		gGlobalShadowIntensity = gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 220);
@@ -84,7 +86,15 @@ void Lights::Init()
 
 	Events::vehicleDtorEvent += [](CVehicle *pVeh)
 	{
-		m_Dummies.erase(pVeh);
+		auto it = m_Dummies.find(pVeh);
+		if (it != m_Dummies.end()) {
+			for (auto &pair : it->second) {
+				for (auto *pDummy : pair.second) {
+					delete pDummy;
+				}
+			}
+			m_Dummies.erase(it);
+		}
 	};
 
 	ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat)
@@ -856,7 +866,7 @@ void Lights::RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRight
 
 void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMul)
 {
-	if (gConfig.ReadBoolean("FEATURES", "LightCoronas", false))
+	if (gbLightCoronasFeature)
 	{
 		const DummyConfig &c = dummy->GetRef();
 		if (c.corona.lightingType == eLightingMode::NonDirectional)
@@ -874,7 +884,15 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMu
 
 void Lights::Reload(CVehicle* pVeh)
 {
-	m_Dummies.erase(pVeh);
+	auto it = m_Dummies.find(pVeh);
+	if (it != m_Dummies.end()) {
+		for (auto &pair : it->second) {
+			for (auto *pDummy : pair.second) {
+				delete pDummy;
+			}
+		}
+		m_Dummies.erase(it);
+	}
 	DataMgr::Reload(pVeh->m_nModelIndex);
 }
 

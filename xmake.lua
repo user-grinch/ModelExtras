@@ -46,6 +46,7 @@ target("ModelExtras")
     end
 
     add_includedirs(
+        ".",
         "include", 
         "include/coreutils", 
         "src", 

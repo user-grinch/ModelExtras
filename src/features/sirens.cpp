@@ -65,8 +65,17 @@ void Sirens::Reload(CVehicle *pVeh)
 {
 	int model = pVeh->m_nModelIndex;
 	modelRotators.erase(model);
-	modelData.erase(model);
-	vehicleData.erase(pVeh);
+	auto itModel = modelData.find(model);
+	if (itModel != modelData.end()) {
+		delete itModel->second;
+		modelData.erase(itModel);
+	}
+	sirenExtraUsedFlag.erase(pVeh);
+	auto itVeh = vehicleData.find(pVeh);
+	if (itVeh != vehicleData.end()) {
+		delete itVeh->second;
+		vehicleData.erase(itVeh);
+	}
 	EventCtor(pVeh);
 	DataMgr::Reload(model);
 }
@@ -544,13 +553,23 @@ void Sirens::Parse(const nlohmann::json &data, int model)
 	if (data.contains("sirens"))
 	{
 		CurrentModel = model;
-		modelData[CurrentModel] = new VehicleSirenData(data["sirens"]);
-		modelData[CurrentModel]->isImVehFtSiren = data["sirens"].contains("imvehft") && data["sirens"]["imvehft"];
+		auto it = modelData.find(CurrentModel);
+		if (it != modelData.end()) {
+			delete it->second;
+			modelData.erase(it);
+		}
 
-		if (!modelData[CurrentModel]->Validate)
+		auto *pNewData = new VehicleSirenData(data["sirens"]);
+		pNewData->isImVehFtSiren = data["sirens"].contains("imvehft") && data["sirens"]["imvehft"];
+
+		if (!pNewData->Validate)
 		{
 			LOG_VERBOSE("Failed to read siren configuration, cannot configure JSON manifest!");
-			modelData.erase(CurrentModel);
+			delete pNewData;
+		}
+		else
+		{
+			modelData[CurrentModel] = pNewData;
 		}
 	}
 }
@@ -685,12 +704,12 @@ void Sirens::Init()
 
 	Events::vehicleDtorEvent += [](CVehicle *vehicle)
 	{
-		int model = vehicle->m_nModelIndex;
-
-		if (!modelData.contains(model))
-			return;
-
-		vehicleData.erase(vehicle);
+		sirenExtraUsedFlag.erase(vehicle);
+		auto it = vehicleData.find(vehicle);
+		if (it != vehicleData.end()) {
+			delete it->second;
+			vehicleData.erase(it);
+		}
 	};
 
 	Events::processScriptsEvent += []()
@@ -826,7 +845,7 @@ void Sirens::Init()
 		if (!vehicleData.contains(vehicle))
 			vehicleData[vehicle] = new VehicleSiren(vehicle);
 
-		uint64_t time = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		uint64_t time = static_cast<uint64_t>(CTimer::m_snTimeInMilliseconds);
 		VehicleSirenState* state = modelData[model]->States[vehicleData[vehicle]->GetCurrentState()];
 		if (vehicleData[vehicle]->SirenState == false && sirenState == true) {
 			vehicleData[vehicle]->SirenState = true;

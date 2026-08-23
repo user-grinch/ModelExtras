@@ -1,12 +1,12 @@
 #pragma once
-#include <map>
+#include <unordered_map>
 #include <nlohmann\json.hpp>
 
 class DataMgr
 {
 private:
-    static inline std::map<int, nlohmann::json> data;
-    static inline std::map<int, std::string> modelPath;
+    static inline std::unordered_map<int, nlohmann::json> data;
+    static inline std::unordered_map<int, std::string> modelPath;
 
 public:
     static void Init();

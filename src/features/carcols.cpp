@@ -22,7 +22,7 @@ bool Carcols::GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA &col)
     type.a = 255;
 
     int model = pVeh->m_nModelIndex;
-    if (m_bEnabled && variations.contains(model))
+    if (m_bEnabled && variations.contains(model) && !variations[model].empty())
     {
         auto &data = m_VehData.Get(pVeh);
         if (data.randId == -1)

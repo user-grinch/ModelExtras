@@ -240,20 +240,26 @@ bool LicensePlate::CCustomCarPlateMgr_RenderLicenseplateTextToRaster(const char 
     assert(charsRaster);
     assert(plateRaster);
 
+    if (!pCharsetLockedData)
+        return false;
+
     const auto lockedPlateRaster = RwRasterLock(plateRaster, 0, rwRASTERLOCKNOFETCH | rwRASTERLOCKWRITE);
     if (!lockedPlateRaster)
         return false;
 
-    if (!pCharsetLockedData)
-        return false;
-
     const auto plateRasterStride = RwRasterGetStride(plateRaster);
     if (!plateRasterStride)
+    {
+        RwRasterUnlock(plateRaster);
         return false;
+    }
 
     const auto charsRasterStride = RwRasterGetStride(charsRaster);
     if (!charsRasterStride)
+    {
+        RwRasterUnlock(plateRaster);
         return false;
+    }
 
     // Copy each character from charset raster to plate raster
     // Going from left to right

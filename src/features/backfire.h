@@ -6,6 +6,7 @@ struct BackfireData
 {
     bool wasFullThrottled = false;
     int m_nleftFires = 0;
+    size_t prevTimer = 0;
 
     BackfireData(CVehicle *pVeh) {}
     ~BackfireData() {}

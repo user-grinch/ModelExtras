@@ -47,8 +47,8 @@ void Remap::LoadRemaps(CVehicle* vehicle)
     }
 }
 
-std::vector<std::pair<unsigned int *, unsigned int>> pOriginalTextures;
-std::map<void *, int> pRandom;
+static std::vector<std::pair<unsigned int *, unsigned int>> pOriginalTextures;
+static std::map<void *, int> pRandom;
 
 void Remap::Init()
 {
@@ -60,6 +60,11 @@ void Remap::Init()
     Events::vehicleRenderEvent.after += [](CVehicle *vehicle)
     {
         AfterRender(vehicle);
+    };
+
+    Events::vehicleDtorEvent += [](CVehicle *vehicle)
+    {
+        pRandom.erase(vehicle);
     };
 }
 
@@ -113,7 +118,6 @@ void Remap::BeforeRender(CVehicle* vehicle)
                 pOriginalTextures.push_back({reinterpret_cast<unsigned int*>(&mat->texture), *reinterpret_cast<unsigned int *>(&mat->texture)});
                 
                 mat->texture = pData->pTextures[name][pRandom[pData->pCurPtr]];
-                mat->texture->refCount++;
 
                 return mat;
             }, data);

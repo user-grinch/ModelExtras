@@ -217,7 +217,7 @@ bool FrameUtil::IsOkAtomicVisible(RwFrame* frame) {
 
 // VehFuncs
 RwFrame * FrameUtil::Clone(RwFrame *frame, RpClump *clump, RwFrame *parent, bool isRoot) {
-	RwFrame * newFrame;
+	RwFrame * newFrame = parent;
 	if (isRoot) {
 		*(uint32_t*)0xC1CB58 = (uint32_t)clump;
 		RwFrameForAllObjects(frame, CopyObjectsCB, parent);

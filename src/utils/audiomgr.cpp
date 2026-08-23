@@ -20,14 +20,34 @@ enum : uint16_t {
     SET_AUDIO_STREAM_VOLUME = 0x0ABC
 };
 
+static bool gbSoundEffectsEnabled = false;
+static float gfSoundMult = 1.0f;
+
 void AudioMgr::Init()
 {
+    Events::initGameEvent += []
+    {
+        gbSoundEffectsEnabled = gConfig.ReadBoolean("FEATURES", "SoundEffects", false);
+        gfSoundMult = gConfig.ReadFloat("TWEAKS", "SoundMult", 1.0f);
+    };
+
     Events::reInitGameEvent += []
     {
+        for (auto it : needToFree)
+        {
+            if (it != NULL)
+            {
+                Command<REMOVE_AUDIO_STREAM>(it);
+            }
+        }
         needToFree.clear();
 
         for (auto &pEnt : cache)
         {
+            if (pEnt.second != NULL)
+            {
+                Command<REMOVE_AUDIO_STREAM>(pEnt.second);
+            }
             pEnt.second = Load(pEnt.first);
         }
     };
@@ -43,6 +63,7 @@ void AudioMgr::Init()
             {
                 if (!*it)
                 {
+                    it = needToFree.erase(it);
                     continue;
                 }
 
@@ -84,7 +105,7 @@ void AudioMgr::PlaySwitchSound(CEntity *pEntity)
     PlayFileSound(path, pEntity, 1.0f, true);
 }
 
-std::unordered_map<std::string, bool> is3DSupported;
+static std::unordered_map<std::string, bool> is3DSupported;
 
 StreamHandle AudioMgr::Load(const std::string &path)
 {
@@ -120,7 +141,7 @@ StreamHandle AudioMgr::Load(const std::string &path)
 
 bool AudioMgr::ShouldPlaySound()
 {
-    return gConfig.ReadBoolean("FEATURES", "SoundEffects", false);
+    return gbSoundEffectsEnabled;
 }
 
 void AudioMgr::PlayFileSound(const std::string &path, CEntity *pEntity, float volume, bool cached)
@@ -208,7 +229,6 @@ void AudioMgr::SetVolume(StreamHandle handle, float volume)
 {
     if (handle != NULL)
     {
-        static float mult = gConfig.ReadFloat("TWEAKS", "SoundMult", 1.0f);
-        Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume * mult);
+        Command<SET_AUDIO_STREAM_VOLUME>(handle, *(BYTE *)0xBA6797 / 64.0f * volume * gfSoundMult);
     }
 }

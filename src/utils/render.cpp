@@ -64,27 +64,45 @@ bool IsDummyPointingUp(CMatrix mat)
     return alignment > 0.7f;
 }
 
+static bool gbLightCoronas = false;
+static bool gbLightShadows = false;
+static float gfCoronaDistanceMul = 0.0f;
+static float gfCoronaNearClip = 1.5f;
+static float gfLightHeightLimit = 0.0f;
+static bool gbConfigInitialized = false;
+
+static void EnsureConfigLoaded()
+{
+    if (!gbConfigInitialized)
+    {
+        gbLightCoronas = gConfig.ReadBoolean("FEATURES", "LightCoronas", false);
+        gbLightShadows = gConfig.ReadBoolean("FEATURES", "LightShadows", false);
+        gfCoronaDistanceMul = gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.0f);
+        gfCoronaNearClip = gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 1.5f);
+        gfLightHeightLimit = gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 0.0f);
+        gbConfigInitialized = true;
+    }
+}
+
 void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRGBA col, float size)
 {
-    if (!gConfig.ReadBoolean("FEATURES", "LightCoronas", false))
+    EnsureConfigLoaded();
+    if (!gbLightCoronas)
     {
         return;
     }
 
-    static float MUL = gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.0f);
-    static float nearClip = gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 1.5f);
-
-	float coronaSz = size;
+    float coronaSz = size;
 
     // Only during night time
-    if (Util::IsNightTime() && MUL != 0.0f) {
+    if (Util::IsNightTime() && gfCoronaDistanceMul != 0.0f) {
         // pEntity is null for unattached coronas, pos is already in world space then
         CVector refPos = pEntity ? pEntity->GetPosition() : pos;
-        coronaSz *= CVector::Distance(TheCamera.GetPosition(), refPos) * MUL;
+        coronaSz *= CVector::Distance(TheCamera.GetPosition(), refPos) * gfCoronaDistanceMul;
     }
 
     CCoronas::RegisterCorona(coronaID, pEntity, col.r, col.g, col.b, col.a, pos,
-                             coronaSz, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, true, false, 0, 0.0f, false, nearClip, 0, 30.0f, false, false);
+                             coronaSz, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, true, false, 0, 0.0f, false, gfCoronaNearClip, 0, 30.0f, false, false);
 };
 
 // Vanilla reach of the headlight spotlight
@@ -172,10 +190,11 @@ extern int gGlobalShadowIntensity;
 
 void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std::string &shadwTexName, float shdwSz)
 {
+    EnsureConfigLoaded();
     const float SHDW_SZ_MUL = 2.0f;
     const float SHDW_MAX_DIST = 120.0f;
     const float SHDW_FADE_DIST = 70.0f;
-    if (!pConfig || !pConfig->pVeh || shdwSz == 0.0f || !gConfig.ReadBoolean("FEATURES", "LightShadows", false))
+    if (!pConfig || !pConfig->pVeh || shdwSz == 0.0f || !gbLightShadows)
     {
         return;
     }
@@ -193,8 +212,7 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
         return;
     }
 
-    float lightHeightLimit = gConfig.ReadBoolean("TWEAKS", "LightHeightLimit", false);
-    if (lightHeightLimit != 0.0f && pConfig->frame->modelling.pos.z >= lightHeightLimit)
+    if (gfLightHeightLimit != 0.0f && pConfig->frame->modelling.pos.z >= gfLightHeightLimit)
     {
         return;
     }
@@ -298,8 +316,8 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
                                 eDummyPos dummyPos, const std::string &shadwTexName,
                                 CVector2D shdwSz, CVector2D shdwOffset, RwTexture *pTexture)
 {
-    if (shdwSz.x == 0.0f || shdwSz.y == 0.0f ||
-        !gConfig.ReadBoolean("FEATURES", "LightShadows", false))
+    EnsureConfigLoaded();
+    if (shdwSz.x == 0.0f || shdwSz.y == 0.0f || !gbLightShadows)
     {
         return;
     }

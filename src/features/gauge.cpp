@@ -139,7 +139,7 @@ void RPMGauge::Init()
 
         VehRPMData &data = m_VehData.Get(pVeh);
         if (data.bInitialized) {
-            float delta = CTimer::ms_fTimeScale;
+            float delta = CTimer::ms_fTimeStep;
             float speed = Util::GetVehicleSpeedRealistic(pVeh);
 
             for (auto& e : data.vecGaugeData) {
@@ -197,7 +197,7 @@ void SpeedGauge::Init()
         VehSpeedData &data = m_VehData.Get(pVeh);
         if (data.bInitialized) {
             float speed = Util::GetVehicleSpeedRealistic(pVeh);
-            float delta = CTimer::ms_fTimeScale;
+            float delta = CTimer::ms_fTimeStep;
 
             for (auto& e : data.vecGaugeData) {
                 float targetRotation = (speed / (float)e.second.iMaxSpeed) * e.second.fMaxRotation;
@@ -243,7 +243,7 @@ void TurboGauge::Init()
         VehTurboData &data = m_VehData.Get(pVeh);
         if (data.bInitialized) {
             float speed = Util::GetVehicleSpeedRealistic(pVeh);
-            float delta = CTimer::ms_fTimeScale;
+            float delta = CTimer::ms_fTimeStep;
 
             for (auto& e : data.vecGaugeData) {
                 float turbo = speed - e.second.fPrevTurbo;
@@ -278,9 +278,9 @@ void FixedGauge::Init()
 
             float minAngle = 20.0f;
             float maxAngle = 70.0f;
-            if (jsonData.contains("gauges") && jsonData["gauges"][name].contains("angle")) {
-                minAngle = jsonData["gauges"][name]["minangle"];
-                maxAngle = jsonData["gauges"][name]["maxangle"];
+            if (jsonData.contains("gauges") && jsonData["gauges"].contains(name)) {
+                minAngle = jsonData["gauges"][name].value("minangle", minAngle);
+                maxAngle = jsonData["gauges"][name].value("maxangle", maxAngle);
             }
             FrameUtil::SetRotationY(pFrame, RandomNumberInRange(minAngle, maxAngle));
         } });

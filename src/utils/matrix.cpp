@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "matrix.h"
-#include "utils/frameextention.h"
+#include "utils/frameextension.h"
 
 void MatrixUtil::ForceRightVector(RwMatrix* matrix, RwV3d& newRight)
 {

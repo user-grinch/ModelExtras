@@ -20,7 +20,7 @@ private:
 	static inline RwTexture *ms_aDirtTextures_4[16] = {};
 	static inline RwTexture *ms_aDirtTextures_5[16] = {};
 	static inline RwTexture *ms_aDirtTextures_6[16] = {};
-	static inline std::map<std::string, std::vector<RwTexture *>> m_DirtTextures;
+	static inline std::unordered_map<std::string, std::vector<RwTexture *>> m_DirtTextures;
 
 	void Shutdown() override;
 	static void ShutdownHook();

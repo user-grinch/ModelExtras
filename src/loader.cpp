@@ -32,7 +32,7 @@
 #include "features/leds.h"
 #include "features/wheel.h"
 #include "features/rollbackbed.h"
-#include "utils/frameextention.h"
+#include "utils/frameextension.h"
 #include "utils/meevents.h"
 
 constexpr uint32_t TEST_CHEAT = 0x0ADC;
@@ -58,6 +58,12 @@ void ModelExtras::Init()
         {
             LOG(INFO) << "SAMP detected, disabling Carcols feature.";
         }
+
+        if (GetModuleHandle("SilentPatchSA.asi") == nullptr)
+        {
+            static std::string text = "ModelExtras requires SilentPatchSA installed!";
+            LOG(WARNING) << text;
+        }
     };
 
     if (gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))
@@ -70,16 +76,6 @@ void ModelExtras::Init()
                 Reload(pVeh);
             }
         };
-    }
-
-    MEEvents::vehRenderEvent.before += [](CVehicle *pVeh)
-    {
-        if (GetModuleHandle("SilentPatchSA.asi") == nullptr)
-        {
-            static std::string text = "ModelExtras requires SilentPatchSA installed!";
-            CMessages::AddMessageWithString((char *)text.c_str(), 5000, false, nullptr, true);
-            LOG(WARNING) << text;
-        }
     };
 
 

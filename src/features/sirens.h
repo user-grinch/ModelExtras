@@ -106,6 +106,13 @@ public:
     VehicleSirenRotator *Rotator;
 
     VehicleSirenMaterial(std::string state, int material, nlohmann::json json);
+    ~VehicleSirenMaterial()
+    {
+        if (Rotator) {
+            delete Rotator;
+            Rotator = nullptr;
+        }
+    }
 
     bool UpdateMaterial(uint64_t time)
     {
@@ -150,6 +157,13 @@ public:
     std::map<int, VehicleSirenMaterial *> Materials;
 
     VehicleSirenState(std::string state, nlohmann::json json);
+    ~VehicleSirenState()
+    {
+        for (auto &pair : Materials) {
+            delete pair.second;
+        }
+        Materials.clear();
+    }
 };
 
 class VehicleSirenData
@@ -160,6 +174,13 @@ public:
     bool isImVehFtSiren = false;
 
     VehicleSirenData(nlohmann::json json);
+    ~VehicleSirenData()
+    {
+        for (auto *state : States) {
+            delete state;
+        }
+        States.clear();
+    }
 
     static inline std::map<std::string, nlohmann::json> References;
     static inline std::map<std::string, nlohmann::json> ReferenceColors;
@@ -176,6 +197,15 @@ public:
     bool Trailer = false;
 
     VehicleSiren(CVehicle *_vehicle);
+    ~VehicleSiren()
+    {
+        for (auto &pair : Dummies) {
+            for (auto *dummy : pair.second) {
+                delete dummy;
+            }
+        }
+        Dummies.clear();
+    }
 
     bool GetSirenState();
 

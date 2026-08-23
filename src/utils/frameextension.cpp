@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "frameextention.h"
+#include "frameextension.h"
 #include "rwplcore.h"
 
 RwFrameExtension* RwFrameExtension::Get(RwFrame* frame) {

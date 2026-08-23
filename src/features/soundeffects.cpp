@@ -14,17 +14,23 @@ std::vector<int> ValidForReverseSound;
 
 void SoundEffects::Init()
 {
+    static bool bReverseSounds = false;
+    static bool bEngineSounds = false;
+    static bool bIndicatorSounds = false;
+    static bool bAirbreakSounds = false;
+    static bool bOnlyPlayerVehicle = true;
+
     Events::initGameEvent += []()
     {
         std::string line = gConfig.ReadString("TABLE", "SoundEffects_BigVehicleModels", "");
         Util::GetModelsFromIni(line, ValidForReverseSound);
-    };
 
-    static bool bReverseSounds = gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalReverseSound", false);
-    static bool bEngineSounds = gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalEngineSound", false);
-    static bool bIndicatorSounds = gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalIndicatorSound", false);
-    static bool bAirbreakSounds = gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalAirbreakSound", false);
-    static bool bOnlyPlayerVehicle = !gConfig.ReadBoolean("FEATURES", "SoundEffects_NonPlayerVehicles", false);
+        bReverseSounds = gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalReverseSound", false);
+        bEngineSounds = gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalEngineSound", false);
+        bIndicatorSounds = gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalIndicatorSound", false);
+        bAirbreakSounds = gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalAirbreakSound", false);
+        bOnlyPlayerVehicle = !gConfig.ReadBoolean("FEATURES", "SoundEffects_NonPlayerVehicles", false);
+    };
 
     Events::processScriptsEvent += []() {
 		for (CVehicle *pVeh : CPools::ms_pVehiclePool) {
@@ -95,11 +101,10 @@ void SoundEffects::Init()
             if (bAirbreakSounds && isBigVeh)
             {
                 float pedal = pVeh->m_fBreakPedal;
-                static float val = 0.0f;
 
                 if (speed > 10.0f)
                 {
-                    val = std::max(val, pedal);
+                    data.m_fMaxPedal = std::max(data.m_fMaxPedal, pedal);
 
                     if (pedal >= 0.5f)
                     {
@@ -107,11 +112,11 @@ void SoundEffects::Init()
                     }
                 }
 
-                if (pedal <= 0.05f && val != NULL)
+                if (pedal <= 0.05f && data.m_fMaxPedal > 0.0f)
                 {
                     static std::string path = MOD_DATA_PATH("audio/airbreak.wav");
                     AudioMgr::PlayFileSound(path, pVeh, data.m_fBrakePressure, true);
-                    val = NULL;
+                    data.m_fMaxPedal = 0.0f;
                     data.m_fBrakePressure = 0.0f;
                 }
             }

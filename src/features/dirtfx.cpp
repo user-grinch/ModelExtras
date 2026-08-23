@@ -51,11 +51,11 @@ void DirtFx::Init()
 }
 
 void DirtFx::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat) {
-	if (!m_bEnabled) {
+	if (!m_bEnabled || !pMat || !pMat->texture) {
 		return;
 	}
 	
-	std::string texName = pMat->texture->name;
+	std::string_view texName = pMat->texture->name;
 	int dirtLvl = std::clamp(static_cast<int>(pVeh->m_fDirtLevel), 0, 15);
 
 	if (texName == "vehiclegrunge256")
@@ -66,11 +66,12 @@ void DirtFx::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat) {
 		RpMaterialSetTexture(pMat, ms_aDirtTextures_3[dirtLvl]);
 	else if (texName.starts_with("tyrewall_dirt"))
 		RpMaterialSetTexture(pMat, ms_aDirtTextures_4[dirtLvl]);
-	else
+	else if (!m_DirtTextures.empty())
 	{
-		if (m_DirtTextures.contains(texName))
+		auto it = m_DirtTextures.find(std::string(texName));
+		if (it != m_DirtTextures.end())
 		{
-			RpMaterialSetTexture(pMat, m_DirtTextures[texName][dirtLvl]);
+			RpMaterialSetTexture(pMat, it->second[dirtLvl]);
 		}
 	}
 }

@@ -38,9 +38,8 @@ void ChainFeature::Init() {
     }
 
     size_t curTime = CTimer::m_snTimeInMilliseconds;
-    static size_t lastUpdateTime = 0;
 
-    if (curTime - lastUpdateTime >= interval) {
+    if (curTime - data.lastUpdateTime >= interval) {
       if (pVeh->m_nVehicleSubClass == VEHICLE_BMX) {
         if (pVeh->m_fGasPedal && speed > 0.0f) {
           data.m_nCurChain =
@@ -58,7 +57,7 @@ void ChainFeature::Init() {
 
       FrameUtil::HideAllChilds(data.m_pRootFrame);
       FrameUtil::ShowAllChilds(data.m_FrameList[data.m_nCurChain]);
-      lastUpdateTime = curTime;
+      data.lastUpdateTime = curTime;
     }
   });
 }

@@ -15,7 +15,7 @@ void DigitalClockFeature::Init()
             data.m_pRootFrame = pFrame;
 
             auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-            if (jsonData["clocks"].contains(name))
+            if (jsonData.contains("clocks") && jsonData["clocks"].contains(name))
             {
                 data.m_b12HourFormat = jsonData["clocks"][name].value("12hformat", false);
             }

@@ -160,7 +160,6 @@ void BackFireEffect::Process(CVehicle *pVeh)
         }
 
         // handle multi
-        static size_t prevTimer = 0;
         size_t timer = CTimer::m_snTimeInMilliseconds;
 
         if (data.wasFullThrottled)
@@ -179,14 +178,14 @@ void BackFireEffect::Process(CVehicle *pVeh)
             }
         }
 
-        if (timer - prevTimer > 200)
+        if (timer - data.prevTimer > 200)
         {
             if (data.m_nleftFires > 0)
             {
                 BackFireSingle(pVeh);
                 data.m_nleftFires--;
             }
-            prevTimer = timer;
+            data.prevTimer = timer;
         }
     }
 }

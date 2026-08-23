@@ -100,9 +100,9 @@ public:
 	static bool IsMaterialAvailable(CVehicle *pVeh, eMaterialType type);
 
 	static void Init();
-	static void RegisterDummy(DummyCallback_t function);
-	static void RegisterMaterial(MaterialCallback_t material);
-	static void RegisterMaterialColProvider(MaterialColProviderCallback_t material);
-	static void RegisterRender(RenderCallback_t render);
+	static void RegisterDummy(const DummyCallback_t &function);
+	static void RegisterMaterial(const MaterialCallback_t &material);
+	static void RegisterMaterialColProvider(const MaterialColProviderCallback_t &material);
+	static void RegisterRender(const RenderCallback_t &render);
 	static void Reload(CVehicle *pVeh);
 };

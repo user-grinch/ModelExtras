@@ -107,15 +107,12 @@ void DashboardLEDs::Init()
 		} else {
 			EnableLED(pControlVeh, eMaterialType::LowBeamLed);
 		}
-		
-		if (data.m_bFogLightsOn) {
-			EnableLED(pControlVeh, eMaterialType::FogLightLed);
-		}
 
 		if (Lights::IsIndicatorOn(pControlVeh)) {
-			if (data.m_nIndicatorState == eIndicatorState::LeftOn) {
+			if (data.m_nIndicatorState == eIndicatorState::LeftOn || data.m_nIndicatorState == eIndicatorState::BothOn) {
 				EnableLED(pControlVeh, eMaterialType::IndicatorLeftLed);
-			} else {
+			}
+			if (data.m_nIndicatorState == eIndicatorState::RightOn || data.m_nIndicatorState == eIndicatorState::BothOn) {
 				EnableLED(pControlVeh, eMaterialType::IndicatorRightLed);
 			}
 		}

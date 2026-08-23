@@ -9,6 +9,7 @@ struct SoundEffectsData
     bool m_bEngineState = false;
     bool m_bIndicatorState = false;
     float m_fBrakePressure = 0.0f;
+    float m_fMaxPedal = 0.0f;
     SoundEffectsData(CVehicle *pVeh) {}
     ~SoundEffectsData() {}
 };

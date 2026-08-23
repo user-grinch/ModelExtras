@@ -181,12 +181,12 @@ void ModelInfoMgr::Init()
 	// };
 }
 
-void ModelInfoMgr::RegisterRender(RenderCallback_t render)
+void ModelInfoMgr::RegisterRender(const RenderCallback_t &render)
 {
 	renders.push_back(render);
 };
 
-void ModelInfoMgr::RegisterDummy(DummyCallback_t function)
+void ModelInfoMgr::RegisterDummy(const DummyCallback_t &function)
 {
 	dummy.push_back(function);
 };
@@ -224,7 +224,7 @@ void ModelInfoMgr::FindDummies(CVehicle *vehicle, RwFrame *frame)
 		}
 
 		std::string_view nodeName = GetFrameNodeName(frame);
-		for (auto e : dummy)
+		for (const auto &e : dummy)
 		{
 			e(vehicle, frame, nodeName);
 		}
@@ -244,19 +244,19 @@ void ModelInfoMgr::OnRender(CVehicle *vehicle)
 {
 	if (!renders.empty())
 	{
-		for (auto e : renders)
+		for (const auto &e : renders)
 		{
 			e(vehicle);
 		}
 	}
 }
 
-void ModelInfoMgr::RegisterMaterial(MaterialCallback_t mat)
+void ModelInfoMgr::RegisterMaterial(const MaterialCallback_t &mat)
 {
 	materials.push_back(mat);
 }
 
-void ModelInfoMgr::RegisterMaterialColProvider(MaterialColProviderCallback_t mat)
+void ModelInfoMgr::RegisterMaterialColProvider(const MaterialColProviderCallback_t &mat)
 {
 	matColProviders.push_back(mat);
 }

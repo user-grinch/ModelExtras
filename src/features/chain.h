@@ -8,6 +8,7 @@ struct ChainData
   RwFrame *m_pRootFrame = nullptr;
   std::vector<RwFrame *> m_FrameList;
   short m_nCurChain = 0;
+  size_t lastUpdateTime = 0;
 
   ChainData(CVehicle *pVeh) {}
   ~ChainData() {}

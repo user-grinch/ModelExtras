@@ -129,7 +129,7 @@ void TextureMgr::SetAlpha(RwTexture *texture, RwUInt8 alpha)
     RwImageSetFromRaster(image, oldRaster);
 
     RwRGBA *pixels = (RwRGBA *)RwImageGetPixels(image);
-    for (int y = 1; y < height; ++y)
+    for (int y = 0; y < height; ++y)
     {
         for (int x = 0; x < width; ++x)
         {
