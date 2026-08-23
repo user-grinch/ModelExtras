@@ -165,7 +165,7 @@ void RollbackBed::Init()
         static size_t prev = 0;
         static uint32_t toggleKey = gConfig.ReadInteger("KEYS", "RollbackBedToggleKey", 'K');
 
-        if (KeyPressed(toggleKey) && now - prev > 500.0f)
+        if (Util::IsKeyPressed(toggleKey) && now - prev > 500.0f)
         {
             CVehicle *pVeh = FindPlayerVehicle();
             if (pVeh)

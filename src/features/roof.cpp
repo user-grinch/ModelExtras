@@ -153,7 +153,7 @@ void ConvertibleRoof::Init()
         static size_t prev = 0;
         static uint32_t roofToggleKey = gConfig.ReadInteger("KEYS", "RoofToggleKey", VK_R);
 
-        if (KeyPressed(roofToggleKey) && now - prev > 500.0f)
+        if (Util::IsKeyPressed(roofToggleKey) && now - prev > 500.0f)
         {
             CVehicle *pVeh = FindPlayerVehicle();
             if (pVeh)
