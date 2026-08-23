@@ -8,6 +8,7 @@
 #include <CBike.h>
 #include <CWorld.h>
 #include <CClock.h>
+#include <CMenuManager.h>
 #include "utils/texmgr.h"
 #include "defines.h"
 #include "features/core/dummy.h"
@@ -34,6 +35,24 @@ double Util::DegToRad(double deg) {
 float Util::GetVehicleSpeed(CVehicle *pVeh)
 {
     return pVeh->m_vecMoveSpeed.Magnitude2D() * 50.0f;
+}
+
+bool Util::IsWindowFocused() {
+    HWND hGameWnd = *(HWND*)0xC97C1C;
+    if (hGameWnd && GetForegroundWindow() != hGameWnd) {
+        return false;
+    }
+    if (FrontEndMenuManager.m_bMenuActive) {
+        return false;
+    }
+    return true;
+}
+
+bool Util::IsKeyPressed(int keyCode) {
+    if (!IsWindowFocused()) {
+        return false;
+    }
+    return (GetAsyncKeyState(keyCode) & 0x8000) != 0;
 }
 
 bool Util::IsLightDamaged(CVehicle *pVeh, eLights light) {

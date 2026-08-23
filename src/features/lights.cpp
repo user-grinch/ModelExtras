@@ -371,7 +371,7 @@ void Lights::Init()
 
 			static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true);
 			bool headlightStatus = !foglightTiedtoHeadlight || pVeh->bLightsOn;
-			if (KeyPressed(fogLightKey) && IsMatAvail(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) && headlightStatus)
+			if (Util::IsKeyPressed(fogLightKey) && IsMatAvail(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) && headlightStatus)
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
@@ -384,7 +384,7 @@ void Lights::Init()
 			}
 
 			static uint32_t longLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", VK_G);
-			if (KeyPressed(longLightKey) && (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh)))
+			if (Util::IsKeyPressed(longLightKey) && (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh)))
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
@@ -687,24 +687,24 @@ void Lights::Init()
 				static uint32_t indicatorRightKey = gConfig.ReadInteger("KEYS", "IndicatorLightRightKey", VK_C);
 				static uint32_t indicatorBothKey = gConfig.ReadInteger("KEYS", "IndicatorLightBothKey", VK_X);
 
-				if (KeyPressed(indicatorNoneKey))
+				if (Util::IsKeyPressed(indicatorNoneKey))
 				{
 					data.m_nIndicatorState = eIndicatorState::Off;
 					delay = 0;
 					indicatorsDelay = false;
 				}
 
-				if (KeyPressed(indicatorLeftKey))
+				if (Util::IsKeyPressed(indicatorLeftKey))
 				{
 					data.m_nIndicatorState = eIndicatorState::LeftOn;
 				}
 
-				if (KeyPressed(indicatorRightKey))
+				if (Util::IsKeyPressed(indicatorRightKey))
 				{
 					data.m_nIndicatorState = eIndicatorState::RightOn;
 				}
 
-				if (KeyPressed(indicatorBothKey))
+				if (Util::IsKeyPressed(indicatorBothKey))
 				{
 					data.m_nIndicatorState = eIndicatorState::BothOn;
 				}

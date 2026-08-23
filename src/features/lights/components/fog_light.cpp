@@ -27,7 +27,7 @@ void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
         static size_t prev = 0;
         static uint32_t fogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", VK_J);
 
-        if (KeyPressed(fogLightKey)) {
+        if (Util::IsKeyPressed(fogLightKey)) {
             size_t now = CTimer::m_snTimeInMilliseconds;
             if (now - prev > 500) {
                 data.bFogLightsOn = !data.bFogLightsOn;

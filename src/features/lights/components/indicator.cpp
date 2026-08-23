@@ -65,13 +65,13 @@ void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
         static uint32_t indicatorRightKey = gConfig.ReadInteger("KEYS", "IndicatorLightRightKey", VK_C);
         static uint32_t indicatorBothKey = gConfig.ReadInteger("KEYS", "IndicatorLightBothKey", VK_X);
 
-        if (KeyPressed(indicatorNoneKey)) {
+        if (Util::IsKeyPressed(indicatorNoneKey)) {
             data.nIndicatorState = eIndicatorState::Off;
-        } else if (KeyPressed(indicatorLeftKey)) {
+        } else if (Util::IsKeyPressed(indicatorLeftKey)) {
             data.nIndicatorState = eIndicatorState::LeftOn;
-        } else if (KeyPressed(indicatorRightKey)) {
+        } else if (Util::IsKeyPressed(indicatorRightKey)) {
             data.nIndicatorState = eIndicatorState::RightOn;
-        } else if (KeyPressed(indicatorBothKey)) {
+        } else if (Util::IsKeyPressed(indicatorBothKey)) {
             data.nIndicatorState = eIndicatorState::BothOn;
         }
     } else if (pVeh->m_pDriver && !bSAMP) {

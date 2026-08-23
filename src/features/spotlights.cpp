@@ -69,7 +69,7 @@ void SpotLights::OnHudRender()
 
 	static size_t prev = 0;
 	static uint32_t key = gConfig.ReadInteger("KEYS", "SpotLightKey", VK_B);
-	if (KeyPressed(key))
+	if (Util::IsKeyPressed(key))
 	{
 		size_t now = CTimer::m_snTimeInMilliseconds;
 		if (now - prev > 500.0f)
@@ -79,7 +79,7 @@ void SpotLights::OnHudRender()
 		}
 	}
 
-	if (!KeyPressed(VK_RMB) || !data.pFrame)
+	if (!Util::IsKeyPressed(VK_RMB) || !data.pFrame)
 	{
 		return;
 	}

@@ -726,7 +726,7 @@ void Sirens::Init()
 		if (now - prev > 300.0f)
 		{
 			static uint32_t sirenKey = gConfig.ReadInteger("KEYS", "SirenLightKey", VK_L);
-			if (KeyPressed(sirenKey))
+			if (Util::IsKeyPressed(sirenKey))
 			{
 				int model = vehicle->m_nModelIndex;
 
@@ -744,7 +744,7 @@ void Sirens::Init()
 				AudioMgr::PlaySwitchSound(vehicle);
 			}
 
-			if (KeyPressed(VK_R))
+			if (Util::IsKeyPressed(VK_R))
 			{
 				int model = vehicle->m_nModelIndex;
 
@@ -760,7 +760,7 @@ void Sirens::Init()
 				if (modelData[model]->States.size() == 0)
 					return;
 
-				int addition = (KeyPressed(0x10)) ? (-1) : (1);
+				int addition = (Util::IsKeyPressed(0x10)) ? (-1) : (1);
 
 				vehicleData[vehicle]->State += addition;
 
@@ -772,7 +772,7 @@ void Sirens::Init()
 
 				while (modelData[model]->States[vehicleData[vehicle]->State]->Paintjob != -1 && modelData[model]->States[vehicleData[vehicle]->State]->Paintjob != vehicle->GetRemapIndex())
 				{
-					vehicleData[vehicle]->State += (KeyPressed(0x10)) ? (-1) : (1);
+					vehicleData[vehicle]->State += (Util::IsKeyPressed(0x10)) ? (-1) : (1);
 
 					if (vehicleData[vehicle]->State == modelData[model]->States.size())
 					{
@@ -793,7 +793,7 @@ void Sirens::Init()
 		}
 		for (int number = 0; number < 9; number++)
 		{
-			if (KeyPressed(VK_1 + number))
+			if (Util::IsKeyPressed(VK_1 + number))
 			{ // 1 -> 9
 				int model = vehicle->m_nModelIndex;
 
