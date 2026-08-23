@@ -67,7 +67,7 @@ bool IsDummyPointingUp(CMatrix mat)
 static bool gbLightCoronas = false;
 static bool gbLightShadows = false;
 static float gfCoronaDistanceMul = 0.0f;
-static float gfCoronaNearClip = 1.5f;
+static float gfCoronaNearClip = 0.45f;
 static float gfLightHeightLimit = 0.0f;
 static bool gbConfigInitialized = false;
 
@@ -78,7 +78,7 @@ static void EnsureConfigLoaded()
         gbLightCoronas = gConfig.ReadBoolean("FEATURES", "LightCoronas", false);
         gbLightShadows = gConfig.ReadBoolean("FEATURES", "LightShadows", false);
         gfCoronaDistanceMul = gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.0f);
-        gfCoronaNearClip = gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 1.5f);
+        gfCoronaNearClip = gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 0.45f);
         gfLightHeightLimit = gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 0.0f);
         gbConfigInitialized = true;
     }
