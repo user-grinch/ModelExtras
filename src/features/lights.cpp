@@ -228,10 +228,12 @@ void Lights::Init()
 		else if (name.starts_with("light_d")) {
 			c.lightType = eMaterialType::DayLight;
 			c.dummyPos = eDummyPos::Front;
+			c.shadow.size = 1.85f;
 		}
 		else if (name.starts_with("light_n")) {
 			c.lightType = eMaterialType::NightLight;
 			c.dummyPos = eDummyPos::Front;
+			c.shadow.size = 1.85f;
 		}
 		else if (auto d = Util::GetDigitsAfter(name, "strobe_light")) {
 			c.lightType = eMaterialType::StrobeLight;
@@ -265,6 +267,7 @@ void Lights::Init()
 		else if (name.starts_with("light_a")) {
 			c.lightType = eMaterialType::AllDayLight;
 			c.dummyPos = eDummyPos::Front;
+			c.shadow.size = 1.85f;
 		}
 		else if (name == "taillights" || name == "taillights2") { // some models have dummies starting with taillights
 			c.dummyPos = eDummyPos::Rear;
@@ -489,15 +492,15 @@ void Lights::Init()
 		bool isRightRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_RIGHT)
 								|| Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_RIGHT) 
 							);
-		RenderLights(pControlVeh, pTowedVeh, eMaterialType::AllDayLight);
+		RenderLights(pControlVeh, pTowedVeh, eMaterialType::AllDayLight, true, "indicator", 1.85f);
 		RenderLights(pControlVeh, pTowedVeh, eMaterialType::StrobeLight);
 		RenderLights(pControlVeh, pTowedVeh, eMaterialType::SideLightLeft);
 		RenderLights(pControlVeh, pTowedVeh, eMaterialType::SideLightRight);
 		
 		if (Util::IsNightTime()) {
-			RenderLights(pControlVeh, pTowedVeh, eMaterialType::NightLight);
+			RenderLights(pControlVeh, pTowedVeh, eMaterialType::NightLight, true, "indicator", 1.85f);
 		} else {
-			RenderLights(pControlVeh, pTowedVeh, eMaterialType::DayLight);
+			RenderLights(pControlVeh, pTowedVeh, eMaterialType::DayLight, true, "indicator", 1.85f);
 		}
 		
 		static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true);
