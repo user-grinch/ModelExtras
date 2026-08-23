@@ -517,8 +517,9 @@ void Lights::Init()
 		static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true);
 		bool headlightStatus = (!foglightTiedtoHeadlight || pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
 		if (data.m_bFogLightsOn && headlightStatus) {
-			RenderLights(pControlVeh, pTowedVeh, eMaterialType::FogLightLeft, true, "foglight", 3.0f);
-			RenderLights(pControlVeh, pTowedVeh, eMaterialType::FogLightRight, true, "foglight", 3.0f);
+			bool isFogOk = isLeftFrontOk && isRightFrontOk;
+			RenderLights(pControlVeh, pTowedVeh, eMaterialType::FogLightLeft, true, "foglight", 3.0f, false, isFogOk);
+			RenderLights(pControlVeh, pTowedVeh, eMaterialType::FogLightRight, true, "foglight", 3.0f, false, isFogOk);
 		}
 
 		bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
@@ -770,7 +771,7 @@ void Lights::RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std:
 			bool isBike = pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
 			bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && !FrameUtil::IsOkAtomicVisible(parent);
 
-			if (atomicCheck || (c.dummyPos == eDummyPos::Rear && pVeh->m_pTrailer) || (!c.isParentDummy && !isDummyOk))
+			if (atomicCheck || (c.dummyPos == eDummyPos::Rear && pVeh->m_pTrailer) || !isDummyOk)
 			{
 				litMats = false;
 				continue;
