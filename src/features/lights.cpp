@@ -217,7 +217,7 @@ void Lights::Init()
 			c.lightType = STR_FOUND(name, "_l") ? eMaterialType::FogLightLeft : eMaterialType::FogLightRight;
 			c.shadow.render = false;
 			c.corona.color = c.shadow.color = {255, 255, 255, static_cast<unsigned char>(gGlobalCoronaIntensity)};
-			c.corona.lightingType = eLightingMode::Directional;
+			c.corona.lightingType = eLightingMode::NonDirectional;
 		}
 		else if (name.starts_with("rev") && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r"))) {
 			c.dummyPos = eDummyPos::Rear;
