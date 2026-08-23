@@ -15,7 +15,7 @@ bool FogLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
         c.dummyPos = eDummyPos::Front;
         c.lightType = STR_FOUND(name, "_l") ? eMaterialType::FogLightLeft : eMaterialType::FogLightRight;
         c.shadow.render = false;
-        c.corona.lightingType = eLightingMode::Directional;
+        c.corona.lightingType = eLightingMode::NonDirectional;
         data.dummies[c.lightType].push_back(new VehicleDummy(c));
         return true;
     }
