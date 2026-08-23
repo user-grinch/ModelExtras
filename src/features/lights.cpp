@@ -862,7 +862,7 @@ void Lights::RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRight
 		bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
 		std::string texName = data.m_bLongLightsOn ? "headlight_long" : "headlight_short";
 		bool shadow = !gbProperShadersDetected;
-		bool highlight = isFoggy || (!gbProperShadersDetected && data.m_bLongLightsOn);
+		bool highlight = isFoggy || data.m_bLongLightsOn;
 
 		if (isLeftOn || isRightOn)
 		{
