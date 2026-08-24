@@ -370,8 +370,9 @@ void Lights::Init()
 			static uint32_t fogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", VK_J);
 
 			static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true);
-			bool headlightStatus = !foglightTiedtoHeadlight || pVeh->bLightsOn;
-			if (Util::IsKeyPressed(fogLightKey) && IsMatAvail(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) && headlightStatus)
+			bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pVeh);
+			bool canToggleFogLight = !foglightTiedtoHeadlight || isHeadlightsActive;
+			if (Util::IsKeyPressed(fogLightKey) && IsMatAvail(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) && canToggleFogLight)
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
@@ -539,8 +540,9 @@ void Lights::Init()
 		}
 		
 		static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true);
-		bool headlightStatus = (!foglightTiedtoHeadlight || pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
-		if (data.m_bFogLightsOn && headlightStatus) {
+		bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
+		bool shouldRenderFog = !foglightTiedtoHeadlight || isHeadlightsActive;
+		if (data.m_bFogLightsOn && shouldRenderFog) {
 			bool isFogOk = !isFrontBumperDamaged;
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::FogLightLeft, true, "foglight", 3.0f, false, isFogOk);
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::FogLightRight, true, "foglight", 3.0f, false, isFogOk);
