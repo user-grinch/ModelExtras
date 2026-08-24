@@ -834,6 +834,9 @@ void Sirens::Init()
 			return;
 		}
 
+		if (!vehicleData.contains(vehicle))
+			vehicleData[vehicle] = new VehicleSiren(vehicle);
+
 		bool sirenState = vehicleData[vehicle]->GetSirenState();
 		if (modelRotators.contains(model)) {
 			for (auto& dummy : modelRotators[model]) {
@@ -841,9 +844,6 @@ void Sirens::Init()
 			}
 			modelRotators.erase(model);
 		}
-
-		if (!vehicleData.contains(vehicle))
-			vehicleData[vehicle] = new VehicleSiren(vehicle);
 
 		uint64_t time = static_cast<uint64_t>(CTimer::m_snTimeInMilliseconds);
 		VehicleSirenState* state = modelData[model]->States[vehicleData[vehicle]->GetCurrentState()];
