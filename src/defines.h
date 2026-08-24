@@ -21,4 +21,4 @@
 
 extern bool gbProperShadersDetected;
 
-#define STR_FOUND(x, y) x.find(y) != std::string::npos
+#define STR_FOUND(x, y) ((x).find(y) != std::string::npos)
