@@ -39,12 +39,18 @@ struct VehModelData {
   explicit VehModelData(CVehicle *) {}
 };
 
+struct tRestoreEntry {
+  void *m_pAddress;
+  void *m_pValue;
+};
+
 class ModelInfoMgr {
 private:
   static inline std::vector<DummyCallback_t> dummies;
   static inline std::vector<MaterialCallback_t> materials;
   static inline std::vector<MaterialColProviderCallback_t> matColProviders;
   static inline std::vector<RenderCallback_t> renders;
+  static inline std::vector<tRestoreEntry> m_RestoreEntries;
 
   static inline plugin::VehicleExtendedData<VehModelData> m_VehData;
 

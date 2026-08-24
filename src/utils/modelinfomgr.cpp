@@ -23,8 +23,7 @@ extern int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat);
 extern int GetStrobeIndex(CVehicle *pVeh, RpMaterial *pMat);
 
 static CVehicle *pCurVeh = nullptr;
-RwSurfaceProperties &gLightSurfProps =
-    *reinterpret_cast<RwSurfaceProperties *>(0x8A645C);
+RwSurfaceProperties gLightSurfProps = {1.0f, 0.0f, 0.0f};
 RwSurfaceProperties gLightSurfPropsOff = {0.45f, 0.0f, 0.0f};
 
 static constexpr uint32_t RwFrameForAllObjectsAddr = 0x7F1200;
@@ -86,12 +85,18 @@ static size_t GuardUpgradeFrameCalls(uint32_t start, uint32_t end) {
   return patched;
 }
 
-void ModelInfoMgr::ResetEditableMaterials()
-{
-  
+void ModelInfoMgr::ResetEditableMaterials() {
+  for (auto it = m_RestoreEntries.rbegin(); it != m_RestoreEntries.rend(); ++it) {
+    if (it->m_pAddress) {
+      *reinterpret_cast<void **>(it->m_pAddress) = it->m_pValue;
+    }
+  }
+  m_RestoreEntries.clear();
 }
 
 void ModelInfoMgr::Init() {
+  m_RestoreEntries.reserve(256);
+
   patch::Nop(0x4C8E53, 5);
   patch::Nop(0x4C8F6E, 5);
 
@@ -225,39 +230,6 @@ void ModelInfoMgr::SetupRender(CVehicle *ptr) {
   data.m_StrobeStatus.fill(false);
 }
 
-struct tRestoreEntry {
-  void *m_pAddress;
-  void *m_pValue;
-};
-
-static tRestoreEntry *const gRestoreEntries =
-    reinterpret_cast<tRestoreEntry *>(0xB4DBE8);
-static constexpr ptrdiff_t RESTORE_ENTRY_COUNT = 256;
-static constexpr ptrdiff_t RESTORE_ENTRY_RANGE = RESTORE_ENTRY_COUNT * 2;
-
-static bool CanStoreRestoreEntries(tRestoreEntry **ppEntries,
-                                   ptrdiff_t needed) {
-  tRestoreEntry *pEntry = *ppEntries;
-  if (pEntry < gRestoreEntries ||
-      pEntry >= gRestoreEntries + RESTORE_ENTRY_RANGE) {
-    return true;
-  }
-
-  return (pEntry - gRestoreEntries) + needed + 1 <= RESTORE_ENTRY_COUNT;
-}
-
-static void LogRestoreEntriesFull() {
-  static int count = 0;
-  if (count < 10) {
-    ++count;
-    LOG_VERBOSE("Ran out of material restore entries, this model has too many "
-                "editable materials");
-    if (count == 10) {
-      LOG_VERBOSE("Silencing further material restore entry messages");
-    }
-  }
-}
-
 MatStateColor ModelInfoMgr::FetchMaterialCol(CVehicle *pVeh, RpMaterial *pMat,
                                              eMaterialType type) {
   MatStateColor col = {DEFAULT_MAT_COL, DEFAULT_MAT_COL};
@@ -283,20 +255,17 @@ eMaterialType ModelInfoMgr::FetchMaterialType(CVehicle *pVeh,
 
 RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
                                                  void *data) {
+  (void)data;
   if (!material) {
     return material;
   }
 
-  tRestoreEntry **ppEntries = reinterpret_cast<tRestoreEntry **>(data);
   if (material->texture) {
     const char *texName = material->texture->name;
     bool isRemapTex = (texName && texName[0] == '#');
     if (isRemapTex) {
-      if (CVehicleModelInfo::ms_pRemapTexture &&
-          CanStoreRestoreEntries(ppEntries, 1)) {
-        (*ppEntries)->m_pAddress = &material->texture;
-        (*ppEntries)->m_pValue = material->texture;
-        (*ppEntries)++;
+      if (CVehicleModelInfo::ms_pRemapTexture) {
+        m_RestoreEntries.push_back({&material->texture, material->texture});
         material->texture = CVehicleModelInfo::ms_pRemapTexture;
       }
     } else if (pCurVeh) {
@@ -333,24 +302,16 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
     }
 
     MatStateColor matCol = FetchMaterialCol(pCurVeh, material, iLightIndex);
-    if (!CanStoreRestoreEntries(ppEntries, lightOn ? 2 : 1)) {
-      LogRestoreEntriesFull();
-      return material;
-    }
 
     RwRGBA *pColor = RpMaterialGetColor(material);
-    (*ppEntries)->m_pAddress = pColor;
-    (*ppEntries)->m_pValue = *reinterpret_cast<void **>(pColor);
-    (*ppEntries)++;
+    m_RestoreEntries.push_back({pColor, *reinterpret_cast<void **>(pColor)});
 
     pColor->red = matCol.on.r;
     pColor->green = matCol.on.g;
     pColor->blue = matCol.on.b;
 
     if (lightOn) {
-      (*ppEntries)->m_pAddress = &material->texture;
-      (*ppEntries)->m_pValue = material->texture;
-      (*ppEntries)++;
+      m_RestoreEntries.push_back({&material->texture, material->texture});
 
       if (material->texture) {
         if (material->texture == CVehicleModelInfo::ms_pLightsTexture) {
@@ -368,19 +329,16 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
       }
       material->surfaceProps.ambient = gLightSurfProps.ambient;
     } else {
-      pColor->red = matCol.off.r;
-      pColor->green = matCol.off.g;
-      pColor->blue = matCol.off.b;
+      pColor->red = matCol.on.r;
+      pColor->green = matCol.on.g;
+      pColor->blue = matCol.on.b;
       material->surfaceProps.ambient = gLightSurfPropsOff.ambient;
     }
   } else {
     CRGBA col = {255, 255, 255, 255};
-    if (Carcols::GetColor(pCurVeh, material, col) &&
-        CanStoreRestoreEntries(ppEntries, 1)) {
+    if (Carcols::GetColor(pCurVeh, material, col)) {
       RwRGBA *pColor = RpMaterialGetColor(material);
-      (*ppEntries)->m_pAddress = pColor;
-      (*ppEntries)->m_pValue = *reinterpret_cast<void **>(pColor);
-      (*ppEntries)++;
+      m_RestoreEntries.push_back({pColor, *reinterpret_cast<void **>(pColor)});
 
       pColor->red = col.r;
       pColor->green = col.g;

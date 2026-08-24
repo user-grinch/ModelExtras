@@ -12,7 +12,7 @@
 using namespace plugin;
 
 static CVehicle *pCurrentVeh = nullptr;
-extern RwSurfaceProperties &gLightSurfProps;
+extern RwSurfaceProperties gLightSurfProps;
 extern RwSurfaceProperties gLightSurfPropsOff;
 
 void LicensePlate::Init()
