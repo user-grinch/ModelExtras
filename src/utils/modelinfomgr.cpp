@@ -14,6 +14,7 @@
 #include "features/carcols.h"
 #include "features/dirtfx.h"
 #include "features/plate.h"
+#include "features/remap.h"
 #include "defines.h"
 #include "utils/meevents.h"
 #include "utils/texmgr.h"
@@ -275,6 +276,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
         material->texture = CVehicleModelInfo::ms_pRemapTexture;
       }
     } else if (pCurVeh) {
+      Remap::ProcessTextures(pCurVeh, material);
       DirtFx::ProcessTextures(pCurVeh, material);
       LicensePlate::ProcessTextures(pCurVeh, material);
     }
