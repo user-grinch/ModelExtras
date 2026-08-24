@@ -1,6 +1,6 @@
 #pragma once
 #include <Events.h>
-#include <CModelInfo.h>
+#include <game_sa/CModelInfo.h>
 #include <Patch.h>
 
 namespace MEEvents

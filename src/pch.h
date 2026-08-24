@@ -1,7 +1,7 @@
 #pragma once
 #include <CTimer.h>
 #include <NodeName.h>
-#include <CModelInfo.h>
+#include <game_sa/CModelInfo.h>
 
 #include <RenderWare.h>
 #include <plugin.h>

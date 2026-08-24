@@ -1,0 +1,16 @@
+{
+  "languages": {
+    "C++": {
+      "format_on_save": "on"
+    }
+  },
+  "lsp": {
+    "clangd": {
+      "arguments": [
+        "--compile-commands-dir=.",
+        "--header-insertion=never",
+        "--background-index"
+      ]
+    }
+  }
+}

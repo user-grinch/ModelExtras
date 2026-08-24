@@ -1,0 +1,47 @@
+[
+  {
+    "label": "Launch GTA:SA (Debug build)",
+    "adapter": "CodeLLDB",
+    "request": "launch",
+    "program": "D:\\Games\\GTA San Andreas\\gta_sa.exe",
+    "cwd": "D:\\Games\\GTA San Andreas",
+    "args": [],
+    "stop_on_entry": false,
+    "build": {
+      "command": "xmake",
+      "args": ["dev", "-m", "debug"],
+    },
+  },
+  {
+    "label": "Launch GTA:SA (Release build)",
+    "adapter": "CodeLLDB",
+    "request": "launch",
+    "program": "D:\\Games\\GTA San Andreas\\gta_sa.exe",
+    "cwd": "D:\\Games\\GTA San Andreas",
+    "args": [],
+    "stop_on_entry": false,
+    "build": {
+      "command": "xmake",
+      "args": ["dev", "-m", "release"],
+    },
+  },
+  {
+    "label": "Attach to running gta_sa.exe",
+    "adapter": "CodeLLDB",
+    "request": "attach",
+    "program": "D:\\Games\\GTA San Andreas\\gta_sa.exe",
+    "cwd": "D:\\Games\\GTA San Andreas",
+  },
+  {
+    "label": "Run GTA:SA (no debugger)",
+    "adapter": "CodeLLDB",
+    "request": "launch",
+    "program": "D:\\Games\\GTA San Andreas\\gta_sa.exe",
+    "cwd": "D:\\Games\\GTA San Andreas",
+    "stop_on_entry": false,
+    "build": {
+      "command": "xmake",
+      "args": ["dev", "-m", "release"],
+    },
+  },
+]

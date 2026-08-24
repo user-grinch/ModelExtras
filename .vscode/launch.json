@@ -2,10 +2,35 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch GTA:SA (Debug build & attach)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "D:\\Games\\GTA San Andreas\\gta_sa.exe",
+            "cwd": "D:\\Games\\GTA San Andreas",
+            "preLaunchTask": "Build Debug",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Launch GTA:SA (Release build & attach)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "D:\\Games\\GTA San Andreas\\gta_sa.exe",
+            "cwd": "D:\\Games\\GTA San Andreas",
+            "preLaunchTask": "Build Release",
+            "stopAtEntry": false
+        },
+        {
             "name": "Attach to GTA SA",
             "type": "cppvsdbg",
             "request": "attach",
             "processName": "gta_sa.exe"
+        },
+        {
+            "name": "Attach to GTA SA (Build Debug first)",
+            "type": "cppvsdbg",
+            "request": "attach",
+            "processName": "gta_sa.exe",
+            "preLaunchTask": "Build Debug"
         }
     ]
 }

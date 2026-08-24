@@ -1,0 +1,42 @@
+[
+  {
+    "label": "Build Debug",
+    "command": "xmake",
+    "args": ["dev", "-m", "debug"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Build Release",
+    "command": "xmake",
+    "args": ["dev", "-m", "release"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Compile",
+    "command": "xmake",
+    "args": ["build"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Clean",
+    "command": "xmake",
+    "args": ["clean"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Generate compile_commands.json",
+    "command": "xmake",
+    "args": ["project", "-k", "compile_commands"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  }
+]

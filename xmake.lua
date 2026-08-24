@@ -4,7 +4,7 @@ add_rules("mode.debug", "mode.releasedbg", "mode.release")
 set_defaultmode("release")
 
 local PLUGIN_SDK_DIR = os.getenv("PLUGIN_SDK_DIR")
-local GAME_DIR = os.getenv("GTASA_DIR")
+local GAME_DIR = os.getenv("GTASA_DIR") or "D:/Games/GTA San Andreas"
 
 target("ModelExtras")
     set_kind("shared")
@@ -97,8 +97,39 @@ target("ModelExtras")
     end
 
     after_build(function (target)
-        if GAME_DIR then
+        if GAME_DIR and os.isdir(GAME_DIR) then
+            -- Copy target (.asi)
             os.cp(target:targetfile(), GAME_DIR)
-            print(">> Deployed to Game Directory")
+            print(">> Deployed .asi to " .. GAME_DIR)
+
+            -- Copy debug symbols (.pdb) if available
+            local symbolfile = target:symbolfile()
+            if symbolfile and os.isfile(symbolfile) then
+                os.cp(symbolfile, GAME_DIR)
+                print(">> Deployed .pdb to " .. GAME_DIR)
+            end
+
+            -- Copy resources (ModelExtras folder, ModelExtras.ini)
+            if os.isdir("resource/dist") then
+                os.cp("resource/dist/*", GAME_DIR)
+                print(">> Deployed resources to " .. GAME_DIR)
+            end
         end
     end)
+
+task("dev")
+    set_menu {
+        usage = "xmake dev [options]",
+        description = "Configure and build ModelExtras",
+        options = {
+            {'m', "mode", "kv", "debug", "Set build mode: debug, release, releasedbg"}
+        }
+    }
+    on_run(function ()
+        import("core.base.option")
+        local mode = option.get("mode") or "debug"
+        os.execv("xmake", {"f", "-p", "windows", "-a", "x86", "-m", mode, "-y"})
+        os.execv("xmake", {})
+        os.execv("xmake", {"project", "-k", "compile_commands"})
+    end)
+

@@ -2,7 +2,7 @@
 #include "defines.h"
 #include "utils/datamgr.h"
 #include <string>
-#include <CModelInfo.h>
+#include <game_sa/CModelInfo.h>
 #include "features/sirens.h"
 #include "features/carcols.h"
 

@@ -6,16 +6,14 @@
             "type": "shell",
             "command": "xmake",
             "args": [
-                "f",
-                "-p",
-                "windows",
-                "-a",
-                "x86",
+                "dev",
                 "-m",
-                "debug",
-                "-y"
+                "debug"
             ],
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": "$msCompile"
         },
         {
@@ -23,14 +21,9 @@
             "type": "shell",
             "command": "xmake",
             "args": [
-                "f",
-                "-p",
-                "windows",
-                "-a",
-                "x86",
+                "dev",
                 "-m",
-                "release",
-                "-y"
+                "release"
             ],
             "group": "build",
             "problemMatcher": "$msCompile"
@@ -42,11 +35,32 @@
             "args": [
                 "build"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Clean",
+            "type": "shell",
+            "command": "xmake",
+            "args": [
+                "clean"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Run GTA SA",
+            "type": "shell",
+            "command": "Start-Process 'D:\\Games\\GTA San Andreas\\gta_sa.exe' -WorkingDirectory 'D:\\Games\\GTA San Andreas'",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build & Run GTA SA",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build Debug",
+                "Run GTA SA"
+            ],
+            "problemMatcher": []
         }
     ]
 }
