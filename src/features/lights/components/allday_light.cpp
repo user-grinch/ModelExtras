@@ -12,6 +12,7 @@ bool AllDayLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, con
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.lightType = eMaterialType::AllDayLight;
         c.dummyPos = eDummyPos::Front;
+        c.shadow.size = 1.85f;
         data.dummies[c.lightType].push_back(new VehicleDummy(c));
         return true;
     }
@@ -19,5 +20,5 @@ bool AllDayLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, con
 }
 
 void AllDayLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
-    LightManager::RenderLight(pTowedVeh, data, eMaterialType::AllDayLight, true);
+    LightManager::RenderLight(pTowedVeh, data, eMaterialType::AllDayLight, true, "indicator");
 }

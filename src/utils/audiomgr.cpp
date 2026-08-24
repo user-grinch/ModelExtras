@@ -41,15 +41,6 @@ void AudioMgr::Init()
             }
         }
         needToFree.clear();
-
-        for (auto &pEnt : cache)
-        {
-            if (pEnt.second != NULL)
-            {
-                Command<REMOVE_AUDIO_STREAM>(pEnt.second);
-            }
-            pEnt.second = Load(pEnt.first);
-        }
     };
 
     Events::processScriptsEvent += []
@@ -57,7 +48,7 @@ void AudioMgr::Init()
         static size_t prev = 0;
         size_t cur = CTimer::m_snTimeInMilliseconds;
 
-        if (cur - prev > 5000)
+        if (cur - prev > 250)
         {
             for (auto it = needToFree.begin(); it != needToFree.end();)
             {
@@ -151,34 +142,13 @@ void AudioMgr::PlayFileSound(const std::string &path, CEntity *pEntity, float vo
         return;
     }
 
-    StreamHandle handle = NULL;
-
-    if (cached)
-    {
-        if (!cache.contains(path))
-        {
-            StreamHandle temp = Load(path);
-            if (temp == NULL)
-            {
-                return;
-            }
-            cache[path] = temp;
-        }
-        handle = cache[path];
-    }
-    else
-    {
-        handle = Load(path);
-        if (handle != NULL)
-        {
-            needToFree.push_back(handle);
-        }
-    }
-
+    StreamHandle handle = Load(path);
     if (handle == NULL)
     {
         return;
     }
+
+    needToFree.push_back(handle);
 
     int state = eAudioStreamState::Stopped;
     Command<GET_AUDIO_STREAM_STATE>(handle, &state);

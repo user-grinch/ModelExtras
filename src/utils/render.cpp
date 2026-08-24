@@ -67,7 +67,7 @@ bool IsDummyPointingUp(CMatrix mat)
 static bool gbLightCoronas = false;
 static bool gbLightShadows = false;
 static float gfCoronaDistanceMul = 0.0f;
-static float gfCoronaNearClip = 1.5f;
+static float gfCoronaNearClip = 0.45f;
 static float gfLightHeightLimit = 0.0f;
 static bool gbConfigInitialized = false;
 
@@ -78,7 +78,7 @@ static void EnsureConfigLoaded()
         gbLightCoronas = gConfig.ReadBoolean("FEATURES", "LightCoronas", false);
         gbLightShadows = gConfig.ReadBoolean("FEATURES", "LightShadows", false);
         gfCoronaDistanceMul = gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.0f);
-        gfCoronaNearClip = gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 1.5f);
+        gfCoronaNearClip = gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 0.45f);
         gfLightHeightLimit = gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 0.0f);
         gbConfigInitialized = true;
     }
@@ -110,7 +110,7 @@ static const float HEADLIGHT_PLIGHT_RANGE = 20.0f;
 
 void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float rangeMul)
 {
-    if (!pConfig || !pConfig->frame)
+    if (!pConfig || !pConfig->frame || !pConfig->pVeh)
     {
         return;
     }
@@ -123,8 +123,17 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
         return;
     }
 
+    CVector localPos = pConfig->frame->modelling.pos;
+    if (pConfig->mirroredX)
+    {
+        localPos.x *= -1.0f;
+    }
+
+    CVector lightPos = pConfig->pVeh->TransformFromObjectSpace(localPos);
+    CVector lightDir = pConfig->pVeh->GetMatrix().up;
+
     CRGBA col = pConfig->corona.color;
-    CPointLights::AddLight(PLTYPE_SPOTLIGHT, mat.pos, mat.up, HEADLIGHT_PLIGHT_RANGE * rangeMul,
+    CPointLights::AddLight(PLTYPE_SPOTLIGHT, lightPos, lightDir, HEADLIGHT_PLIGHT_RANGE * rangeMul,
                            col.r / 255.0f, col.g / 255.0f, col.b / 255.0f, 0, 0, 0);
 }
 
@@ -139,8 +148,7 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
     {
         float targetAngle = angle;
         if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight
-            || pConfig->lightType == eMaterialType::IndicatorLightLeftFront || pConfig->lightType == eMaterialType::IndicatorLightRightFront
-            || pConfig->lightType == eMaterialType::FogLightLeft || pConfig->lightType == eMaterialType::FogLightRight)
+            || pConfig->lightType == eMaterialType::IndicatorLightLeftFront || pConfig->lightType == eMaterialType::IndicatorLightRightFront)
             targetAngle = 0.0f;
         else if (pConfig->lightType == eMaterialType::TailLightLeft || pConfig->lightType == eMaterialType::TailLightRight
               || pConfig->lightType == eMaterialType::BrakeLightLeft || pConfig->lightType == eMaterialType::BrakeLightRight

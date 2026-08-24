@@ -14,7 +14,8 @@ bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
     if (name == "taillights" || name == "taillights2") {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Rear;
-        c.corona.color = {250, 0, 0, 255};
+        c.corona.size = LightsGlobal::Get().gfTailLightCoronaSize;
+        c.corona.color = {250, 0, 0, static_cast<unsigned char>(LightsGlobal::Get().gTailLightCoronaIntensity)};
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = name != "taillights2";
         
@@ -38,8 +39,9 @@ void TailLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
         || pControlVeh->m_nVehicleSubClass == VEHICLE_QUAD || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE
         || pControlVeh->m_nVehicleSubClass == VEHICLE_TRAILER) 
     {
-        bool isLeftRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_LEFT));
-        bool isRightRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_RIGHT));
+        bool isRearBumperDamaged = Util::IsPanelDamaged(pTowedVeh, ePanels::BUMP_REAR);
+        bool isLeftRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_LEFT) || isRearBumperDamaged);
+        bool isRightRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_RIGHT) || isRearBumperDamaged);
 
         bool tailOn = (Util::IsNightTime() || CarUtil::IsLightsForcedOn(pControlVeh)) && !CarUtil::IsLightsForcedOff(pControlVeh);
         if (tailOn) {

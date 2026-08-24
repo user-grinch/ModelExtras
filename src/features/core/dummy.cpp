@@ -5,6 +5,7 @@
 #include "enums/dummypos.h"
 #include <CWorld.h>
 #include <CBike.h>
+#include <CModelInfo.h>
 
 extern float gfGlobalCoronaSize;
 extern int gGlobalCoronaIntensity;
@@ -23,8 +24,19 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
     data = config;
     float angleVal = 0.0f;
 
-    // Calculate the angle based on the frame's orientation
-    data.rotation.angle = static_cast<float>(Util::RadToDeg(CGeneral::GetATanOfXY(data.frame->modelling.right.x, data.frame->modelling.right.y)));
+    // Calculate the heading angle (0 = Forward, 180 = Rear, 90 = Left, 270 = Right) based on frame's forward orientation
+    float dir_x = data.frame->modelling.up.x;
+    float dir_y = data.frame->modelling.up.y;
+
+    // Handle pitch-flipped / mirrored frames (at.z < 0 and right.x < 0) from 3ds Max/ZModeler
+    if (data.frame->modelling.at.z < 0.0f && data.frame->modelling.right.x < 0.0f)
+    {
+        dir_x = -dir_x;
+        dir_y = -dir_y;
+    }
+
+    float rad = std::atan2(-dir_x, dir_y);
+    data.rotation.angle = Util::NormalizeAngle(static_cast<float>(Util::RadToDeg(rad)));
 
     auto &jsonData = DataMgr::Get(data.pVeh->m_nModelIndex);
     std::string name = GetFrameNodeName(data.frame);
@@ -110,7 +122,12 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
             if (prmPos + 10 < name.size())
             {
                 int type = name[prmPos + 10] - '0';
-                data.corona.lightingType = (type == 2) ? eLightingMode::NonDirectional : eLightingMode::Directional;
+                if (type == 2)
+                    data.corona.lightingType = eLightingMode::NonDirectional;
+                else if (type == 1)
+                    data.corona.lightingType = eLightingMode::Inversed;
+                else
+                    data.corona.lightingType = eLightingMode::Directional;
             }
             else
             {
@@ -177,6 +194,22 @@ void VehicleDummy::Update() {
     data.shadow.position.x = data.position.x = basis.right.x * offset.x + basis.right.y * offset.y + basis.right.z * offset.z;
     data.shadow.position.y = data.position.y = basis.up.x * offset.x + basis.up.y * offset.y + basis.up.z * offset.z;
     data.shadow.position.z = data.position.z = basis.at.x * offset.x + basis.at.y * offset.y + basis.at.z * offset.z;
+
+    // Protection against buggy DFF models where child dummies are exported with root-space coordinates
+    // (causing RenderWare hierarchy translation to double-offset the position far beyond the vehicle body)
+    CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(data.pVeh->m_nModelIndex));
+    if (pInfo && pInfo->m_pColModel)
+    {
+        const auto &box = pInfo->m_pColModel->m_boundBox;
+        const float MARGIN = 0.5f;
+        if (data.position.y > box.m_vecMax.y + MARGIN || data.position.y < box.m_vecMin.y - MARGIN
+            || data.position.x > box.m_vecMax.x + MARGIN || data.position.x < box.m_vecMin.x - MARGIN
+            || data.position.z > box.m_vecMax.z + MARGIN || data.position.z < box.m_vecMin.z - MARGIN)
+        {
+            data.position = data.frame->modelling.pos;
+            data.shadow.position = data.frame->modelling.pos;
+        }
+    }
 
     if (data.mirroredX)
     {

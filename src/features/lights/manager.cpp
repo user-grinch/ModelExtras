@@ -94,10 +94,23 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
 void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType type, bool isOn, const std::string& texture) {
     if (!isOn) return;
 
-    if (IsDummyAvailable(data, type)) {
+    bool hasActiveDummy = false;
+    bool isAvailable = IsDummyAvailable(data, type);
+
+    if (isAvailable) {
         for (auto* dummy : data.dummies[type]) {
             dummy->Update();
             const DummyConfig& c = dummy->GetRef();
+            RwFrame *parent = RwFrameGetParent(dummy->Get().frame);
+            bool isBike = pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
+            bool isDamaged = Util::IsFrameDamaged(pVeh, parent) || !FrameUtil::IsOkAtomicVisible(parent);
+            bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && isDamaged;
+
+            if (atomicCheck) {
+                continue;
+            }
+
+            hasActiveDummy = true;
 
             if (gConfig.ReadBoolean("FEATURES", "LightCoronas", false)) {
                 if (c.corona.lightingType == eLightingMode::NonDirectional) {
@@ -124,7 +137,9 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
             }
         }
     }
-    ModelInfoMgr::EnableMaterial(pVeh, type);
+        if (!isAvailable || hasActiveDummy) {
+        ModelInfoMgr::EnableMaterial(pVeh, type);
+    }
 }
 
 bool LightManager::IsDummyAvailable(VehLightData& data, eMaterialType type) {

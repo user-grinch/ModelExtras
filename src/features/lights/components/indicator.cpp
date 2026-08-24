@@ -35,10 +35,23 @@ bool IndicatorComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
     return false;
 }
 
+struct CarPathLinkAddress {
+    unsigned short m_nCarPathLinkId : 10;
+    unsigned short m_nAreaId : 6;
+
+    constexpr static auto* Cast(CCarPathLinkAddress* oldFormat) {
+        return (CarPathLinkAddress*)(oldFormat);
+    }
+    constexpr static const auto* Cast(const CCarPathLinkAddress* oldFormat) {
+        return (const CarPathLinkAddress*)(oldFormat);
+    }
+};
+
 static CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
-    if (address.m_nAreaId >= 0 && address.m_nCarPathLinkId >= 0 && ThePaths.m_pNaviNodes && ThePaths.m_pNaviNodes[address.m_nAreaId]) {
-        return CVector2D(static_cast<float>(ThePaths.m_pNaviNodes[address.m_nAreaId][address.m_nCarPathLinkId].m_vecPosn.x) / 8.0f,
-                         static_cast<float>(ThePaths.m_pNaviNodes[address.m_nAreaId][address.m_nCarPathLinkId].m_vecPosn.y) / 8.0f);
+    auto* addr = CarPathLinkAddress::Cast(&address);
+    if (ThePaths.m_pNaviNodes && addr->m_nAreaId < 64 && ThePaths.m_pNaviNodes[addr->m_nAreaId]) {
+        return CVector2D(static_cast<float>(ThePaths.m_pNaviNodes[addr->m_nAreaId][addr->m_nCarPathLinkId].m_vecPosn.x) / 8.0f,
+                         static_cast<float>(ThePaths.m_pNaviNodes[addr->m_nAreaId][addr->m_nCarPathLinkId].m_vecPosn.y) / 8.0f);
     }
     return CVector2D(0.0f, 0.0f);
 }
@@ -52,13 +65,13 @@ void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
         static uint32_t indicatorRightKey = gConfig.ReadInteger("KEYS", "IndicatorLightRightKey", VK_C);
         static uint32_t indicatorBothKey = gConfig.ReadInteger("KEYS", "IndicatorLightBothKey", VK_X);
 
-        if (KeyPressed(indicatorNoneKey)) {
+        if (Util::IsKeyPressed(indicatorNoneKey)) {
             data.nIndicatorState = eIndicatorState::Off;
-        } else if (KeyPressed(indicatorLeftKey)) {
+        } else if (Util::IsKeyPressed(indicatorLeftKey)) {
             data.nIndicatorState = eIndicatorState::LeftOn;
-        } else if (KeyPressed(indicatorRightKey)) {
+        } else if (Util::IsKeyPressed(indicatorRightKey)) {
             data.nIndicatorState = eIndicatorState::RightOn;
-        } else if (KeyPressed(indicatorBothKey)) {
+        } else if (Util::IsKeyPressed(indicatorBothKey)) {
             data.nIndicatorState = eIndicatorState::BothOn;
         }
     } else if (pVeh->m_pDriver && !bSAMP) {
@@ -92,10 +105,11 @@ void IndicatorComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
     bool leftOn = (data.nIndicatorState == eIndicatorState::LeftOn || data.nIndicatorState == eIndicatorState::BothOn);
     bool rightOn = (data.nIndicatorState == eIndicatorState::RightOn || data.nIndicatorState == eIndicatorState::BothOn);
 
-    bool isLeftFrontOk = !Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT);
-    bool isRightFrontOk = !Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT);
-    bool isLeftRearOk = !Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_LEFT);
-    bool isRightRearOk = !Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_RIGHT);
+    bool isLeftFrontOk = !Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT) || pControlVeh->bSirenOrAlarm;
+    bool isRightFrontOk = !Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT) || pControlVeh->bSirenOrAlarm;
+    bool isRearBumperDamaged = Util::IsPanelDamaged(pTowedVeh, ePanels::BUMP_REAR);
+    bool isLeftRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_LEFT) || isRearBumperDamaged);
+    bool isRightRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_RIGHT) || isRearBumperDamaged);
 
     if (leftOn) {
         LightManager::RenderLight(pControlVeh, data, eMaterialType::IndicatorLightLeftFront, isLeftFrontOk, "indicator");

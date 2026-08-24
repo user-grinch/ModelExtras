@@ -189,10 +189,11 @@ void FrameUtil::ShowAllChilds(RwFrame *parent_frame)
     FrameUtil::ShowAllAtomics(parent_frame);
 }
 
-bool FrameUtil::IsOkAtomicVisible(RwFrame* frame) {
-	if (frame && !rwLinkListEmpty(&frame->objectList)) {
-        RwObjectHasFrame *atomic;
+bool FrameUtil::IsAtomicVisible(RwFrame* frame) {
+    if (!frame) return true;
 
+    if (!rwLinkListEmpty(&frame->objectList)) {
+        RwObjectHasFrame *atomic;
         RwLLLink *current = rwLinkListGetFirstLLLink(&frame->objectList);
         RwLLLink *end = rwLinkListGetTerminator(&frame->objectList);
 
@@ -210,6 +211,28 @@ bool FrameUtil::IsOkAtomicVisible(RwFrame* frame) {
         if (hasAtomics) {
             return false;
         }
+    }
+
+    return true;
+}
+
+bool FrameUtil::IsOkAtomicVisible(RwFrame* frame) {
+    if (!frame) return true;
+
+    if (!IsAtomicVisible(frame)) {
+        return false;
+    }
+
+    // Check if this component dummy has child damage parts (e.g. bump_front_ok, wing_lf_ok)
+    RwFrame *child = frame->child;
+    while (child) {
+        const char *childName = GetFrameNodeName(child);
+        if (childName && strstr(childName, "_ok")) {
+            if (!IsAtomicVisible(child)) {
+                return false;
+            }
+        }
+        child = child->next;
     }
 
     return true;

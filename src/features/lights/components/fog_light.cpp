@@ -15,7 +15,7 @@ bool FogLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
         c.dummyPos = eDummyPos::Front;
         c.lightType = STR_FOUND(name, "_l") ? eMaterialType::FogLightLeft : eMaterialType::FogLightRight;
         c.shadow.render = false;
-        c.corona.lightingType = eLightingMode::Directional;
+        c.corona.lightingType = eLightingMode::NonDirectional;
         data.dummies[c.lightType].push_back(new VehicleDummy(c));
         return true;
     }
@@ -27,7 +27,7 @@ void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
         static size_t prev = 0;
         static uint32_t fogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", VK_J);
 
-        if (KeyPressed(fogLightKey)) {
+        if (Util::IsKeyPressed(fogLightKey)) {
             size_t now = CTimer::m_snTimeInMilliseconds;
             if (now - prev > 500) {
                 data.bFogLightsOn = !data.bFogLightsOn;
@@ -40,6 +40,7 @@ void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
 
 void FogLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
     if (!data.bFogLightsOn) return;
-    LightManager::RenderLight(pTowedVeh, data, eMaterialType::FogLightLeft, true, "foglight");
-    LightManager::RenderLight(pTowedVeh, data, eMaterialType::FogLightRight, true, "foglight");
+    bool isFogOk = !Util::IsPanelDamaged(pControlVeh, ePanels::BUMP_FRONT);
+    LightManager::RenderLight(pTowedVeh, data, eMaterialType::FogLightLeft, isFogOk, "foglight");
+    LightManager::RenderLight(pTowedVeh, data, eMaterialType::FogLightRight, isFogOk, "foglight");
 }
