@@ -2,90 +2,103 @@
 #include "remap.h"
 #include <TxdDef.h>
 #include <CTxdStore.h>
-#include "utils/texmgr.h"
+#include "utils/modelinfomgr.h"
 #include <rw/rwcore.h>
 #include <rw/rpworld.h>
-
-void Remap::LoadRemaps(CVehicle* vehicle)
-{
-    CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(vehicle->m_nModelIndex);
-    if (pModelInfo)
-    {
-        CTxdStore::PushCurrentTxd();
-        CTxdStore::SetCurrentTxd(pModelInfo->m_nTxdIndex);
-        static RwTexDictionary *pDict;
-        pDict = RwTexDictionaryGetCurrent();
-        RwTexDictionaryForAllTextures(pDict, [](RwTexture *pTex, void *pData)
-        { 
-            int model = *(int*)pData;
-            std::string name = pTex->name;
-            if (name.starts_with("#") || name.starts_with("remap")) {
-                return pTex;
-            }
-            std::size_t remapPos = name.find("_remap");
-            if (remapPos == std::string::npos) {
-                return pTex;
-            }
-
-            std::string orgName = name.substr(0, remapPos);
-            RemapData &data = xRemaps[model];
-
-            // Add original texture if it's the first remap texture found for it
-            if (data.pTextures.find(orgName) == data.pTextures.end()) {
-                RwTexture *pOrgTex = TextureMgr::FindInDict(orgName, pDict);
-                if (pOrgTex) {
-                    data.pTextures[orgName].push_back(pOrgTex);
-                }
-            }
-            
-            // Add the remap texture itself
-            data.pTextures[orgName].push_back(pTex);
-
-			return pTex; 
-        }, &vehicle->m_nModelIndex);
-        CTxdStore::PopCurrentTxd();
-    }
-}
-
-static std::vector<std::pair<unsigned int *, unsigned int>> pOriginalTextures;
-static std::map<void *, int> pRandom;
+#include <algorithm>
 
 void Remap::Init()
 {
-    Events::vehicleRenderEvent.before += [](CVehicle *vehicle)
-    {
-        BeforeRender(vehicle);
-    };
-
-    Events::vehicleRenderEvent.after += [](CVehicle *vehicle)
-    {
-        AfterRender(vehicle);
-    };
-
+    m_bEnabled = true;
     Events::vehicleDtorEvent += [](CVehicle *vehicle)
     {
         pRandom.erase(vehicle);
     };
 }
 
-void Remap::AfterRender(CVehicle* vehicle)
+void Remap::LoadRemaps(CVehicle* vehicle)
 {
-    for (auto &pEnt : pOriginalTextures)
+    CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(vehicle->m_nModelIndex);
+    if (!pModelInfo) return;
+
+    CTxdStore::PushCurrentTxd();
+    CTxdStore::SetCurrentTxd(pModelInfo->m_nTxdIndex);
+
+    RwTexDictionary *pDict = nullptr;
+    if (CTxdStore::ms_pTxdPool && pModelInfo->m_nTxdIndex >= 0)
     {
-        *pEnt.first = pEnt.second;
+        auto *pDef = CTxdStore::ms_pTxdPool->GetAt(pModelInfo->m_nTxdIndex);
+        if (pDef)
+        {
+            pDict = pDef->m_pRwDictionary;
+        }
     }
-    pOriginalTextures.clear();
+    if (!pDict)
+    {
+        pDict = RwTexDictionaryGetCurrent();
+    }
+    if (!pDict)
+    {
+        CTxdStore::PopCurrentTxd();
+        return;
+    }
+
+    int model = vehicle->m_nModelIndex;
+    RemapData &data = xRemaps[model];
+
+    // Collect all textures in the TXD by lowercase name
+    std::map<std::string, RwTexture*> allTextures;
+    RwTexDictionaryForAllTextures(pDict, [](RwTexture *pTex, void *pData)
+    {
+        auto *pMap = reinterpret_cast<std::map<std::string, RwTexture*>*>(pData);
+        if (pTex && pTex->name[0])
+        {
+            std::string name = pTex->name;
+            std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+            (*pMap)[name] = pTex;
+        }
+        return pTex;
+    }, &allTextures);
+
+    // Group textures into base -> [base, remap1, remap2, ...]
+    for (const auto &[name, pTex] : allTextures)
+    {
+        if (name.starts_with("#") || name.starts_with("remap"))
+            continue;
+
+        std::size_t remapPos = name.find("_remap");
+        if (remapPos == std::string::npos)
+            continue;
+
+        std::string orgName = name.substr(0, remapPos);
+
+        // Add original texture first if present and not already added
+        if (data.pTextures.find(orgName) == data.pTextures.end())
+        {
+            auto itOrg = allTextures.find(orgName);
+            if (itOrg != allTextures.end())
+            {
+                data.pTextures[orgName].push_back(itOrg->second);
+            }
+        }
+
+        data.pTextures[orgName].push_back(pTex);
+    }
+    CTxdStore::PopCurrentTxd();
 }
 
-void Remap::BeforeRender(CVehicle* vehicle)
+void Remap::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat)
 {
-    int model = vehicle->m_nModelIndex;
-    CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(model);
+    if (!m_bEnabled || !pVeh || !pMat || !pMat->texture)
+    {
+        return;
+    }
 
+    int model = pVeh->m_nModelIndex;
     RemapData &data = xRemaps[model];
     if (!data.bRemapsLoaded)
     {
-        LoadRemaps(vehicle);
+        LoadRemaps(pVeh);
         data.bRemapsLoaded = true;
     }
 
@@ -94,34 +107,30 @@ void Remap::BeforeRender(CVehicle* vehicle)
         return;
     }
 
-    data.pCurPtr = vehicle;
-    RpClumpForAllAtomics(pModelInfo->m_pRwClump, [](RpAtomic *atomic, void *data)
+    std::string name = pMat->texture->name;
+    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+
+    auto it = data.pTextures.find(name);
+    if (it == data.pTextures.end() || it->second.empty())
     {
-        if (atomic->geometry) {
-            RpGeometryForAllMaterials(atomic->geometry, [](RpMaterial *mat, void *data) {
-                if (!mat->texture) {
-                    return mat;
-                }
+        return;
+    }
 
-                std::string name = mat->texture->name;
-                RemapData *pData = reinterpret_cast<RemapData*>(data);
+    int sz = static_cast<int>(it->second.size());
+    if (sz <= 1)
+    {
+        return;
+    }
 
-                if (pData->pTextures.find(name) == pData->pTextures.end()) {
-                    return mat;
-                }
-                
-                int sz = pData->pTextures[name].size();
-                if (pRandom.find(pData->pCurPtr) == pRandom.end() || pRandom[pData->pCurPtr] >= sz) {
-                    pRandom[pData->pCurPtr] = RandomNumberInRange(0, sz-1);
-                }
+    if (pRandom.find(pVeh) == pRandom.end())
+    {
+        pRandom[pVeh] = RandomNumberInRange(0, sz - 1);
+    }
 
-                pOriginalTextures.push_back({reinterpret_cast<unsigned int*>(&mat->texture), *reinterpret_cast<unsigned int *>(&mat->texture)});
-                
-                mat->texture = pData->pTextures[name][pRandom[pData->pCurPtr]];
-
-                return mat;
-            }, data);
-        }
-        return atomic; 
-    }, &data);
+    int chosen = pRandom[pVeh] % sz;
+    if (pMat->texture != it->second[chosen])
+    {
+        ModelInfoMgr::RegisterRestore(&pMat->texture, pMat->texture);
+        pMat->texture = it->second[chosen];
+    }
 }
