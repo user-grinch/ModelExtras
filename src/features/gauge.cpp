@@ -60,7 +60,7 @@ void MileageIndicator::Init()
 
             auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
             if (jsonData.contains("gauges") && jsonData["gauges"].contains(name)) {
-                indicator.fMul = jsonData["gauges"][name].value("kph", true) ? 160.9f : 1.0f;
+                indicator.fMul = jsonData["gauges"][name].value("kph", true) ? 1.0f : 1.60934f;
             }
             data.bInitialized = true;
         }

@@ -20,11 +20,11 @@ void Spoiler::Init()
             try {
                 spoilerData.m_fRotation = std::stof(name.substr(first + 1, second - first - 1));
             } catch (...) {
-                spoilerData.m_fRotation = 3.0f;
+                spoilerData.m_fRotation = 30.0f;
             }
         }
         else {
-            spoilerData.m_fRotation = 3.0f;
+            spoilerData.m_fRotation = 30.0f;
         }
 
         auto last = name.rfind('_');

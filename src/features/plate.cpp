@@ -12,6 +12,7 @@
 using namespace plugin;
 
 static CVehicle *pCurrentVeh = nullptr;
+extern bool gbProperShadersDetected;
 extern RwSurfaceProperties gLightSurfProps;
 extern RwSurfaceProperties gLightSurfPropsOff;
 
@@ -116,7 +117,11 @@ RpMaterial *__cdecl LicensePlate::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
 
     if (pCurrentVeh->m_fHealth > 0.0f && (Util::IsNightTime() || pCurrentVeh->bLightsOn || CarUtil::IsLightsForcedOn(pCurrentVeh)) && !CarUtil::IsLightsForcedOff(pCurrentVeh))
     {
-        material->surfaceProps = gLightSurfProps;
+        RwSurfaceProperties surfProps = gLightSurfProps;
+        if (gbProperShadersDetected) {
+            surfProps.ambient /= 10.0f;
+        }
+        material->surfaceProps = surfProps;
         RpMaterialSetTexture(material, m_Plates[plateType + 4]);
     }
     else
