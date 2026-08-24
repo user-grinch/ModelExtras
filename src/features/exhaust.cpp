@@ -113,6 +113,11 @@ void ExhaustFx::Init()
 
         for (auto& e : data.m_pDummies) {
             RenderSmokeFx(pVeh, e.second);
+            if (e.second.pFxSysem && data.lastNitroFrame != CTimer::m_FrameCounter) {
+                if (e.second.pFxSysem->m_nPlayStatus == eFxSystemPlayStatus::FX_PLAYING) {
+                    e.second.pFxSysem->Stop();
+                }
+            }
         } });
     ogFunc1 = injector::GetBranchDestination(0x6AB344, true).get();
     injector::MakeCALL(0x6AB344, hkAddExhaustParticles1, true);
@@ -135,6 +140,7 @@ ExhaustData ExhaustFx::LoadData(CVehicle *pVeh, RwFrame *pFrame)
     ExhaustData f;
     f.sName = GetFrameNodeName(pFrame);
     f.pFrame = pFrame;
+    f.bNitroEffect = true;
 
     auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
     if (jsonData.contains("exhausts") && jsonData["exhausts"].contains(f.sName))
@@ -279,6 +285,8 @@ void ExhaustFx::RenderNitroFx(CVehicle *pVeh, float power)
         return;
     }
 
+    data.lastNitroFrame = CTimer::m_FrameCounter;
+
     for (auto &e : data.m_pDummies)
     {
         if (!e.second.bNitroEffect)
@@ -338,6 +346,15 @@ void ExhaustFx::RenderNitroFx(CVehicle *pVeh, float power)
 
 void ExhaustFx::Reload(CVehicle* pVeh)
 {
+    if (pVeh) {
+        auto &data = m_VehData.Get(pVeh);
+        for (auto &e : data.m_pDummies) {
+            if (e.second.pFxSysem) {
+                e.second.pFxSysem->Kill();
+                e.second.pFxSysem = nullptr;
+            }
+        }
+    }
     nReloadCount++;
 }
 

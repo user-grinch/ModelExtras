@@ -24,17 +24,24 @@ struct ExhaustData
     float fLifeTime = 1.0f;             // Longer lifetime for larger pipes
     float fSpeedMul = 1.0f;             // Speed multiplier
     float fSizeMul = 1.0f;
-    bool bNitroEffect = false;
+    bool bNitroEffect = true;
     FxSystem_c *pFxSysem = nullptr;
 };
 
 struct ExhaustVehData {
     bool isUsed = false;
     size_t reloadCount = 0;
+    unsigned int lastNitroFrame = 0;
     std::vector<std::pair<std::string, ExhaustData>> m_pDummies;
     ExhaustVehData(CVehicle *pVeh) { isUsed = false; }
 
     ~ExhaustVehData() {
+        for (auto &e : m_pDummies) {
+            if (e.second.pFxSysem) {
+                e.second.pFxSysem->Kill();
+                e.second.pFxSysem = nullptr;
+            }
+        }
     }
 };
 
