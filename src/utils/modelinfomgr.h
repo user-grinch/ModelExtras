@@ -77,4 +77,7 @@ public:
   RegisterMaterialColProvider(const MaterialColProviderCallback_t &material);
   static void RegisterRender(const RenderCallback_t &render);
   static void Reload(CVehicle *pVeh);
+  static void RegisterRestore(void *address, void *value) {
+    m_RestoreEntries.push_back({address, value});
+  }
 };
