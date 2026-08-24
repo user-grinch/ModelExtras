@@ -86,6 +86,11 @@ static size_t GuardUpgradeFrameCalls(uint32_t start, uint32_t end) {
   return patched;
 }
 
+void ModelInfoMgr::ResetEditableMaterials()
+{
+  
+}
+
 void ModelInfoMgr::Init() {
   patch::Nop(0x4C8E53, 5);
   patch::Nop(0x4C8F6E, 5);
@@ -103,6 +108,8 @@ void ModelInfoMgr::Init() {
       0x5532A9, reinterpret_cast<void *>(ModelInfoMgr::SetupRender));
   patch::ReplaceFunction(
       0x4C8220, reinterpret_cast<void *>(ModelInfoMgr::SetEditableMaterialsCB));
+  patch::ReplaceFunction(
+      0x4C8460, reinterpret_cast<void *>(ModelInfoMgr::ResetEditableMaterials));
 
   Events::initScriptsEvent += []() {
     gLightSurfProps.ambient = gConfig.ReadFloat("VISUAL", "MaterialAmbientOn",
