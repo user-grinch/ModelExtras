@@ -24,19 +24,8 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
     data = config;
     float angleVal = 0.0f;
 
-    // Calculate the heading angle (0 = Forward, 180 = Rear, 90 = Left, 270 = Right) based on frame's forward orientation
-    float dir_x = data.frame->modelling.up.x;
-    float dir_y = data.frame->modelling.up.y;
-
-    // Handle pitch-flipped / mirrored frames (at.z < 0 and right.x < 0) from 3ds Max/ZModeler
-    if (data.frame->modelling.at.z < 0.0f && data.frame->modelling.right.x < 0.0f)
-    {
-        dir_x = -dir_x;
-        dir_y = -dir_y;
-    }
-
-    float rad = std::atan2(-dir_x, dir_y);
-    data.rotation.angle = Util::NormalizeAngle(static_cast<float>(Util::RadToDeg(rad)));
+    // Calculate the angle based on the frame's orientation
+    data.rotation.angle = static_cast<float>(Util::RadToDeg(CGeneral::GetATanOfXY(data.frame->modelling.right.x, data.frame->modelling.right.y)));
 
     auto &jsonData = DataMgr::Get(data.pVeh->m_nModelIndex);
     std::string name = GetFrameNodeName(data.frame);
