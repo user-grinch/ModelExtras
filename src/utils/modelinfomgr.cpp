@@ -14,6 +14,7 @@
 #include "features/carcols.h"
 #include "features/dirtfx.h"
 #include "features/plate.h"
+#include "defines.h"
 #include "utils/meevents.h"
 #include "utils/texmgr.h"
 
@@ -119,8 +120,13 @@ void ModelInfoMgr::Init() {
   Events::initScriptsEvent += []() {
     gLightSurfProps.ambient = gConfig.ReadFloat("VISUAL", "MaterialAmbientOn",
                                                 gLightSurfProps.ambient);
+    gLightSurfProps.diffuse =
+        gConfig.ReadFloat("VISUAL", "MaterialDiffuseOn", 0.0f);
+    gLightSurfProps.specular = 0.0f;
     gLightSurfPropsOff.ambient = gConfig.ReadFloat(
         "VISUAL", "MaterialAmbientOff", gLightSurfPropsOff.ambient);
+    gLightSurfPropsOff.diffuse = 0.0f;
+    gLightSurfPropsOff.specular = 0.0f;
   };
 
   MEEvents::vehRenderEvent.before += [](CVehicle *pVeh) {
@@ -327,12 +333,16 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
           }
         }
       }
-      material->surfaceProps.ambient = gLightSurfProps.ambient;
+      RwSurfaceProperties surfProps = gLightSurfProps;
+      if (gbProperShadersDetected) {
+        surfProps.ambient /= 10.0f;
+      }
+      material->surfaceProps = surfProps;
     } else {
-      pColor->red = matCol.on.r;
-      pColor->green = matCol.on.g;
-      pColor->blue = matCol.on.b;
-      material->surfaceProps.ambient = gLightSurfPropsOff.ambient;
+      pColor->red = matCol.off.r;
+      pColor->green = matCol.off.g;
+      pColor->blue = matCol.off.b;
+      material->surfaceProps = gLightSurfPropsOff;
     }
   } else {
     CRGBA col = {255, 255, 255, 255};
