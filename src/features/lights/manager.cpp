@@ -44,7 +44,49 @@ DummyConfig LightManager::CreateBaseConfig(CVehicle* pVeh, RwFrame* pFrame) {
     return c;
 }
 
+static bool IsLightTexture(RpMaterial *pMat)
+{
+	if (!pMat || !pMat->texture) {
+		return true;
+	}
+	if (!pMat->texture->name || pMat->texture->name[0] == '\0') {
+		return true;
+	}
+	if (pMat->texture == CVehicleModelInfo::ms_pLightsTexture || pMat->texture == CVehicleModelInfo::ms_pLightsOnTexture) {
+		return true;
+	}
+
+	char lowerName[64];
+	size_t len = strnlen(pMat->texture->name, sizeof(lowerName) - 1);
+	for (size_t i = 0; i < len; ++i) {
+		lowerName[i] = static_cast<char>(std::tolower(pMat->texture->name[i]));
+	}
+	lowerName[len] = '\0';
+	std::string_view name(lowerName, len);
+
+	return name.find("light") != std::string_view::npos ||
+	       name.find("lamp") != std::string_view::npos ||
+	       name.find("siren") != std::string_view::npos ||
+	       name.find("strobe") != std::string_view::npos ||
+	       name.find("indicator") != std::string_view::npos ||
+	       name.find("turn") != std::string_view::npos ||
+	       name.find("rev") != std::string_view::npos ||
+	       name.find("fog") != std::string_view::npos ||
+	       name.find("led") != std::string_view::npos ||
+	       name.find("lens") != std::string_view::npos ||
+	       name.find("glass") != std::string_view::npos ||
+	       name.find("glow") != std::string_view::npos ||
+	       name.find("emis") != std::string_view::npos ||
+	       name.find("flare") != std::string_view::npos ||
+	       name.find("corona") != std::string_view::npos ||
+	       name.find("bulb") != std::string_view::npos;
+}
+
 eMaterialType LightManager::GetMatType(RpMaterial* pMat) {
+    if (!pMat || !IsLightTexture(pMat)) {
+        return eMaterialType::UnknownMaterial;
+    }
+
     CRGBA matCol = *reinterpret_cast<CRGBA*>(RpMaterialGetColor(pMat));
     matCol.a = 255;
 
