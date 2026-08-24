@@ -102,9 +102,10 @@ void DashboardLEDs::Init()
 			EnableLED(pControlVeh, eMaterialType::FogLightLed);
 		}
 		
+		bool headlightsOn = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
 		if (data.m_bLongLightsOn) {
 			EnableLED(pControlVeh, eMaterialType::HighBeamLed);
-		} else {
+		} else if (headlightsOn) {
 			EnableLED(pControlVeh, eMaterialType::LowBeamLed);
 		}
 
@@ -125,8 +126,5 @@ void DashboardLEDs::Init()
 
 void DashboardLEDs::EnableLED(CVehicle *pVeh, eMaterialType type)
 {
-	auto& data = m_VehData.Get(pVeh);
-	if (ModelInfoMgr::IsMaterialAvailable(pVeh, type) && data.bLEDStates[type]) {
-		ModelInfoMgr::EnableMaterial(pVeh, type);
-	}
+	ModelInfoMgr::EnableMaterial(pVeh, type);
 }

@@ -7,7 +7,6 @@
 
 struct VehLEDData
 {
-	std::map<eMaterialType, bool> bLEDStates;
 	VehLEDData(CVehicle *pVeh) {}
 	~VehLEDData() {}
 };
