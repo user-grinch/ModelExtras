@@ -558,7 +558,7 @@ void Lights::Init()
 		RenderHeadlights(pControlVeh, isHeadlightLeftOk, isHeadlightRightOk, bTickRegistered);
 
 		if (SpotLights::IsEnabled(pControlVeh)) {
-			RenderLights(pControlVeh, pTowedVeh, eMaterialType::SpotLight, false);
+			RenderLights(pControlVeh, pTowedVeh, eMaterialType::SpotLight, false, "", 1.0f, false, true, true);
 		}
 
 		std::string shdwName = (isBike ? "taillight_bike" : "taillight");

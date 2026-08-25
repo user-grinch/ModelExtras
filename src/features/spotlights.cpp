@@ -2,35 +2,38 @@
 #include "spotlights.h"
 #include <CCamera.h>
 #include <CCoronas.h>
+#include <CShadows.h>
+#include <CPointLights.h>
+#include <CPools.h>
+#include <CWorld.h>
 #include "defines.h"
 #include "utils/texmgr.h"
-#include <CWorld.h>
-#include <extensions/ScriptCommands.h>
-#include <extensions/scripting/ScriptCommandNames.h>
 #include "utils/modelinfomgr.h"
+#include "utils/audiomgr.h"
+#include "utils/util.h"
 
 using namespace plugin;
 
 #define VK_RMB 0x02
 extern int gGlobalShadowIntensity;
 
-SpotlightData::~SpotlightData()
+static inline CVector2D GetPerpRight(const CVector2D &vec)
 {
-	if (searchLight != 0)
-	{
-		plugin::Command<plugin::Commands::DELETE_SEARCHLIGHT>(searchLight);
-		searchLight = 0;
-	}
+	return {vec.y, -vec.x};
 }
 
 void SpotLights::Init()
 {
-
 	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
-							   {
-        SpotlightData& data = m_VehData.Get(pVeh);
-		std::string name = GetFrameNodeName(pFrame);
-        if (name == "spotlight_dummy") data.pFrame = pFrame; });
+	{
+		SpotlightData &data = m_VehData.Get(pVeh);
+		if (nodeName == "spotlight_dummy")
+		{
+			data.pFrame = pFrame;
+			data.origPos = pFrame->modelling.pos;
+			data.bHasOrigPos = true;
+		}
+	});
 
 	Events::vehicleRenderEvent += [](CVehicle *pVeh)
 	{
@@ -45,9 +48,109 @@ void SpotLights::Init()
 	{
 		OnHudRender();
 	};
+
+	// Process point lights and ground shadows on script tick so they stay visible
+	// even when the vehicle itself is off-screen / behind the camera.
+	Events::processScriptsEvent += []()
+	{
+		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
+		{
+			if (!pVeh || pVeh->m_fHealth <= 0.0f)
+			{
+				continue;
+			}
+
+			SpotlightData &data = m_VehData.Get(pVeh);
+			if (!data.bEnabled || data.pFrame == nullptr)
+			{
+				continue;
+			}
+
+			if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 120.0f)
+			{
+				continue;
+			}
+
+			RwFrameUpdateObjects(data.pFrame);
+			CMatrix &frameLtm = *(CMatrix *)&data.pFrame->ltm;
+
+			CVector lightPos = frameLtm.pos;
+			CVector lightDir = frameLtm.up; // Forward vector of spotlight
+			lightDir.Normalize();
+
+			// 1. 3D Point Light: Placed 5.0m forward so it never touches our own car body, narrow spread with 16m radius
+			CVector plightPos = lightPos + lightDir * 5.0f;
+			CPointLights::AddLight(
+				PLTYPE_SPOTLIGHT,
+				plightPos,
+				lightDir,
+				16.0f,
+				1.4f, 1.4f, 1.4f,
+				0,
+				false,
+				pVeh
+			);
+
+			// 2. Ground Shadow: Thicker width, slightly shorter length
+			RwTexture *pTex = pSpotlightTex ? pSpotlightTex : TextureMgr::Get("spotlight", gGlobalShadowIntensity);
+			if (!pTex)
+			{
+				pTex = TextureMgr::Get("round", gGlobalShadowIntensity);
+			}
+
+			if (pTex)
+			{
+				float castDist = 12.5f;
+				CVector shadowCenter = lightPos + lightDir * castDist;
+				bool groundFound = false;
+				CEntity *pGroundEntity = nullptr;
+				float groundZ = CWorld::FindGroundZFor3DCoord(shadowCenter.x, shadowCenter.y, shadowCenter.z + 10.0f, &groundFound, &pGroundEntity);
+				if (groundFound)
+				{
+					shadowCenter.z = groundZ + 0.05f;
+				}
+
+				CVector2D front2D(lightDir.x, lightDir.y);
+				front2D.Normalize();
+				float shdwLength = 3.2f;
+				float shdwWidth = 3.8f;
+				CVector2D shdwFront = front2D * (shdwLength * 2.0f);
+				CVector2D shdwSide = GetPerpRight(front2D * shdwWidth);
+
+				float distToCam = CVector::Distance(shadowCenter, TheCamera.GetPosition());
+				if (distToCam < 130.0f)
+				{
+					float alphaMul = 1.0f;
+					if (distToCam > 80.0f)
+					{
+						alphaMul = (130.0f - distToCam) / 50.0f;
+					}
+					CShadows::StoreShadowToBeRendered(
+						2,
+						pTex,
+						&shadowCenter,
+						shdwFront.x, shdwFront.y,
+						shdwSide.x, shdwSide.y,
+						static_cast<short>(230 * alphaMul),
+						255, 255, 255,
+						8.0f,
+						false,
+						1.0f,
+						0,
+						true
+					);
+				}
+			}
+		}
+	};
+
 	Events::initGameEvent += []()
 	{
 		pSpotlightTex = TextureMgr::Get("spotlight", gGlobalShadowIntensity);
+		if (!pSpotlightTex)
+		{
+			pSpotlightTex = TextureMgr::Get("round", gGlobalShadowIntensity);
+		}
 	};
 }
 
@@ -59,7 +162,6 @@ bool SpotLights::IsEnabled(CVehicle *pVeh)
 void SpotLights::OnHudRender()
 {
 	CVehicle *pVeh = FindPlayerVehicle(-1, false);
-
 	if (!pVeh)
 	{
 		return;
@@ -76,6 +178,7 @@ void SpotLights::OnHudRender()
 		{
 			data.bEnabled = !data.bEnabled;
 			prev = now;
+			AudioMgr::PlaySwitchSound(pVeh);
 		}
 	}
 
@@ -84,10 +187,25 @@ void SpotLights::OnHudRender()
 		return;
 	}
 
-	data.pFrame->modelling = *(RwMatrix *)&TheCamera.m_mCameraMatrix;
-	float heading = pVeh->GetHeading() * 180.0f / 3.14f;
-	FrameUtil::SetRotationZ(data.pFrame, heading);
-};
+	if (!data.bHasOrigPos)
+	{
+		data.origPos = data.pFrame->modelling.pos;
+		data.bHasOrigPos = true;
+	}
+
+	// Aiming: Align spotlight frame orientation with camera look direction (AVS method)
+	data.pFrame->modelling.right = *(RwV3d *)&TheCamera.m_mCameraMatrix.right;
+	data.pFrame->modelling.up = *(RwV3d *)&TheCamera.m_mCameraMatrix.up;
+	data.pFrame->modelling.at = *(RwV3d *)&TheCamera.m_mCameraMatrix.at;
+	data.pFrame->modelling.pos = data.origPos;
+
+	float vehicleHeadingDeg = pVeh->GetHeading() * 180.0f / 3.14159265f;
+	static RwV3d axisZ = {0.0f, 0.0f, 1.0f};
+	RwFrameRotate(data.pFrame, &axisZ, vehicleHeadingDeg, rwCOMBINEPRECONCAT);
+	data.pFrame->modelling.pos = data.origPos;
+
+	RwFrameUpdateObjects(data.pFrame);
+}
 
 void SpotLights::OnVehicleRender(CVehicle *pVeh)
 {
@@ -95,32 +213,43 @@ void SpotLights::OnVehicleRender(CVehicle *pVeh)
 	if (!data.bEnabled || data.pFrame == nullptr)
 		return;
 
-	float vehicleHeading = pVeh->GetHeading();
-	CMatrix matrix = *(CMatrix *)&data.pFrame->modelling;
-	matrix.pos += ((RwFrame *)data.pFrame->object.parent)->modelling.pos;
-	matrix.RotateZ(vehicleHeading);
+	RwFrameUpdateObjects(data.pFrame);
+	CMatrix &frameLtm = *(CMatrix *)&data.pFrame->ltm;
 
-	pVeh->DoHeadLightReflectionSingle(matrix, 1);
-	RwV3d offset{0, 0, 0}, target, src;
-	CVector vehPos = pVeh->GetPosition();
-	RwV3dTransformPoint(&src, &offset, &data.pFrame->modelling);
-	RwV3dTransformPoint(&target, &offset, (RwMatrix *)&matrix);
+	CVector lightPos = frameLtm.pos;
+	CVector lightDir = frameLtm.up; // Forward vector of spotlight
+	lightDir.Normalize();
 
-	// target.x += vehPos.x;
-	// target.y += vehPos.y;
-	// target.z += vehPos.z;
-	// src.x += vehPos.x;
-	// src.y += vehPos.y;
-	// src.z += vehPos.z;
-
-	bool flag;
-	CEntity *pEnt;
-	target.z = CWorld::FindGroundZFor3DCoord(target.x, target.y, target.z + 20, &flag, &pEnt);
-
-	if (data.searchLight != 0)
+	// 1. Corona at the spotlight lamp position (strictly visible when looking from the front of the lamp)
+	CVector toCam = TheCamera.GetPosition() - lightPos;
+	toCam.Normalize();
+	float dot = CVector::Dot(lightDir, toCam);
+	if (dot > 0.25f)
 	{
-		Command<Commands::DELETE_SEARCHLIGHT>(data.searchLight);
-		data.searchLight = 0;
+		float alphaMul = std::clamp((dot - 0.25f) / 0.5f, 0.0f, 1.0f);
+		CRGBA col = {255, 255, 255, static_cast<unsigned char>(220 * alphaMul)};
+		CCoronas::RegisterCorona(
+			reinterpret_cast<unsigned int>(pVeh) + 49,
+			pVeh,
+			col.r, col.g, col.b, col.a,
+			data.pFrame->modelling.pos,
+			0.35f,
+			250.0f,
+			CORONATYPE_SHINYSTAR,
+			FLARETYPE_NONE,
+			false,
+			false,
+			0,
+			0.0f,
+			false,
+			0.45f,
+			0,
+			30.0f,
+			false,
+			true
+		);
 	}
-	Command<Commands::CREATE_SEARCHLIGHT>(target.x, target.y, target.z, src.x, src.y, src.z, 1.0, 0.05, &data.searchLight);
-};
+
+	// 2. Enable spotlight material glow on the vehicle
+	ModelInfoMgr::EnableMaterial(pVeh, eMaterialType::SpotLight);
+}

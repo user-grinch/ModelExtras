@@ -6,10 +6,11 @@
 struct SpotlightData
 {
 	RwFrame *pFrame = nullptr;
+	RwV3d origPos{0.0f, 0.0f, 0.0f};
+	bool bHasOrigPos = false;
 	bool bEnabled = false;
-	int searchLight = 0;
 	SpotlightData(CVehicle *pVeh) {}
-	~SpotlightData();
+	~SpotlightData() = default;
 };
 
 class SpotLights : public CVehFeature<SpotlightData>
