@@ -335,11 +335,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
           }
         }
       }
-      RwSurfaceProperties surfProps = gLightSurfProps;
-      if (gbProperShadersDetected) {
-        surfProps.ambient /= 10.0f;
-      }
-      material->surfaceProps = surfProps;
+      material->surfaceProps = gLightSurfProps;
     } else {
       pColor->red = matCol.off.r;
       pColor->green = matCol.off.g;
