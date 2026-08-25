@@ -114,6 +114,23 @@ void Lights::Init()
 		}
 	};
 
+	ModelInfoMgr::RegisterMaterialColProvider([](CVehicle *pVeh, RpMaterial *pMat, eMaterialType type) -> MatStateColor
+	{
+		if (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight)
+		{
+			bool longLights = pVeh && m_VehData.Get(pVeh).m_bLongLightsOn;
+			if (longLights)
+			{
+				return { CRGBA(255, 255, 255, 255), DEFAULT_MAT_COL };
+			}
+			else
+			{
+				return { CRGBA(190, 190, 190, 255), DEFAULT_MAT_COL };
+			}
+		}
+		return { DEFAULT_MAT_COL, DEFAULT_MAT_COL };
+	});
+
 	ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat)
 								   {
 		if (!m_bEnabled) {

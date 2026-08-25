@@ -34,6 +34,18 @@ void LightManager::Init() {
     m_Components.push_back(std::make_unique<AllDayLightComponent>());
     m_Components.push_back(std::make_unique<SideLightComponent>());
     m_Components.push_back(std::make_unique<SpotLightComponent>());
+
+    ModelInfoMgr::RegisterMaterialColProvider([](CVehicle* pVeh, RpMaterial* pMat, eMaterialType type) -> MatStateColor {
+        if (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) {
+            bool longLights = pVeh && m_VehData.Get(pVeh).bLongLightsOn;
+            if (longLights) {
+                return { CRGBA(255, 255, 255, 255), DEFAULT_MAT_COL };
+            } else {
+                return { CRGBA(190, 190, 190, 255), DEFAULT_MAT_COL };
+            }
+        }
+        return { DEFAULT_MAT_COL, DEFAULT_MAT_COL };
+    });
 }
 
 DummyConfig LightManager::CreateBaseConfig(CVehicle* pVeh, RwFrame* pFrame) {
