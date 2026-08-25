@@ -11,6 +11,7 @@ bool SpotLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
     if (name.starts_with("spotlight_light")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.lightType = eMaterialType::SpotLight;
+        c.corona.size = 0.0f;
         data.dummies[c.lightType].push_back(new VehicleDummy(c));
         return true;
     }
