@@ -322,8 +322,8 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
       m_RestoreEntries.push_back({&material->texture, material->texture});
 
       if (material->texture) {
-        if (material->texture == CVehicleModelInfo::ms_pLightsTexture) {
-          material->texture = CVehicleModelInfo::ms_pLightsOnTexture;
+        if (material->texture == TextureMgr::FindInDict("vehiclelights128", material->texture->dict, true)) {
+          material->texture = TextureMgr::FindInDict("vehiclelightson128", material->texture->dict, true);
         } else {
           RwTexture *pTex = TextureMgr::FindOnTextureInDict(
               material, material->texture->dict);
