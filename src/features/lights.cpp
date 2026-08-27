@@ -406,7 +406,7 @@ void Lights::Init()
 			}
 
 			static uint32_t longLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", VK_G);
-			if (Util::IsKeyPressed(longLightKey) && (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh)))
+			if (Util::IsKeyPressed(longLightKey) && (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh)) && !CarUtil::IsLightsForcedOff(pVeh))
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
@@ -468,7 +468,8 @@ void Lights::Init()
 
 			// High beam only. The low beam light is the game's own, doubling up there
 			// would just brighten it instead of extending the reach.
-			if (!m_VehData.Get(pVeh).m_bLongLightsOn || !(pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh)))
+			bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh)) && !CarUtil::IsLightsForcedOff(pVeh);
+			if (!m_VehData.Get(pVeh).m_bLongLightsOn || !isHeadlightsOn)
 			{
 				continue;
 			}
@@ -482,6 +483,12 @@ void Lights::Init()
 			for (eMaterialType type : {eMaterialType::HeadLightLeft, eMaterialType::HeadLightRight})
 			{
 				if (!IsDummyAvail(pVeh, type) || !GetLightState(pVeh, type))
+				{
+					continue;
+				}
+
+				eLights lightEnum = (type == eMaterialType::HeadLightLeft) ? eLights::LIGHT_FRONT_LEFT : eLights::LIGHT_FRONT_RIGHT;
+				if (Util::IsLightDamaged(pVeh, lightEnum))
 				{
 					continue;
 				}
