@@ -117,7 +117,8 @@ RpMaterial *__cdecl LicensePlate::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
     bool lightsOn = (pCurrentVeh->bLightsOn || CarUtil::IsLightsForcedOn(pCurrentVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pCurrentVeh))) && !CarUtil::IsLightsForcedOff(pCurrentVeh);
     if (pCurrentVeh->m_fHealth > 0.0f && lightsOn)
     {
-        material->surfaceProps = gLightSurfProps;
+        // material->surfaceProps = gLightSurfProps;
+        material->surfaceProps = {50.0f, 0.0f, 0.0f};
         RpMaterialSetTexture(material, m_Plates[plateType + 4]);
     }
     else
