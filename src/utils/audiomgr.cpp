@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <extensions/ScriptCommands.h>
 #include <CAudioEngine.h>
+#include <CCamera.h>
 
 using namespace plugin;
 
@@ -98,41 +99,8 @@ void AudioMgr::PlaySwitchSound(CEntity *pEntity)
         return;
     }
     static std::string path = MOD_DATA_PATH("audio/switch_toggle.wav");
-    PlayFileSound(path, pEntity, 1.0f, true);
-}
-
-static std::unordered_map<std::string, bool> is3DSupported;
-
-StreamHandle AudioMgr::Load(const std::string &path)
-{
-    if (path.empty())
-    {
-        return NULL;
-    }
-
-    StreamHandle handle = NULL;
-    if (!is3DSupported.contains(path) || is3DSupported[path])
-    {
-        Command<LOAD_3D_AUDIO_STREAM>(path.c_str(), &handle);
-    }
-
-    if (handle != NULL)
-    {
-        is3DSupported[path] = true;
-    }
-    else
-    {
-        Command<LOAD_AUDIO_STREAM>(path.c_str(), &handle);
-        if (handle == NULL)
-        {
-            LOG_VERBOSE("Failed to load sound '{}'", path);
-        }
-        else
-        {
-            is3DSupported[path] = false;
-        }
-    }
-    return handle;
+    CVector pos = pEntity ? pEntity->GetPosition() : (FindPlayerPed() ? FindPlayerPed()->GetPosition() : CVector(0.0f, 0.0f, 0.0f));
+    Play3DSound(path, pos, pEntity, 1.0f, 10.0f);
 }
 
 bool AudioMgr::ShouldPlaySound()
@@ -140,64 +108,112 @@ bool AudioMgr::ShouldPlaySound()
     return gbSoundEffectsEnabled;
 }
 
-void AudioMgr::PlayFileSound(const std::string &path, CEntity *pEntity, float volume, bool cached)
+void AudioMgr::Play3DSound(const std::string &path, const CVector &worldPos, CEntity *pEntity, float baseVolume, float maxDistance)
 {
-    if (!ShouldPlaySound())
+    if (!ShouldPlaySound() || path.empty())
     {
         return;
     }
 
-    StreamHandle handle = Load(path);
-    if (handle == NULL)
+    CPed *pPlayer = FindPlayerPed();
+    CVector listenerPos = pPlayer ? pPlayer->GetPosition() : TheCamera.GetPosition();
+    float dist = CVector::Distance(worldPos, listenerPos);
+    if (dist > maxDistance)
+    {
+        return; // Beyond maximum audible range: completely cull to prevent any resource waste or unwanted audio
+    }
+
+    // Natural quadratic distance attenuation
+    const float nearDist = 2.5f;
+    float distFactor = 1.0f;
+    if (dist > nearDist)
+    {
+        float ratio = (dist - nearDist) / (maxDistance - nearDist);
+        ratio = std::clamp(ratio, 0.0f, 1.0f);
+        distFactor = (1.0f - ratio) * (1.0f - ratio); // Smooth acoustic falloff
+    }
+
+    float finalVolume = baseVolume * distFactor;
+    if (finalVolume < 0.01f)
     {
         return;
     }
 
-    needToFree.push_back(handle);
+    StreamHandle handle = NULL;
+    Command<LOAD_3D_AUDIO_STREAM>(path.c_str(), &handle);
 
-    int state = eAudioStreamState::Stopped;
-    Command<GET_AUDIO_STREAM_STATE>(handle, &state);
-
-    if (state != eAudioStreamState::Playing)
+    if (handle != NULL)
     {
-        SetVolume(handle, volume);
-        if (pEntity == nullptr)
-        {
-            pEntity = FindPlayerPed();
-        }
+        needToFree.push_back(handle);
+        SetVolume(handle, finalVolume);
 
-        // We're verifying the type so static_cast should be fine 
-        if (pEntity->m_nType == ENTITY_TYPE_VEHICLE)
+        if (pEntity != nullptr)
         {
-            int hEntity = CPools::GetVehicleRef(static_cast<CVehicle *>(pEntity));
-            if (hEntity != NULL)
+            if (pEntity->m_nType == ENTITY_TYPE_VEHICLE)
             {
-                Command<SET_PLAY_3D_AUDIO_STREAM_AT_CAR>(handle, hEntity);
+                int hEntity = CPools::GetVehicleRef(static_cast<CVehicle *>(pEntity));
+                if (hEntity != NULL)
+                {
+                    Command<SET_PLAY_3D_AUDIO_STREAM_AT_CAR>(handle, hEntity);
+                }
+                else
+                {
+                    Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, worldPos.x, worldPos.y, worldPos.z);
+                }
             }
-        }
-        else if (pEntity->m_nType == ENTITY_TYPE_PED)
-        {
-            int hEntity = CPools::GetPedRef(static_cast<CPed *>(pEntity));
-            if (hEntity != NULL)
+            else if (pEntity->m_nType == ENTITY_TYPE_PED)
             {
-                Command<SET_PLAY_3D_AUDIO_STREAM_AT_CHAR>(handle, hEntity);
+                int hEntity = CPools::GetPedRef(static_cast<CPed *>(pEntity));
+                if (hEntity != NULL)
+                {
+                    Command<SET_PLAY_3D_AUDIO_STREAM_AT_CHAR>(handle, hEntity);
+                }
+                else
+                {
+                    Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, worldPos.x, worldPos.y, worldPos.z);
+                }
             }
-        }
-        else if (pEntity->m_nType == ENTITY_TYPE_OBJECT)
-        {
-            int hEntity = CPools::GetObjectRef(static_cast<CObject *>(pEntity));
-            if (hEntity != NULL)
+            else if (pEntity->m_nType == ENTITY_TYPE_OBJECT)
             {
-                Command<SET_PLAY_3D_AUDIO_STREAM_AT_OBJECT>(handle, hEntity);
+                int hEntity = CPools::GetObjectRef(static_cast<CObject *>(pEntity));
+                if (hEntity != NULL)
+                {
+                    Command<SET_PLAY_3D_AUDIO_STREAM_AT_OBJECT>(handle, hEntity);
+                }
+                else
+                {
+                    Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, worldPos.x, worldPos.y, worldPos.z);
+                }
+            }
+            else
+            {
+                Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, worldPos.x, worldPos.y, worldPos.z);
             }
         }
         else
         {
-            const CVector &pos = pEntity->GetPosition();
-            Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, pos.x, pos.y, pos.z);
+            Command<SET_PLAY_3D_AUDIO_STREAM_AT_COORDS>(handle, worldPos.x, worldPos.y, worldPos.z);
         }
+
         Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
     }
+    else
+    {
+        // 2D fallback with exact distance attenuation
+        Command<LOAD_AUDIO_STREAM>(path.c_str(), &handle);
+        if (handle != NULL)
+        {
+            needToFree.push_back(handle);
+            SetVolume(handle, finalVolume);
+            Command<SET_AUDIO_STREAM_STATE>(handle, static_cast<int>(eAudioStreamState::Playing));
+        }
+    }
+}
+
+void AudioMgr::PlayFileSound(const std::string &path, CEntity *pEntity, float volume, bool cached)
+{
+    CVector pos = pEntity ? pEntity->GetPosition() : (FindPlayerPed() ? FindPlayerPed()->GetPosition() : CVector(0.0f, 0.0f, 0.0f));
+    Play3DSound(path, pos, pEntity, volume, 40.0f);
 }
 
 void AudioMgr::SetVolume(StreamHandle handle, float volume)

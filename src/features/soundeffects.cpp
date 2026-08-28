@@ -33,8 +33,14 @@ void SoundEffects::Init()
     };
 
     Events::processScriptsEvent += []() {
+        CPed *pPlayer = FindPlayerPed();
+        if (!pPlayer) {
+            return;
+        }
+        CVector playerPos = pPlayer->GetPosition();
+
 		for (CVehicle *pVeh : CPools::ms_pVehiclePool) {
-			if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 50.0f ) {
+			if (CVector::Distance(pVeh->GetPosition(), playerPos) > 60.0f ) {
 				continue;
 			}
 
@@ -78,11 +84,11 @@ void SoundEffects::Init()
                             static std::string bikePath = MOD_DATA_PATH("audio/bike_engine_start.wav");
                             if (CModelInfo::IsBikeModel(model) || CModelInfo::IsQuadBikeModel(model))
                             {
-                                AudioMgr::PlayFileSound(bikePath, pVeh, 1.0f, true);
+                                AudioMgr::Play3DSound(bikePath, pVeh->GetPosition(), pVeh, 1.0f, 35.0f);
                             }
                             else
                             {
-                                AudioMgr::PlayFileSound(carPath, pVeh, 1.0f, true);
+                                AudioMgr::Play3DSound(carPath, pVeh->GetPosition(), pVeh, 1.0f, 35.0f);
                             }
                             data.m_nLastEngineSoundTime = curTime;
                         }
@@ -102,11 +108,11 @@ void SoundEffects::Init()
 
                     if (state)
                     {
-                        AudioMgr::PlayFileSound(onpath, pVeh, 0.6f, true);
+                        AudioMgr::Play3DSound(onpath, pVeh->GetPosition(), pVeh, 0.6f, 6.0f);
                     }
                     else
                     {
-                        AudioMgr::PlayFileSound(offpath, pVeh, 0.6f, true);
+                        AudioMgr::Play3DSound(offpath, pVeh->GetPosition(), pVeh, 0.6f, 6.0f);
                     }
                     data.m_bIndicatorState = state;
                 }
@@ -132,7 +138,7 @@ void SoundEffects::Init()
                 if (pedal <= 0.05f && data.m_fMaxPedal > 0.0f)
                 {
                     static std::string path = MOD_DATA_PATH("audio/airbreak.wav");
-                    AudioMgr::PlayFileSound(path, pVeh, data.m_fBrakePressure, true);
+                    AudioMgr::Play3DSound(path, pVeh->GetPosition(), pVeh, data.m_fBrakePressure, 40.0f);
                     data.m_fMaxPedal = 0.0f;
                     data.m_fBrakePressure = 0.0f;
                 }
@@ -147,7 +153,7 @@ void SoundEffects::Init()
                     unsigned int curTime = CTimer::m_snTimeInMilliseconds;
                     if (curTime - data.m_nLastReverseSoundTime >= 1000)
                     {
-                        AudioMgr::PlayFileSound(path, pVeh, 0.5f, true);
+                        AudioMgr::Play3DSound(path, pVeh->GetPosition(), pVeh, 0.5f, 30.0f);
                         data.m_nLastReverseSoundTime = curTime;
                     }
                 }
