@@ -17,10 +17,6 @@
   <a href="https://discord.gg/AduJVdyqCD">
     <img src="https://img.shields.io/badge/Join%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord" style="border-radius: 8px;">
   </a>
-  &nbsp;
-  <a href="https://www.patreon.com/grinch_">
-    <img src="https://img.shields.io/badge/Support%20on%20Patreon-FF424D?style=for-the-badge&logo=patreon&logoColor=white" alt="Patreon" style="border-radius: 8px;">
-  </a>
 </p>
 
 ### 📦 Download
@@ -36,4 +32,21 @@
 
 > ⚠️ *Supports only GTA San Andreas v1.0 US (Hoodlum)*
 
-<p align="center"><sub>📜 List of credits and donators is included in <code>ModelExtras.ini</code></sub></p>
+---
+
+### 👥 Authors
+- **Grinch_**
+- **Caner Karaca**
+- **Ameer**
+
+### 🌟 Credits
+- **CLEO Devs**
+- **Damix**
+- **DKPac22**
+- **D4dj**
+- **Junior-Djjr**
+- **KaiQ**
+- **Nora**
+- **PluginSDK Devs**
+- **reSA Devs**
+- **SanVive Team**

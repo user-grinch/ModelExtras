@@ -119,13 +119,13 @@ void ModelInfoMgr::Init() {
       0x4C8460, reinterpret_cast<void *>(ModelInfoMgr::ResetEditableMaterials));
 
   Events::initScriptsEvent += []() {
-    gLightSurfProps.ambient = gConfig.ReadFloat("VISUAL", "MaterialAmbientOn",
-                                                gLightSurfProps.ambient);
+    gLightSurfProps.ambient = gConfig.ReadFloat("LIGHTS", "MaterialAmbientOn",
+                                                gConfig.ReadFloat("VISUAL", "MaterialAmbientOn", gLightSurfProps.ambient));
     gLightSurfProps.diffuse =
-        gConfig.ReadFloat("VISUAL", "MaterialDiffuseOn", 0.0f);
+        gConfig.ReadFloat("LIGHTS", "MaterialDiffuseOn", gConfig.ReadFloat("VISUAL", "MaterialDiffuseOn", 0.0f));
     gLightSurfProps.specular = 0.0f;
     gLightSurfPropsOff.ambient = gConfig.ReadFloat(
-        "VISUAL", "MaterialAmbientOff", gLightSurfPropsOff.ambient);
+        "LIGHTS", "MaterialAmbientOff", gConfig.ReadFloat("VISUAL", "MaterialAmbientOff", gLightSurfPropsOff.ambient));
     gLightSurfPropsOff.diffuse = 0.0f;
     gLightSurfPropsOff.specular = 0.0f;
   };
