@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "pch.h"
 #include "exhausts.h"
 #include <CWorld.h>
 #include <CCamera.h>
@@ -72,12 +71,12 @@ void ExhaustFx::FindNodes(CVehicle *pVeh, RwFrame *pFrame)
 {
     if (pFrame)
     {
-        std::string name = GetFrameNodeName(pFrame);
+        std::string_view name = GetSafeFrameNodeName(pFrame);
         if (name.starts_with(NODE_NAME))
         {
             auto &data = m_VehData.Get(pVeh);
             data.isUsed = true;
-            data.m_pDummies.emplace_back(std::move(name), std::move(LoadData(pVeh, pFrame)));
+            data.m_pDummies.emplace_back(std::string(name), LoadData(pVeh, pFrame));
         }
 
         if (RwFrame *newFrame = pFrame->child)
@@ -138,7 +137,7 @@ void ExhaustFx::Init()
 ExhaustData ExhaustFx::LoadData(CVehicle *pVeh, RwFrame *pFrame)
 {
     ExhaustData f;
-    f.sName = GetFrameNodeName(pFrame);
+    f.sName = GetSafeFrameNodeName(pFrame);
     f.pFrame = pFrame;
     f.bNitroEffect = true;
 

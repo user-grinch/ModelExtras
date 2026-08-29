@@ -28,9 +28,9 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
     data.rotation.angle = static_cast<float>(Util::RadToDeg(CGeneral::GetATanOfXY(data.frame->modelling.right.x, data.frame->modelling.right.y)));
 
     auto &jsonData = DataMgr::Get(data.pVeh->m_nModelIndex);
-    std::string name = GetFrameNodeName(data.frame);
+    std::string_view name = GetSafeFrameNodeName(data.frame);
 
-    std::string parentName = GetFrameNodeName(RwFrameGetParent(data.frame));
+    std::string_view parentName = GetSafeFrameNodeName(RwFrameGetParent(data.frame));
     if (parentName.ends_with("_dummy")) {
         data.isParentDummy = true;
     }
@@ -39,7 +39,7 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
     // rolled with the bike. Lights parented straight to the root keep the plain entity
     // matrix, and using the lean matrix on those would tilt them the wrong way instead.
     for (RwFrame *pParent = RwFrameGetParent(data.frame); pParent; pParent = RwFrameGetParent(pParent)) {
-        if (std::string(GetFrameNodeName(pParent)).ends_with("_dummy")) {
+        if (GetSafeFrameNodeName(pParent).ends_with("_dummy")) {
             data.leanAffected = true;
             break;
         }

@@ -9,8 +9,7 @@ const float minInterval = 20.0f;
 
 void ChainFeature::Init() {
   ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName) {
-    std::string name = GetFrameNodeName(pFrame);
-    if (name.starts_with("x_chain") || name.starts_with("fc_chain")) {
+    if (nodeName.starts_with("x_chain") || nodeName.starts_with("fc_chain")) {
       ChainData &data = m_VehData.Get(pVeh);
       data.m_pRootFrame = pFrame;
       FrameUtil::StoreChilds(pFrame, data.m_FrameList);

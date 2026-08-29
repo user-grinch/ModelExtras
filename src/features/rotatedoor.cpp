@@ -46,10 +46,11 @@ void RotateDoor::Init()
 
         float mul = 1.0f;
         float popOutAmount = 0.0f;
+        std::string nameStr(name);
 
-        if (jsonData.contains("doors") && jsonData["doors"].contains(name)) {
-            mul = jsonData["doors"][name].value("mul", 1.0f);
-            popOutAmount = jsonData["doors"][name].value("popout", 0.15f);
+        if (jsonData.contains("doors") && jsonData["doors"].contains(nameStr)) {
+            mul = jsonData["doors"][nameStr].value("mul", 1.0f);
+            popOutAmount = jsonData["doors"][nameStr].value("popout", 0.15f);
         }
 
         float orgRot = static_cast<float>(MatrixUtil::GetRotationZ(&pFrame->modelling));

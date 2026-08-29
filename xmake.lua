@@ -57,11 +57,7 @@ target("ModelExtras")
     )
 
     add_syslinks(
-        "dwmapi", 
-        "shell32", 
-        "gdi32", 
-        "user32", 
-        "advapi32"
+        "user32"
     )
 
     set_warnings("all")

@@ -6,19 +6,18 @@
 void Spoiler::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
-                               {
-        std::string name = GetFrameNodeName(pFrame);
-        if (!name.starts_with("movspoiler")) {
+    {
+        if (!nodeName.starts_with("movspoiler")) {
             return;
         }
         
         SpoilerVehData &data = m_VehData.Get(pVeh);
         SpoilerData spoilerData;
-        auto first = name.find('_');
-        auto second = name.find('_', first + 1);
-        if (first != std::string::npos && second != std::string::npos && second > first + 1) {
+        auto first = nodeName.find('_');
+        auto second = (first != std::string_view::npos) ? nodeName.find('_', first + 1) : std::string_view::npos;
+        if (first != std::string_view::npos && second != std::string_view::npos && second > first + 1) {
             try {
-                spoilerData.m_fRotation = std::stof(name.substr(first + 1, second - first - 1));
+                spoilerData.m_fRotation = std::stof(std::string(nodeName.substr(first + 1, second - first - 1)));
             } catch (...) {
                 spoilerData.m_fRotation = 3.0f;
             }
@@ -27,10 +26,10 @@ void Spoiler::Init()
             spoilerData.m_fRotation = 3.0f;
         }
 
-        auto last = name.rfind('_');
-        if (last != std::string::npos && last + 1 < name.size()) {
+        auto last = nodeName.rfind('_');
+        if (last != std::string_view::npos && last + 1 < nodeName.size()) {
             try {
-                spoilerData.m_nTime = std::stof(name.substr(last + 1));
+                spoilerData.m_nTime = std::stof(std::string(nodeName.substr(last + 1)));
             } catch (...) {
                 spoilerData.m_nTime = 3000.0f;
             }
@@ -42,6 +41,7 @@ void Spoiler::Init()
         spoilerData.m_pFrame = pFrame;
 
         auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
+        std::string name(nodeName);
         if (jsonData.contains("spoilers") && jsonData["spoilers"].contains(name))
         {
             spoilerData.m_fRotation = jsonData["spoilers"][name].value("rotation", 30.0f);
@@ -52,7 +52,8 @@ void Spoiler::Init()
         {
             spoilerData.m_nTriggerSpeed = 20.0f;
         }
-        data.m_Spoilers.push_back(spoilerData); });
+        data.m_Spoilers.push_back(spoilerData);
+    });
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
                                 {

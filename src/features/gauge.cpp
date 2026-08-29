@@ -15,19 +15,19 @@ static inline float ClampRotation(float value, float maxRot)
 void GearIndicator::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
-                                {
-        std::string name = GetFrameNodeName(pFrame);
-        if (name.starts_with("x_gearmeter") || name.starts_with("fc_gm")) {
+    {
+        if (nodeName.starts_with("x_gearmeter") || nodeName.starts_with("fc_gm")) {
             VehGearData &data = m_VehData.Get(pVeh);
 
             GearIndicatorData indData;
             indData.pRoot = pFrame;
             FrameUtil::StoreChilds(pFrame, indData.vecFrameList);
             data.vecIndicatorData.push_back(std::move(indData));
-        } });
+        }
+    });
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
-                                 {
+    {
         if (!pVeh || !pVeh->GetIsOnScreen()) return;
 
         VehGearData &data = m_VehData.Get(pVeh);
@@ -48,9 +48,9 @@ void GearIndicator::Init()
 void MileageIndicator::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName) {
-        std::string name = GetFrameNodeName(pFrame);
-        if (name.starts_with("x_odometer") || name.starts_with("fc_om")) {
+        if (nodeName.starts_with("x_odometer") || nodeName.starts_with("fc_om")) {
             VehMileageData &data = m_VehData.Get(pVeh);
+            std::string name(nodeName);
             auto& indicator = data.vecIndicatorData[name];
 
             FrameUtil::StoreChilds(pFrame, indicator.vecFrameList);
@@ -113,10 +113,10 @@ void MileageIndicator::Init()
 void RPMGauge::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
-                                {
-        std::string name = GetFrameNodeName(pFrame);
-        if (name.starts_with("x_rpm") || name.starts_with("fc_rpm") || name.starts_with("tahook")) {
+    {
+        if (nodeName.starts_with("x_rpm") || nodeName.starts_with("fc_rpm") || nodeName.starts_with("tahook")) {
             VehRPMData &data = m_VehData.Get(pVeh);
+            std::string name(nodeName);
             auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
             if (jsonData.contains("gauges") && jsonData["gauges"].contains(name))
             {
@@ -131,10 +131,11 @@ void RPMGauge::Init()
             }
             data.vecGaugeData[name].pFrame = pFrame;
             data.bInitialized = true;
-        } });
+        }
+    });
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
-                                 {
+    {
         if (!pVeh || !pVeh->GetIsOnScreen()) return;
 
         VehRPMData &data = m_VehData.Get(pVeh);
@@ -160,38 +161,40 @@ void RPMGauge::Init()
                 FrameUtil::SetRotationY(e.second.pFrame, change);
                 e.second.fCurRotation += change;
             }
-        } });
+        }
+    });
 }
 
 void SpeedGauge::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
-                                {
-    std::string name = GetFrameNodeName(pFrame);
-    if (name.starts_with("x_sm") || name.starts_with("fc_sm") || name.starts_with("speedook")) {
-        VehSpeedData &data = m_VehData.Get(pVeh);
-        auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-        if (jsonData.contains("gauges") && jsonData["gauges"].contains(name))
-        {
-            if (jsonData["gauges"][name].contains("kph"))
+    {
+        if (nodeName.starts_with("x_sm") || nodeName.starts_with("fc_sm") || nodeName.starts_with("speedook")) {
+            VehSpeedData &data = m_VehData.Get(pVeh);
+            std::string name(nodeName);
+            auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
+            if (jsonData.contains("gauges") && jsonData["gauges"].contains(name))
             {
-                data.vecGaugeData[name].fMul = jsonData["gauges"][name]["kph"].get<bool>() ? 160.9f : 1;
+                if (jsonData["gauges"][name].contains("kph"))
+                {
+                    data.vecGaugeData[name].fMul = jsonData["gauges"][name]["kph"].get<bool>() ? 160.9f : 1;
+                }
+                if (jsonData["gauges"][name].contains("maxspeed"))
+                {
+                    data.vecGaugeData[name].iMaxSpeed = jsonData["gauges"][name].value("maxspeed", data.vecGaugeData[name].iMaxSpeed);
+                }
+                if (jsonData["gauges"][name].contains("maxrotation"))
+                {
+                    data.vecGaugeData[name].fMaxRotation = jsonData["gauges"][name].value("maxrotation", data.vecGaugeData[name].fMaxRotation);
+                }
             }
-            if (jsonData["gauges"][name].contains("maxspeed"))
-            {
-                data.vecGaugeData[name].iMaxSpeed = jsonData["gauges"][name].value("maxspeed", data.vecGaugeData[name].iMaxSpeed);
-            }
-            if (jsonData["gauges"][name].contains("maxrotation"))
-            {
-                data.vecGaugeData[name].fMaxRotation = jsonData["gauges"][name].value("maxrotation", data.vecGaugeData[name].fMaxRotation);
-            }
+            data.vecGaugeData[name].pFrame = pFrame;
+            data.bInitialized = true;
         }
-        data.vecGaugeData[name].pFrame = pFrame;
-        data.bInitialized = true;
-    } });
+    });
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
-                                 {
+    {
         if (!pVeh || !pVeh->GetIsOnScreen()) return;
 
         VehSpeedData &data = m_VehData.Get(pVeh);
@@ -210,16 +213,17 @@ void SpeedGauge::Init()
                 FrameUtil::SetRotationY(e.second.pFrame, change);
                 e.second.fCurRotation += change;
             }
-        } });
+        }
+    });
 }
 
 void TurboGauge::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
-                                {
-        std::string name = GetFrameNodeName(pFrame);
-        if (name.starts_with("x_tm")) {
+    {
+        if (nodeName.starts_with("x_tm")) {
             VehTurboData &data = m_VehData.Get(pVeh);
+            std::string name(nodeName);
             auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
             if (jsonData.contains("gauges") && jsonData["gauges"].contains(name))
             {
@@ -234,10 +238,11 @@ void TurboGauge::Init()
             }
             data.vecGaugeData[name].pFrame = pFrame;
             data.bInitialized = true;
-        } });
+        }
+    });
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
-                                 {
+    {
         if (!pVeh || !pVeh->GetIsOnScreen()) return;
 
         VehTurboData &data = m_VehData.Get(pVeh);
@@ -264,24 +269,25 @@ void TurboGauge::Init()
                 e.second.fCurRotation += change;
                 e.second.fPrevTurbo = speed;
             }
-        } });
+        }
+    });
 }
 
 void FixedGauge::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
-                                {
-        std::string name = GetFrameNodeName(pFrame);
-
-        if (name.starts_with("x_gauge_fixed") || name == "x_gasmeter" || name == "x_gm" || name == "petrolok") {
+    {
+        if (nodeName.starts_with("x_gauge_fixed") || nodeName == "x_gasmeter" || nodeName == "x_gm" || nodeName == "petrolok") {
             auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
 
             float minAngle = 20.0f;
             float maxAngle = 70.0f;
+            std::string name(nodeName);
             if (jsonData.contains("gauges") && jsonData["gauges"].contains(name)) {
                 minAngle = jsonData["gauges"][name].value("minangle", minAngle);
                 maxAngle = jsonData["gauges"][name].value("maxangle", maxAngle);
             }
             FrameUtil::SetRotationY(pFrame, RandomNumberInRange(minAngle, maxAngle));
-        } });
+        }
+    });
 }

@@ -9,15 +9,15 @@ void DigitalClockFeature::Init()
     LOG_VERBOSE("Init {}", __FUNCTION__);
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
     {
-        std::string name = GetFrameNodeName(pFrame);
-        if (name.starts_with("x_dclock")) {
+        if (nodeName.starts_with("x_dclock")) {
             ClockData &data = m_VehData.Get(pVeh);
             data.m_pRootFrame = pFrame;
 
             auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-            if (jsonData.contains("clocks") && jsonData["clocks"].contains(name))
+            std::string nameStr(nodeName);
+            if (jsonData.contains("clocks") && jsonData["clocks"].contains(nameStr))
             {
-                data.m_b12HourFormat = jsonData["clocks"][name].value("12hformat", false);
+                data.m_b12HourFormat = jsonData["clocks"][nameStr].value("12hformat", false);
             }
 
             RwFrame *pCur = pFrame->child;
@@ -25,8 +25,8 @@ void DigitalClockFeature::Init()
             int flag = 0;
             while (pCur)
             {
-                name = GetFrameNodeName(pCur);
-                if (data.m_pDigitsRoot == nullptr && name == "digits")
+                std::string_view childName = GetSafeFrameNodeName(pCur);
+                if (data.m_pDigitsRoot == nullptr && childName == "digits")
                 {
                     data.m_pDigitsRoot = pCur;
                     flag++;
@@ -34,7 +34,7 @@ void DigitalClockFeature::Init()
 
                 for (int i = 0; i < 4; i++)
                 {
-                    if (data.m_pDigitPos[i] == nullptr && name == std::format("digit{}", i+1))
+                    if (data.m_pDigitPos[i] == nullptr && childName == std::format("digit{}", i+1))
                     {
                         data.m_pDigitPos[i] = pCur;
                         flag++;

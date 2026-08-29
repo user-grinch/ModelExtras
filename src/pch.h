@@ -30,4 +30,11 @@ extern bool gVerboseLogging;
   } while (0)
 
 
+inline std::string_view GetSafeFrameNodeName(RwFrame *pFrame)
+{
+    if (!pFrame) return {};
+    const char *name = GetFrameNodeName(pFrame);
+    return name ? std::string_view(name) : std::string_view{};
+}
+
 static inline CBaseModelInfo **CModelInfo__ms_modelInfoPtrs = reinterpret_cast<CBaseModelInfo **>(patch::GetPointer(0x403DA7));

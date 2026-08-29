@@ -73,25 +73,24 @@ void RollbackBed::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
     {
-        std::string name = GetFrameNodeName(pFrame);
-        if (!name.starts_with("x_rb"))
+        if (!nodeName.starts_with("x_rb"))
         {
             return;
         }
         
         RollbackBedData &data = m_VehData.Get(pVeh);
 
-        if (name == "x_rb_bed")
+        if (nodeName == "x_rb_bed")
         {
             data.pBedFrame = pFrame;
         }
 
-        if (name == "x_rb_hydraulics")
+        if (nodeName == "x_rb_hydraulics")
         {
             data.pHydralicsShellFrame = pFrame;
         }
 
-        if (name.starts_with("x_rb_hydraulic_"))
+        if (nodeName.starts_with("x_rb_hydraulic_"))
         {
             // Initialize new piston with defaults
             HydraulicPiston newPiston;

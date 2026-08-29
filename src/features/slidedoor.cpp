@@ -30,13 +30,11 @@ void SlideDoor::UpdateDoorGroup(CVehicle *pVeh, std::vector<SlideDoorConfig> &co
 void SlideDoor::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
-                                {
-        std::string name = GetFrameNodeName(pFrame);
-
-        bool isLF = name.starts_with("dvan_l") || name.starts_with("dmbus_l") || name.starts_with("x_sd_lf");
-        bool isRF = name.starts_with("dvan_r") || name.starts_with("dmbus_r") || name.starts_with("x_sd_rf");
-        bool isLR = name.starts_with("x_sd_lr");
-        bool isRR = name.starts_with("x_sd_rr");
+    {
+        bool isLF = nodeName.starts_with("dvan_l") || nodeName.starts_with("dmbus_l") || nodeName.starts_with("x_sd_lf");
+        bool isRF = nodeName.starts_with("dvan_r") || nodeName.starts_with("dmbus_r") || nodeName.starts_with("x_sd_rf");
+        bool isLR = nodeName.starts_with("x_sd_lr");
+        bool isRR = nodeName.starts_with("x_sd_rr");
 
         if (!isLF && !isRF && !isLR && !isRR) return;
 
@@ -45,6 +43,7 @@ void SlideDoor::Init()
 
         float mul = 1.0f;
         float popOutAmount = 0.15f;
+        std::string name(nodeName);
 
         if (jsonData.contains("doors") && jsonData["doors"].contains(name)) {
             mul = jsonData["doors"][name].value("movmul", 1.0f);
@@ -56,7 +55,8 @@ void SlideDoor::Init()
         if (isLF)      data.leftFront.push_back(cfg);
         else if (isRF) data.rightFront.push_back(cfg);
         else if (isLR) data.leftRear.push_back(cfg);
-        else if (isRR) data.rightRear.push_back(cfg); });
+        else if (isRR) data.rightRear.push_back(cfg);
+    });
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
                                  {

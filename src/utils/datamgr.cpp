@@ -19,10 +19,24 @@ void DataMgr::Init()
 {
     Convert();
 
-    LOG(INFO) << "Loading data files from ModelExtras/data...";
-    for (const auto &e : std::filesystem::directory_iterator(MOD_DATA_PATH("data/")))
+    std::string dataPath = std::string(MOD_DATA_PATH("data/"));
+    if (!std::filesystem::exists(dataPath) || !std::filesystem::is_directory(dataPath))
     {
-        LoadFile(e);
+        LOG(WARNING) << "ModelExtras/data directory doesn't exist or is not a directory";
+        return;
+    }
+
+    LOG(INFO) << "Loading data files from ModelExtras/data...";
+    try
+    {
+        for (const auto &e : std::filesystem::directory_iterator(dataPath))
+        {
+            LoadFile(e);
+        }
+    }
+    catch (const std::exception &ex)
+    {
+        LOG(ERROR) << std::format("Failed to iterate data directory: {}", ex.what());
     }
 }
 

@@ -36,27 +36,27 @@ bool ConvertibleRoof::UpdateRotation(RoofConfig &config, CVehicle *pVeh, bool cl
 void ConvertibleRoof::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
-                                {
-                                    std::string name = GetFrameNodeName(pFrame);
-                                    bool isBoot = name.starts_with("x_convertible_boot");
-                                    bool isRoof = name.starts_with("x_convertible_roof");
-                                    if (!isRoof && !isBoot)
-                                    {
-                                        return;
-                                    }
+    {
+        bool isBoot = nodeName.starts_with("x_convertible_boot");
+        bool isRoof = nodeName.starts_with("x_convertible_roof");
+        if (!isRoof && !isBoot)
+        {
+            return;
+        }
 
-                                    RoofConfig c;
-                                    c.pFrame = pFrame;
-                                    auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
-                                    if (jsonData.contains("roofs") && jsonData["roofs"].contains(name))
-                                    {
-                                        auto &data = jsonData["roofs"][name];
-                                        c.targetRot = jsonData["roofs"][name].value("rotation", c.targetRot);
-                                        c.speed = jsonData["roofs"][name].value("speed", c.speed);
-                                    }
+        RoofConfig c;
+        c.pFrame = pFrame;
+        auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
+        std::string name(nodeName);
+        if (jsonData.contains("roofs") && jsonData["roofs"].contains(name))
+        {
+            auto &data = jsonData["roofs"][name];
+            c.targetRot = data.value("rotation", c.targetRot);
+            c.speed = data.value("speed", c.speed);
+        }
 
-                                    RoofData &data = m_VehData.Get(pVeh);
-                                    data.m_bInit = true;
+        RoofData &data = m_VehData.Get(pVeh);
+        data.m_bInit = true;
 
                                     // Randomly open the roofs
                                     if (isRoof)
