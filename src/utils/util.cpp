@@ -48,8 +48,103 @@ bool Util::IsWindowFocused() {
     return true;
 }
 
+namespace
+{
+    struct SAMPVersionProfile
+    {
+        uintptr_t input;
+        uintptr_t dialog;
+    };
+
+    constexpr SAMPVersionProfile s_SampProfiles[] = {
+        { 0x26EB84, 0x26EB50 }, // 0.3.7-R5 / open.mp
+        { 0x26E8CC, 0x26E898 }, // 0.3.7-R3
+        { 0x21A0E8, 0x21A0B8 }, // 0.3.7-R1
+        { 0x2ACA14, 0x2AC9E0 }, // 0.3.DL
+        { 0x26E9FC, 0x26E9C8 }, // 0.3.7-R4
+        { 0x21A0F0, 0x21A0C0 }  // 0.3.7-R2
+    };
+
+    uintptr_t s_sampModBase = 0;
+    uintptr_t s_pInputPtrAddr = 0;
+    uintptr_t s_pDialogPtrAddr = 0;
+
+    void ResolveSAMPPointersSEH(uintptr_t base)
+    {
+        __try
+        {
+            for (const auto &p : s_SampProfiles)
+            {
+                uintptr_t pInputAddr = base + p.input;
+                uintptr_t pInput = *reinterpret_cast<const uintptr_t *>(pInputAddr);
+                if (pInput > 0x10000)
+                {
+                    int cmdCount = *reinterpret_cast<const int *>(pInput + 0x14DC);
+                    int enabled = *reinterpret_cast<const int *>(pInput + 0x14E0);
+                    if (cmdCount > 0 && cmdCount <= 144 && (enabled == 0 || enabled == 1))
+                    {
+                        s_pInputPtrAddr = pInputAddr;
+                        s_pDialogPtrAddr = base + p.dialog;
+                        return;
+                    }
+                }
+            }
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+        }
+    }
+}
+
+bool Util::IsSAMPInputActive() {
+    if (s_pInputPtrAddr == 0) {
+        if (s_sampModBase == 0) {
+            HMODULE hMod = GetModuleHandleA("samp.dll");
+            if (!hMod) hMod = GetModuleHandleA("omp-client.dll");
+            if (!hMod) hMod = GetModuleHandleA("openmp.dll");
+            if (!hMod) hMod = GetModuleHandleA("omp.dll");
+            if (!hMod) return false;
+            s_sampModBase = reinterpret_cast<uintptr_t>(hMod);
+        }
+
+        ResolveSAMPPointersSEH(s_sampModBase);
+        if (s_pInputPtrAddr == 0) return false;
+    }
+
+    __try
+    {
+        uintptr_t pInput = *reinterpret_cast<const uintptr_t *>(s_pInputPtrAddr);
+        if (pInput)
+        {
+            if (*reinterpret_cast<const int *>(pInput + 0x14E0) != 0) {
+                return true;
+            }
+        }
+
+        if (s_pDialogPtrAddr)
+        {
+            uintptr_t pDialog = *reinterpret_cast<const uintptr_t *>(s_pDialogPtrAddr);
+            if (pDialog)
+            {
+                if (*reinterpret_cast<const int *>(pDialog + 0x28) != 0) {
+                    return true;
+                }
+            }
+        }
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        s_pInputPtrAddr = 0;
+        s_pDialogPtrAddr = 0;
+        return false;
+    }
+
+    return false;
+}
+
+
 bool Util::IsKeyPressed(int keyCode) {
-    if (!IsWindowFocused()) {
+    if (!IsWindowFocused() || IsSAMPInputActive()) {
         return false;
     }
     return (GetAsyncKeyState(keyCode) & 0x8000) != 0;
