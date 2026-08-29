@@ -728,6 +728,30 @@ void Lights::Init()
 				{
 					data.m_nIndicatorState = eIndicatorState::BothOn;
 				}
+
+				static bool bAutoIndicatorsOnSteer = gConfig.ReadBoolean("LIGHTS", "AutoIndicatorsOnSteer", gConfig.ReadBoolean("TWEAKS", "AutoIndicatorsOnSteer", false));
+				if (bAutoIndicatorsOnSteer && data.m_nIndicatorState != eIndicatorState::BothOn)
+				{
+					static bool bWasAutoSteerActive = false;
+					bool bSteerLeft = (pControlVeh->m_fSteerAngle > 0.08f) || Util::IsKeyPressed('A') || Util::IsKeyPressed(VK_LEFT);
+					bool bSteerRight = (pControlVeh->m_fSteerAngle < -0.08f) || Util::IsKeyPressed('D') || Util::IsKeyPressed(VK_RIGHT);
+
+					if (bSteerLeft && !bSteerRight)
+					{
+						data.m_nIndicatorState = eIndicatorState::LeftOn;
+						bWasAutoSteerActive = true;
+					}
+					else if (bSteerRight && !bSteerLeft)
+					{
+						data.m_nIndicatorState = eIndicatorState::RightOn;
+						bWasAutoSteerActive = true;
+					}
+					else if (bWasAutoSteerActive)
+					{
+						data.m_nIndicatorState = eIndicatorState::Off;
+						bWasAutoSteerActive = false;
+					}
+				}
 			} else if (pControlVeh->m_pDriver && !bSAMP) {
 				data.m_nIndicatorState = eIndicatorState::Off;
 				CVector2D prevPoint = GetCarPathLinkPosition(pControlVeh->m_autoPilot.m_nPreviousPathNodeInfo);
