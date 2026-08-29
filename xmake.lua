@@ -48,7 +48,6 @@ target("ModelExtras")
     add_includedirs(
         ".",
         "include", 
-        "include/coreutils", 
         "src", 
         "src/features"
     )

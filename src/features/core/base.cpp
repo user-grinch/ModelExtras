@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "core/base.h"
 #include "loader.h"
-#include "db/ini.hpp"
+#include "ini/ini.hpp"
 #include <format>
 
 extern CIniReader gConfig;
