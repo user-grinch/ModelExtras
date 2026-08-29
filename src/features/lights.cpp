@@ -93,7 +93,7 @@ void Lights::Init()
 	patch::SetUChar(0x6E0DEE, 0);
 
 	// NOP CVehicle::DoHeadLightBeam
-	if (!gConfig.ReadBoolean("TWEAKS", "HeadLightBeams", true))
+	if (!gConfig.ReadBoolean("LIGHTS", "HeadLightBeams", gConfig.ReadBoolean("TWEAKS", "HeadLightBeams", true)))
 	{
 		// cmp ax, ax
 		patch::SetRaw(0x6A2EA5, (void *)"\x66\x39\xC0\x90", 4);
