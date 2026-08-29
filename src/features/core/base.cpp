@@ -11,7 +11,6 @@ CBaseFeature::CBaseFeature(std::string name, std::string configSection, eFeature
 {
     if (IsActive()) {
         m_bActive = true;
-        ModelExtras::m_Features.push_back(this);
         if (m_featureId <= eFeatureMatrix::FeatureCount) {
             ModelExtras::m_bEnabledFeatures.set(static_cast<int>(m_featureId));
         }

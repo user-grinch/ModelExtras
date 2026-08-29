@@ -98,39 +98,39 @@ void ModelExtras::Init()
             }
         };
     }
-    new Remap();
-    new PedColors();
-    new ChainFeature();
-    new SlideDoor();
-    new RotateDoor();
-    new FixedGauge();
-    new GearIndicator();
-    new MileageIndicator();
-    new RPMGauge();
-    new SpeedGauge();
-    new Spoiler();
-    new TurboGauge();
-    new BackFireEffect();
-    new ConvertibleRoof();
-    new DashboardLEDs();
-    new DigitalClockFeature();
-    new DirtFx();
-    new ExhaustFx();
-    new ExtraWheel();
-    new LicensePlate();
+    RegisterFeature<Remap>();
+    RegisterFeature<PedColors>();
+    RegisterFeature<ChainFeature>();
+    RegisterFeature<SlideDoor>();
+    RegisterFeature<RotateDoor>();
+    RegisterFeature<FixedGauge>();
+    RegisterFeature<GearIndicator>();
+    RegisterFeature<MileageIndicator>();
+    RegisterFeature<RPMGauge>();
+    RegisterFeature<SpeedGauge>();
+    RegisterFeature<Spoiler>();
+    RegisterFeature<TurboGauge>();
+    RegisterFeature<BackFireEffect>();
+    RegisterFeature<ConvertibleRoof>();
+    RegisterFeature<DashboardLEDs>();
+    RegisterFeature<DigitalClockFeature>();
+    RegisterFeature<DirtFx>();
+    RegisterFeature<ExhaustFx>();
+    RegisterFeature<ExtraWheel>();
+    RegisterFeature<LicensePlate>();
     if (GetModuleHandle("samp.dll") == nullptr) {
-        new Carcols();
+        RegisterFeature<Carcols>();
     }
-    new RollbackBed();
-    new WheelHub();
-    new Lights();
-    new LightsFeature();
-    new Sirens();
-    new SoundEffects();
-    new SpotLights();
-    for (auto *pFeature : m_Features)
+    RegisterFeature<RollbackBed>();
+    RegisterFeature<WheelHub>();
+    RegisterFeature<Lights>();
+    RegisterFeature<LightsFeature>();
+    RegisterFeature<Sirens>();
+    RegisterFeature<SoundEffects>();
+    RegisterFeature<SpotLights>();
+    for (const auto &pFeature : m_Features)
     {
-        if (pFeature->IsActive())
+        if (pFeature && pFeature->IsActive())
         {
             pFeature->Init();
         }
@@ -139,7 +139,7 @@ void ModelExtras::Init()
 
 void ModelExtras::Reload(CVehicle *pVeh)
 {
-    for (auto* pFeature : m_Features) {
+    for (const auto &pFeature : m_Features) {
         if (pFeature) {
             pFeature->Reload(pVeh);
         }

@@ -46,7 +46,7 @@ public:
     float Offset = 0.0f;
     float Radius = 360.0f;
 
-    VehicleSirenRotator(nlohmann::json json)
+    VehicleSirenRotator(const nlohmann::json &json)
     {
         if (json.contains("direction"))
         {
@@ -103,9 +103,9 @@ public:
     eLightingMode Type = eLightingMode::Directional;
     bool ImVehFt = false;
     VehicleSirenShadow Shadow;
-    VehicleSirenRotator *Rotator;
+    VehicleSirenRotator *Rotator = nullptr;
 
-    VehicleSirenMaterial(std::string state, int material, nlohmann::json json);
+    VehicleSirenMaterial(std::string_view state, int material, const nlohmann::json &json);
     ~VehicleSirenMaterial()
     {
         if (Rotator) {
@@ -156,7 +156,7 @@ public:
     int Paintjob = -1;
     std::map<int, VehicleSirenMaterial *> Materials;
 
-    VehicleSirenState(std::string state, nlohmann::json json);
+    VehicleSirenState(std::string_view state, const nlohmann::json &json);
     ~VehicleSirenState()
     {
         for (auto &pair : Materials) {
@@ -173,7 +173,7 @@ public:
     std::vector<VehicleSirenState *> States;
     bool isImVehFtSiren = false;
 
-    VehicleSirenData(nlohmann::json json);
+    VehicleSirenData(const nlohmann::json &json);
     ~VehicleSirenData()
     {
         for (auto *state : States) {
@@ -189,14 +189,17 @@ public:
 class VehicleSiren
 {
 public:
+    CVehicle *vehicle = nullptr;
     int State = 0;
     bool Mute = false;
     uint64_t Delay = 0;
     std::map<int, std::vector<VehicleDummy *>> Dummies;
     bool SirenState = false;
     bool Trailer = false;
+    bool bUsesSirenChecked = false;
+    bool bUsesSiren = false;
 
-    VehicleSiren(CVehicle *_vehicle);
+    VehicleSiren(CVehicle *_vehicle = nullptr);
     ~VehicleSiren()
     {
         for (auto &pair : Dummies) {
@@ -209,22 +212,19 @@ public:
 
     bool GetSirenState();
 
-    int GetCurrentState()
+    int GetCurrentState() const
     {
         return State;
     }
-
-private:
-    CVehicle *vehicle;
 };
 
-class Sirens : public CBaseFeature
+class Sirens : public CVehFeature<VehicleSiren>
 {
 protected:
     void Init() override;
 
 public:
-    Sirens() : CBaseFeature("SirenLights", "FEATURES", eFeatureMatrix::SirenLights) {}
+    Sirens() : CVehFeature<VehicleSiren>("SirenLights", "FEATURES", eFeatureMatrix::SirenLights) {}
     static inline int CurrentModel = -1;
 
     static void Parse(const nlohmann::json &data, int model);
@@ -233,7 +233,6 @@ public:
 
 private:
     static inline bool m_bEnabled = false;
-    static inline std::map<CVehicle*, VehicleSiren *> vehicleData;
     static inline std::map<int, VehicleSirenData *> modelData;
     static inline std::map<int, std::vector<VehicleDummy *>> modelRotators;
 

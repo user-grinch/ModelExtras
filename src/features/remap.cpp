@@ -10,10 +10,6 @@
 void Remap::Init()
 {
     m_bEnabled = true;
-    Events::vehicleDtorEvent += [](CVehicle *vehicle)
-    {
-        pRandom.erase(vehicle);
-    };
 }
 
 void Remap::LoadRemaps(CVehicle* vehicle)
@@ -47,14 +43,14 @@ void Remap::LoadRemaps(CVehicle* vehicle)
     RemapData &data = xRemaps[model];
 
     // Collect all textures in the TXD by lowercase name
-    std::map<std::string, RwTexture*> allTextures;
+    std::unordered_map<std::string, RwTexture*> allTextures;
     RwTexDictionaryForAllTextures(pDict, [](RwTexture *pTex, void *pData)
     {
-        auto *pMap = reinterpret_cast<std::map<std::string, RwTexture*>*>(pData);
+        auto *pMap = reinterpret_cast<std::unordered_map<std::string, RwTexture*>*>(pData);
         if (pTex && pTex->name[0])
         {
             std::string name = pTex->name;
-            std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+            std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
             (*pMap)[name] = pTex;
         }
         return pTex;
@@ -107,10 +103,14 @@ void Remap::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat)
         return;
     }
 
-    std::string name = pMat->texture->name;
-    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+    char lowerBuf[32];
+    size_t len = 0;
+    for (; len < sizeof(lowerBuf) - 1 && pMat->texture->name[len]; ++len) {
+        lowerBuf[len] = static_cast<char>(std::tolower(static_cast<unsigned char>(pMat->texture->name[len])));
+    }
+    lowerBuf[len] = '\0';
 
-    auto it = data.pTextures.find(name);
+    auto it = data.pTextures.find(lowerBuf);
     if (it == data.pTextures.end() || it->second.empty())
     {
         return;
@@ -122,12 +122,13 @@ void Remap::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat)
         return;
     }
 
-    if (pRandom.find(pVeh) == pRandom.end())
+    RemapVehData &vehData = m_VehData.Get(pVeh);
+    if (vehData.randomId == -1)
     {
-        pRandom[pVeh] = RandomNumberInRange(0, sz - 1);
+        vehData.randomId = RandomNumberInRange(0, sz - 1);
     }
 
-    int chosen = pRandom[pVeh] % sz;
+    int chosen = vehData.randomId % sz;
     if (pMat->texture != it->second[chosen])
     {
         ModelInfoMgr::RegisterRestore(&pMat->texture, pMat->texture);

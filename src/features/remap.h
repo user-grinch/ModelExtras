@@ -1,20 +1,26 @@
 #pragma once
 #include <plugin.h>
 #include "core/base.h"
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <string>
 
-struct RemapData {
-  bool bRemapsLoaded = false;
-  std::map<std::string, std::vector<RwTexture *>> pTextures;
+struct RemapVehData {
+  int randomId = -1;
+
+  RemapVehData(CVehicle *pVeh) {}
+  ~RemapVehData() {}
 };
 
-class Remap : public CBaseFeature
+struct RemapData {
+  bool bRemapsLoaded = false;
+  std::unordered_map<std::string, std::vector<RwTexture *>> pTextures;
+};
+
+class Remap : public CVehFeature<RemapVehData>
 {
 private: 
-  static inline std::map<int, RemapData> xRemaps;
-  static inline std::map<void *, int> pRandom;
+  static inline std::unordered_map<int, RemapData> xRemaps;
   static inline bool m_bEnabled = false;
   static void LoadRemaps(CVehicle* vehicle);
 
@@ -22,6 +28,6 @@ protected:
   void Init() override;
 
 public:
-  Remap() : CBaseFeature("TextureRemaper", "FEATURES", eFeatureMatrix::TextureRemapper) {}
+  Remap() : CVehFeature<RemapVehData>("TextureRemaper", "FEATURES", eFeatureMatrix::TextureRemapper) {}
   static void ProcessTextures(CVehicle *pVeh, RpMaterial *pMat);
 };

@@ -47,10 +47,10 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
 
     if (jsonData.contains("lights"))
     {
-        std::string newName = name.substr(0, name.find("_prm"));
-        if (jsonData["lights"].contains(newName.c_str()))
+        std::string newName(name.substr(0, name.find("_prm")));
+        if (jsonData["lights"].contains(newName))
         {
-            auto &lights = jsonData["lights"][newName.c_str()];
+            auto &lights = jsonData["lights"][newName];
 
             if (lights.contains("corona"))
             {

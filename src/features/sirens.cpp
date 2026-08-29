@@ -14,42 +14,41 @@
 
 bool VehicleSiren::GetSirenState()
 {
-	return (Mute == false) ? (vehicle->bSirenOrAlarm) : (true);
+	return (Mute == false) ? (vehicle ? vehicle->bSirenOrAlarm : false) : (true);
 }
 
 bool IsValidSirenVehicle(RwFrame *pFrame)
 {
-	bool flag = false;
-	if (pFrame)
+	if (!pFrame) return false;
+	std::string_view name = GetSafeFrameNodeName(pFrame);
+	if (name.starts_with("siren") || name.starts_with("light_em"))
 	{
-		const std::string name = GetFrameNodeName(pFrame);
-		if (name.starts_with("siren") || name.starts_with("light_em"))
-		{
-			return true;
-		}
-
-		if (RwFrame *newFrame = pFrame->child)
-		{
-			flag = flag || IsValidSirenVehicle(newFrame);
-		}
-		if (RwFrame *newFrame = pFrame->next)
-		{
-			flag = flag || IsValidSirenVehicle(newFrame);
-		}
+		return true;
 	}
-	return flag;
-}
 
-std::map<CVehicle *, bool> sirenExtraUsedFlag;
+	if (RwFrame *newFrame = pFrame->child)
+	{
+		if (IsValidSirenVehicle(newFrame)) return true;
+	}
+	if (RwFrame *newFrame = pFrame->next)
+	{
+		if (IsValidSirenVehicle(newFrame)) return true;
+	}
+	return false;
+}
 
 bool Sirens::hkUsesSiren(std::function<hkUsesSirenFunc> originalCall, CVehicle* ptr)
 {
-	if (!sirenExtraUsedFlag.count(ptr))
+	if (!ptr) return false;
+	auto &data = m_VehData.Get(ptr);
+	if (!data.bUsesSirenChecked)
 	{
-		sirenExtraUsedFlag[ptr] = IsValidSirenVehicle((RwFrame *)ptr->m_pRwClump->object.parent);
+		data.vehicle = ptr;
+		data.bUsesSiren = IsValidSirenVehicle(ptr->m_pRwClump ? (RwFrame *)ptr->m_pRwClump->object.parent : nullptr);
+		data.bUsesSirenChecked = true;
 	}
 
-	if (modelData.contains(ptr->m_nModelIndex) && sirenExtraUsedFlag[ptr])
+	if (modelData.contains(ptr->m_nModelIndex) && data.bUsesSiren)
 	{
 		ptr->m_vehicleAudio.m_bModelWithSiren = true;
 		return true;
@@ -70,12 +69,8 @@ void Sirens::Reload(CVehicle *pVeh)
 		delete itModel->second;
 		modelData.erase(itModel);
 	}
-	sirenExtraUsedFlag.erase(pVeh);
-	auto itVeh = vehicleData.find(pVeh);
-	if (itVeh != vehicleData.end()) {
-		delete itVeh->second;
-		vehicleData.erase(itVeh);
-	}
+	auto &data = m_VehData.Get(pVeh);
+	data = VehicleSiren(pVeh);
 	EventCtor(pVeh);
 	DataMgr::Reload(model);
 }
@@ -107,8 +102,9 @@ void Sirens::hkAddPointLights(
     originalCall(type, position, direction, range, red, green, blue, fogEffect, bCastsShadowFromPlayerCarAndPed, castingEntity);
 }
 
-VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nlohmann::json json)
+VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material, const nlohmann::json &jsonRaw)
 {
+	nlohmann::json json = jsonRaw;
 	if (json.size() == 0)
 	{
 		LOG_VERBOSE("Model {} siren configuration exception!", Sirens::CurrentModel);
@@ -450,9 +446,9 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string state, int material, nloh
 	Validate = true;
 };
 
-VehicleSirenState::VehicleSirenState(std::string state, nlohmann::json json)
+VehicleSirenState::VehicleSirenState(std::string_view state, const nlohmann::json &json)
 {
-	Name = state;
+	Name = std::string(state);
 
 	Paintjob = -1;
 
@@ -463,7 +459,7 @@ VehicleSirenState::VehicleSirenState(std::string state, nlohmann::json json)
 		return;
 	}
 
-	for (nlohmann::json::iterator material = json.begin(); material != json.end(); ++material)
+	for (nlohmann::json::const_iterator material = json.begin(); material != json.end(); ++material)
 	{
 		if (material.key() == "paintjob")
 		{
@@ -489,7 +485,7 @@ VehicleSirenState::VehicleSirenState(std::string state, nlohmann::json json)
 	Validate = true;
 };
 
-VehicleSirenData::VehicleSirenData(nlohmann::json json)
+VehicleSirenData::VehicleSirenData(const nlohmann::json &json)
 {
 	if (json.size() == 0)
 	{
@@ -500,38 +496,33 @@ VehicleSirenData::VehicleSirenData(nlohmann::json json)
 	VehicleSirenData::References.clear();
 	VehicleSirenData::ReferenceColors.clear();
 
-	nlohmann::json states = json;
+	const nlohmann::json &states = json.contains("states") ? json["states"] : json;
 
-	if (json.contains("states"))
+	if (json.contains("references"))
 	{
-		states = json["states"];
+		const nlohmann::json &references = json["references"];
 
-		if (json.contains("references"))
+		for (nlohmann::json::const_iterator reference = references.begin(); reference != references.end(); ++reference)
 		{
-			nlohmann::json references = json["references"];
+			std::string key = reference.key();
 
-			for (nlohmann::json::iterator reference = references.begin(); reference != references.end(); ++reference)
+			const nlohmann::json &value = reference.value();
+
+			if (key == "colors")
 			{
-				std::string key = reference.key();
-
-				nlohmann::json value = reference.value();
-
-				if (key == "colors")
+				for (nlohmann::json::const_iterator color = value.begin(); color != value.end(); ++color)
 				{
-					for (nlohmann::json::iterator color = value.begin(); color != value.end(); ++color)
-					{
-						VehicleSirenData::ReferenceColors[color.key()] = color.value();
-					}
-
-					continue;
+					VehicleSirenData::ReferenceColors[color.key()] = color.value();
 				}
 
-				VehicleSirenData::References[key] = value;
+				continue;
 			}
+
+			VehicleSirenData::References[key] = value;
 		}
 	}
 
-	for (nlohmann::json::iterator stateObject = states.begin(); stateObject != states.end(); ++stateObject)
+	for (nlohmann::json::const_iterator stateObject = states.begin(); stateObject != states.end(); ++stateObject)
 	{
 		VehicleSirenState *state = new VehicleSirenState(stateObject.key(), stateObject.value());
 
@@ -578,9 +569,8 @@ void Sirens::EventCtor(CVehicle *pVeh)
 {
 	if (Sirens::modelData.contains(pVeh->m_nModelIndex))
 	{
-		if (!vehicleData.contains(pVeh)) {
-			vehicleData[pVeh] = new VehicleSiren(pVeh);
-		}
+		auto &data = m_VehData.Get(pVeh);
+		data.vehicle = pVeh;
 	}
 }
 
@@ -645,15 +635,14 @@ void Sirens::Init()
 		return eMaterialType::UnknownMaterial; });
 
 	ModelInfoMgr::RegisterMaterialColProvider([](CVehicle *pVeh, RpMaterial *pMat, eMaterialType type)
-											  {
+	{
 		if (type == eMaterialType::SirenLight) {
 			int matIdx = GetSirenIndex(pVeh, pMat);
 
 			if (matIdx != - 1) {
-				if (!vehicleData.contains(pVeh)) {
-					vehicleData[pVeh] = new VehicleSiren(pVeh);
-				}
-				int curState = vehicleData[pVeh]->GetCurrentState();
+				auto &data = m_VehData.Get(pVeh);
+				data.vehicle = pVeh;
+				int curState = data.GetCurrentState();
 
 				if (curState >= 0 && static_cast<size_t>(curState) < modelData[pVeh->m_nModelIndex]->States.size()) {
 					auto& state = modelData[pVeh->m_nModelIndex]->States[curState];
@@ -673,43 +662,33 @@ void Sirens::Init()
 				}
 			}
 		}
-		return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL}; });
+		return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
+	});
 
-	ModelInfoMgr::RegisterDummy([](CVehicle *vehicle, RwFrame *frame, const std::string_view name2)
-								{
-		std::string name = GetFrameNodeName(frame);
+	ModelInfoMgr::RegisterDummy([](CVehicle *vehicle, RwFrame *frame, const std::string_view nodeName)
+	{
 		if (!modelData.contains(vehicle->m_nModelIndex)) {
 			return;
 		}
 
-		if (!vehicleData.contains(vehicle)) {
-			vehicleData[vehicle] = new VehicleSiren(vehicle);
-		}
+		auto &data = m_VehData.Get(vehicle);
+		data.vehicle = vehicle;
 
-		int id = Util::GetDigitsAfter(name, "siren_").value_or(-1);
-		id = Util::GetDigitsAfter(name, "siren").value_or(id);
-		id = Util::GetDigitsAfter(name, "light_em").value_or(id);
+		int id = Util::GetDigitsAfter(nodeName, "siren_").value_or(-1);
+		id = Util::GetDigitsAfter(nodeName, "siren").value_or(id);
+		id = Util::GetDigitsAfter(nodeName, "light_em").value_or(id);
 
 		if (id != -1) {
 			DummyConfig config;
 			config.pVeh = vehicle;
 			config.frame = frame;
-			vehicleData[vehicle]->Dummies[id].push_back(new VehicleDummy(config));
-		} });
+			data.Dummies[id].push_back(new VehicleDummy(config));
+		}
+	});
 
 	Events::vehicleCtorEvent += [](CVehicle *pVeh)
 	{
 		EventCtor(pVeh);
-	};
-
-	Events::vehicleDtorEvent += [](CVehicle *vehicle)
-	{
-		sirenExtraUsedFlag.erase(vehicle);
-		auto it = vehicleData.find(vehicle);
-		if (it != vehicleData.end()) {
-			delete it->second;
-			vehicleData.erase(it);
-		}
 	};
 
 	Events::processScriptsEvent += []()
@@ -733,12 +712,11 @@ void Sirens::Init()
 				if (!modelData.contains(model))
 					return;
 
-				if (!vehicleData.contains(vehicle))
-					return;
+				auto &data = m_VehData.Get(vehicle);
+				data.vehicle = vehicle;
+				data.Mute = !data.Mute;
 
-				vehicleData[vehicle]->Mute = !vehicleData[vehicle]->Mute;
-
-				if (vehicleData[vehicle]->Mute)
+				if (data.Mute)
 					vehicle->bSirenOrAlarm = false;
 
 				AudioMgr::PlaySwitchSound(vehicle);
@@ -751,10 +729,10 @@ void Sirens::Init()
 				if (!modelData.contains(model))
 					return;
 
-				if (!vehicleData.contains(vehicle))
-					return;
+				auto &data = m_VehData.Get(vehicle);
+				data.vehicle = vehicle;
 
-				if (!vehicleData[vehicle]->GetSirenState())
+				if (!data.GetSirenState())
 					return;
 
 				if (modelData[model]->States.size() == 0)
@@ -762,27 +740,27 @@ void Sirens::Init()
 
 				int addition = (Util::IsKeyPressed(0x10)) ? (-1) : (1);
 
-				vehicleData[vehicle]->State += addition;
+				data.State += addition;
 
-				if (vehicleData[vehicle]->State == modelData[model]->States.size())
-					vehicleData[vehicle]->State = 0;
+				if (data.State == (int)modelData[model]->States.size())
+					data.State = 0;
 
-				if (vehicleData[vehicle]->State == -1)
-					vehicleData[vehicle]->State = modelData[model]->States.size() - 1;
+				if (data.State == -1)
+					data.State = (int)modelData[model]->States.size() - 1;
 
-				while (modelData[model]->States[vehicleData[vehicle]->State]->Paintjob != -1 && modelData[model]->States[vehicleData[vehicle]->State]->Paintjob != vehicle->GetRemapIndex())
+				while (modelData[model]->States[data.State]->Paintjob != -1 && modelData[model]->States[data.State]->Paintjob != vehicle->GetRemapIndex())
 				{
-					vehicleData[vehicle]->State += (Util::IsKeyPressed(0x10)) ? (-1) : (1);
+					data.State += (Util::IsKeyPressed(0x10)) ? (-1) : (1);
 
-					if (vehicleData[vehicle]->State == modelData[model]->States.size())
+					if (data.State == (int)modelData[model]->States.size())
 					{
-						vehicleData[vehicle]->State = 0;
+						data.State = 0;
 
 						break;
 					}
-					else if (vehicleData[vehicle]->State == -1)
+					else if (data.State == -1)
 					{
-						vehicleData[vehicle]->State = modelData[model]->States.size() - 1;
+						data.State = (int)modelData[model]->States.size() - 1;
 
 						break;
 					}
@@ -800,10 +778,10 @@ void Sirens::Init()
 				if (!modelData.contains(model))
 					return;
 
-				if (!vehicleData.contains(vehicle))
-					return;
+				auto &data = m_VehData.Get(vehicle);
+				data.vehicle = vehicle;
 
-				if (!vehicleData[vehicle]->GetSirenState())
+				if (!data.GetSirenState())
 					return;
 
 				if (modelData[model]->States.size() == 0)
@@ -814,27 +792,30 @@ void Sirens::Init()
 				if ((int)modelData[model]->States.size() <= newState)
 					return;
 
-				if (vehicleData[vehicle]->State == newState)
+				if (data.State == newState)
 					return;
 
 				if (modelData[model]->States[newState]->Paintjob != -1 && modelData[model]->States[newState]->Paintjob != vehicle->GetRemapIndex())
 					return;
 
-				vehicleData[vehicle]->State = newState;
+				data.State = newState;
 				AudioMgr::PlaySwitchSound(vehicle);
 			}
 		}
 	};
 
 	ModelInfoMgr::RegisterRender([](CVehicle *vehicle)
-								 {
+	{
 		int model = vehicle->m_nModelIndex;
 
 		if (!vehicle->GetIsOnScreen() || !modelData.contains(model)) {
 			return;
 		}
 
-		bool sirenState = vehicleData[vehicle]->GetSirenState();
+		auto &data = m_VehData.Get(vehicle);
+		data.vehicle = vehicle;
+
+		bool sirenState = data.GetSirenState();
 		if (modelRotators.contains(model)) {
 			for (auto& dummy : modelRotators[model]) {
 				dummy->ResetAngle();
@@ -842,16 +823,13 @@ void Sirens::Init()
 			modelRotators.erase(model);
 		}
 
-		if (!vehicleData.contains(vehicle))
-			vehicleData[vehicle] = new VehicleSiren(vehicle);
-
 		uint64_t time = static_cast<uint64_t>(CTimer::m_snTimeInMilliseconds);
-		VehicleSirenState* state = modelData[model]->States[vehicleData[vehicle]->GetCurrentState()];
-		if (vehicleData[vehicle]->SirenState == false && sirenState == true) {
-			vehicleData[vehicle]->SirenState = true;
+		VehicleSirenState* state = modelData[model]->States[data.GetCurrentState()];
+		if (data.SirenState == false && sirenState == true) {
+			data.SirenState = true;
 
-			if (vehicleData[vehicle]->Delay != 0) {
-				vehicleData[vehicle]->Delay = 0;
+			if (data.Delay != 0) {
+				data.Delay = 0;
 			}
 
 			for (auto& mat : state->Materials) {
@@ -859,21 +837,21 @@ void Sirens::Init()
 				mat.second->PatternTime = time;
 			}
 		}
-		else if (vehicleData[vehicle]->SirenState == true && sirenState == false) {
-			vehicleData[vehicle]->SirenState = false;
+		else if (data.SirenState == true && sirenState == false) {
+			data.SirenState = false;
 		}
 
-		if (!vehicleData[vehicle]->GetSirenState() && !vehicleData[vehicle]->Trailer) {
+		if (!data.GetSirenState() && !data.Trailer) {
 			return;
 		}
 
-		if (vehicleData[vehicle]->Delay == 0) {
-			vehicleData[vehicle]->Delay = time;
+		if (data.Delay == 0) {
+			data.Delay = time;
 		}
 
 		for (auto& mat : state->Materials) {
 			if (mat.second->Delay != 0) {
-				if (time - vehicleData[vehicle]->Delay < mat.second->Delay) {
+				if (time - data.Delay < mat.second->Delay) {
 					if (mat.second->Type == eLightingMode::Rotator) {
 						if ((time - mat.second->Rotator->TimeElapse) > mat.second->Rotator->Time) {
 							mat.second->Rotator->TimeElapse = time;
@@ -933,7 +911,6 @@ void Sirens::Init()
 		CVector distance = vehicle->GetPosition() - TheCamera.GetPosition();
 		eCoronaFlareType type = FLARETYPE_NONE;
 
-
 		if (distance.Magnitude() > 30.0f) {
 			type = FLARETYPE_HEADLIGHTS;
 		}
@@ -943,7 +920,7 @@ void Sirens::Init()
 				continue;
 			}
 
-			if (mat.second->Delay != 0 && time - vehicleData[vehicle]->Delay < mat.second->Delay) {
+			if (mat.second->Delay != 0 && time - data.Delay < mat.second->Delay) {
 				continue;
 			}
 
@@ -966,13 +943,14 @@ void Sirens::Init()
 			}
 
 			int id = 0;
-			for (auto& e : vehicleData[vehicle]->Dummies[mat.first]) {
+			for (auto& e : data.Dummies[mat.first]) {
 				id++;
 				EnableDummy((mat.first * 16) + id, e, vehicle, mat.second, type, time);
 			}
 
 			ModelInfoMgr::EnableSirenMaterial(vehicle, mat.first);
-		} });
+		}
+	});
 
 	using hkUsesSirenHook = injector::function_hooker_thiscall<injector::scoped_call, 0x6D8492, hkUsesSirenFunc>;
 	injector::make_static_hook<hkUsesSirenHook>(hkUsesSiren);
@@ -1076,16 +1054,18 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 VehicleSiren::VehicleSiren(CVehicle *_vehicle)
 {
 	vehicle = _vehicle;
+	if (!vehicle) return;
 
 	int model = vehicle->m_nModelIndex;
-
 	CVehicleModelInfo *modelInfo = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[model]);
+	if (modelInfo)
+	{
+		if (modelInfo->m_nVehicleType == eVehicleType::VEHICLE_HELI || modelInfo->m_nVehicleType == eVehicleType::VEHICLE_PLANE)
+			this->Mute = true;
 
-	if (modelInfo->m_nVehicleType == eVehicleType::VEHICLE_HELI || modelInfo->m_nVehicleType == eVehicleType::VEHICLE_PLANE)
-		this->Mute = true;
+		if (modelInfo->m_nVehicleType == eVehicleType::VEHICLE_TRAILER)
+			Trailer = true;
+	}
 
 	SirenState = _vehicle->bSirenOrAlarm;
-
-	if (modelInfo->m_nVehicleType == eVehicleType::VEHICLE_TRAILER)
-		Trailer = true;
 };
