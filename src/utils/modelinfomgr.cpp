@@ -101,9 +101,15 @@ void ModelInfoMgr::ResetEditableMaterials() {
   m_SurfPropsRestoreEntries.clear();
 }
 
+void ModelInfoMgr::ReloadConfig() {
+  gfMaterialAmbientMul = std::max(0.0f, gConfig.ReadFloat("LIGHTS", "MaterialAmbientMul", 1.0f));
+}
+
 void ModelInfoMgr::Init() {
   m_RestoreEntries.reserve(256);
   m_SurfPropsRestoreEntries.reserve(256);
+
+  ReloadConfig();
 
   patch::Nop(0x4C8E53, 5);
   patch::Nop(0x4C8F6E, 5);
@@ -198,6 +204,7 @@ void ModelInfoMgr::FindDummies(CVehicle *vehicle, RwFrame *frame) {
 }
 
 void ModelInfoMgr::Reload(CVehicle *pVeh) {
+  ReloadConfig();
   if (pVeh && pVeh->m_pRwClump) {
     RwFrame *frame =
         reinterpret_cast<RwFrame *>(pVeh->m_pRwClump->object.parent);
@@ -329,7 +336,15 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
         }
       }
       m_SurfPropsRestoreEntries.push_back({material, material->surfaceProps});
-      material->surfaceProps = *reinterpret_cast<RwSurfaceProperties *>(0x8A645C);
+
+      float ambientScale = 1.0f;
+      if (iLightIndex == eMaterialType::HeadLightLeft || iLightIndex == eMaterialType::HeadLightRight) {
+        if (matCol.on.r < 255) {
+          ambientScale = 0.8f;
+        }
+      }
+
+      material->surfaceProps = GetLightSurfaceProps(ambientScale);
     } else {
       pColor->red = matCol.off.r;
       pColor->green = matCol.off.g;
