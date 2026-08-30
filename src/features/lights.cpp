@@ -137,7 +137,7 @@ void Lights::Init()
 
 	ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat)
 								   {
-		if (!m_bEnabled) {
+		if (!m_bEnabled || Util::IsAntiPatternLightMaterial(pMat)) {
 			return eMaterialType::UnknownMaterial;
 		}
 		// Headlights
@@ -236,6 +236,10 @@ void Lights::Init()
 
 	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view name)
 								{
+		if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
+			return;
+		}
+
 		DummyConfig c;
 		c.frame = pFrame;
 		c.position = pFrame->modelling.pos;
@@ -246,14 +250,14 @@ void Lights::Init()
 		
 		auto &dummies = m_Dummies[pVeh];
 		
-		if (name.starts_with("fogl") && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r"))) {
+		if ((name.starts_with("fogl") || name.starts_with("fog_")) && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r"))) {
 			c.dummyPos = eDummyPos::Front;
 			c.lightType = STR_FOUND(name, "_l") ? eMaterialType::FogLightLeft : eMaterialType::FogLightRight;
 			c.shadow.render = false;
 			c.corona.color = c.shadow.color = {255, 255, 255, static_cast<unsigned char>(gGlobalCoronaIntensity)};
 			c.corona.lightingType = eLightingMode::NonDirectional;
 		}
-		else if (name.starts_with("rev")) {
+		else if (name.starts_with("revl") || (name.starts_with("rev_") && !name.starts_with("revolution")) || name.starts_with("reverselight")) {
 			bool isLeft = STR_FOUND(name, "_l");
 			if (!isLeft && !STR_FOUND(name, "_r")) {
 				isLeft = (c.position.x < 0.0f);
@@ -263,7 +267,7 @@ void Lights::Init()
 			c.corona.color = c.shadow.color = {255, 255, 255, static_cast<unsigned char>(gGlobalCoronaIntensity)};
 			c.corona.lightingType = eLightingMode::Directional;
 		}
-		else if (name.starts_with("breakl") && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r"))) {
+		else if ((name.starts_with("breakl") || name.starts_with("brakel")) && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r"))) {
 			c.dummyPos = eDummyPos::Rear;
 			c.lightType = STR_FOUND(name, "_l") ? eMaterialType::BrakeLightLeft : eMaterialType::BrakeLightRight;
 			c.corona.color = c.shadow.color = {240, 0, 0, static_cast<unsigned char>(gGlobalCoronaIntensity)};

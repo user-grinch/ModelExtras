@@ -667,6 +667,9 @@ void Sirens::Init()
 
 	ModelInfoMgr::RegisterDummy([](CVehicle *vehicle, RwFrame *frame, const std::string_view nodeName)
 	{
+		if (frame && !rwLinkListEmpty(&frame->objectList)) {
+			return;
+		}
 		if (!modelData.contains(vehicle->m_nModelIndex)) {
 			return;
 		}
