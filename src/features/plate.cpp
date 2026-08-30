@@ -8,7 +8,11 @@
 #include <CTheZones.h>
 #include "utils/texmgr.h"
 #include "utils/modelinfomgr.h"
+#include "utils/samp.h"
 #include <utility>
+#include <string>
+#include <string_view>
+#include <cctype>
 
 using namespace plugin;
 
@@ -26,13 +30,57 @@ void LicensePlate::Init()
 
 void LicensePlate::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat)
 {
-    if (!m_bEnabled || !pMat || !pMat->texture)
+    if (!m_bEnabled || !pVeh || !pMat || !pMat->texture || !pMat->texture->name)
     {
         return;
     }
 
     pCurrentVeh = pVeh;
-    if (!_stricmp("carpback", pMat->texture->name))
+    const char *texName = pMat->texture->name;
+
+    if (SAMP::IsPresent())
+    {
+        PlateData &data = m_VehData.Get(pVeh);
+
+        bool isPlateTextMat = !_stricmp("carplate", texName) ||
+                              (data.m_pCustomPlateTex && pMat->texture == data.m_pCustomPlateTex) ||
+                              (!data.m_szLastPlateText.empty() && !_stricmp(data.m_szLastPlateText.c_str(), texName));
+
+        if (!isPlateTextMat && pMat->texture->raster)
+        {
+            RwRaster *r = pMat->texture->raster;
+            if (r->width == 256 && r->height == 64 &&
+                strncmp(texName, "plate_", 6) != 0 && _stricmp(texName, "carpback") != 0)
+            {
+                isPlateTextMat = true;
+            }
+        }
+
+        if (isPlateTextMat)
+        {
+            std::string formatted = SAMP::GetVehiclePlateText(pVeh);
+            if (!formatted.empty())
+            {
+                if (data.m_szLastPlateText != formatted || !data.m_pCustomPlateTex)
+                {
+                    if (data.m_pCustomPlateTex)
+                    {
+                        RwTextureDestroy(data.m_pCustomPlateTex);
+                        data.m_pCustomPlateTex = nullptr;
+                    }
+                    data.m_pCustomPlateTex = CCustomCarPlateMgr_CreatePlateTexture(formatted.data(), 0);
+                    data.m_szLastPlateText = formatted;
+                }
+
+                if (data.m_pCustomPlateTex)
+                {
+                    RpMaterialSetTexture(pMat, data.m_pCustomPlateTex);
+                }
+            }
+        }
+    }
+
+    if (!_stricmp("carpback", texName))
     {
         CCustomCarPlateMgr_SetupMaterialPlatebackTexture(pMat, -1);
     }
@@ -57,7 +105,7 @@ void __cdecl LicensePlate::CCustomCarPlateMgr_Shudown()
 bool __cdecl LicensePlate::CCustomCarPlateMgr_Initialise()
 {
     pCharSetTex = TextureMgr::Get("plate_char");
-    RwTextureSetFilterMode(pCharSetTex, rwFILTERNEAREST);
+    RwTextureSetFilterMode(pCharSetTex, rwFILTERLINEAR);
     RwTextureSetAddressingU(pCharSetTex, rwFILTERMIPNEAREST);
     RwTextureSetAddressingV(pCharSetTex, rwFILTERMIPNEAREST);
     pCharSetTex->raster->stride = 512;
@@ -79,7 +127,11 @@ bool __cdecl LicensePlate::CCustomCarPlateMgr_Initialise()
             RwTextureSetName(m_Plates[i], "carpback");
             RwTextureSetAddressingU(m_Plates[i], rwFILTERMIPNEAREST);
             RwTextureSetAddressingV(m_Plates[i], rwFILTERMIPNEAREST);
-            RwTextureSetFilterMode(m_Plates[i], rwFILTERLINEAR);
+            if (RwTextureGetRaster(m_Plates[i]))
+            {
+                RwTextureRasterGenerateMipmaps(RwTextureGetRaster(m_Plates[i]), nullptr);
+            }
+            RwTextureSetFilterMode(m_Plates[i], rwFILTERLINEARMIPLINEAR);
         }
     }
     pCharsetLockedData = RwRasterLock(RwTextureGetRaster(pCharSetTex), 0, rwRASTERLOCKREAD);
@@ -111,18 +163,25 @@ RpMaterial *__cdecl LicensePlate::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
         {
             plateType = DAY_LV;
         }
+        else
+        {
+            plateType = DAY_LS;
+        }
     }
 
-    bool lightsOn = (pCurrentVeh->bLightsOn || CarUtil::IsLightsForcedOn(pCurrentVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pCurrentVeh))) && !CarUtil::IsLightsForcedOff(pCurrentVeh);
+    bool isBike = pCurrentVeh->m_nVehicleSubClass == VEHICLE_BIKE;
+    bool lightsOn = (pCurrentVeh->bLightsOn || CarUtil::IsLightsForcedOn(pCurrentVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pCurrentVeh)) || (isBike && !Util::IsEngineOff(pCurrentVeh))) && !CarUtil::IsLightsForcedOff(pCurrentVeh);
     if (pCurrentVeh->m_fHealth > 0.0f && lightsOn)
     {
         ModelInfoMgr::RegisterRestoreSurfProps(material);
         material->surfaceProps = *reinterpret_cast<RwSurfaceProperties *>(0x8A645C);
-        RpMaterialSetTexture(material, m_Plates[plateType + 4]);
+        if (plateType + 4 < ePlateType::TOTAL_SZ && m_Plates[plateType + 4])
+            RpMaterialSetTexture(material, m_Plates[plateType + 4]);
     }
     else
     {
-        RpMaterialSetTexture(material, m_Plates[plateType]);
+        if (plateType >= 0 && plateType < ePlateType::TOTAL_SZ && m_Plates[plateType])
+            RpMaterialSetTexture(material, m_Plates[plateType]);
     }
     return material;
 }
@@ -307,14 +366,14 @@ RwTexture *LicensePlate::CCustomCarPlateMgr_CreatePlateTexture(char *text, uint8
     assert(text);
 
     // Create a new raster for the plate with mipmap support
-    const auto plateRaster = RwRasterCreate(256, 64, 32, rwRASTERFORMAT8888 | rwRASTERPIXELLOCKEDWRITE);
+    const auto plateRaster = RwRasterCreate(256, 64, 32, rwRASTERFORMAT8888 | rwRASTERFORMATMIPMAP | rwRASTERFORMATAUTOMIPMAP | rwRASTERPIXELLOCKEDWRITE);
     if (!plateRaster)
     {
         return nullptr;
     }
 
     // Ensure the charset texture is valid before proceeding
-    if (!RwTextureGetRaster(pCharSetTex))
+    if (!pCharSetTex || !RwTextureGetRaster(pCharSetTex))
     {
         RwRasterDestroy(plateRaster);
         return nullptr;
@@ -332,7 +391,8 @@ RwTexture *LicensePlate::CCustomCarPlateMgr_CreatePlateTexture(char *text, uint8
     {
         // Set the texture name and filter mode
         RwTextureSetName(plateTex, text);
-        RwTextureSetFilterMode(plateTex, rwFILTERNEAREST);
+        RwTextureRasterGenerateMipmaps(plateRaster, nullptr);
+        RwTextureSetFilterMode(plateTex, rwFILTERLINEARMIPLINEAR);
         return plateTex;
     }
 
