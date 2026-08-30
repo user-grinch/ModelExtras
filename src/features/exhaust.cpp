@@ -10,6 +10,9 @@
 #include "utils/datamgr.h"
 #include "ModelExtrasAPI.h"
 #include "backfire.h"
+#include "enums/vehdummy.h"
+#include "utils/meevents.h"
+#include <CPointLights.h>
 #include <rwcore.h>
 #include <rwplcore.h>
 
@@ -40,6 +43,9 @@ void __fastcall ExhaustFx::hkAddExhaustParticles2(CVehicle *pVeh)
 char __fastcall ExhaustFx::hkDoNitroEffect1(CAutomobile* pVeh, float power)
 {
     auto& data = m_VehData.Get(pVeh);
+    if (pVeh->m_fGasPedal > 0.05f) {
+        data.lastNitroFrame = CTimer::m_FrameCounter;
+    }
     if (data.isUsed) {
         RenderNitroFx(pVeh, power);
         return 1;
@@ -50,6 +56,9 @@ char __fastcall ExhaustFx::hkDoNitroEffect1(CAutomobile* pVeh, float power)
 char __fastcall ExhaustFx::hkDoNitroEffect2(CAutomobile* pVeh, float power)
 {
     auto& data = m_VehData.Get(pVeh);
+    if (pVeh->m_fGasPedal > 0.05f) {
+        data.lastNitroFrame = CTimer::m_FrameCounter;
+    }
     if (data.isUsed) {
         RenderNitroFx(pVeh, power);
         return 1;
@@ -60,6 +69,9 @@ char __fastcall ExhaustFx::hkDoNitroEffect2(CAutomobile* pVeh, float power)
 char __fastcall ExhaustFx::hkDoNitroEffect3(CAutomobile* pVeh, float power)
 {
     auto& data = m_VehData.Get(pVeh);
+    if (pVeh->m_fGasPedal > 0.05f) {
+        data.lastNitroFrame = CTimer::m_FrameCounter;
+    }
     if (data.isUsed) {
         RenderNitroFx(pVeh, power);
         return 1;
@@ -118,6 +130,22 @@ void ExhaustFx::Init()
                 }
             }
         } });
+    MEEvents::vehPreRenderEvent.before += [](CVehicle *pVeh)
+    {
+        ExhaustFx::ProcessPointLights(pVeh);
+    };
+
+    Events::processScriptsEvent += []()
+    {
+        for (CVehicle *pVeh : CPools::ms_pVehiclePool)
+        {
+            if (pVeh && pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
+            {
+                ExhaustFx::ProcessPointLights(pVeh);
+            }
+        }
+    };
+
     ogFunc1 = injector::GetBranchDestination(0x6AB344, true).get();
     injector::MakeCALL(0x6AB344, hkAddExhaustParticles1, true);
 
@@ -134,6 +162,79 @@ void ExhaustFx::Init()
     injector::MakeCALL(0x6A40E1, hkDoNitroEffect3, true);
 }
 
+void ExhaustFx::ProcessPointLights(CVehicle *pVeh)
+{
+    extern bool gbLightPointLights;
+    if (!gbLightPointLights || !pVeh || !pVeh->GetIsOnScreen() || !pVeh->bEngineOn || pVeh->bEngineBroken)
+    {
+        return;
+    }
+
+    ExhaustVehData &data = m_VehData.Get(pVeh);
+    bool bNitroActive = (data.lastNitroFrame == CTimer::m_FrameCounter) ||
+                        (CTimer::m_FrameCounter > 0 && data.lastNitroFrame == CTimer::m_FrameCounter - 1);
+
+    if (!bNitroActive || pVeh->m_fGasPedal <= 0.05f)
+    {
+        return;
+    }
+
+    const float radius = 0.70f;
+    const float r = 0.0f;
+    const float g = 0.45f;
+    const float b = 1.0f;
+    const float rearOffset = 0.25f;
+
+    if (data.isUsed && !data.m_pDummies.empty())
+    {
+        for (const auto &e : data.m_pDummies)
+        {
+            if (e.second.bNitroEffect && e.second.pFrame)
+            {
+                CVector pos = e.second.pFrame->ltm.pos;
+                if (!pos.IsZero())
+                {
+                    CVector backwardDir = -(CVector &)e.second.pFrame->ltm.up;
+                    backwardDir.Normalize();
+                    CVector plightPos = pos + backwardDir * rearOffset;
+                    CPointLights::AddLight(PLTYPE_POINTLIGHT, plightPos, CVector(0.0f, 0.0f, 0.0f), radius, r, g, b, 0, false, nullptr);
+                }
+            }
+        }
+    }
+    else
+    {
+        CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));
+        if (pInfo && pInfo->m_pVehicleStruct)
+        {
+            CVector pos = pInfo->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::EXHAUST];
+            if (!pos.IsZero())
+            {
+                CVector worldPos = pVeh->TransformFromObjectSpace(CVector(pos.x, pos.y - rearOffset, pos.z));
+                CPointLights::AddLight(PLTYPE_POINTLIGHT, worldPos, CVector(0.0f, 0.0f, 0.0f), radius, r, g, b, 0, false, nullptr);
+
+                if (pVeh->m_pHandlingData && pVeh->m_pHandlingData->m_bDoubleExhaust)
+                {
+                    CVector doubleWorldPos = pVeh->TransformFromObjectSpace(CVector(-pos.x, pos.y - rearOffset, pos.z));
+                    CPointLights::AddLight(PLTYPE_POINTLIGHT, doubleWorldPos, CVector(0.0f, 0.0f, 0.0f), radius, r, g, b, 0, false, nullptr);
+                }
+            }
+
+            CVector secPos = pInfo->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::EXHAUST_SECONDARY];
+            if (!secPos.IsZero())
+            {
+                CVector secWorldPos = pVeh->TransformFromObjectSpace(CVector(secPos.x, secPos.y - rearOffset, secPos.z));
+                CPointLights::AddLight(PLTYPE_POINTLIGHT, secWorldPos, CVector(0.0f, 0.0f, 0.0f), radius, r, g, b, 0, false, nullptr);
+
+                if (pVeh->m_pHandlingData && pVeh->m_pHandlingData->m_bDoubleExhaust)
+                {
+                    CVector doubleSecWorldPos = pVeh->TransformFromObjectSpace(CVector(-secPos.x, secPos.y - rearOffset, secPos.z));
+                    CPointLights::AddLight(PLTYPE_POINTLIGHT, doubleSecWorldPos, CVector(0.0f, 0.0f, 0.0f), radius, r, g, b, 0, false, nullptr);
+                }
+            }
+        }
+    }
+}
 ExhaustData ExhaustFx::LoadData(CVehicle *pVeh, RwFrame *pFrame)
 {
     ExhaustData f;

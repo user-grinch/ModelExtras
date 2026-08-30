@@ -69,6 +69,7 @@ private:
     static char __fastcall hkDoNitroEffect3(CAutomobile *pVeh, float power);
 
     static void FindNodes(CVehicle *pVeh, RwFrame *frame);
+    static void ProcessPointLights(CVehicle *pVeh);
 
 protected:
     void Init() override;

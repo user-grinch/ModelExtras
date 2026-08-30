@@ -105,20 +105,22 @@ void IndicatorComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
     bool leftOn = (data.nIndicatorState == eIndicatorState::LeftOn || data.nIndicatorState == eIndicatorState::BothOn);
     bool rightOn = (data.nIndicatorState == eIndicatorState::RightOn || data.nIndicatorState == eIndicatorState::BothOn);
 
-    bool isLeftFrontOk = !Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT) || pControlVeh->bSirenOrAlarm;
-    bool isRightFrontOk = !Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT) || pControlVeh->bSirenOrAlarm;
-    bool isLeftRearOk = !Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_LEFT);
-    bool isRightRearOk = !Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_RIGHT);
+    bool isLeftFrontOk = (!Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT) && !Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_LEFT)) || pControlVeh->bSirenOrAlarm;
+    bool isRightFrontOk = (!Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT) && !Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_RIGHT)) || pControlVeh->bSirenOrAlarm;
+    bool isLeftRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_LEFT));
+    bool isRightRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_RIGHT));
+    bool isLeftMiddleOk = !Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_LEFT);
+    bool isRightMiddleOk = !Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_RIGHT);
 
     if (leftOn) {
         LightManager::RenderLight(pControlVeh, data, eMaterialType::IndicatorLightLeftFront, isLeftFrontOk, "indicator");
-        LightManager::RenderLight(pControlVeh, data, eMaterialType::IndicatorLightLeftMiddle, true, "indicator");
+        LightManager::RenderLight(pControlVeh, data, eMaterialType::IndicatorLightLeftMiddle, isLeftMiddleOk, "indicator");
         LightManager::RenderLight(pTowedVeh, data, eMaterialType::IndicatorLightLeftRear, isLeftRearOk, "indicator");
     }
 
     if (rightOn) {
         LightManager::RenderLight(pControlVeh, data, eMaterialType::IndicatorLightRightFront, isRightFrontOk, "indicator");
-        LightManager::RenderLight(pControlVeh, data, eMaterialType::IndicatorLightRightMiddle, true, "indicator");
+        LightManager::RenderLight(pControlVeh, data, eMaterialType::IndicatorLightRightMiddle, isRightMiddleOk, "indicator");
         LightManager::RenderLight(pTowedVeh, data, eMaterialType::IndicatorLightRightRear, isRightRearOk, "indicator");
     }
 }

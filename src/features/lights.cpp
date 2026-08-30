@@ -15,6 +15,7 @@
 #include "core/colors.h"
 #include <CPointLights.h>
 #include "ModelExtrasAPI.h"
+#include "utils/meevents.h"
 
 using namespace plugin;
 
@@ -24,7 +25,7 @@ static bool gbLightCoronasFeature = false;
 float gfGlobalCoronaSize = 0.3f;
 int gGlobalCoronaIntensity = 80;
 int gGlobalShadowIntensity = 80;
-float gfTailLightCoronaSize = 1.4f;
+float gfTailLightCoronaSize = 0.8f;
 int gTailLightCoronaIntensity = 60;
 float headlightSz = 5.0f;
 
@@ -67,10 +68,15 @@ inline float GetZAngleForPoint(CVector2D const &point)
 	return angle;
 }
 
+bool gbLightPointLights = true;
+bool gbSirenPointLights = true;
+
 void Lights::InitConfig()
 {
 	gbGlobalIndicatorLights = gConfig.ReadBoolean("LIGHTS", "StandardLights_GlobalIndicatorLights", gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false));
 	gbLightCoronasFeature = gConfig.ReadBoolean("LIGHTS", "LightCoronas", gConfig.ReadBoolean("FEATURES", "LightCoronas", false));
+	gbLightPointLights = gConfig.ReadBoolean("LIGHTS", "PointLights", gConfig.ReadBoolean("LIGHTS", "LightPointLights", gConfig.ReadBoolean("FEATURES", "PointLights", true)));
+	gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", gConfig.ReadBoolean("FEATURES", "SirenPointLights", true));
 
 	gfGlobalCoronaSize = gConfig.ReadFloat("LIGHTS", "LightCoronaSize", gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f));
 	gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 220));
@@ -80,7 +86,7 @@ void Lights::InitConfig()
 }
 void Lights::Init()
 {
-	if (gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false)) {
+	if (gConfig.ReadBoolean("LIGHTS", "StandardLightsv2", gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false))) {
 		return;
 	}
 
@@ -252,7 +258,8 @@ void Lights::Init()
 		
 		if ((name.starts_with("fogl") || name.starts_with("fog_")) && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r"))) {
 			c.dummyPos = eDummyPos::Front;
-			c.lightType = STR_FOUND(name, "_l") ? eMaterialType::FogLightLeft : eMaterialType::FogLightRight;
+			bool isLeft = STR_FOUND(name, "_l") || !STR_FOUND(name, "_r");
+			c.lightType = isLeft ? eMaterialType::FogLightLeft : eMaterialType::FogLightRight;
 			c.shadow.render = false;
 			c.corona.color = c.shadow.color = {255, 255, 255, static_cast<unsigned char>(gGlobalCoronaIntensity)};
 			c.corona.lightingType = eLightingMode::NonDirectional;
@@ -356,23 +363,33 @@ void Lights::Init()
 		else if (name.starts_with("turnl_") || name.starts_with("indicator_")) {
 			auto d = Util::GetCharsAfterPrefix(name, "turnl_", 2);
 			if (!d) d = Util::GetCharsAfterPrefix(name, "indicator_", 2);
+			if (!d) d = Util::GetCharsAfterPrefix(name, "turnl_", 1);
+			if (!d) d = Util::GetCharsAfterPrefix(name, "indicator_", 1);
 			if (d) {
-				bool isLeft = (d.value()[0] == 'L');
+				bool isLeft = (d.value()[0] == 'L' || d.value()[0] == 'l');
 				c.corona.color = c.shadow.color = {255, 128, 0, static_cast<unsigned char>(gGlobalCoronaIntensity)};
 				c.corona.lightingType = eLightingMode::Directional;
 
-				switch (d.value()[1]) {
+				char posChar = (d.value().length() >= 2) ? d.value()[1] : (c.position.y >= 0.0f ? 'F' : 'R');
+				switch (posChar) {
 					case 'F':
+					case 'f':
 						c.lightType = isLeft ? eMaterialType::IndicatorLightLeftFront : eMaterialType::IndicatorLightRightFront;
 						c.dummyPos = eDummyPos::Front;
 						break;
 					case 'R':
+					case 'r':
 						c.lightType = isLeft ? eMaterialType::IndicatorLightLeftRear : eMaterialType::IndicatorLightRightRear;
 						c.dummyPos = eDummyPos::Rear;
 						break;
 					case 'M':
+					case 'm':
 						c.lightType = isLeft ? eMaterialType::IndicatorLightLeftMiddle : eMaterialType::IndicatorLightRightMiddle;
 						c.dummyPos = isLeft ? eDummyPos::Right : eDummyPos::Left;
+						break;
+					default:
+						c.lightType = isLeft ? eMaterialType::IndicatorLightLeftFront : eMaterialType::IndicatorLightRightFront;
+						c.dummyPos = eDummyPos::Front;
 						break;
 				}
 			}
@@ -398,7 +415,7 @@ void Lights::Init()
 			static size_t prev = 0;
 			static uint32_t fogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", VK_J);
 
-			static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true);
+			static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true));
 			bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pVeh);
 			bool canToggleFogLight = !foglightTiedtoHeadlight || isHeadlightsActive;
 			if (Util::IsKeyPressed(fogLightKey) && IsMatAvail(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) && canToggleFogLight)
@@ -414,7 +431,9 @@ void Lights::Init()
 			}
 
 			static uint32_t longLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", VK_G);
-			if (Util::IsKeyPressed(longLightKey) && (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh)) && !CarUtil::IsLightsForcedOff(pVeh))
+			bool isHeadlightsActiveForLong = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime() || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+			bool canToggleLongLights = !(gbProperShadersDetected && !gbLightPointLights);
+			if (Util::IsKeyPressed(longLightKey) && isHeadlightsActiveForLong && canToggleLongLights)
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
@@ -428,6 +447,11 @@ void Lights::Init()
 		}
 	};
 
+	MEEvents::vehPreRenderEvent.before += [](CVehicle *pVeh)
+	{
+		ProcessPointLights(pVeh);
+	};
+
 	// Headlight coronas & shadows for every vehicle the local player isn't driving.
 	// Kept on the script tick on purpose: it keeps running while the vehicle itself is
 	// culled off-screen, the vehicle render callback below doesn't.
@@ -435,6 +459,11 @@ void Lights::Init()
 	{
 		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
 		{
+			if (pVeh && pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
+			{
+				ProcessPointLights(pVeh);
+			}
+
 			// Mirrors the checks in the render callback below so both paths agree on
 			// which vehicles get headlights
 			if (pVeh->m_pDriver == FindPlayerPed() || pVeh->m_fHealth <= 0.0f || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn))
@@ -450,62 +479,6 @@ void Lights::Init()
 
 				// Claim this frame so the render callback doesn't register them twice
 				m_VehData.Get(pVeh).m_nHeadlightTickFrame = CTimer::m_FrameCounter;
-			}
-		}
-	};
-
-	// Extra reach for the high beam, the light that falls on peds, vehicles and the road.
-	// This has to happen on the game tick, not from the vehicle render callback. Point
-	// lights are collected into CPointLights during the tick and read back while the
-	// world is lit, so anything added midway through rendering arrives too late to reach
-	// the peds and vehicles around you. Traffic went through the script tick already, but
-	// the car you're driving is skipped there and only ever reached the render callback,
-	// which is why pressing the key did nothing in your own vehicle.
-	Events::processScriptsEvent += []()
-	{
-		// Clamped so a bad ini value can't hand the game a silly or negative range
-		static float rawMul = gConfig.ReadFloat("TWEAKS", "HighBeamPointLightMul", 2.0f);
-		static float highBeamMul = (rawMul < 1.0f) ? 1.0f : ((rawMul > 4.0f) ? 4.0f : rawMul);
-
-		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
-		{
-			if (!pVeh || pVeh->m_fHealth <= 0.0f || CarUtil::IsLightsForcedOff(pVeh))
-			{
-				continue;
-			}
-
-			// High beam only. The low beam light is the game's own, doubling up there
-			// would just brighten it instead of extending the reach.
-			bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh)) && !CarUtil::IsLightsForcedOff(pVeh);
-			if (!m_VehData.Get(pVeh).m_bLongLightsOn || !isHeadlightsOn)
-			{
-				continue;
-			}
-
-			// Nothing to light up beyond this, and it keeps the light count down
-			if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 100.0f)
-			{
-				continue;
-			}
-
-			for (eMaterialType type : {eMaterialType::HeadLightLeft, eMaterialType::HeadLightRight})
-			{
-				if (!IsDummyAvail(pVeh, type) || !GetLightState(pVeh, type))
-				{
-					continue;
-				}
-
-				eLights lightEnum = (type == eMaterialType::HeadLightLeft) ? eLights::LIGHT_FRONT_LEFT : eLights::LIGHT_FRONT_RIGHT;
-				if (Util::IsLightDamaged(pVeh, lightEnum))
-				{
-					continue;
-				}
-
-				for (auto e : m_Dummies[pVeh][type])
-				{
-					e->Update();
-					RenderUtil::RegisterHeadlightPointLight(&e->Get(), highBeamMul);
-				}
 			}
 		}
 	};
@@ -545,22 +518,24 @@ void Lights::Init()
 			return;
 		}
 
-		bool isLeftFrontDamaged = Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT);
-		bool isRightFrontDamaged = Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT);
+		bool isLeftFrontDamaged = Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT) || Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_LEFT);
+		bool isRightFrontDamaged = Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT) || Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_RIGHT);
 		bool isHeadlightLeftOk = !isLeftFrontDamaged;
 		bool isHeadlightRightOk = !isRightFrontDamaged;
 		// When sirens are active on SAMP/UIF, server flasher scripts rapidly toggle light damage
 		// Don't let flasher damage toggles disable indicator lights
-		bool isLeftFrontOk = !isLeftFrontDamaged || pControlVeh->bSirenOrAlarm;
-		bool isRightFrontOk = !isRightFrontDamaged || pControlVeh->bSirenOrAlarm;
+		bool isLeftFrontOk = (!Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT) && !Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_LEFT)) || pControlVeh->bSirenOrAlarm;
+		bool isRightFrontOk = (!Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT) && !Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_RIGHT)) || pControlVeh->bSirenOrAlarm;
+		bool isLeftMiddleOk = !Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_LEFT);
+		bool isRightMiddleOk = !Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_RIGHT);
 
 		bool isFrontBumperDamaged = Util::IsPanelDamaged(pControlVeh, ePanels::BUMP_FRONT);
 		bool isLeftRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_LEFT));
 		bool isRightRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_RIGHT));
 		RenderLights(pControlVeh, pTowedVeh, eMaterialType::AllDayLight, true, "indicator", 1.85f);
 		RenderLights(pControlVeh, pTowedVeh, eMaterialType::StrobeLight);
-		RenderLights(pControlVeh, pTowedVeh, eMaterialType::SideLightLeft);
-		RenderLights(pControlVeh, pTowedVeh, eMaterialType::SideLightRight);
+		RenderLights(pControlVeh, pTowedVeh, eMaterialType::SideLightLeft, true, "indicator", 1.85f, false, isLeftMiddleOk);
+		RenderLights(pControlVeh, pTowedVeh, eMaterialType::SideLightRight, true, "indicator", 1.85f, false, isRightMiddleOk);
 		
 		if (Util::IsNightTime()) {
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::NightLight, true, "indicator", 1.85f);
@@ -568,7 +543,7 @@ void Lights::Init()
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::DayLight, true, "indicator", 1.85f);
 		}
 		
-		static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true);
+		static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true));
 		bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
 		bool shouldRenderFog = !foglightTiedtoHeadlight || isHeadlightsActive;
 		if (data.m_bFogLightsOn && shouldRenderFog) {
@@ -806,16 +781,16 @@ void Lights::Init()
 			} else {
 				if (indState == eIndicatorState::BothOn || indState == eIndicatorState::LeftOn) {
 					RenderLights(pControlVeh, pTowedVeh, eMaterialType::IndicatorLightLeftFront, true, "indicator", 1.0f, false, isLeftFrontOk);
-					RenderLights(pControlVeh, pTowedVeh, eMaterialType::IndicatorLightLeftMiddle, true, "indicator", 1.0f);
+					RenderLights(pControlVeh, pTowedVeh, eMaterialType::IndicatorLightLeftMiddle, true, "indicator", 1.0f, false, isLeftMiddleOk);
 					RenderLights(pControlVeh, pTowedVeh, eMaterialType::IndicatorLightLeftRear, true, "indicator", 1.0f, false, isLeftRearOk);
 					if (isLeftRearOk) {
-						RenderLights(pControlVeh, pTowedVeh, eMaterialType::STTLightLeft, true, shdwName, shdwSz, true);
+						RenderLights(pControlVeh, pTowedVeh, eMaterialType::STTLightLeft, true, shdwName, shdwSz, true, isLeftRearOk);
 					}
 				}
 
 				if (indState == eIndicatorState::BothOn || indState == eIndicatorState::RightOn) {
 					RenderLights(pControlVeh, pTowedVeh, eMaterialType::IndicatorLightRightFront, true, "indicator", 1.0f, false, isRightFrontOk);
-					RenderLights(pControlVeh, pTowedVeh, eMaterialType::IndicatorLightRightMiddle, true, "indicator", 1.0f);
+					RenderLights(pControlVeh, pTowedVeh, eMaterialType::IndicatorLightRightMiddle, true, "indicator", 1.0f, false, isRightMiddleOk);
 					RenderLights(pControlVeh, pTowedVeh, eMaterialType::IndicatorLightRightRear, true, "indicator", 1.0f, false, isRightRearOk);
 					if (isRightRearOk) {
 						RenderLights(pControlVeh, pTowedVeh, eMaterialType::STTLightRight, true, shdwName, shdwSz, true, isRightRearOk);
@@ -1027,6 +1002,353 @@ bool Lights::IsMatAvail(CVehicle *pVeh, std::initializer_list<eMaterialType> sta
 		}
 	}
 	return false;
+}
+
+void Lights::ProcessPointLights(CVehicle *pVeh)
+{
+	if (!gbLightPointLights || !pVeh || pVeh->m_fHealth <= 0.0f || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER)
+	{
+		return;
+	}
+
+	if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 75.0f)
+	{
+		return;
+	}
+
+	VehLightDatav1 &data = m_VehData.Get(pVeh);
+	bool isBike = pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
+	bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime() || (isBike && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+
+	// 1. High Beam Headlights
+	if (data.m_bLongLightsOn && isHeadlightsOn)
+	{
+		static float rawMul = gConfig.ReadFloat("LIGHTS", "HighBeamPointLightMul", gConfig.ReadFloat("TWEAKS", "HighBeamPointLightMul", 2.0f));
+		static float highBeamMul = (rawMul < 1.0f) ? 1.0f : ((rawMul > 4.0f) ? 4.0f : rawMul);
+
+		for (eMaterialType type : {eMaterialType::HeadLightLeft, eMaterialType::HeadLightRight})
+		{
+			if (!IsDummyAvail(pVeh, type) || !GetLightState(pVeh, type))
+			{
+				continue;
+			}
+
+			bool isLeft = (type == eMaterialType::HeadLightLeft);
+			eLights lightEnum = isLeft ? eLights::LIGHT_FRONT_LEFT : eLights::LIGHT_FRONT_RIGHT;
+			ePanels wingEnum = isLeft ? ePanels::WING_FRONT_LEFT : ePanels::WING_FRONT_RIGHT;
+			if (Util::IsLightDamaged(pVeh, lightEnum) || Util::IsPanelDamaged(pVeh, wingEnum))
+			{
+				continue;
+			}
+
+			for (auto e : m_Dummies[pVeh][type])
+			{
+				e->Update();
+				RenderUtil::RegisterHeadlightPointLight(&e->Get(), highBeamMul);
+			}
+		}
+	}
+
+	// 2. Fog Lights
+	static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true));
+	bool shouldRenderFog = !foglightTiedtoHeadlight || isHeadlightsOn;
+	if (data.m_bFogLightsOn && shouldRenderFog)
+	{
+		for (eMaterialType type : {eMaterialType::FogLightLeft, eMaterialType::FogLightRight})
+		{
+			if (!IsDummyAvail(pVeh, type) || !GetLightState(pVeh, type))
+			{
+				continue;
+			}
+
+			bool isLeft = (type == eMaterialType::FogLightLeft);
+			eLights lightEnum = isLeft ? eLights::LIGHT_FRONT_LEFT : eLights::LIGHT_FRONT_RIGHT;
+			ePanels wingEnum = isLeft ? ePanels::WING_FRONT_LEFT : ePanels::WING_FRONT_RIGHT;
+			if (Util::IsLightDamaged(pVeh, lightEnum) || Util::IsPanelDamaged(pVeh, wingEnum) || Util::IsPanelDamaged(pVeh, ePanels::BUMP_FRONT))
+			{
+				continue;
+			}
+
+			for (auto e : m_Dummies[pVeh][type])
+			{
+				e->Update();
+				RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 8.5f, true);
+			}
+		}
+	}
+
+	// 3. Reverse Lights
+	bool isReversing = (pVeh->m_nCurrentGear == 0) && (Util::GetVehicleSpeed(pVeh) >= 0.001f || pVeh->m_fBreakPedal > 0.05f) && (pVeh->m_pDriver != nullptr) &&
+	                   (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK || pVeh->m_nVehicleSubClass == VEHICLE_QUAD);
+	if (isReversing)
+	{
+		for (eMaterialType type : {eMaterialType::ReverseLightLeft, eMaterialType::ReverseLightRight})
+		{
+			if (!IsDummyAvail(pVeh, type) || !GetLightState(pVeh, type))
+			{
+				continue;
+			}
+
+			bool isLeft = (type == eMaterialType::ReverseLightLeft);
+			eLights lightEnum = isLeft ? eLights::LIGHT_REAR_LEFT : eLights::LIGHT_REAR_RIGHT;
+			ePanels wingEnum = isLeft ? ePanels::WING_REAR_LEFT : ePanels::WING_REAR_RIGHT;
+			if (Util::IsLightDamaged(pVeh, lightEnum) || Util::IsPanelDamaged(pVeh, wingEnum))
+			{
+				continue;
+			}
+
+			for (auto e : m_Dummies[pVeh][type])
+			{
+				e->Update();
+				RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 3.2f, true);
+			}
+		}
+	}
+
+	// 4. Taillights & Brake Lights
+	bool isBraking = (pVeh->m_fBreakPedal > 0.05f) && (pVeh->m_pDriver != nullptr);
+	bool hasDedicatedBrakeDummy = IsDummyAvail(pVeh, eMaterialType::BrakeLightLeft) ||
+	                              IsDummyAvail(pVeh, eMaterialType::BrakeLightRight) ||
+	                              IsDummyAvail(pVeh, eMaterialType::NABrakeLightLeft) ||
+	                              IsDummyAvail(pVeh, eMaterialType::NABrakeLightRight) ||
+	                              IsDummyAvail(pVeh, eMaterialType::STTLightLeft) ||
+	                              IsDummyAvail(pVeh, eMaterialType::STTLightRight);
+
+	if (isHeadlightsOn || (isBraking && !hasDedicatedBrakeDummy))
+	{
+		float tailRadius = 3.5f;
+		constexpr float tailPointLightMul = 0.40f;
+
+		for (eMaterialType type : {eMaterialType::TailLightLeft, eMaterialType::TailLightRight})
+		{
+			if (!IsDummyAvail(pVeh, type) || !GetLightState(pVeh, type))
+			{
+				continue;
+			}
+
+			bool isLeft = (type == eMaterialType::TailLightLeft);
+			if (data.m_bUsingGlobalIndicators && !IsMatAvail(pVeh, INDICATOR_LIGHTS_TYPE))
+			{
+				if (isLeft && (data.m_nIndicatorState == eIndicatorState::LeftOn || data.m_nIndicatorState == eIndicatorState::BothOn))
+					continue;
+				if (!isLeft && (data.m_nIndicatorState == eIndicatorState::RightOn || data.m_nIndicatorState == eIndicatorState::BothOn))
+					continue;
+			}
+
+			eLights lightEnum = isLeft ? eLights::LIGHT_REAR_LEFT : eLights::LIGHT_REAR_RIGHT;
+			ePanels wingEnum = isLeft ? ePanels::WING_REAR_LEFT : ePanels::WING_REAR_RIGHT;
+			if (Util::IsLightDamaged(pVeh, lightEnum) || Util::IsPanelDamaged(pVeh, wingEnum))
+			{
+				continue;
+			}
+
+			for (auto e : m_Dummies[pVeh][type])
+			{
+				e->Update();
+				CRGBA baseCol = e->Get().corona.color;
+				CRGBA tailColor = (isBraking && !hasDedicatedBrakeDummy) ? CRGBA(255, 20, 20, 255) : CRGBA(static_cast<unsigned char>(baseCol.r * tailPointLightMul), static_cast<unsigned char>(baseCol.g * tailPointLightMul), static_cast<unsigned char>(baseCol.b * tailPointLightMul), baseCol.a);
+				RenderUtil::RegisterPointLight(&e->Get(), tailColor, tailRadius, true);
+			}
+		}
+	}
+
+	if (isBraking)
+	{
+		for (eMaterialType type : {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight, eMaterialType::NABrakeLightLeft, eMaterialType::NABrakeLightRight, eMaterialType::STTLightLeft, eMaterialType::STTLightRight})
+		{
+			if (!IsDummyAvail(pVeh, type) || !GetLightState(pVeh, type))
+			{
+				continue;
+			}
+
+			bool isLeft = (type == eMaterialType::BrakeLightLeft || type == eMaterialType::NABrakeLightLeft || type == eMaterialType::STTLightLeft);
+			eLights lightEnum = isLeft ? eLights::LIGHT_REAR_LEFT : eLights::LIGHT_REAR_RIGHT;
+			ePanels wingEnum = isLeft ? ePanels::WING_REAR_LEFT : ePanels::WING_REAR_RIGHT;
+			if (Util::IsLightDamaged(pVeh, lightEnum) || Util::IsPanelDamaged(pVeh, wingEnum))
+			{
+				continue;
+			}
+
+			for (auto e : m_Dummies[pVeh][type])
+			{
+				e->Update();
+				RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 3.5f, true);
+			}
+		}
+	}
+
+	// 5. Turn Indicators
+	if (data.m_nIndicatorState != eIndicatorState::Off)
+	{
+		if (indicatorsDelay)
+		{
+			if (data.m_nIndicatorState == eIndicatorState::LeftOn || data.m_nIndicatorState == eIndicatorState::BothOn)
+			{
+				for (eMaterialType type : {eMaterialType::IndicatorLightLeftFront, eMaterialType::IndicatorLightLeftRear, eMaterialType::IndicatorLightLeftMiddle, eMaterialType::NABrakeLightLeft})
+				{
+					if (!IsDummyAvail(pVeh, type) || !GetLightState(pVeh, type))
+					{
+						continue;
+					}
+
+					bool isRear = (type == eMaterialType::IndicatorLightLeftRear || type == eMaterialType::NABrakeLightLeft);
+					bool isFront = (type == eMaterialType::IndicatorLightLeftFront);
+					bool isMiddle = (type == eMaterialType::IndicatorLightLeftMiddle);
+
+					if (isFront && !pVeh->bSirenOrAlarm && (Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT) || Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_LEFT)))
+						continue;
+					if (isRear && (Util::IsLightDamaged(pVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_LEFT)))
+						continue;
+					if (isMiddle && Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_LEFT))
+						continue;
+
+					for (auto e : m_Dummies[pVeh][type])
+					{
+						e->Update();
+						RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 1.40f, true);
+					}
+				}
+			}
+
+			if (data.m_nIndicatorState == eIndicatorState::RightOn || data.m_nIndicatorState == eIndicatorState::BothOn)
+			{
+				for (eMaterialType type : {eMaterialType::IndicatorLightRightFront, eMaterialType::IndicatorLightRightRear, eMaterialType::IndicatorLightRightMiddle, eMaterialType::NABrakeLightRight})
+				{
+					if (!IsDummyAvail(pVeh, type) || !GetLightState(pVeh, type))
+					{
+						continue;
+					}
+
+					bool isRear = (type == eMaterialType::IndicatorLightRightRear || type == eMaterialType::NABrakeLightRight);
+					bool isFront = (type == eMaterialType::IndicatorLightRightFront);
+					bool isMiddle = (type == eMaterialType::IndicatorLightRightMiddle);
+
+					if (isFront && !pVeh->bSirenOrAlarm && (Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT) || Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_RIGHT)))
+						continue;
+					if (isRear && (Util::IsLightDamaged(pVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_RIGHT)))
+						continue;
+					if (isMiddle && Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_RIGHT))
+						continue;
+
+					for (auto e : m_Dummies[pVeh][type])
+					{
+						e->Update();
+						RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 1.40f, true);
+					}
+				}
+			}
+		}
+
+		// Non-adapted Global Indicators (rendered during !indicatorsDelay when taillight is illuminated)
+		if (!indicatorsDelay && data.m_bUsingGlobalIndicators && !IsMatAvail(pVeh, INDICATOR_LIGHTS_TYPE))
+		{
+			for (bool isLeft : {true, false})
+			{
+				bool isActive = isLeft ? (data.m_nIndicatorState == eIndicatorState::LeftOn || data.m_nIndicatorState == eIndicatorState::BothOn)
+				                       : (data.m_nIndicatorState == eIndicatorState::RightOn || data.m_nIndicatorState == eIndicatorState::BothOn);
+				if (!isActive)
+					continue;
+
+				eLights lightEnum = isLeft ? eLights::LIGHT_REAR_LEFT : eLights::LIGHT_REAR_RIGHT;
+				ePanels wingEnum = isLeft ? ePanels::WING_REAR_LEFT : ePanels::WING_REAR_RIGHT;
+				if (Util::IsLightDamaged(pVeh, lightEnum) || Util::IsPanelDamaged(pVeh, wingEnum))
+					continue;
+
+				eMaterialType indType = isLeft ? eMaterialType::IndicatorLightLeftRear : eMaterialType::IndicatorLightRightRear;
+				eMaterialType naType = isLeft ? eMaterialType::NABrakeLightLeft : eMaterialType::NABrakeLightRight;
+				if (IsDummyAvail(pVeh, {indType, naType}))
+					continue;
+
+				for (eMaterialType t : {isLeft ? eMaterialType::TailLightLeft : eMaterialType::TailLightRight, isLeft ? eMaterialType::BrakeLightLeft : eMaterialType::BrakeLightRight})
+				{
+					if (!IsDummyAvail(pVeh, t) && isBike)
+					{
+						if (IsDummyAvail(pVeh, eMaterialType::TailLightRight))
+							t = eMaterialType::TailLightRight;
+						else if (IsDummyAvail(pVeh, eMaterialType::TailLightLeft))
+							t = eMaterialType::TailLightLeft;
+					}
+					if (IsDummyAvail(pVeh, t) && GetLightState(pVeh, t))
+					{
+						for (auto e : m_Dummies[pVeh][t])
+						{
+							e->Update();
+							RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 1.40f, true);
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	// 6. Side Lights
+	if (isHeadlightsOn)
+	{
+		for (eMaterialType type : {eMaterialType::SideLightLeft, eMaterialType::SideLightRight})
+		{
+			if (!IsDummyAvail(pVeh, type) || !GetLightState(pVeh, type))
+			{
+				continue;
+			}
+
+			bool isLeft = (type == eMaterialType::SideLightLeft);
+			ePanels wingEnum = isLeft ? ePanels::WING_FRONT_LEFT : ePanels::WING_FRONT_RIGHT;
+			ePanels rearWingEnum = isLeft ? ePanels::WING_REAR_LEFT : ePanels::WING_REAR_RIGHT;
+			if (Util::IsPanelDamaged(pVeh, wingEnum) || Util::IsPanelDamaged(pVeh, rearWingEnum))
+			{
+				continue;
+			}
+
+			for (auto e : m_Dummies[pVeh][type])
+			{
+				e->Update();
+				RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 1.5f, true);
+			}
+		}
+	}
+
+	// 7. AllDay, Day, Night DRL Lights
+	if (IsDummyAvail(pVeh, eMaterialType::AllDayLight) && GetLightState(pVeh, eMaterialType::AllDayLight))
+	{
+		for (auto e : m_Dummies[pVeh][eMaterialType::AllDayLight])
+		{
+			e->Update();
+			RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 0.85f, true);
+		}
+	}
+
+	if (!Util::IsNightTime() && IsDummyAvail(pVeh, eMaterialType::DayLight) && GetLightState(pVeh, eMaterialType::DayLight))
+	{
+		for (auto e : m_Dummies[pVeh][eMaterialType::DayLight])
+		{
+			e->Update();
+			RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 0.85f, true);
+		}
+	}
+
+	if (Util::IsNightTime() && IsDummyAvail(pVeh, eMaterialType::NightLight) && GetLightState(pVeh, eMaterialType::NightLight))
+	{
+		for (auto e : m_Dummies[pVeh][eMaterialType::NightLight])
+		{
+			e->Update();
+			RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 0.85f, true);
+		}
+	}
+
+	// 8. Strobe Lights
+	if (IsDummyAvail(pVeh, eMaterialType::StrobeLight) && GetLightState(pVeh, eMaterialType::StrobeLight))
+	{
+		for (auto e : m_Dummies[pVeh][eMaterialType::StrobeLight])
+		{
+			const DummyConfig &c = e->GetRef();
+			if (c.strobe.enabled)
+			{
+				e->Update();
+				RenderUtil::RegisterPointLight(&e->Get(), c.corona.color, 6.0f, true);
+			}
+		}
+	}
 }
 
 bool Lights::IsIndicatorOn(CVehicle *pVeh)

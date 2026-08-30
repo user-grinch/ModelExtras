@@ -11,6 +11,7 @@
 #include "utils/util.h"
 #include "utils/datamgr.h"
 #include "enums/materialtype.h"
+#include "utils/meevents.h"
 
 bool VehicleSiren::GetSirenState()
 {
@@ -973,6 +974,23 @@ void Sirens::Init()
 		injector::MakeCALL((void *)0x6BD4DD, hkRegisterCorona, true);
 		injector::MakeCALL((void *)0x6BD531, hkRegisterCorona, true);
 	};
+
+
+	MEEvents::vehPreRenderEvent.before += [](CVehicle *pVeh)
+	{
+		ProcessPointLights(pVeh);
+	};
+
+	Events::processScriptsEvent += []()
+	{
+		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
+		{
+			if (pVeh && pVeh->m_nVehicleSubClass == VEHICLE_BIKE && pVeh->bSirenOrAlarm)
+			{
+				ProcessPointLights(pVeh);
+			}
+		}
+	};
 };
 
 void Sirens::hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const &posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay)
@@ -995,6 +1013,8 @@ void Sirens::hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char 
 
 void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time)
 {
+	auto &data = m_VehData.Get(vehicle);
+	data.nLastTickFrame = CTimer::m_FrameCounter;
 	dummy->Update();
 	CVector position = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 	CRGBA activeColor = material->Color;
@@ -1051,6 +1071,159 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 	else
 	{
 		RenderUtil::RegisterShadow(vehicle, pDummyConfig->position, activeColor, dummyAngle + pDummyConfig->rotation.currentAngle, pDummyConfig->dummyPos, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
+	}
+};
+
+void Sirens::ProcessPointLights(CVehicle *pVeh)
+{
+	extern bool gbLightPointLights;
+	extern bool gbSirenPointLights;
+	if (!gbLightPointLights || !gbSirenPointLights || !pVeh || pVeh->m_fHealth <= 0.0f)
+	{
+		return;
+	}
+
+	if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 75.0f)
+	{
+		return;
+	}
+
+	if (modelData.contains(pVeh->m_nModelIndex))
+	{
+		auto &data = m_VehData.Get(pVeh);
+		data.vehicle = pVeh;
+		if (!data.GetSirenState())
+		{
+			return;
+		}
+
+		int model = pVeh->m_nModelIndex;
+		VehicleSirenState *state = modelData[model]->States[data.GetCurrentState()];
+		if (!state)
+		{
+			return;
+		}
+
+		uint64_t time = static_cast<uint64_t>(CTimer::m_snTimeInMilliseconds);
+
+		for (auto &mat : state->Materials)
+		{
+			if (!mat.second || !mat.second->State)
+			{
+				continue;
+			}
+
+			if (mat.second->Delay != 0 && time - data.Delay < mat.second->Delay)
+			{
+				continue;
+			}
+
+			CRGBA activeColor = mat.second->Color;
+			if (mat.second->PatternTotal != 0 && mat.second->Inertia != 0.0f)
+			{
+				activeColor.a = static_cast<unsigned char>(std::clamp(static_cast<float>(activeColor.a) * mat.second->InertiaMultiplier, 0.0f, 255.0f));
+			}
+
+			if (activeColor.a < 10)
+			{
+				continue;
+			}
+
+			float sirenRadius = (mat.second->Shadow.Size > 0.0f) ? (mat.second->Shadow.Size * 2.5f) : (mat.second->Size * 3.0f);
+			sirenRadius = std::clamp(sirenRadius, 7.0f, 11.0f);
+
+			float r = std::clamp(activeColor.r / 255.0f, 0.0f, 1.0f);
+			float g = std::clamp(activeColor.g / 255.0f, 0.0f, 1.0f);
+			float b = std::clamp(activeColor.b / 255.0f, 0.0f, 1.0f);
+
+			for (auto &e : data.Dummies[mat.first])
+			{
+				if (!e) continue;
+				e->Update();
+
+				DummyConfig &cfg = e->Get();
+				RwFrame *parent = cfg.frame ? RwFrameGetParent(cfg.frame) : nullptr;
+				bool isBike = pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
+				if (!isBike && (Util::IsFrameDamaged(pVeh, parent) || !FrameUtil::IsOkAtomicVisible(parent)))
+				{
+					continue;
+				}
+
+				float dummyAngle = Util::NormalizeAngle(cfg.rotation.angle + mat.second->Shadow.AngleOffset);
+				CVector localDir;
+
+				if (mat.second->Type == eLightingMode::Rotator && mat.second->Rotator)
+				{
+					uint64_t elapsed = time - mat.second->Rotator->TimeElapse;
+					float rotAngle = ((elapsed / ((float)mat.second->Rotator->Time)) * mat.second->Rotator->Radius);
+					if (mat.second->Rotator->Direction == 0)
+						rotAngle = 360.0f - rotAngle;
+					else if (mat.second->Rotator->Direction == 2)
+					{
+						rotAngle += mat.second->Rotator->Offset;
+						rotAngle = 360.0f - rotAngle;
+					}
+					else if (mat.second->Rotator->Direction == 3)
+					{
+						rotAngle += mat.second->Rotator->Offset;
+					}
+					dummyAngle = Util::NormalizeAngle(dummyAngle + rotAngle);
+					float rad = static_cast<float>(Util::DegToRad(dummyAngle));
+					localDir = CVector(sin(rad), cos(rad), -0.25f);
+				}
+				else if (mat.second->Type == eLightingMode::Directional || mat.second->Type == eLightingMode::Inversed)
+				{
+					float rad = static_cast<float>(Util::DegToRad(dummyAngle));
+					if (mat.second->Type == eLightingMode::Inversed)
+					{
+						rad += 3.14159265f;
+					}
+					localDir = CVector(sin(rad), cos(rad), -0.25f);
+				}
+				else
+				{
+					CVector localPos = cfg.position;
+					localDir = CVector(localPos.x, localPos.y, -0.25f);
+					if (localDir.x == 0.0f && localDir.y == 0.0f)
+					{
+						localDir = CVector(0.0f, 1.0f, -0.25f);
+					}
+				}
+				localDir.Normalize();
+
+				CMatrix vehMat = pVeh->GetMatrix();
+				CVector worldDir = vehMat.right * localDir.x + vehMat.up * localDir.y + vehMat.at * localDir.z;
+				worldDir.Normalize();
+
+				CVector plightPos = pVeh->TransformFromObjectSpace(cfg.shadow.position + localDir * 0.45f);
+				CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, worldDir, sirenRadius, r, g, b, 0, false, nullptr);
+			}
+		}
+	}
+	else if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && pVeh->bSirenOrAlarm)
+	{
+		static bool bSkyGfx = GetModuleHandle("skygfx.asi") != nullptr;
+		if (!bSkyGfx)
+		{
+			uint32_t step = (CTimer::m_snTimeInMilliseconds / 120) % 4;
+			CMatrix vehMat = pVeh->GetMatrix();
+			if (step == 0 || step == 1)
+			{
+				CVector localLeft(-0.35f, 0.70f, 0.45f);
+				CVector plightPos = pVeh->TransformFromObjectSpace(localLeft);
+				CVector worldDir = vehMat.up - vehMat.at * 0.25f;
+				worldDir.Normalize();
+				CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, worldDir, 8.5f, 1.0f, 0.1f, 0.1f, 0, false, nullptr);
+			}
+			else if (step == 2 || step == 3)
+			{
+				CVector localRight(0.35f, 0.70f, 0.45f);
+				CVector plightPos = pVeh->TransformFromObjectSpace(localRight);
+				CVector worldDir = vehMat.up - vehMat.at * 0.25f;
+				worldDir.Normalize();
+				CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, worldDir, 8.5f, 0.1f, 0.1f, 1.0f, 0, false, nullptr);
+			}
+		}
 	}
 };
 
