@@ -23,9 +23,18 @@ struct PlateData
   bool m_bInit = false;
   int cityId = -1;
   bool m_bNightTexture = false;
+  std::string m_szLastPlateText = "";
+  RwTexture *m_pCustomPlateTex = nullptr;
 
   PlateData(CVehicle *pVeh) {}
-  ~PlateData() {}
+  ~PlateData()
+  {
+    if (m_pCustomPlateTex)
+    {
+      RwTextureDestroy(m_pCustomPlateTex);
+      m_pCustomPlateTex = nullptr;
+    }
+  }
 };
 
 class LicensePlate : public CVehFeature<PlateData>

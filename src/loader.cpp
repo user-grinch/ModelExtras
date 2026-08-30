@@ -34,6 +34,7 @@
 #include "features/rollbackbed.h"
 #include "utils/frameextension.h"
 #include "utils/meevents.h"
+#include "utils/samp.h"
 
 constexpr uint32_t TEST_CHEAT = 0x0ADC;
 
@@ -54,7 +55,7 @@ void ModelExtras::Init()
             LOG(INFO) << "Proper Shaders detected, enabling compatibility mode for ModelExtras lights.";
         }
 
-        if (GetModuleHandle("samp.dll") != nullptr)
+        if (SAMP::IsPresent())
         {
             LOG(INFO) << "SAMP detected, disabling Carcols feature.";
         }
@@ -118,7 +119,7 @@ void ModelExtras::Init()
     RegisterFeature<ExhaustFx>();
     RegisterFeature<ExtraWheel>();
     RegisterFeature<LicensePlate>();
-    if (GetModuleHandle("samp.dll") == nullptr) {
+    if (!SAMP::IsPresent()) {
         RegisterFeature<Carcols>();
     }
     RegisterFeature<RollbackBed>();
