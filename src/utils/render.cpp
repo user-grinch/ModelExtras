@@ -75,11 +75,11 @@ static void EnsureConfigLoaded()
 {
     if (!gbConfigInitialized)
     {
-        gbLightCoronas = gConfig.ReadBoolean("FEATURES", "LightCoronas", false);
-        gbLightShadows = gConfig.ReadBoolean("FEATURES", "LightShadows", false);
-        gfCoronaDistanceMul = gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.0f);
-        gfCoronaNearClip = gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 0.45f);
-        gfLightHeightLimit = gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 0.0f);
+        gbLightCoronas = gConfig.ReadBoolean("LIGHTS", "LightCoronas", gConfig.ReadBoolean("FEATURES", "LightCoronas", false));
+        gbLightShadows = gConfig.ReadBoolean("LIGHTS", "LightShadows", gConfig.ReadBoolean("FEATURES", "LightShadows", false));
+        gfCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "CoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.0f));
+        gfCoronaNearClip = gConfig.ReadFloat("LIGHTS", "CoronaNearClip", gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 0.45f));
+        gfLightHeightLimit = gConfig.ReadFloat("LIGHTS", "LightHeightLimit", gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 0.0f));
         gbConfigInitialized = true;
     }
 }

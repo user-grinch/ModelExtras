@@ -23,12 +23,17 @@ enum : uint16_t {
 static bool gbSoundEffectsEnabled = false;
 static float gfSoundMult = 1.0f;
 
+void AudioMgr::ReloadConfig()
+{
+    gbSoundEffectsEnabled = gConfig.ReadBoolean("SOUND", "SoundEffects", gConfig.ReadBoolean("FEATURES", "SoundEffects", false));
+    gfSoundMult = gConfig.ReadFloat("SOUND", "SoundMult", gConfig.ReadFloat("TWEAKS", "SoundMult", 0.6f));
+}
+
 void AudioMgr::Init()
 {
     Events::initGameEvent += []
     {
-        gbSoundEffectsEnabled = gConfig.ReadBoolean("FEATURES", "SoundEffects", false);
-        gfSoundMult = gConfig.ReadFloat("TWEAKS", "SoundMult", 1.0f);
+        ReloadConfig();
     };
 
     Events::reInitGameEvent += []

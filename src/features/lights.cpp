@@ -67,6 +67,17 @@ inline float GetZAngleForPoint(CVector2D const &point)
 	return angle;
 }
 
+void Lights::InitConfig()
+{
+	gbGlobalIndicatorLights = gConfig.ReadBoolean("LIGHTS", "StandardLights_GlobalIndicatorLights", gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false));
+	gbLightCoronasFeature = gConfig.ReadBoolean("LIGHTS", "LightCoronas", gConfig.ReadBoolean("FEATURES", "LightCoronas", false));
+
+	gfGlobalCoronaSize = gConfig.ReadFloat("LIGHTS", "LightCoronaSize", gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f));
+	gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 220));
+	gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 250));
+	gfTailLightCoronaSize = gConfig.ReadFloat("LIGHTS", "TailLightCoronaSize", gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 0.8f));
+	gTailLightCoronaIntensity = gConfig.ReadInteger("LIGHTS", "TailLightCoronaIntensity", gConfig.ReadInteger("VISUAL", "TailLightCoronaIntensity", 60));
+}
 void Lights::Init()
 {
 	if (gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false)) {
@@ -91,14 +102,7 @@ void Lights::Init()
 
 	Events::initGameEvent += []()
 	{
-		gbGlobalIndicatorLights = gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false);
-		gbLightCoronasFeature = gConfig.ReadBoolean("FEATURES", "LightCoronas", false);
-
-		gfGlobalCoronaSize = gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f);
-		gGlobalShadowIntensity = gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 220);
-		gGlobalCoronaIntensity = gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 250);
-		gfTailLightCoronaSize = gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 1.4f);
-		gTailLightCoronaIntensity = gConfig.ReadInteger("VISUAL", "TailLightCoronaIntensity", 60);
+		InitConfig();
 	};
 
 	Events::vehicleDtorEvent += [](CVehicle *pVeh)
@@ -943,6 +947,7 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMu
 
 void Lights::Reload(CVehicle* pVeh)
 {
+	InitConfig();
 	auto it = m_Dummies.find(pVeh);
 	if (it != m_Dummies.end()) {
 		for (auto &pair : it->second) {

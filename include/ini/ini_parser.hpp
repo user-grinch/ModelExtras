@@ -244,6 +244,9 @@ namespace linb
                     if ((pos = line.find_first_of(';')) != line.npos)
                         line.erase(pos);
 
+                    if ((pos = line.find_first_of('#')) != line.npos)
+                        line.erase(pos);
+
                     if ((pos = line.rfind(" //")) != line.npos)
                         line.erase(pos);
 

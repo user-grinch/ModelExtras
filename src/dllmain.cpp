@@ -4,14 +4,19 @@
 
 void InitLog()
 {
+    if (!gConfig.ReadBoolean("CONFIG", "EnableLogging", true))
+    {
+        AixLog::Log::init({});
+        return;
+    }
+
     auto sink_cout = std::make_shared<AixLog::SinkCout>(AixLog::Severity::debug);
     auto sink_file = std::make_shared<AixLog::SinkFile>(AixLog::Severity::debug, std::string(MOD_NAME) + ".log");
     AixLog::Log::init({sink_cout, sink_file});
 
     std::string header = "Starting " + std::string(MOD_TITLE) + " (" + __DATE__ + ")\n"
-                         "Author: Grinch_\n"
+                         "Authors: Grinch_, Caner Karaca, Ameer\n"
                          "Discord: " + DISCORD_INVITE + "\n"
-                         "Patreon: " + PATREON_LINK + "\n"
                          "More Info: " + GITHUB_LINK + "\n";
     
     SYSTEMTIME st;

@@ -25,11 +25,11 @@ void SoundEffects::Init()
         std::string line = gConfig.ReadString("TABLE", "SoundEffects_BigVehicleModels", "");
         Util::GetModelsFromIni(line, ValidForReverseSound);
 
-        bReverseSounds = gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalReverseSound", false);
-        bEngineSounds = gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalEngineSound", false);
-        bIndicatorSounds = gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalIndicatorSound", false);
-        bAirbreakSounds = gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalAirbreakSound", false);
-        bOnlyPlayerVehicle = !gConfig.ReadBoolean("FEATURES", "SoundEffects_NonPlayerVehicles", false);
+        bReverseSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalReverseSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalReverseSound", false));
+        bEngineSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalEngineSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalEngineSound", false));
+        bIndicatorSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalIndicatorSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalIndicatorSound", false));
+        bAirbreakSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalAirbreakSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalAirbreakSound", false));
+        bOnlyPlayerVehicle = !gConfig.ReadBoolean("SOUND", "SoundEffects_NonPlayerVehicles", gConfig.ReadBoolean("FEATURES", "SoundEffects_NonPlayerVehicles", false));
     };
 
     Events::processScriptsEvent += []() {

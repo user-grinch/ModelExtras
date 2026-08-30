@@ -19,5 +19,9 @@ CBaseFeature::CBaseFeature(std::string name, std::string configSection, eFeature
 }
 
 bool CBaseFeature::IsActive() const {
-    return gConfig.ReadBoolean(m_configSection, m_name, false);
+    if (gConfig.ReadBoolean(m_configSection, m_name, false)) return true;
+    if (gConfig.ReadBoolean("LIGHTS", m_name, false)) return true;
+    if (gConfig.ReadBoolean("SOUND", m_name, false)) return true;
+    if (gConfig.ReadBoolean("FEATURES", m_name, false)) return true;
+    return false;
 }

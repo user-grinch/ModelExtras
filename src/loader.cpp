@@ -66,7 +66,7 @@ void ModelExtras::Init()
         }
     };
 
-    if (gConfig.ReadBoolean("CONFIG", "DeveloperMode", false))
+    if (gConfig.ReadBoolean("CONFIG", "EnableLiveReload", true))
     {
         Events::processScriptsEvent += []()
         {
@@ -139,6 +139,9 @@ void ModelExtras::Init()
 
 void ModelExtras::Reload(CVehicle *pVeh)
 {
+    gConfig.SetIniPath();
+    gVerboseLogging = gConfig.ReadBoolean("CONFIG", "VerboseLogging", false);
+    AudioMgr::ReloadConfig();
     for (const auto &pFeature : m_Features) {
         if (pFeature) {
             pFeature->Reload(pVeh);

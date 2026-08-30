@@ -53,8 +53,8 @@ protected:
     void Init() override;
 
 public:
-	public:
     Lights() : CVehFeature<VehLightDatav1>("StandardLights", "FEATURES", eFeatureMatrix::StandardLights) {}
+	static void InitConfig();
 	static bool IsIndicatorOn(CVehicle *pVeh);
 	static VehLightDatav1 GetVehicleData(CVehicle *pVeh);
 
