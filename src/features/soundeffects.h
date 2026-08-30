@@ -19,12 +19,11 @@ struct SoundEffectsData
 
 class SoundEffects : public CVehFeature<SoundEffectsData>
 {
-private:
-    
-
 protected:
     void Init() override;
+    void Reload(CVehicle *pVeh) override;
+    static void ReloadConfig();
 
 public:
-    SoundEffects() : CVehFeature<SoundEffectsData>("SoundEffects", "FEATURES", eFeatureMatrix::SoundEffects) {}
+    SoundEffects() : CVehFeature<SoundEffectsData>("SoundEffects", "SOUND", eFeatureMatrix::SoundEffects) {}
 };
