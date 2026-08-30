@@ -198,6 +198,7 @@ public:
     bool Trailer = false;
     bool bUsesSirenChecked = false;
     bool bUsesSiren = false;
+    unsigned int nLastTickFrame = 0;
 
     VehicleSiren(CVehicle *_vehicle = nullptr);
     ~VehicleSiren()
@@ -246,5 +247,6 @@ private:
 
     static void RegisterMaterial(CVehicle *vehicle, RpMaterial *material);
     static void EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time);
+    static void ProcessPointLights(CVehicle *pVeh);
     static void EventCtor(CVehicle *pVeh);
 };

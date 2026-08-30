@@ -11,6 +11,7 @@
 #include "utils/modelinfomgr.h"
 #include "utils/audiomgr.h"
 #include "utils/util.h"
+#include "utils/meevents.h"
 
 using namespace plugin;
 
@@ -44,104 +45,25 @@ void SpotLights::Init()
 		OnVehicleRender(pVeh);
 	};
 
-	Events::drawingEvent += []()
+	MEEvents::vehPreRenderEvent.before += [](CVehicle *pVeh)
 	{
-		OnHudRender();
+		ProcessPointLights(pVeh);
 	};
 
-	// Process point lights and ground shadows on script tick so they stay visible
-	// even when the vehicle itself is off-screen / behind the camera.
 	Events::processScriptsEvent += []()
 	{
 		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
 		{
-			if (!pVeh || pVeh->m_fHealth <= 0.0f)
+			if (pVeh && pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
 			{
-				continue;
-			}
-
-			SpotlightData &data = m_VehData.Get(pVeh);
-			if (!data.bEnabled || data.pFrame == nullptr)
-			{
-				continue;
-			}
-
-			if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 120.0f)
-			{
-				continue;
-			}
-
-			RwFrameUpdateObjects(data.pFrame);
-			CMatrix &frameLtm = *(CMatrix *)&data.pFrame->ltm;
-
-			CVector lightPos = frameLtm.pos;
-			CVector lightDir = frameLtm.up; // Forward vector of spotlight
-			lightDir.Normalize();
-
-			// 1. 3D Point Light: Placed 5.0m forward so it never touches our own car body, narrow spread with 16m radius
-			CVector plightPos = lightPos + lightDir * 5.0f;
-			CPointLights::AddLight(
-				PLTYPE_SPOTLIGHT,
-				plightPos,
-				lightDir,
-				16.0f,
-				1.4f, 1.4f, 1.4f,
-				0,
-				false,
-				pVeh
-			);
-
-			// 2. Ground Shadow: Thicker width, slightly shorter length
-			RwTexture *pTex = pSpotlightTex ? pSpotlightTex : TextureMgr::Get("spotlight", gGlobalShadowIntensity);
-			if (!pTex)
-			{
-				pTex = TextureMgr::Get("round", gGlobalShadowIntensity);
-			}
-
-			if (pTex)
-			{
-				float castDist = 12.5f;
-				CVector shadowCenter = lightPos + lightDir * castDist;
-				bool groundFound = false;
-				CEntity *pGroundEntity = nullptr;
-				float groundZ = CWorld::FindGroundZFor3DCoord(shadowCenter.x, shadowCenter.y, shadowCenter.z + 10.0f, &groundFound, &pGroundEntity);
-				if (groundFound)
-				{
-					shadowCenter.z = groundZ + 0.05f;
-				}
-
-				CVector2D front2D(lightDir.x, lightDir.y);
-				front2D.Normalize();
-				float shdwLength = 3.2f;
-				float shdwWidth = 3.8f;
-				CVector2D shdwFront = front2D * (shdwLength * 2.0f);
-				CVector2D shdwSide = GetPerpRight(front2D * shdwWidth);
-
-				float distToCam = CVector::Distance(shadowCenter, TheCamera.GetPosition());
-				if (distToCam < 130.0f)
-				{
-					float alphaMul = 1.0f;
-					if (distToCam > 80.0f)
-					{
-						alphaMul = (130.0f - distToCam) / 50.0f;
-					}
-					CShadows::StoreShadowToBeRendered(
-						2,
-						pTex,
-						&shadowCenter,
-						shdwFront.x, shdwFront.y,
-						shdwSide.x, shdwSide.y,
-						static_cast<short>(230 * alphaMul),
-						255, 255, 255,
-						8.0f,
-						false,
-						1.0f,
-						0,
-						true
-					);
-				}
+				ProcessPointLights(pVeh);
 			}
 		}
+	};
+
+	Events::drawingEvent += []()
+	{
+		OnHudRender();
 	};
 
 	Events::initGameEvent += []()
@@ -217,6 +139,7 @@ void SpotLights::OnVehicleRender(CVehicle *pVeh)
 	if (!data.bEnabled || data.pFrame == nullptr)
 		return;
 
+	data.nLastFrame = CTimer::m_FrameCounter;
 	RwFrameUpdateObjects(data.pFrame);
 	CMatrix &frameLtm = *(CMatrix *)&data.pFrame->ltm;
 
@@ -256,4 +179,99 @@ void SpotLights::OnVehicleRender(CVehicle *pVeh)
 
 	// 2. Enable spotlight material glow on the vehicle
 	ModelInfoMgr::EnableMaterial(pVeh, eMaterialType::SpotLight);
+}
+
+void SpotLights::ProcessPointLights(CVehicle *pVeh)
+{
+	extern bool gbLightPointLights;
+	if (!gbLightPointLights || !pVeh || pVeh->m_fHealth <= 0.0f)
+	{
+		return;
+	}
+
+	SpotlightData &data = m_VehData.Get(pVeh);
+	if (!data.bEnabled || data.pFrame == nullptr)
+	{
+		return;
+	}
+
+	if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 120.0f)
+	{
+		return;
+	}
+
+	RwFrameUpdateObjects(data.pFrame);
+	CMatrix &frameLtm = *(CMatrix *)&data.pFrame->ltm;
+
+	CVector lightPos = frameLtm.pos;
+	CVector lightDir = frameLtm.up;
+	lightDir.Normalize();
+
+	// 1. 3D Point Light: Placed forward along cone (3.5m) with 18m reach
+	CVector plightPos = lightPos + lightDir * 3.5f;
+	CPointLights::AddLight(
+		PLTYPE_SPOTLIGHT,
+		plightPos,
+		lightDir,
+		18.0f,
+		1.2f, 1.2f, 1.2f,
+		0,
+		false,
+		nullptr
+	);
+
+	// 2. Ground Shadow: Disabled with ProperShaders (unless PointLights is disabled)
+	extern bool gbProperShadersDetected;
+	extern bool gbLightPointLights;
+	if (!gbProperShadersDetected || !gbLightPointLights)
+	{
+		RwTexture *pTex = pSpotlightTex ? pSpotlightTex : TextureMgr::Get("spotlight", gGlobalShadowIntensity);
+		if (!pTex)
+		{
+			pTex = TextureMgr::Get("round", gGlobalShadowIntensity);
+		}
+
+		if (pTex)
+		{
+			float castDist = 12.5f;
+			CVector shadowCenter = lightPos + lightDir * castDist;
+			bool groundFound = false;
+			CEntity *pGroundEntity = nullptr;
+			float groundZ = CWorld::FindGroundZFor3DCoord(shadowCenter.x, shadowCenter.y, shadowCenter.z + 10.0f, &groundFound, &pGroundEntity);
+			if (groundFound)
+			{
+				shadowCenter.z = groundZ + 0.05f;
+			}
+
+			CVector2D front2D(lightDir.x, lightDir.y);
+			front2D.Normalize();
+			float shdwLength = 3.2f;
+			float shdwWidth = 3.8f;
+			CVector2D shdwFront = front2D * (shdwLength * 2.0f);
+			CVector2D shdwSide = GetPerpRight(front2D * shdwWidth);
+
+			float distToCam = CVector::Distance(shadowCenter, TheCamera.GetPosition());
+			if (distToCam < 130.0f)
+			{
+				float alphaMul = 1.0f;
+				if (distToCam > 80.0f)
+				{
+					alphaMul = (130.0f - distToCam) / 50.0f;
+				}
+				CShadows::StoreShadowToBeRendered(
+					2,
+					pTex,
+					&shadowCenter,
+					shdwFront.x, shdwFront.y,
+					shdwSide.x, shdwSide.y,
+					static_cast<short>(230 * alphaMul),
+					255, 255, 255,
+					8.0f,
+					false,
+					1.0f,
+					0,
+					true);
+			}
+		}
+	}
 }

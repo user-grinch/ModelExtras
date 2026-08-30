@@ -131,7 +131,6 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
                     RenderUtil::RegisterCoronaDirectional(&dummy->Get(), c.rotation.angle, 180.0f, 1.0f, c.corona.lightingType == eLightingMode::Inversed, false);
                 }
             }
-
             // Extra reach for the high beam, the light that falls on peds, cars and the
             // road. Kept out of the corona helper above because that one returns early
             // on a camera facing check that's true in the normal driving view.
@@ -140,7 +139,7 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
                 bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh)) && !CarUtil::IsLightsForcedOff(pVeh);
                 if (isHeadlightsOn) {
                     // Clamped so a bad ini value can't hand the game a silly or negative range
-                    static float rawMul = gConfig.ReadFloat("TWEAKS", "HighBeamPointLightMul", 2.0f);
+                    static float rawMul = gConfig.ReadFloat("LIGHTS", "HighBeamPointLightMul", gConfig.ReadFloat("TWEAKS", "HighBeamPointLightMul", 2.0f));
                     static float highBeamMul = (rawMul < 1.0f) ? 1.0f : ((rawMul > 4.0f) ? 4.0f : rawMul);
 
                     RenderUtil::RegisterHeadlightPointLight(&dummy->Get(), highBeamMul);
