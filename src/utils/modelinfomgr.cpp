@@ -25,8 +25,6 @@ extern int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat);
 extern int GetStrobeIndex(CVehicle *pVeh, RpMaterial *pMat);
 
 static CVehicle *pCurVeh = nullptr;
-RwSurfaceProperties gLightSurfProps = {1.0f, 0.0f, 0.0f};
-RwSurfaceProperties gLightSurfPropsOff = {0.45f, 0.0f, 0.0f};
 
 static constexpr uint32_t RwFrameForAllObjectsAddr = 0x7F1200;
 static constexpr uint32_t RwFrameAddChildAddr = 0x7F0B00;
@@ -94,10 +92,18 @@ void ModelInfoMgr::ResetEditableMaterials() {
     }
   }
   m_RestoreEntries.clear();
+
+  for (auto it = m_SurfPropsRestoreEntries.rbegin(); it != m_SurfPropsRestoreEntries.rend(); ++it) {
+    if (it->m_pMaterial) {
+      it->m_pMaterial->surfaceProps = it->m_SurfProps;
+    }
+  }
+  m_SurfPropsRestoreEntries.clear();
 }
 
 void ModelInfoMgr::Init() {
   m_RestoreEntries.reserve(256);
+  m_SurfPropsRestoreEntries.reserve(256);
 
   patch::Nop(0x4C8E53, 5);
   patch::Nop(0x4C8F6E, 5);
@@ -117,19 +123,6 @@ void ModelInfoMgr::Init() {
       0x4C8220, reinterpret_cast<void *>(ModelInfoMgr::SetEditableMaterialsCB));
   patch::ReplaceFunction(
       0x4C8460, reinterpret_cast<void *>(ModelInfoMgr::ResetEditableMaterials));
-
-  Events::initScriptsEvent += []() {
-    gLightSurfProps.ambient = gConfig.ReadFloat("LIGHTS", "MaterialAmbientOn",
-                                                gConfig.ReadFloat("VISUAL", "MaterialAmbientOn", gLightSurfProps.ambient));
-    gLightSurfProps.diffuse =
-        gConfig.ReadFloat("LIGHTS", "MaterialDiffuseOn", gConfig.ReadFloat("VISUAL", "MaterialDiffuseOn", 0.0f));
-    gLightSurfProps.specular = 0.0f;
-    gLightSurfPropsOff.ambient = gConfig.ReadFloat(
-        "LIGHTS", "MaterialAmbientOff", gConfig.ReadFloat("VISUAL", "MaterialAmbientOff", gLightSurfPropsOff.ambient));
-    gLightSurfPropsOff.diffuse = 0.0f;
-    gLightSurfPropsOff.specular = 0.0f;
-  };
-
   MEEvents::vehRenderEvent.before += [](CVehicle *pVeh) {
     if (!pVeh || !pVeh->m_pRwClump) {
       return;
@@ -335,12 +328,12 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
           }
         }
       }
-      material->surfaceProps = gLightSurfProps;
+      m_SurfPropsRestoreEntries.push_back({material, material->surfaceProps});
+      material->surfaceProps = *reinterpret_cast<RwSurfaceProperties *>(0x8A645C);
     } else {
       pColor->red = matCol.off.r;
       pColor->green = matCol.off.g;
       pColor->blue = matCol.off.b;
-      material->surfaceProps = gLightSurfPropsOff;
     }
   } else {
     CRGBA col = {255, 255, 255, 255};

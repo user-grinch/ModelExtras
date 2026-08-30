@@ -7,13 +7,12 @@
 #include <RenderWare.h>
 #include <CTheZones.h>
 #include "utils/texmgr.h"
+#include "utils/modelinfomgr.h"
 #include <utility>
 
 using namespace plugin;
 
 static CVehicle *pCurrentVeh = nullptr;
-extern RwSurfaceProperties gLightSurfProps;
-extern RwSurfaceProperties gLightSurfPropsOff;
 
 void LicensePlate::Init()
 {
@@ -117,12 +116,12 @@ RpMaterial *__cdecl LicensePlate::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
     bool lightsOn = (pCurrentVeh->bLightsOn || CarUtil::IsLightsForcedOn(pCurrentVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pCurrentVeh))) && !CarUtil::IsLightsForcedOff(pCurrentVeh);
     if (pCurrentVeh->m_fHealth > 0.0f && lightsOn)
     {
-        material->surfaceProps = gLightSurfProps;
+        ModelInfoMgr::RegisterRestoreSurfProps(material);
+        material->surfaceProps = *reinterpret_cast<RwSurfaceProperties *>(0x8A645C);
         RpMaterialSetTexture(material, m_Plates[plateType + 4]);
     }
     else
     {
-        material->surfaceProps = gLightSurfPropsOff;
         RpMaterialSetTexture(material, m_Plates[plateType]);
     }
     return material;

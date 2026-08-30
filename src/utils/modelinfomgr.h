@@ -44,6 +44,11 @@ struct tRestoreEntry {
   void *m_pValue;
 };
 
+struct tSurfPropsRestoreEntry {
+  RpMaterial *m_pMaterial;
+  RwSurfaceProperties m_SurfProps;
+};
+
 class ModelInfoMgr {
 private:
   static inline std::vector<DummyCallback_t> dummies;
@@ -51,6 +56,7 @@ private:
   static inline std::vector<MaterialColProviderCallback_t> matColProviders;
   static inline std::vector<RenderCallback_t> renders;
   static inline std::vector<tRestoreEntry> m_RestoreEntries;
+  static inline std::vector<tSurfPropsRestoreEntry> m_SurfPropsRestoreEntries;
 
   static inline plugin::VehicleExtendedData<VehModelData> m_VehData;
 
@@ -79,5 +85,10 @@ public:
   static void Reload(CVehicle *pVeh);
   static void RegisterRestore(void *address, void *value) {
     m_RestoreEntries.push_back({address, value});
+  }
+  static void RegisterRestoreSurfProps(RpMaterial *material) {
+    if (material) {
+      m_SurfPropsRestoreEntries.push_back({material, material->surfaceProps});
+    }
   }
 };
