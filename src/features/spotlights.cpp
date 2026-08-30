@@ -81,6 +81,19 @@ bool SpotLights::IsEnabled(CVehicle *pVeh)
 	return m_VehData.Get(pVeh).bEnabled;
 }
 
+static uint32_t g_nSpotLightKey = VK_B;
+
+void SpotLights::ReloadConfig()
+{
+	CBaseFeature::ReloadConfig();
+	g_nSpotLightKey = gConfig.ReadInteger("KEYS", "SpotLightKey", VK_B);
+}
+
+void SpotLights::Reload(CVehicle *pVeh)
+{
+	ReloadConfig();
+}
+
 void SpotLights::OnHudRender()
 {
 	CVehicle *pVeh = FindPlayerVehicle(-1, false);
@@ -96,8 +109,7 @@ void SpotLights::OnHudRender()
 	}
 
 	static size_t prev = 0;
-	static uint32_t key = gConfig.ReadInteger("KEYS", "SpotLightKey", VK_B);
-	if (Util::IsKeyPressed(key))
+	if (Util::IsKeyPressed(g_nSpotLightKey))
 	{
 		size_t now = CTimer::m_snTimeInMilliseconds;
 		if (now - prev > 500.0f)

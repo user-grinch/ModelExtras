@@ -25,3 +25,10 @@ bool CBaseFeature::IsActive() const {
     if (gConfig.ReadBoolean("FEATURES", m_name, false)) return true;
     return false;
 }
+
+void CBaseFeature::ReloadConfig() {
+    m_bActive = IsActive();
+    if (m_featureId <= eFeatureMatrix::FeatureCount) {
+        ModelExtras::m_bEnabledFeatures.set(static_cast<int>(m_featureId), m_bActive);
+    }
+}

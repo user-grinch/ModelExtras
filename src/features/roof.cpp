@@ -33,8 +33,22 @@ bool ConvertibleRoof::UpdateRotation(RoofConfig &config, CVehicle *pVeh, bool cl
     return false;
 }
 
+static uint32_t g_nRoofToggleKey = 'T';
+
+void ConvertibleRoof::ReloadConfig()
+{
+    CBaseFeature::ReloadConfig();
+    g_nRoofToggleKey = gConfig.ReadInteger("KEYS", "RoofToggleKey", 'T');
+}
+
+void ConvertibleRoof::Reload(CVehicle *pVeh)
+{
+    ReloadConfig();
+}
+
 void ConvertibleRoof::Init()
 {
+    ReloadConfig();
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
     {
         bool isBoot = nodeName.starts_with("x_convertible_boot");
@@ -151,9 +165,8 @@ void ConvertibleRoof::Init()
     {
         size_t now = CTimer::m_snTimeInMilliseconds;
         static size_t prev = 0;
-        static uint32_t roofToggleKey = gConfig.ReadInteger("KEYS", "RoofToggleKey", 'T');
 
-        if (Util::IsKeyPressed(roofToggleKey) && now - prev > 500.0f)
+        if (Util::IsKeyPressed(g_nRoofToggleKey) && now - prev > 500.0f)
         {
             CVehicle *pVeh = FindPlayerVehicle();
             if (pVeh)

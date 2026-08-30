@@ -70,8 +70,22 @@ bool RollbackBed::UpdateMove(HydraulicPiston &piston, float moveSpeed, bool bExp
     return false;
 }
 
+static uint32_t g_nRollbackBedToggleKey = 'K';
+
+void RollbackBed::ReloadConfig()
+{
+    CBaseFeature::ReloadConfig();
+    g_nRollbackBedToggleKey = gConfig.ReadInteger("KEYS", "RollbackBedToggleKey", 'K');
+}
+
+void RollbackBed::Reload(CVehicle *pVeh)
+{
+    ReloadConfig();
+}
+
 void RollbackBed::Init()
 {
+    ReloadConfig();
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
     {
         if (!nodeName.starts_with("x_rb"))
@@ -163,9 +177,8 @@ void RollbackBed::Init()
     {
         size_t now = CTimer::m_snTimeInMilliseconds;
         static size_t prev = 0;
-        static uint32_t toggleKey = gConfig.ReadInteger("KEYS", "RollbackBedToggleKey", 'K');
 
-        if (Util::IsKeyPressed(toggleKey) && now - prev > 500.0f)
+        if (Util::IsKeyPressed(g_nRollbackBedToggleKey) && now - prev > 500.0f)
         {
             CVehicle *pVeh = FindPlayerVehicle();
             if (pVeh)

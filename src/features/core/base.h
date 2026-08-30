@@ -28,6 +28,7 @@ public:
 
   virtual void Init() = 0;
   virtual void Shutdown() {}
+  virtual void ReloadConfig();
   virtual void Reload() {}
   virtual void Reload(CVehicle *pVeh) {}
 };

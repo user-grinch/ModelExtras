@@ -229,6 +229,7 @@ public:
     static inline int CurrentModel = -1;
 
     static void Parse(const nlohmann::json &data, int model);
+    void ReloadConfig() override;
     void Reload(CVehicle* pVeh) override;
     friend int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat);
 
