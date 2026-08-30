@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "utils/samp.h"
 #include <windows.h>
 #include <cctype>
@@ -180,17 +180,25 @@ namespace SAMP
         }
     }
 
+    static bool s_bSampChecked = false;
+    static bool s_bSampPresent = false;
+
     bool IsPresent()
     {
-        if (s_sampBase == 0)
+        if (!s_bSampChecked)
         {
             HMODULE hMod = GetModuleHandleA("samp.dll");
             if (!hMod) hMod = GetModuleHandleA("omp-client.dll");
             if (!hMod) hMod = GetModuleHandleA("openmp.dll");
             if (!hMod) hMod = GetModuleHandleA("omp.dll");
-            if (hMod) s_sampBase = reinterpret_cast<uintptr_t>(hMod);
+            if (hMod)
+            {
+                s_sampBase = reinterpret_cast<uintptr_t>(hMod);
+                s_bSampPresent = true;
+            }
+            s_bSampChecked = true;
         }
-        return s_sampBase != 0;
+        return s_bSampPresent;
     }
 
     bool IsInputActive()
