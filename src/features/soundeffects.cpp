@@ -12,29 +12,46 @@ std::vector<int> ValidForReverseSound;
 #define ANIMGROUP_BUS 15
 #define ANIMGROUP_COACH 16
 
+static bool bReverseSounds = false;
+static bool bEngineSounds = false;
+static bool bIndicatorSounds = false;
+static bool bAirbreakSounds = false;
+static bool bOnlyPlayerVehicle = true;
+
+void SoundEffects::ReloadConfig()
+{
+    std::string line = gConfig.ReadString("TABLE", "SoundEffects_BigVehicleModels", "");
+    ValidForReverseSound.clear();
+    Util::GetModelsFromIni(line, ValidForReverseSound);
+
+    bReverseSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalReverseSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalReverseSound", false));
+    bEngineSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalEngineSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalEngineSound", false));
+    bIndicatorSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalIndicatorSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalIndicatorSound", false));
+    bAirbreakSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalAirbreakSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalAirbreakSound", false));
+    bOnlyPlayerVehicle = !gConfig.ReadBoolean("SOUND", "SoundEffects_NonPlayerVehicles", gConfig.ReadBoolean("FEATURES", "SoundEffects_NonPlayerVehicles", false));
+}
+
+void SoundEffects::Reload(CVehicle *pVeh)
+{
+    ReloadConfig();
+}
+
 void SoundEffects::Init()
 {
-    static bool bReverseSounds = false;
-    static bool bEngineSounds = false;
-    static bool bIndicatorSounds = false;
-    static bool bAirbreakSounds = false;
-    static bool bOnlyPlayerVehicle = true;
-
     Events::initGameEvent += []()
     {
-        std::string line = gConfig.ReadString("TABLE", "SoundEffects_BigVehicleModels", "");
-        Util::GetModelsFromIni(line, ValidForReverseSound);
-
-        bReverseSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalReverseSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalReverseSound", false));
-        bEngineSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalEngineSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalEngineSound", false));
-        bIndicatorSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalIndicatorSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalIndicatorSound", false));
-        bAirbreakSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalAirbreakSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalAirbreakSound", false));
-        bOnlyPlayerVehicle = !gConfig.ReadBoolean("SOUND", "SoundEffects_NonPlayerVehicles", gConfig.ReadBoolean("FEATURES", "SoundEffects_NonPlayerVehicles", false));
+        ReloadConfig();
     };
 
     Events::processScriptsEvent += []() {
+        CPed *pPlayer = FindPlayerPed();
+        if (!pPlayer) {
+            return;
+        }
+        CVector playerPos = pPlayer->GetPosition();
+
 		for (CVehicle *pVeh : CPools::ms_pVehiclePool) {
-			if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 50.0f ) {
+			if (CVector::Distance(pVeh->GetPosition(), playerPos) > 75.0f ) {
 				continue;
 			}
 
@@ -56,9 +73,10 @@ void SoundEffects::Init()
                 continue;
             }
 
-            int animGroup = pVeh->m_pHandlingData->m_nAnimGroup;
+            int animGroup = pVeh->m_pHandlingData ? pVeh->m_pHandlingData->m_nAnimGroup : 0;
             bool isAllowed = pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE &&
-                            (animGroup == ANIMGROUP_TRUCK || animGroup == ANIMGROUP_BUS || animGroup == ANIMGROUP_COACH);
+                            (animGroup == ANIMGROUP_TRUCK || animGroup == ANIMGROUP_BUS || animGroup == ANIMGROUP_COACH ||
+                             pVeh->bIsBig || pVeh->bIsBus || pVeh->bIsVan || (pVeh->m_pHandlingData && pVeh->m_pHandlingData->m_fMass >= 3500.0f));
             bool isBigVeh = isAllowed || std::find(ValidForReverseSound.begin(), ValidForReverseSound.end(), pVeh->m_nModelIndex) != ValidForReverseSound.end();
 
             if (bEngineSounds)
@@ -78,11 +96,11 @@ void SoundEffects::Init()
                             static std::string bikePath = MOD_DATA_PATH("audio/bike_engine_start.wav");
                             if (CModelInfo::IsBikeModel(model) || CModelInfo::IsQuadBikeModel(model))
                             {
-                                AudioMgr::PlayFileSound(bikePath, pVeh, 1.0f, true);
+                                AudioMgr::Play3DSound(bikePath, pVeh->GetPosition(), pVeh, 1.0f, 65.0f);
                             }
                             else
                             {
-                                AudioMgr::PlayFileSound(carPath, pVeh, 1.0f, true);
+                                AudioMgr::Play3DSound(carPath, pVeh->GetPosition(), pVeh, 1.0f, 65.0f);
                             }
                             data.m_nLastEngineSoundTime = curTime;
                         }
@@ -102,18 +120,15 @@ void SoundEffects::Init()
 
                     if (state)
                     {
-                        AudioMgr::PlayFileSound(onpath, pVeh, 0.6f, true);
+                        AudioMgr::PlayFileSound(onpath, 0.6f);
                     }
                     else
                     {
-                        AudioMgr::PlayFileSound(offpath, pVeh, 0.6f, true);
+                        AudioMgr::PlayFileSound(offpath, 0.6f);
                     }
                     data.m_bIndicatorState = state;
                 }
             }
-
-            CVector vehPos = pVeh->GetPosition();
-            CVector camPos = TheCamera.GetPosition();
 
             if (bAirbreakSounds && isBigVeh)
             {
@@ -132,7 +147,7 @@ void SoundEffects::Init()
                 if (pedal <= 0.05f && data.m_fMaxPedal > 0.0f)
                 {
                     static std::string path = MOD_DATA_PATH("audio/airbreak.wav");
-                    AudioMgr::PlayFileSound(path, pVeh, data.m_fBrakePressure, true);
+                    AudioMgr::Play3DSound(path, pVeh->GetPosition(), pVeh, data.m_fBrakePressure, 60.0f);
                     data.m_fMaxPedal = 0.0f;
                     data.m_fBrakePressure = 0.0f;
                 }
@@ -147,7 +162,7 @@ void SoundEffects::Init()
                     unsigned int curTime = CTimer::m_snTimeInMilliseconds;
                     if (curTime - data.m_nLastReverseSoundTime >= 1000)
                     {
-                        AudioMgr::PlayFileSound(path, pVeh, 0.5f, true);
+                        AudioMgr::Play3DSound(path, pVeh->GetPosition(), pVeh, 0.7f, 50.0f);
                         data.m_nLastReverseSoundTime = curTime;
                     }
                 }

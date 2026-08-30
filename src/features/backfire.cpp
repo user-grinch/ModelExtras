@@ -23,10 +23,9 @@ void BackFireEffect::BackFireFX(CVehicle *pVeh, float x, float y, float z, float
 
     Command<Commands::PLAY_AND_KILL_FX_SYSTEM>(handle);
 
-    CVector vehPos = pVeh->GetPosition();
-    CVector camPos = TheCamera.GetPosition();
+    CVector exhaustWorldPos = pVeh->TransformFromObjectSpace(CVector(x, y, z));
     static std::string audioPath = MOD_DATA_PATH("audio/backfire.wav");
-    AudioMgr::PlayFileSound(audioPath, pVeh, 1.5f, true);
+    AudioMgr::Play3DSound(audioPath, exhaustWorldPos, pVeh, 1.5f, 80.0f);
 }
 
 void BackFireEffect::BackFireSingle(CVehicle *pVeh)
