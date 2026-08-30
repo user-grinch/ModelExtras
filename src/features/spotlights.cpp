@@ -168,6 +168,10 @@ void SpotLights::OnHudRender()
 	}
 
 	SpotlightData &data = m_VehData.Get(pVeh);
+	if (!data.pFrame)
+	{
+		return;
+	}
 
 	static size_t prev = 0;
 	static uint32_t key = gConfig.ReadInteger("KEYS", "SpotLightKey", VK_B);
@@ -182,7 +186,7 @@ void SpotLights::OnHudRender()
 		}
 	}
 
-	if (!Util::IsKeyPressed(VK_RMB) || !data.pFrame)
+	if (!Util::IsKeyPressed(VK_RMB))
 	{
 		return;
 	}

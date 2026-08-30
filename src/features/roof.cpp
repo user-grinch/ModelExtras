@@ -151,7 +151,7 @@ void ConvertibleRoof::Init()
     {
         size_t now = CTimer::m_snTimeInMilliseconds;
         static size_t prev = 0;
-        static uint32_t roofToggleKey = gConfig.ReadInteger("KEYS", "RoofToggleKey", VK_R);
+        static uint32_t roofToggleKey = gConfig.ReadInteger("KEYS", "RoofToggleKey", 'T');
 
         if (Util::IsKeyPressed(roofToggleKey) && now - prev > 500.0f)
         {

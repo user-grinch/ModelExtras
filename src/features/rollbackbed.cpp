@@ -3,6 +3,7 @@
 #include "utils/modelinfomgr.h"
 #include "utils/datamgr.h"
 #include "utils/audiomgr.h"
+#include "utils/util.h"
 
 using namespace plugin;
 
@@ -171,7 +172,7 @@ void RollbackBed::Init()
             {
                 RollbackBedData &data = m_VehData.Get(pVeh);
 
-                if (data.bInit)
+                if (data.bInit && !Util::IsEngineOff(pVeh))
                 {
                     data.bExpanded = !data.bExpanded;
                     prev = now;
