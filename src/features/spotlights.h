@@ -9,6 +9,7 @@ struct SpotlightData
 	RwV3d origPos{0.0f, 0.0f, 0.0f};
 	bool bHasOrigPos = false;
 	bool bEnabled = false;
+	unsigned int nLastFrame = 0;
 	SpotlightData(CVehicle *pVeh) {}
 	~SpotlightData() = default;
 };
@@ -25,6 +26,7 @@ public:
 
 	static void OnHudRender();
 	static void OnVehicleRender(CVehicle *pVeh);
+	static void ProcessPointLights(CVehicle *pVeh);
 
 public:
     SpotLights() : CVehFeature<SpotlightData>("SpotLights", "FEATURES", eFeatureMatrix::StandardLights) {}

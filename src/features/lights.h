@@ -41,6 +41,7 @@ private:
 	static void RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std::string texture, float sz, bool highlight, bool isDummyOk = true, bool materialsOnly = false);
 	static void RenderLights(CVehicle *pControlVeh, CVehicle *pTowedVeh, eMaterialType state, bool shadows = true, std::string texture = "indicator", float sz = 1.0f, bool highlight = false, bool isDummyOk = true, bool materialsOnly = false);
 	static void RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRightOn, bool materialsOnly = false);
+	static void ProcessPointLights(CVehicle *pVeh);
 	static void __cdecl hkTailLightCCoronas_RegisterCorona(uint32_t id, CVehicle *pVeh, uint8_t r, uint8_t g, uint8_t b, uint8_t a, CVector *pos, float size, float range, int coronaType, uint8_t flareType, uint8_t reflectionType, bool checkObstacles, int bUsesTrails, float fNormalAngle, bool bNeonFade, float fPullTowardsCam, bool bFullBrightAtStart, float fadeSpeed, bool bOnlyFromBelow, bool bWhiteCore);
 
 	// Helper functions
@@ -64,3 +65,6 @@ public:
 	static bool GetLightState(CVehicle *pVeh, eMaterialType lightId);
 	static void SetLightState(CVehicle *pVeh, eMaterialType lightId, bool state);
 };
+
+extern bool gbLightPointLights;
+extern bool gbSirenPointLights;

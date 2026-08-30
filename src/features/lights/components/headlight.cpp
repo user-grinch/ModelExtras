@@ -34,8 +34,10 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
     if (pVeh->m_pDriver == FindPlayerPed()) {
         static size_t prev = 0;
         static uint32_t longLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", VK_G);
-
-        if (Util::IsKeyPressed(longLightKey) && (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh))) {
+        extern bool gbProperShadersDetected;
+        extern bool gbLightPointLights;
+        bool canToggleLongLights = !(gbProperShadersDetected && !gbLightPointLights);
+        if (Util::IsKeyPressed(longLightKey) && (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh)) && canToggleLongLights) {
             size_t now = CTimer::m_snTimeInMilliseconds;
             if (now - prev > 500) {
                 data.bLongLightsOn = !data.bLongLightsOn;
