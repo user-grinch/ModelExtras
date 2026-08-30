@@ -57,6 +57,10 @@ DummyConfig LightManager::CreateBaseConfig(CVehicle* pVeh, RwFrame* pFrame) {
 }
 
 eMaterialType LightManager::GetMatType(RpMaterial* pMat) {
+    if (Util::IsAntiPatternLightMaterial(pMat)) {
+        return eMaterialType::UnknownMaterial;
+    }
+
     CRGBA matCol = *reinterpret_cast<CRGBA*>(RpMaterialGetColor(pMat));
     matCol.a = 255;
 
@@ -69,6 +73,9 @@ eMaterialType LightManager::GetMatType(RpMaterial* pMat) {
 }
 
 void LightManager::RegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name) {
+    if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
+        return;
+    }
     VehLightData& data = m_VehData.Get(pVeh);
 
     for (const auto& comp : m_Components) {

@@ -35,4 +35,5 @@ public:
   static std::optional<std::string> GetCharsAfterPrefix(const std::string_view str, const std::string_view prefix, size_t num_chars);
 
   static CRGBA GetMaterialColor(RpMaterial*pMat);
+  static bool IsAntiPatternLightMaterial(RpMaterial *pMat);
 };
