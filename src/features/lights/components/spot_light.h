@@ -4,6 +4,7 @@
 
 class SpotLightComponent : public BaseLightComponent {
 public:
+    void RegisterMaterials(std::unordered_map<uint32_t, eMaterialType>& matMap) override;
     eMaterialType GetMatType(CRGBA matCol) override;
     bool TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) override;
 

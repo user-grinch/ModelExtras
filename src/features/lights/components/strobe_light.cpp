@@ -2,6 +2,11 @@
 #include "strobe_light.h"
 #include "utils/modelinfomgr.h"
 #include "utils/util.h"
+#include "utils/render.h"
+
+void StrobeLightComponent::RegisterMaterials(std::unordered_map<uint32_t, eMaterialType>& matMap) {
+    matMap[VEHCOL_STROBELIGHT.ToInt()] = eMaterialType::StrobeLight;
+}
 
 eMaterialType StrobeLightComponent::GetMatType(CRGBA matCol) {
     if (matCol == VEHCOL_STROBELIGHT) return eMaterialType::StrobeLight;
@@ -20,28 +25,20 @@ bool StrobeLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, con
     return false;
 }
 
-void StrobeLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
-    if (data.dummies.count(eMaterialType::StrobeLight) == 0) return;
-
-    size_t timer = CTimer::m_snTimeInMilliseconds;
-    for (auto* dummy : data.dummies[eMaterialType::StrobeLight]) {
-        auto& c = const_cast<DummyConfig&>(dummy->GetRef());
-        if (timer - c.strobe.timer > c.strobe.delay) {
-            c.strobe.enabled = !c.strobe.enabled;
-            c.strobe.timer = timer;
-        }
-    }
-}
+void StrobeLightComponent::Process(CVehicle* pVeh, VehLightData& data) {}
 
 void StrobeLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
-    if (data.dummies.count(eMaterialType::StrobeLight) == 0) return;
+    LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::StrobeLight, true);
+}
 
-    for (auto* dummy : data.dummies[eMaterialType::StrobeLight]) {
-        const auto& c = dummy->GetRef();
-        if (c.strobe.enabled) {
-            ModelInfoMgr::EnableStrobeMaterial(pTowedVeh, c.dummyIdx);
-            // Strobes usually don't have shadows/coronas in the same way, but we can call RenderLight if needed
-            LightManager::RenderLight(pTowedVeh, data, eMaterialType::StrobeLight, true);
+void StrobeLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
+    if (LightManager::IsDummyAvailable(data, eMaterialType::StrobeLight) && data.bLightStates[eMaterialType::StrobeLight]) {
+        for (auto* dummy : data.dummies[eMaterialType::StrobeLight]) {
+            dummy->Update();
+            const auto& c = dummy->GetRef();
+            if (c.strobe.enabled) {
+                RenderUtil::RegisterPointLight(&dummy->Get(), c.corona.color, 6.0f, true);
+            }
         }
     }
 }

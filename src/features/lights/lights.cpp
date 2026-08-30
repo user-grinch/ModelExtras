@@ -2,9 +2,10 @@
 #include "pch.h"
 #include "lights.h"
 #include "manager.h"
+#include "utils/meevents.h"
 
 void LightsFeature::Init() {
-    if (!gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false)) {
+    if (!gConfig.ReadBoolean("LIGHTS", "StandardLightsv2", gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false))) {
 		return;
 	}
 
@@ -13,7 +14,7 @@ void LightsFeature::Init() {
     patch::Nop(0x6E2722, 19);	  // CVehicle::DoHeadLightReflection
 	patch::SetUChar(0x6E1A22, 0); // CVehicle::DoTailLightEffect
 
-	// // CVehicle::DoHeadLightEffect
+	// CVehicle::DoHeadLightEffect
 	patch::SetUChar(0x6E0CF8, 0);
 	patch::SetUChar(0x6E0DEE, 0);
 
@@ -27,12 +28,7 @@ void LightsFeature::Init() {
 
 	Events::initGameEvent += []()
 	{
-		LightsGlobal::Get().gbGlobalIndicatorLights = gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false);
-		LightsGlobal::Get().gfGlobalCoronaSize = gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f);
-		LightsGlobal::Get().gGlobalShadowIntensity = gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 220);
-		LightsGlobal::Get().gGlobalCoronaIntensity = gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 250);
-		LightsGlobal::Get().gfTailLightCoronaSize = gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 0.8f);
-		LightsGlobal::Get().gTailLightCoronaIntensity = gConfig.ReadInteger("VISUAL", "TailLightCoronaIntensity", 60);
+		LightsConfig::Get().InitConfig();
 	};
 
     ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat) {
@@ -43,12 +39,25 @@ void LightsFeature::Init() {
         LightManager::RegisterDummy(pVeh, pFrame, nodeName);
     });
 
+	MEEvents::vehPreRenderEvent.before += [](CVehicle *pVeh)
+	{
+		LightManager::ProcessPointLights(pVeh);
+	};
+
 	Events::processScriptsEvent += []()
 	{
-		CVehicle *pVeh = FindPlayerVehicle(-1, false);
-        if (pVeh) {
-            LightManager::Process(pVeh);
-        }
+		BlinkerState::Get().Update();
+
+		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
+		{
+			if (pVeh) {
+				if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
+				{
+					LightManager::ProcessPointLights(pVeh);
+				}
+				LightManager::Process(pVeh);
+			}
+		}
 	};
 
 	ModelInfoMgr::RegisterRender([](CVehicle *pControlVeh) {
@@ -65,4 +74,8 @@ void LightsFeature::Init() {
 
 		LightManager::Render(pControlVeh, pTowedVeh);
 	});
+}
+
+void LightsFeature::Reload(CVehicle* pVeh) {
+	LightManager::Reload(pVeh);
 }

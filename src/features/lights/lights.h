@@ -7,4 +7,5 @@ protected:
 
 public:
     LightsFeature() : CBaseFeature("StandardLightsv2", "FEATURES", eFeatureMatrix::StandardLights) {}
+    void Reload(CVehicle* pVeh) override;
 };

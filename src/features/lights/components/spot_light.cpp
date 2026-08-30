@@ -1,6 +1,11 @@
 #include "pch.h"
 #include "spot_light.h"
 #include "features/spotlights.h"
+#include "defines.h"
+
+void SpotLightComponent::RegisterMaterials(std::unordered_map<uint32_t, eMaterialType>& matMap) {
+    matMap[VEHCOL_SPOTLIGHT.ToInt()] = eMaterialType::SpotLight;
+}
 
 eMaterialType SpotLightComponent::GetMatType(CRGBA matCol) {
     if (matCol == VEHCOL_SPOTLIGHT) return eMaterialType::SpotLight;
@@ -11,7 +16,6 @@ bool SpotLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
     if (name.starts_with("spotlight_light")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.lightType = eMaterialType::SpotLight;
-        c.corona.size = 0.0f;
         data.dummies[c.lightType].push_back(new VehicleDummy(c));
         return true;
     }
@@ -22,9 +26,6 @@ void SpotLightComponent::Process(CVehicle* pVeh, VehLightData& data) {}
 
 void SpotLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
     if (SpotLights::IsEnabled(pControlVeh)) {
-        LightManager::RenderLight(pControlVeh, data, eMaterialType::SpotLight, true);
-        if (pControlVeh != pTowedVeh) {
-            LightManager::RenderLight(pTowedVeh, data, eMaterialType::SpotLight, true);
-        }
+        LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::SpotLight, false, "", 1.0f, false, true, true);
     }
 }

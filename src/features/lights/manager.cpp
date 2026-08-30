@@ -1,8 +1,10 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "manager.h"
 #include "utils/modelinfomgr.h"
 #include "utils/render.h"
 #include "utils/util.h"
+#include "utils/car.h"
+#include "utils/datamgr.h"
 #include "defines.h"
 #include "components/headlight.h"
 #include "components/indicator.h"
@@ -13,13 +15,14 @@
 #include "components/nabrake_light.h"
 #include "components/fog_light.h"
 #include "components/strobe_light.h"
-#include "components/day_light.h"
-#include "components/night_light.h"
-#include "components/allday_light.h"
+#include "components/drl_light.h"
 #include "components/side_light.h"
 #include "components/spot_light.h"
 
 void LightManager::Init() {
+    m_Components.clear();
+    m_MaterialMap.clear();
+
     m_Components.push_back(std::make_unique<HeadlightComponent>());
     m_Components.push_back(std::make_unique<IndicatorComponent>());
     m_Components.push_back(std::make_unique<ReverseLightComponent>());
@@ -29,11 +32,13 @@ void LightManager::Init() {
     m_Components.push_back(std::make_unique<NABrakeLightComponent>());
     m_Components.push_back(std::make_unique<FogLightComponent>());
     m_Components.push_back(std::make_unique<StrobeLightComponent>());
-    m_Components.push_back(std::make_unique<DayLightComponent>());
-    m_Components.push_back(std::make_unique<NightLightComponent>());
-    m_Components.push_back(std::make_unique<AllDayLightComponent>());
+    m_Components.push_back(std::make_unique<DRLLightComponent>());
     m_Components.push_back(std::make_unique<SideLightComponent>());
     m_Components.push_back(std::make_unique<SpotLightComponent>());
+
+    for (const auto& comp : m_Components) {
+        comp->RegisterMaterials(m_MaterialMap);
+    }
 
     ModelInfoMgr::RegisterMaterialColProvider([](CVehicle* pVeh, RpMaterial* pMat, eMaterialType type) -> MatStateColor {
         if (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) {
@@ -50,9 +55,12 @@ void LightManager::Init() {
 
 DummyConfig LightManager::CreateBaseConfig(CVehicle* pVeh, RwFrame* pFrame) {
     DummyConfig c;
-    c.pVeh = pVeh;
     c.frame = pFrame;
-    c.corona.color = {255, 255, 255, static_cast<unsigned char>(LightsGlobal::Get().gGlobalCoronaIntensity)};
+    c.position = pFrame->modelling.pos;
+    c.pVeh = pVeh;
+    c.corona.size = LightsConfig::Get().gfGlobalCoronaSize;
+    c.corona.color = {255, 255, 255, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
+    c.corona.lightingType = eLightingMode::NonDirectional;
     return c;
 }
 
@@ -64,9 +72,9 @@ eMaterialType LightManager::GetMatType(RpMaterial* pMat) {
     CRGBA matCol = *reinterpret_cast<CRGBA*>(RpMaterialGetColor(pMat));
     matCol.a = 255;
 
-    for (const auto& comp : m_Components) {
-        eMaterialType type = comp->GetMatType(matCol);
-        if (type != eMaterialType::UnknownMaterial) return type;
+    auto it = m_MaterialMap.find(matCol.ToInt());
+    if (it != m_MaterialMap.end()) {
+        return it->second;
     }
 
     return eMaterialType::UnknownMaterial;
@@ -86,15 +94,6 @@ void LightManager::RegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::str
 void LightManager::Process(CVehicle* pVeh) {
     if (!pVeh) return;
 
-    static uint64_t lastFlashUpdate = 0;
-    uint64_t now = CTimer::m_snTimeInMilliseconds;
-    if (now - lastFlashUpdate > 500) {
-        LightsGlobal::Get().bIndicatorsDelay = !LightsGlobal::Get().bIndicatorsDelay;
-        lastFlashUpdate = now;
-    }
-
-    if (Util::IsEngineOff(pVeh)) return;
-
     VehLightData& data = m_VehData.Get(pVeh);
     for (const auto& comp : m_Components) {
         comp->Process(pVeh, data);
@@ -102,67 +101,152 @@ void LightManager::Process(CVehicle* pVeh) {
 }
 
 void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
-    if (Util::IsEngineOff(pControlVeh)) return;
-
     VehLightData& data = m_VehData.Get(pControlVeh);
+    eIndicatorState indState = data.nIndicatorState;
+
+    // Fix for UIF SAMP server https://github.com/user-grinch/ModelExtras/issues/112
+    // Don't clear light state when lights are forced on/already on via SAMP
+    if (((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn) || CarUtil::IsLightsForcedOff(pControlVeh)) {
+        pControlVeh->bLightsOn = false;
+        pControlVeh->m_renderLights.m_bLeftFront = false;
+        pControlVeh->m_renderLights.m_bRightFront = false;
+        pControlVeh->m_renderLights.m_bLeftRear = false;
+        pControlVeh->m_renderLights.m_bRightRear = false;
+    }
+
+    // Fix for park car alarm lights
+    // Allow through if lights or indicators are explicitly on
+    if (pControlVeh->m_fHealth <= 0.0f || ((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn)) {
+        return;
+    }
+
     for (const auto& comp : m_Components) {
         comp->Render(pControlVeh, pTowedVeh, data);
     }
 }
 
-void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType type, bool isOn, const std::string& texture) {
-    if (!isOn) return;
+void LightManager::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMul) {
+    if (LightsConfig::Get().gbLightCoronasFeature) {
+        const DummyConfig &c = dummy->GetRef();
+        if (c.corona.lightingType == eLightingMode::NonDirectional) {
+            RenderUtil::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, c.position, c.corona.color, c.corona.size * szMul);
+        } else {
+            RenderUtil::RegisterCoronaDirectional(&dummy->Get(), c.rotation.angle, 180.0f, szMul, c.corona.lightingType == eLightingMode::Inversed, false);
+        }
+    }
+}
 
+void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType type, bool isOn, const std::string& texture, float sz, bool highlight, bool isDummyOk, bool materialsOnly) {
+    if (!isOn || !data.bLightStates[type]) return;
+
+    int id = static_cast<int>(type) * 1000;
     bool hasActiveDummy = false;
     bool isAvailable = IsDummyAvailable(data, type);
 
     if (isAvailable) {
         for (auto* dummy : data.dummies[type]) {
-            dummy->Update();
             const DummyConfig& c = dummy->GetRef();
+            dummy->Update();
             RwFrame *parent = RwFrameGetParent(dummy->Get().frame);
             bool isBike = pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
             bool isDamaged = Util::IsFrameDamaged(pVeh, parent) || !FrameUtil::IsOkAtomicVisible(parent);
             bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && isDamaged;
 
-            if (atomicCheck) {
+            if (atomicCheck || (c.dummyPos == eDummyPos::Rear && pVeh->m_pTrailer) || !isDummyOk) {
                 continue;
             }
 
             hasActiveDummy = true;
 
-            if (gConfig.ReadBoolean("FEATURES", "LightCoronas", false)) {
-                if (c.corona.lightingType == eLightingMode::NonDirectional) {
-                    RenderUtil::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + (int)type, c.position, c.corona.color, c.corona.size);
+            if (type == eMaterialType::StrobeLight) {
+                size_t timer = CTimer::m_snTimeInMilliseconds;
+                if (timer - c.strobe.timer > c.strobe.delay) {
+                    dummy->Get().strobe.enabled = !c.strobe.enabled;
+                    dummy->Get().strobe.timer = timer;
+                }
+
+                if (c.strobe.enabled) {
+                    ModelInfoMgr::EnableStrobeMaterial(pVeh, c.dummyIdx);
                 } else {
-                    RenderUtil::RegisterCoronaDirectional(&dummy->Get(), c.rotation.angle, 180.0f, 1.0f, c.corona.lightingType == eLightingMode::Inversed, false);
-                }
-            }
-            // Extra reach for the high beam, the light that falls on peds, cars and the
-            // road. Kept out of the corona helper above because that one returns early
-            // on a camera facing check that's true in the normal driving view.
-            // High beam only, the low beam light comes from the game itself.
-            if ((type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) && data.bLongLightsOn) {
-                bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh)) && !CarUtil::IsLightsForcedOff(pVeh);
-                if (isHeadlightsOn) {
-                    // Clamped so a bad ini value can't hand the game a silly or negative range
-                    static float rawMul = gConfig.ReadFloat("LIGHTS", "HighBeamPointLightMul", gConfig.ReadFloat("TWEAKS", "HighBeamPointLightMul", 2.0f));
-                    static float highBeamMul = (rawMul < 1.0f) ? 1.0f : ((rawMul > 4.0f) ? 4.0f : rawMul);
-
-                    RenderUtil::RegisterHeadlightPointLight(&dummy->Get(), highBeamMul);
+                    continue;
                 }
             }
 
-            if (c.shadow.render && !texture.empty()) {
-                RenderUtil::RegisterShadowDirectional(&dummy->Get(), texture, c.shadow.size);
+            if (materialsOnly) {
+                continue;
+            }
+
+            EnableDummy((int)pVeh + 42 + id++, dummy, pVeh, highlight ? 3.00f : 1.0f);
+
+            // Skip front shadows on bike wheelie
+            if (c.dummyPos == eDummyPos::Front && Util::IsVehicleDoingWheelie(pVeh)) {
+                continue;
+            }
+
+            if (c.shadow.render) {
+                std::string tex = (c.shadow.texture == "") ? texture : c.shadow.texture;
+                if (!tex.empty()) {
+                    RenderUtil::RegisterShadowDirectional(&dummy->Get(), tex, sz * c.shadow.size);
+                }
             }
         }
     }
-        if (!isAvailable || hasActiveDummy) {
+
+    if (!isAvailable || hasActiveDummy) {
         ModelInfoMgr::EnableMaterial(pVeh, type);
     }
 }
 
+void LightManager::RenderLights(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data, eMaterialType type, bool isOn, const std::string& texture, float sz, bool highlight, bool isDummyOk, bool materialsOnly) {
+    if (data.bLightStates[type]) {
+        RenderLight(pControlVeh, data, type, isOn, texture, sz, highlight, isDummyOk, materialsOnly);
+    }
+
+    if (pControlVeh != pTowedVeh && m_VehData.Get(pTowedVeh).bLightStates[type]) {
+        RenderLight(pTowedVeh, m_VehData.Get(pTowedVeh), type, isOn, texture, sz, highlight, isDummyOk, materialsOnly);
+    }
+}
+
 bool LightManager::IsDummyAvailable(VehLightData& data, eMaterialType type) {
-    return data.dummies.count(type) > 0 && !data.dummies[type].empty();
+    if (type < 0 || type >= eMaterialType::TotalMaterial) return false;
+    return !data.dummies[type].empty();
+}
+
+bool LightManager::IsDummyAvailable(VehLightData& data, std::initializer_list<eMaterialType> types) {
+    for (eMaterialType type : types) {
+        if (IsDummyAvailable(data, type)) return true;
+    }
+    return false;
+}
+
+bool LightManager::IsMaterialAvailable(CVehicle* pVeh, eMaterialType type) {
+    return ModelInfoMgr::IsMaterialAvailable(pVeh, type);
+}
+
+bool LightManager::IsMaterialAvailable(CVehicle* pVeh, std::initializer_list<eMaterialType> types) {
+    for (eMaterialType type : types) {
+        if (IsMaterialAvailable(pVeh, type)) return true;
+    }
+    return false;
+}
+
+void LightManager::ProcessPointLights(CVehicle *pVeh) {
+    if (!LightsConfig::Get().gbLightPointLights || !pVeh || pVeh->m_fHealth <= 0.0f || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER) {
+        return;
+    }
+
+    if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 75.0f) {
+        return;
+    }
+
+    VehLightData &data = m_VehData.Get(pVeh);
+    for (const auto& comp : m_Components) {
+        comp->ProcessPointLights(pVeh, data);
+    }
+}
+
+void LightManager::Reload(CVehicle* pVeh) {
+    LightsConfig::Get().InitConfig();
+    m_VehData.Get(pVeh) = VehLightData(pVeh);
+    DataMgr::Reload(pVeh->m_nModelIndex);
 }
