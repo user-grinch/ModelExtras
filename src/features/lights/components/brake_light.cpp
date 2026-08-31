@@ -55,10 +55,10 @@ void BrakeLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, Veh
                     }
                 } else if (LightManager::IsMaterialAvailable(pTowedVeh, {eMaterialType::TailLightLeft, eMaterialType::TailLightRight}) || LightManager::IsDummyAvailable(data, {eMaterialType::TailLightLeft, eMaterialType::TailLightRight})) {
                     if (isLeftRearOk) {
-                        LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::TailLightLeft, true, shdwName, shdwSz, false, isLeftRearOk);
+                        LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::TailLightLeft, true, shdwName, shdwSz, true, isLeftRearOk);
                     }
                     if (isRightRearOk) {
-                        LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::TailLightRight, true, shdwName, shdwSz, false, isRightRearOk);
+                        LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::TailLightRight, true, shdwName, shdwSz, true, isRightRearOk);
                     }
                 }
             }
