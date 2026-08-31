@@ -110,7 +110,7 @@ void Lights::Init()
 		return;
 	}
 
-	m_bEnabled = true;
+	ReloadConfig();
 	patch::Nop(0x6E2722, 19);	  // CVehicle::DoHeadLightReflection
 	patch::SetUChar(0x6E1A22, 0); // CVehicle::DoTailLightEffect
 
@@ -994,9 +994,16 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMu
 
 // NOT
 
+void Lights::ReloadConfig()
+{
+	CBaseFeature::ReloadConfig();
+	m_bEnabled = m_bActive;
+	InitConfig();
+}
+
 void Lights::Reload(CVehicle* pVeh)
 {
-	InitConfig();
+	ReloadConfig();
 	if (pVeh) {
 		auto it = m_Dummies.find(pVeh);
 		if (it != m_Dummies.end()) {

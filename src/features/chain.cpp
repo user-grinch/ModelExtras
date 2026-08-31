@@ -17,6 +17,9 @@ void ChainFeature::Init() {
   });
 
   ModelInfoMgr::RegisterRender([](CVehicle *pVeh) {
+    if (!CBaseFeature::IsEnabled(eFeatureMatrix::AnimatedChain)) {
+      return;
+    }
     if (!pVeh || !pVeh->GetIsOnScreen()) {
       return;
     }

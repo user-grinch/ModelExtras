@@ -91,6 +91,7 @@ void ConvertibleRoof::Init()
 
     Events::vehicleRenderEvent += [](CVehicle *pVeh)
     {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::ConvertibleRoof)) return;
         bool isRainy = (CWeather::Rain > 0.05f) || (CWeather::WetRoads > 0.1f) || (CWeather::NewWeatherType == eWeatherType::WEATHER_RAINY_SF || CWeather::OldWeatherType == eWeatherType::WEATHER_RAINY_SF || CWeather::NewWeatherType == eWeatherType::WEATHER_RAINY_COUNTRYSIDE || CWeather::OldWeatherType == eWeatherType::WEATHER_RAINY_COUNTRYSIDE);
         if (!isRainy)
         {
@@ -106,6 +107,7 @@ void ConvertibleRoof::Init()
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
                                  {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::ConvertibleRoof)) return;
         if (!pVeh || !pVeh->GetIsOnScreen()) {
             return;
         }
@@ -165,6 +167,7 @@ void ConvertibleRoof::Init()
 
     Events::processScriptsEvent += []()
     {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::ConvertibleRoof)) return;
         size_t now = CTimer::m_snTimeInMilliseconds;
         static size_t prev = 0;
 

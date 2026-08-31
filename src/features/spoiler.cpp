@@ -57,6 +57,10 @@ void Spoiler::Init()
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
                                 {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::AnimatedSpoiler))
+        {
+            return;
+        }
         if (!pVeh || !pVeh->GetIsOnScreen())
         {
             return;

@@ -20,5 +20,5 @@ public:
     }
 
     static void Init();
-    static void Reload(CVehicle *pVeh);
+    static void Reload();
 };

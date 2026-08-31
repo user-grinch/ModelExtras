@@ -11,9 +11,15 @@ using namespace plugin;
 static CdeclEvent<AddressList<0x53CA75, H_CALL, 0x53CA61, H_CALL>, PRIORITY_AFTER, ArgPickNone, void()> CCarFXRenderer__ShutdownEvent;
 static CdeclEvent<AddressList<0x5B8FFD, H_CALL>, PRIORITY_AFTER, ArgPickNone, void()> CCarFXRenderer__InitialiseDirtTextureEvent;
 
+void DirtFx::ReloadConfig()
+{
+	CBaseFeature::ReloadConfig();
+	m_bEnabled = m_bActive;
+}
+
 void DirtFx::Init()
 {
-	m_bEnabled = true;
+	ReloadConfig();
 	
 	if (injector::GetBranchDestination(0x6D0E7E).as_int() != 0x5D5DB0) LOG(ERROR) << "Address conflict on 0x6D0E7E";
 	patch::Nop(0x6D0E7E, 5);

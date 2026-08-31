@@ -28,6 +28,7 @@ void GearIndicator::Init()
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
     {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::AnimatedGearMeter)) return;
         if (!pVeh || !pVeh->GetIsOnScreen()) return;
 
         VehGearData &data = m_VehData.Get(pVeh);
@@ -67,6 +68,7 @@ void MileageIndicator::Init()
     });
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh) {
+    if (!CBaseFeature::IsEnabled(eFeatureMatrix::AnimatedOdoMeter)) return;
     if (!pVeh || !pVeh->GetIsOnScreen()) return;
 
     VehMileageData &data = m_VehData.Get(pVeh);
@@ -139,6 +141,7 @@ void RPMGauge::Init()
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
     {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::AnimatedRpmMeter)) return;
         if (!pVeh || !pVeh->GetIsOnScreen()) return;
 
         VehRPMData &data = m_VehData.Get(pVeh);
@@ -207,6 +210,7 @@ void SpeedGauge::Init()
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
     {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::AnimatedSpeedMeter)) return;
         if (!pVeh || !pVeh->GetIsOnScreen()) return;
 
         VehSpeedData &data = m_VehData.Get(pVeh);
@@ -255,6 +259,7 @@ void TurboGauge::Init()
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
     {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::AnimatedTurboMeter)) return;
         if (!pVeh || !pVeh->GetIsOnScreen()) return;
 
         VehTurboData &data = m_VehData.Get(pVeh);

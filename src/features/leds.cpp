@@ -17,9 +17,15 @@
 #include "roof.h"
 #include "lights.h"
 
+void DashboardLEDs::ReloadConfig()
+{
+	CBaseFeature::ReloadConfig();
+	bEnabled = m_bActive;
+}
+
 void DashboardLEDs::Init()
 {
-	bEnabled = true;
+	ReloadConfig();
 
 	ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat){
 		if (!bEnabled) {

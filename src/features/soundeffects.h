@@ -22,7 +22,7 @@ class SoundEffects : public CVehFeature<SoundEffectsData>
 protected:
     void Init() override;
     void Reload(CVehicle *pVeh) override;
-    static void ReloadConfig();
+    void ReloadConfig() override;
 
 public:
     SoundEffects() : CVehFeature<SoundEffectsData>("SoundEffects", "SOUND", eFeatureMatrix::SoundEffects) {}

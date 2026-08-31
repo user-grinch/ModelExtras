@@ -31,9 +31,10 @@ private:
 
 protected:
     void Init() override;
+    void ReloadConfig() override;
+    void Reload(CVehicle *pVeh) override { ReloadConfig(); }
 
 public:
-	public:
     DirtFx() : CBaseFeature("DirtFX", "FEATURES", eFeatureMatrix::DirtFX) {}
 	static void ProcessTextures(CVehicle *pVeh, RpMaterial *pMat);
 };

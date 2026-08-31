@@ -98,13 +98,22 @@ void BackFireEffect::BackFireMulti(CVehicle *pVeh)
 std::vector<int> ValidModels = {};
 bool onlySelected = false;
 
+void BackFireEffect::ReloadConfig()
+{
+    CBaseFeature::ReloadConfig();
+    std::string line = gConfig.ReadString("TABLE", "BackFireEffect_VehicleModels", "");
+    onlySelected = gConfig.ReadBoolean("FEATURES", "BackfireEffect_OnlySelectedModels", true);
+    ValidModels.clear();
+    Util::GetModelsFromIni(line, ValidModels);
+}
+
 void BackFireEffect::Init()
 {
-    Events::initGameEvent += []()
+    ReloadConfig();
+
+    Events::initGameEvent += [this]()
     {
-        std::string line = gConfig.ReadString("TABLE", "BackFireEffect_VehicleModels", "");
-        onlySelected = gConfig.ReadBoolean("FEATURES", "BackfireEffect_OnlySelectedModels", true);
-        Util::GetModelsFromIni(line, ValidModels);
+        ReloadConfig();
     };
 
     Events::vehicleRenderEvent.before += [](CVehicle *vehicle)
@@ -116,6 +125,11 @@ void BackFireEffect::Init()
 // Inspired by Junior's https://www.mixmods.com.br/2016/06/backfire-als-v2-5-mod-estalar-escapamento/
 void BackFireEffect::Process(CVehicle *pVeh)
 {
+    if (!CBaseFeature::IsEnabled(eFeatureMatrix::BackfireEffect))
+    {
+        return;
+    }
+
     if (!pVeh->GetIsOnScreen() || pVeh->bEngineBroken || !pVeh->bEngineOn || pVeh->bIsBig || pVeh->bIsVan || pVeh->bIsBus || pVeh->bIsRCVehicle)
     {
         return;

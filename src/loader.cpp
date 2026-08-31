@@ -73,8 +73,7 @@ void ModelExtras::Init()
         {
             if (plugin::Command<TEST_CHEAT>("MERELOAD"))
             {
-                CVehicle *pVeh = FindPlayerVehicle(-1, false);
-                Reload(pVeh);
+                Reload();
             }
         };
     };
@@ -131,26 +130,32 @@ void ModelExtras::Init()
     RegisterFeature<SpotLights>();
     for (const auto &pFeature : m_Features)
     {
-        if (pFeature && pFeature->IsActive())
+        if (pFeature)
         {
             pFeature->Init();
         }
     }
 }
 
-void ModelExtras::Reload(CVehicle *pVeh)
+void ModelExtras::Reload()
 {
-    gConfig = CIniReader();
+    gConfig.data.clear();
     gConfig.SetIniPath();
     gVerboseLogging = gConfig.ReadBoolean("CONFIG", "VerboseLogging", false);
     AudioMgr::ReloadConfig();
     for (const auto &pFeature : m_Features) {
         if (pFeature) {
             pFeature->ReloadConfig();
-            pFeature->Reload(pVeh);
         }
     }
-    ModelInfoMgr::Reload(pVeh);
+    for (CVehicle *pVeh : CPools::ms_pVehiclePool) {
+        for (const auto &pFeature : m_Features) {
+            if (pFeature) {
+                pFeature->Reload(pVeh);
+            }
+        }
+        ModelInfoMgr::Reload(pVeh);
+    }
     static std::string msg = "~g~ModelExtras:~w~ Config reloaded";
     CMessages::AddMessageWithString(const_cast<char*>(msg.c_str()), 3000, false, nullptr, true);
     LOG(INFO) << "ModelExtras: Configuration reloaded successfully.";

@@ -7,9 +7,15 @@
 #include <rw/rpworld.h>
 #include <algorithm>
 
+void Remap::ReloadConfig()
+{
+    CBaseFeature::ReloadConfig();
+    m_bEnabled = m_bActive;
+}
+
 void Remap::Init()
 {
-    m_bEnabled = true;
+    ReloadConfig();
 }
 
 void Remap::LoadRemaps(CVehicle* vehicle)

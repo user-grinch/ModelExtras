@@ -152,6 +152,7 @@ void RollbackBed::Init()
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
     {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::RollbackBed)) return;
         if (!pVeh || !pVeh->GetIsOnScreen())
         {
             return;
@@ -175,6 +176,7 @@ void RollbackBed::Init()
 
     Events::processScriptsEvent += []()
     {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::RollbackBed)) return;
         size_t now = CTimer::m_snTimeInMilliseconds;
         static size_t prev = 0;
 

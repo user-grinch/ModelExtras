@@ -30,6 +30,8 @@ private:
 
 protected:
     void Init() override;
+    void ReloadConfig() override;
+    void Reload(CVehicle *pVeh) override { ReloadConfig(); }
 
 public:
     Carcols() : CVehFeature<CarcolsData>("Carcols", "FEATURES", eFeatureMatrix::IVFCarcols) {}

@@ -25,6 +25,8 @@ public:
   virtual ~CBaseFeature() = default;
 
   [[nodiscard]] bool IsActive() const;
+  [[nodiscard]] bool IsActiveCached() const { return m_bActive; }
+  static bool IsEnabled(eFeatureMatrix featureId);
 
   virtual void Init() = 0;
   virtual void Shutdown() {}
