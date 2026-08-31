@@ -16,6 +16,7 @@
 #include <CPointLights.h>
 #include "ModelExtrasAPI.h"
 #include "utils/meevents.h"
+#include "lights/manager.h"
 
 using namespace plugin;
 
@@ -88,8 +89,8 @@ void Lights::InitConfig()
 	gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", gConfig.ReadBoolean("FEATURES", "SirenPointLights", true));
 
 	gfGlobalCoronaSize = gConfig.ReadFloat("LIGHTS", "LightCoronaSize", gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f));
-	gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 220));
-	gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 250));
+	gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 80));
+	gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 80));
 	gfTailLightCoronaSize = gConfig.ReadFloat("LIGHTS", "TailLightCoronaSize", gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 0.8f));
 	gTailLightCoronaIntensity = gConfig.ReadInteger("LIGHTS", "TailLightCoronaIntensity", gConfig.ReadInteger("VISUAL", "TailLightCoronaIntensity", 60));
 
@@ -154,7 +155,7 @@ void Lights::Init()
 			}
 			else
 			{
-				return { CRGBA(190, 190, 190, 255), DEFAULT_MAT_COL };
+				return { CRGBA(100, 100, 100, 255), DEFAULT_MAT_COL };
 			}
 		}
 		if (type == eMaterialType::TailLightLeft || type == eMaterialType::TailLightRight)
@@ -465,7 +466,7 @@ void Lights::Init()
 				}
 			}
 
-			bool isHeadlightsActiveForLong = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime() || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+			bool isHeadlightsActiveForLong = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime() || !Util::IsEngineOff(pVeh)) && !CarUtil::IsLightsForcedOff(pVeh);
 			bool canToggleLongLights = !(gbProperShadersDetected && !gbLightPointLights);
 			if (Util::IsKeyPressed(g_nLongLightKey) && isHeadlightsActiveForLong && canToggleLongLights)
 			{
@@ -1391,7 +1392,13 @@ void Lights::ProcessPointLights(CVehicle *pVeh)
 
 bool Lights::IsIndicatorOn(CVehicle *pVeh)
 {
-	return pVeh->m_fHealth > 0.0f && (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) && indicatorsDelay && m_VehData.Get(pVeh).m_nIndicatorState != eIndicatorState::Off;
+	if (!pVeh || pVeh->m_fHealth <= 0.0f) return false;
+	if (pVeh->m_nVehicleSubClass != VEHICLE_AUTOMOBILE && pVeh->m_nVehicleSubClass != VEHICLE_BIKE && pVeh->m_nVehicleSubClass != VEHICLE_QUAD && pVeh->m_nVehicleSubClass != VEHICLE_MTRUCK) return false;
+
+	if (gConfig.ReadBoolean("LIGHTS", "StandardLightsv2", gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false))) {
+		return LightManager::IsIndicatorOn(pVeh);
+	}
+	return indicatorsDelay && m_VehData.Get(pVeh).m_nIndicatorState != eIndicatorState::Off;
 }
 
 VehLightDatav1 Lights::GetVehicleData(CVehicle *pVeh)
@@ -1415,11 +1422,18 @@ extern "C"
 {
 	bool ME_GetVehicleLightState(CVehicle *pVeh, ME_LightID lightId)
 	{
+		if (gConfig.ReadBoolean("LIGHTS", "StandardLightsv2", gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false))) {
+			return LightManager::GetLightState(pVeh, static_cast<eMaterialType>(lightId));
+		}
 		return Lights::GetLightState(pVeh, static_cast<eMaterialType>(lightId));
 	}
 
 	void ME_SetVehicleLightState(CVehicle *pVeh, ME_LightID lightId, bool state)
 	{
+		if (gConfig.ReadBoolean("LIGHTS", "StandardLightsv2", gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false))) {
+			LightManager::SetLightState(pVeh, static_cast<eMaterialType>(lightId), state);
+			return;
+		}
 		Lights::SetLightState(pVeh, static_cast<eMaterialType>(lightId), state);
 	}
 

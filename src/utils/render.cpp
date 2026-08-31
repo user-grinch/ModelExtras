@@ -70,17 +70,29 @@ static float gfCoronaDistanceMul = 0.0f;
 static float gfCoronaNearClip = 0.45f;
 static float gfLightHeightLimit = 0.0f;
 static bool gbConfigInitialized = false;
+static float gbLightShadowDistance = 120.0f;
+
+extern int gGlobalShadowIntensity;
+extern int gGlobalCoronaIntensity;
+
+void RenderUtil::ReloadConfig()
+{
+    gbLightCoronas = gConfig.ReadBoolean("LIGHTS", "LightCoronas", gConfig.ReadBoolean("FEATURES", "LightCoronas", true));
+    gbLightShadows = gConfig.ReadBoolean("LIGHTS", "LightShadows", gConfig.ReadBoolean("FEATURES", "LightShadows", true));
+    gfCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "CoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.0f));
+    gfCoronaNearClip = gConfig.ReadFloat("LIGHTS", "CoronaNearClip", gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 0.45f));
+    gfLightHeightLimit = gConfig.ReadFloat("LIGHTS", "LightHeightLimit", gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 0.0f));
+    gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 80));
+    gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 80));
+    gbLightShadowDistance = gConfig.ReadFloat("LIGHTS", "LightShadowDistance", 120.0f);
+    gbConfigInitialized = true;
+}
 
 static void EnsureConfigLoaded()
 {
     if (!gbConfigInitialized)
     {
-        gbLightCoronas = gConfig.ReadBoolean("LIGHTS", "LightCoronas", gConfig.ReadBoolean("FEATURES", "LightCoronas", false));
-        gbLightShadows = gConfig.ReadBoolean("LIGHTS", "LightShadows", gConfig.ReadBoolean("FEATURES", "LightShadows", false));
-        gfCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "CoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.0f));
-        gfCoronaNearClip = gConfig.ReadFloat("LIGHTS", "CoronaNearClip", gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 0.45f));
-        gfLightHeightLimit = gConfig.ReadFloat("LIGHTS", "LightHeightLimit", gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 0.0f));
-        gbConfigInitialized = true;
+        RenderUtil::ReloadConfig();
     }
 }
 
@@ -459,7 +471,7 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     CVector2D shdwFront(lightDir.x * (shdwSz * SHDW_SZ_MUL), lightDir.y * (shdwSz * SHDW_SZ_MUL));
     CVector2D shdwSide(rightDir.x * shdwSz, rightDir.y * shdwSz);
 
-    RwTexture *pTex = TextureMgr::Get(shadwTexName, gGlobalShadowIntensity);
+    RwTexture *pTex = TextureMgr::Get(shadwTexName);
     if (!pTex)
     {
         return;
@@ -474,6 +486,11 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
         alphaMul = (SHDW_MAX_DIST - distToCam) / (SHDW_MAX_DIST - SHDW_FADE_DIST);
     }
 
+    float shadowIntensityFactor = static_cast<float>(gGlobalShadowIntensity) / 255.0f;
+    unsigned char r = static_cast<unsigned char>(pConfig->shadow.color.r * shadowIntensityFactor);
+    unsigned char g = static_cast<unsigned char>(pConfig->shadow.color.g * shadowIntensityFactor);
+    unsigned char b = static_cast<unsigned char>(pConfig->shadow.color.b * shadowIntensityFactor);
+
     CShadows::StoreShadowToBeRendered(
         2,
         pTex,
@@ -481,9 +498,9 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
         shdwFront.x, shdwFront.y,
         shdwSide.x, shdwSide.y,
         static_cast<short>(255 * alphaMul),
-        pConfig->shadow.color.r,
-        pConfig->shadow.color.g,
-        pConfig->shadow.color.b,
+        r,
+        g,
+        b,
         7.0f,
         false,
         1.0f,
@@ -578,14 +595,19 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
 
     RwTexture *pTex = (pTexture != nullptr)
                           ? pTexture
-                          : TextureMgr::Get(shadwTexName, gGlobalShadowIntensity);
+                          : TextureMgr::Get(shadwTexName);
 
     if (pTex)
     {
+        float shadowIntensityFactor = static_cast<float>(col.a) / 255.0f;
+        unsigned char r = static_cast<unsigned char>(col.r * shadowIntensityFactor);
+        unsigned char g = static_cast<unsigned char>(col.g * shadowIntensityFactor);
+        unsigned char b = static_cast<unsigned char>(col.b * shadowIntensityFactor);
+
         CShadows::StoreShadowToBeRendered(2, pTex, &shdwPos,
                                           up.x, up.y,
                                           right.x, right.y,
-                                          col.a, col.r, col.g, col.b,
+                                          255, r, g, b,
                                           6.0f, false, 1.0f, 0, true);
     }
 }

@@ -31,7 +31,7 @@ bool FogLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
 }
 
 void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
-    if (pVeh->m_pDriver == FindPlayerPed() && !Util::IsEngineOff(pVeh)) {
+    if (pVeh->IsDriver(FindPlayerPed()) && !Util::IsEngineOff(pVeh)) {
         static size_t prev = 0;
         bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pVeh);
         bool canToggleFogLight = !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
@@ -59,8 +59,7 @@ void FogLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLi
 
 void FogLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
     bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh)) || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
-    static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true));
-    bool shouldRenderFog = !foglightTiedtoHeadlight || isHeadlightsOn;
+    bool shouldRenderFog = !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsOn;
 
     if (data.bFogLightsOn && shouldRenderFog) {
         for (eMaterialType type : {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) {

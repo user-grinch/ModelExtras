@@ -43,9 +43,9 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
 }
 
 void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
-    if (pVeh->m_pDriver == FindPlayerPed() && !Util::IsEngineOff(pVeh)) {
+    if (pVeh->IsDriver(FindPlayerPed()) && !Util::IsEngineOff(pVeh)) {
         static size_t prev = 0;
-        bool isHeadlightsActiveForLong = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime() || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+        bool isHeadlightsActiveForLong = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime() || !Util::IsEngineOff(pVeh)) && !CarUtil::IsLightsForcedOff(pVeh);
         bool canToggleLongLights = !(gbProperShadersDetected && !LightsConfig::Get().gbLightPointLights);
         if (Util::IsKeyPressed(LightsConfig::Get().nLongLightKey) && isHeadlightsActiveForLong && canToggleLongLights) {
             size_t now = CTimer::m_snTimeInMilliseconds;
@@ -55,12 +55,17 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
                 AudioMgr::PlaySwitchSound(pVeh);
             }
         }
-    } else if (pVeh->m_nVehicleSubClass != VEHICLE_BMX && pVeh->m_nVehicleSubClass != VEHICLE_BOAT && pVeh->m_nVehicleSubClass != VEHICLE_TRAILER && !Util::IsEngineOff(pVeh) && pVeh->m_fHealth > 0.0f) {
+    } else if (pVeh->m_nVehicleSubClass != VEHICLE_BMX && pVeh->m_nVehicleSubClass != VEHICLE_BOAT && pVeh->m_nVehicleSubClass != VEHICLE_TRAILER && pVeh->m_fHealth > 0.0f) {
+        if (CarUtil::IsLightsForcedOff(pVeh) || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn)) {
+            return;
+        }
+
         if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) < 150.0f || pVeh->GetIsOnScreen()) {
             bool isLeftFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT);
             bool isRightFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT);
-            if (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) {
-                bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
+            bool isNightOrOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+            if (isNightOrOn) {
+                bool isFoggy = (CWeather::Foggyness > 0.1f) || (CWeather::Rain > 0.3f) || (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
                 std::string texName = data.bLongLightsOn ? "headlight_long" : "headlight_short";
                 bool shadow = !gbProperShadersDetected;
                 bool highlight = isFoggy || data.bLongLightsOn;
@@ -79,15 +84,15 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
         return;
     }
 
-    bool isNightOrOn = pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime();
+    bool isNightOrOn = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pControlVeh))) && !CarUtil::IsLightsForcedOff(pControlVeh);
     if (!isNightOrOn) return;
 
     auto damage = LightDamageState::Get(pControlVeh, pTowedVeh);
-    bool isHeadlightLeftOk = damage.isFrontLeftOk;
-    bool isHeadlightRightOk = damage.isFrontRightOk;
+    bool isHeadlightLeftOk = damage.isHeadlightLeftOk;
+    bool isHeadlightRightOk = damage.isHeadlightRightOk;
 
     bool bTickRegistered = (data.nHeadlightTickFrame == CTimer::m_FrameCounter);
-    bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
+    bool isFoggy = (CWeather::Foggyness > 0.1f) || (CWeather::Rain > 0.3f) || (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
     std::string texName = data.bLongLightsOn ? "headlight_long" : "headlight_short";
     bool shadow = !gbProperShadersDetected;
     bool highlight = isFoggy || data.bLongLightsOn;
@@ -106,8 +111,7 @@ void HeadlightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
     bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh)) || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
 
     if (data.bLongLightsOn && isHeadlightsOn) {
-        static float rawMul = gConfig.ReadFloat("LIGHTS", "HighBeamPointLightMul", gConfig.ReadFloat("TWEAKS", "HighBeamPointLightMul", 2.0f));
-        static float highBeamMul = (rawMul < 1.0f) ? 1.0f : ((rawMul > 4.0f) ? 4.0f : rawMul);
+        float highBeamMul = LightsConfig::Get().fHighBeamPointLightMul;
 
         for (eMaterialType type : {eMaterialType::HeadLightLeft, eMaterialType::HeadLightRight}) {
             if (!LightManager::IsDummyAvailable(data, type) || !data.bLightStates[type]) {

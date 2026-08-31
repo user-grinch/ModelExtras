@@ -88,10 +88,17 @@ static CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
     return CVector2D(0.0f, 0.0f);
 }
 
+static inline float GetZAngleForPoint(CVector2D const &point) {
+    float angle = CGeneral::GetATanOfXY(point.x, point.y) * 57.295776f - 90.0f;
+    while (angle < 0.0f)
+        angle += 360.0f;
+    return angle;
+}
+
 void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
     static bool bSAMP = GetModuleHandle("samp.dll") != nullptr;
 
-    if (pVeh->m_pDriver == FindPlayerPed() &&
+    if (pVeh->IsDriver(FindPlayerPed()) &&
         (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE || pVeh->m_nVehicleSubClass == VEHICLE_QUAD || pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK))
     {
         if (Util::IsKeyPressed(LightsConfig::Get().nIndicatorNoneKey)) {
@@ -126,8 +133,8 @@ void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
         CVector2D currPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nCurrentPathNodeInfo);
         CVector2D nextPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nNextPathNodeInfo);
 
-        float angle = Util::NormalizeAngle(CGeneral::GetATanOfXY(nextPoint.x - currPoint.x, nextPoint.y - currPoint.y) * 57.295776f - 
-                                           CGeneral::GetATanOfXY(currPoint.x - prevPoint.x, currPoint.y - prevPoint.y) * 57.295776f);
+        float angle = GetZAngleForPoint(nextPoint - currPoint) - GetZAngleForPoint(currPoint - prevPoint);
+        angle = Util::NormalizeAngle(angle);
 
         if (angle >= 30.0f && angle < 180.0f) {
             data.nIndicatorState = eIndicatorState::LeftOn;
@@ -218,33 +225,54 @@ void IndicatorComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
             };
 
             if (data.nIndicatorState == eIndicatorState::BothOn || data.nIndicatorState == eIndicatorState::LeftOn) {
-                renderIndPointLight(eMaterialType::IndicatorLightLeftFront, Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT) || Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_LEFT));
+                bool isLeftFrontDamaged = !pVeh->bSirenOrAlarm && (Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT) || Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_LEFT));
+                renderIndPointLight(eMaterialType::IndicatorLightLeftFront, isLeftFrontDamaged);
                 renderIndPointLight(eMaterialType::IndicatorLightLeftRear, Util::IsLightDamaged(pVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_LEFT));
                 renderIndPointLight(eMaterialType::IndicatorLightLeftMiddle, Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_LEFT));
                 renderIndPointLight(eMaterialType::NABrakeLightLeft, Util::IsLightDamaged(pVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_LEFT));
             }
 
             if (data.nIndicatorState == eIndicatorState::BothOn || data.nIndicatorState == eIndicatorState::RightOn) {
-                renderIndPointLight(eMaterialType::IndicatorLightRightFront, Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT) || Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_RIGHT));
+                bool isRightFrontDamaged = !pVeh->bSirenOrAlarm && (Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT) || Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_RIGHT));
+                renderIndPointLight(eMaterialType::IndicatorLightRightFront, isRightFrontDamaged);
                 renderIndPointLight(eMaterialType::IndicatorLightRightRear, Util::IsLightDamaged(pVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_RIGHT));
                 renderIndPointLight(eMaterialType::IndicatorLightRightMiddle, Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_RIGHT));
                 renderIndPointLight(eMaterialType::NABrakeLightRight, Util::IsLightDamaged(pVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_RIGHT));
             }
         }
         else if (data.bUsingGlobalIndicators && !LightManager::IsMaterialAvailable(pVeh, INDICATOR_LIGHTS_TYPE)) {
-            auto renderGlobalIndPointLight = [&](eMaterialType type, bool isDamaged) {
-                if (isDamaged || !LightManager::IsDummyAvailable(data, type) || !data.bLightStates[type]) return;
-                for (auto e : data.dummies[type]) {
-                    e->Update();
-                    RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, indRadius, true);
-                }
-            };
+            bool isBike = CModelInfo::IsBikeModel(pVeh->m_nModelIndex);
 
-            if (data.nIndicatorState == eIndicatorState::BothOn || data.nIndicatorState == eIndicatorState::LeftOn) {
-                renderGlobalIndPointLight(eMaterialType::TailLightLeft, Util::IsLightDamaged(pVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_LEFT));
-            }
-            if (data.nIndicatorState == eIndicatorState::BothOn || data.nIndicatorState == eIndicatorState::RightOn) {
-                renderGlobalIndPointLight(eMaterialType::TailLightRight, Util::IsLightDamaged(pVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_RIGHT));
+            for (bool isLeft : {true, false}) {
+                bool isActive = isLeft ? (data.nIndicatorState == eIndicatorState::LeftOn || data.nIndicatorState == eIndicatorState::BothOn)
+                                       : (data.nIndicatorState == eIndicatorState::RightOn || data.nIndicatorState == eIndicatorState::BothOn);
+                if (!isActive) continue;
+
+                eLights lightEnum = isLeft ? eLights::LIGHT_REAR_LEFT : eLights::LIGHT_REAR_RIGHT;
+                ePanels wingEnum = isLeft ? ePanels::WING_REAR_LEFT : ePanels::WING_REAR_RIGHT;
+                if (Util::IsLightDamaged(pVeh, lightEnum) || Util::IsPanelDamaged(pVeh, wingEnum)) continue;
+
+                eMaterialType indType = isLeft ? eMaterialType::IndicatorLightLeftRear : eMaterialType::IndicatorLightRightRear;
+                eMaterialType naType = isLeft ? eMaterialType::NABrakeLightLeft : eMaterialType::NABrakeLightRight;
+                if (LightManager::IsDummyAvailable(data, {indType, naType})) continue;
+
+                for (eMaterialType t : {isLeft ? eMaterialType::TailLightLeft : eMaterialType::TailLightRight, isLeft ? eMaterialType::BrakeLightLeft : eMaterialType::BrakeLightRight}) {
+                    eMaterialType actualType = t;
+                    if (!LightManager::IsDummyAvailable(data, actualType) && isBike) {
+                        if (LightManager::IsDummyAvailable(data, eMaterialType::TailLightRight))
+                            actualType = eMaterialType::TailLightRight;
+                        else if (LightManager::IsDummyAvailable(data, eMaterialType::TailLightLeft))
+                            actualType = eMaterialType::TailLightLeft;
+                    }
+
+                    if (LightManager::IsDummyAvailable(data, actualType) && data.bLightStates[actualType]) {
+                        for (auto e : data.dummies[actualType]) {
+                            e->Update();
+                            RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, indRadius, true);
+                        }
+                        break;
+                    }
+                }
             }
         }
     }
