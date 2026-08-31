@@ -76,6 +76,12 @@ void LightsFeature::Init() {
 	});
 }
 
+void LightsFeature::ReloadConfig() {
+	CBaseFeature::ReloadConfig();
+	LightsConfig::Get().InitConfig();
+}
+
 void LightsFeature::Reload(CVehicle* pVeh) {
+	ReloadConfig();
 	LightManager::Reload(pVeh);
 }

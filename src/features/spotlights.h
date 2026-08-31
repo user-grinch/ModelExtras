@@ -31,4 +31,6 @@ public:
 public:
     SpotLights() : CVehFeature<SpotlightData>("SpotLights", "FEATURES", eFeatureMatrix::StandardLights) {}
 	static bool IsEnabled(CVehicle *pVeh);
+	void ReloadConfig() override;
+	void Reload(CVehicle *pVeh) override;
 };

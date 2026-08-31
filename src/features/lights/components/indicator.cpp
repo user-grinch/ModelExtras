@@ -94,24 +94,18 @@ void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
     if (pVeh->m_pDriver == FindPlayerPed() &&
         (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE || pVeh->m_nVehicleSubClass == VEHICLE_QUAD || pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK))
     {
-        static uint32_t indicatorNoneKey = gConfig.ReadInteger("KEYS", "IndicatorLightNoneKey", VK_SHIFT);
-        static uint32_t indicatorLeftKey = gConfig.ReadInteger("KEYS", "IndicatorLightLeftKey", VK_Z);
-        static uint32_t indicatorRightKey = gConfig.ReadInteger("KEYS", "IndicatorLightRightKey", VK_C);
-        static uint32_t indicatorBothKey = gConfig.ReadInteger("KEYS", "IndicatorLightBothKey", VK_X);
-
-        if (Util::IsKeyPressed(indicatorNoneKey)) {
+        if (Util::IsKeyPressed(LightsConfig::Get().nIndicatorNoneKey)) {
             data.nIndicatorState = eIndicatorState::Off;
             BlinkerState::Get().Reset();
-        } else if (Util::IsKeyPressed(indicatorLeftKey)) {
+        } else if (Util::IsKeyPressed(LightsConfig::Get().nIndicatorLeftKey)) {
             data.nIndicatorState = eIndicatorState::LeftOn;
-        } else if (Util::IsKeyPressed(indicatorRightKey)) {
+        } else if (Util::IsKeyPressed(LightsConfig::Get().nIndicatorRightKey)) {
             data.nIndicatorState = eIndicatorState::RightOn;
-        } else if (Util::IsKeyPressed(indicatorBothKey)) {
+        } else if (Util::IsKeyPressed(LightsConfig::Get().nIndicatorBothKey)) {
             data.nIndicatorState = eIndicatorState::BothOn;
         }
 
-        static bool bAutoIndicatorsOnSteer = gConfig.ReadBoolean("LIGHTS", "AutoIndicatorsOnSteer", gConfig.ReadBoolean("TWEAKS", "AutoIndicatorsOnSteer", false));
-        if (bAutoIndicatorsOnSteer && data.nIndicatorState != eIndicatorState::BothOn) {
+        if (LightsConfig::Get().bAutoIndicatorsOnSteer && data.nIndicatorState != eIndicatorState::BothOn) {
             bool bSteerLeft = (pVeh->m_fSteerAngle > 0.08f) || Util::IsKeyPressed('A') || Util::IsKeyPressed(VK_LEFT);
             bool bSteerRight = (pVeh->m_fSteerAngle < -0.08f) || Util::IsKeyPressed('D') || Util::IsKeyPressed(VK_RIGHT);
 

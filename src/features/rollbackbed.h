@@ -48,4 +48,6 @@ protected:
 
 public:
     RollbackBed() : CVehFeature<RollbackBedData>("RollbackBed", "FEATURES", eFeatureMatrix::RollbackBed) {}
+    void ReloadConfig() override;
+    void Reload(CVehicle *pVeh) override;
 };

@@ -145,6 +145,7 @@ void ModelExtras::Reload(CVehicle *pVeh)
     AudioMgr::ReloadConfig();
     for (const auto &pFeature : m_Features) {
         if (pFeature) {
+            pFeature->ReloadConfig();
             pFeature->Reload(pVeh);
         }
     }

@@ -42,6 +42,9 @@ protected:
 public:
     ConvertibleRoof() : CVehFeature<RoofData>("ConvertibleRoof", "FEATURES", eFeatureMatrix::ConvertibleRoof) {}
 
+    void ReloadConfig() override;
+    void Reload(CVehicle *pVeh) override;
+
     static bool IsRoofOpen(CVehicle *pVeh) {
         return m_VehData.Get(pVeh).m_bRoofTargetExpanded;
     }

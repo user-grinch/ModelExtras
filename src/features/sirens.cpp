@@ -60,9 +60,20 @@ bool Sirens::hkUsesSiren(std::function<hkUsesSirenFunc> originalCall, CVehicle* 
 
 static ThiscallEvent<AddressList<0x6AAB71, H_CALL>, PRIORITY_BEFORE, ArgPickN<CVehicle*, 0>, void(CVehicle*)> Automobile__PreRenderEvent;
 static CVehicle *pCurrentVeh = nullptr;
+static uint32_t g_nSirenKey = VK_L;
+
+void Sirens::ReloadConfig()
+{
+	CBaseFeature::ReloadConfig();
+	g_nSirenKey = gConfig.ReadInteger("KEYS", "SirenLightKey", VK_L);
+}
 
 void Sirens::Reload(CVehicle *pVeh)
 {
+	ReloadConfig();
+	if (!pVeh) {
+		return;
+	}
 	int model = pVeh->m_nModelIndex;
 	modelRotators.erase(model);
 	auto itModel = modelData.find(model);
@@ -708,8 +719,7 @@ void Sirens::Init()
 
 		if (now - prev > 300.0f)
 		{
-			static uint32_t sirenKey = gConfig.ReadInteger("KEYS", "SirenLightKey", VK_L);
-			if (Util::IsKeyPressed(sirenKey))
+			if (Util::IsKeyPressed(g_nSirenKey))
 			{
 				int model = vehicle->m_nModelIndex;
 

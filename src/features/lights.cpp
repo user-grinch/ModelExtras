@@ -71,6 +71,15 @@ inline float GetZAngleForPoint(CVector2D const &point)
 bool gbLightPointLights = true;
 bool gbSirenPointLights = true;
 
+static uint32_t g_nFogLightKey = VK_J;
+static uint32_t g_nLongLightKey = VK_G;
+static uint32_t g_nIndicatorNoneKey = VK_SHIFT;
+static uint32_t g_nIndicatorLeftKey = VK_Z;
+static uint32_t g_nIndicatorRightKey = VK_C;
+static uint32_t g_nIndicatorBothKey = VK_X;
+static bool g_bFoglightTiedToHeadlight = true;
+static bool g_bAutoIndicatorsOnSteer = false;
+
 void Lights::InitConfig()
 {
 	gbGlobalIndicatorLights = gConfig.ReadBoolean("LIGHTS", "StandardLights_GlobalIndicatorLights", gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false));
@@ -83,6 +92,16 @@ void Lights::InitConfig()
 	gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 250));
 	gfTailLightCoronaSize = gConfig.ReadFloat("LIGHTS", "TailLightCoronaSize", gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 0.8f));
 	gTailLightCoronaIntensity = gConfig.ReadInteger("LIGHTS", "TailLightCoronaIntensity", gConfig.ReadInteger("VISUAL", "TailLightCoronaIntensity", 60));
+
+	g_nFogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", VK_J);
+	g_nLongLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", VK_G);
+	g_nIndicatorNoneKey = gConfig.ReadInteger("KEYS", "IndicatorLightNoneKey", VK_SHIFT);
+	g_nIndicatorLeftKey = gConfig.ReadInteger("KEYS", "IndicatorLightLeftKey", VK_Z);
+	g_nIndicatorRightKey = gConfig.ReadInteger("KEYS", "IndicatorLightRightKey", VK_C);
+	g_nIndicatorBothKey = gConfig.ReadInteger("KEYS", "IndicatorLightBothKey", VK_X);
+
+	g_bFoglightTiedToHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true));
+	g_bAutoIndicatorsOnSteer = gConfig.ReadBoolean("LIGHTS", "AutoIndicatorsOnSteer", false);
 }
 void Lights::Init()
 {
@@ -413,12 +432,9 @@ void Lights::Init()
 		if (pVeh && pVeh->IsDriver(FindPlayerPed()) && !Util::IsEngineOff(pVeh))
 		{
 			static size_t prev = 0;
-			static uint32_t fogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", VK_J);
-
-			static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true));
 			bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pVeh);
-			bool canToggleFogLight = !foglightTiedtoHeadlight || isHeadlightsActive;
-			if (Util::IsKeyPressed(fogLightKey) && IsMatAvail(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) && canToggleFogLight)
+			bool canToggleFogLight = !g_bFoglightTiedToHeadlight || isHeadlightsActive;
+			if (Util::IsKeyPressed(g_nFogLightKey) && IsMatAvail(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) && canToggleFogLight)
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
@@ -430,10 +446,9 @@ void Lights::Init()
 				}
 			}
 
-			static uint32_t longLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", VK_G);
 			bool isHeadlightsActiveForLong = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime() || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
 			bool canToggleLongLights = !(gbProperShadersDetected && !gbLightPointLights);
-			if (Util::IsKeyPressed(longLightKey) && isHeadlightsActiveForLong && canToggleLongLights)
+			if (Util::IsKeyPressed(g_nLongLightKey) && isHeadlightsActiveForLong && canToggleLongLights)
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
@@ -688,35 +703,29 @@ void Lights::Init()
 			if (pControlVeh->m_pDriver == FindPlayerPed() &&
 				(pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE || pControlVeh->m_nVehicleSubClass == VEHICLE_QUAD || pControlVeh->m_nVehicleSubClass == VEHICLE_MTRUCK))
 			{
-				static uint32_t indicatorNoneKey = gConfig.ReadInteger("KEYS", "IndicatorLightNoneKey", VK_SHIFT);
-				static uint32_t indicatorLeftKey = gConfig.ReadInteger("KEYS", "IndicatorLightLeftKey", VK_Z);
-				static uint32_t indicatorRightKey = gConfig.ReadInteger("KEYS", "IndicatorLightRightKey", VK_C);
-				static uint32_t indicatorBothKey = gConfig.ReadInteger("KEYS", "IndicatorLightBothKey", VK_X);
-
-				if (Util::IsKeyPressed(indicatorNoneKey))
+				if (Util::IsKeyPressed(g_nIndicatorNoneKey))
 				{
 					data.m_nIndicatorState = eIndicatorState::Off;
 					delay = 0;
 					indicatorsDelay = false;
 				}
 
-				if (Util::IsKeyPressed(indicatorLeftKey))
+				if (Util::IsKeyPressed(g_nIndicatorLeftKey))
 				{
 					data.m_nIndicatorState = eIndicatorState::LeftOn;
 				}
 
-				if (Util::IsKeyPressed(indicatorRightKey))
+				if (Util::IsKeyPressed(g_nIndicatorRightKey))
 				{
 					data.m_nIndicatorState = eIndicatorState::RightOn;
 				}
 
-				if (Util::IsKeyPressed(indicatorBothKey))
+				if (Util::IsKeyPressed(g_nIndicatorBothKey))
 				{
 					data.m_nIndicatorState = eIndicatorState::BothOn;
 				}
 
-				static bool bAutoIndicatorsOnSteer = gConfig.ReadBoolean("LIGHTS", "AutoIndicatorsOnSteer", gConfig.ReadBoolean("TWEAKS", "AutoIndicatorsOnSteer", false));
-				if (bAutoIndicatorsOnSteer && data.m_nIndicatorState != eIndicatorState::BothOn)
+				if (g_bAutoIndicatorsOnSteer && data.m_nIndicatorState != eIndicatorState::BothOn)
 				{
 					static bool bWasAutoSteerActive = false;
 					bool bSteerLeft = (pControlVeh->m_fSteerAngle > 0.08f) || Util::IsKeyPressed('A') || Util::IsKeyPressed(VK_LEFT);

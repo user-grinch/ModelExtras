@@ -33,13 +33,10 @@ bool FogLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
 void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
     if (pVeh->m_pDriver == FindPlayerPed() && !Util::IsEngineOff(pVeh)) {
         static size_t prev = 0;
-        static uint32_t fogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", VK_J);
-        static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true));
-
         bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pVeh);
-        bool canToggleFogLight = !foglightTiedtoHeadlight || isHeadlightsActive;
+        bool canToggleFogLight = !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
 
-        if (Util::IsKeyPressed(fogLightKey) && LightManager::IsMaterialAvailable(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) && canToggleFogLight) {
+        if (Util::IsKeyPressed(LightsConfig::Get().nFogLightKey) && LightManager::IsMaterialAvailable(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) && canToggleFogLight) {
             size_t now = CTimer::m_snTimeInMilliseconds;
             if (now - prev > 500.0f) {
                 data.bFogLightsOn = !data.bFogLightsOn;
@@ -51,9 +48,8 @@ void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
 }
 
 void FogLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
-    static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true));
     bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
-    bool shouldRenderFog = !foglightTiedtoHeadlight || isHeadlightsActive;
+    bool shouldRenderFog = !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
 
     if (!data.bFogLightsOn || !shouldRenderFog) return;
     bool isFogOk = !Util::IsPanelDamaged(pControlVeh, ePanels::BUMP_FRONT);

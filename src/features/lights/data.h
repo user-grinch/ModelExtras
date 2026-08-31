@@ -20,11 +20,20 @@ struct LightsConfig {
     bool gbSirenPointLights = true;
 
     float gfGlobalCoronaSize = 0.3f;
-    int gGlobalCoronaIntensity = 250;
-    int gGlobalShadowIntensity = 220;
+    int gGlobalCoronaIntensity = 50;
+    int gGlobalShadowIntensity = 50;
     float gfTailLightCoronaSize = 0.8f;
     int gTailLightCoronaIntensity = 60;
     float headlightSz = 5.0f;
+
+    uint32_t nFogLightKey = 'J';
+    uint32_t nLongLightKey = 'G';
+    uint32_t nIndicatorNoneKey = VK_SHIFT;
+    uint32_t nIndicatorLeftKey = 'Z';
+    uint32_t nIndicatorRightKey = 'C';
+    uint32_t nIndicatorBothKey = 'X';
+    bool bAutoIndicatorsOnSteer = false;
+    bool bFoglightTiedToHeadlight = false;
 
     void InitConfig() {
         gbGlobalIndicatorLights = gConfig.ReadBoolean("LIGHTS", "StandardLights_GlobalIndicatorLights", gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false));
@@ -33,10 +42,19 @@ struct LightsConfig {
         gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", gConfig.ReadBoolean("FEATURES", "SirenPointLights", true));
 
         gfGlobalCoronaSize = gConfig.ReadFloat("LIGHTS", "LightCoronaSize", gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f));
-        gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 220));
-        gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 250));
+        gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 50));
+        gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 50));
         gfTailLightCoronaSize = gConfig.ReadFloat("LIGHTS", "TailLightCoronaSize", gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 0.8f));
         gTailLightCoronaIntensity = gConfig.ReadInteger("LIGHTS", "TailLightCoronaIntensity", gConfig.ReadInteger("VISUAL", "TailLightCoronaIntensity", 60));
+
+        nFogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", 'J');
+        nLongLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", 'G');
+        nIndicatorNoneKey = gConfig.ReadInteger("KEYS", "IndicatorLightNoneKey", VK_SHIFT);
+        nIndicatorLeftKey = gConfig.ReadInteger("KEYS", "IndicatorLightLeftKey", 'Z');
+        nIndicatorRightKey = gConfig.ReadInteger("KEYS", "IndicatorLightRightKey", 'C');
+        nIndicatorBothKey = gConfig.ReadInteger("KEYS", "IndicatorLightBothKey", 'X');
+        bAutoIndicatorsOnSteer = gConfig.ReadBoolean("LIGHTS", "AutoIndicatorsOnSteer", gConfig.ReadBoolean("TWEAKS", "AutoIndicatorsOnSteer", false));
+        bFoglightTiedToHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", false));
     }
 
 private:
