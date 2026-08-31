@@ -46,7 +46,7 @@ void LightManager::Init() {
             if (longLights) {
                 return { CRGBA(255, 255, 255, 255), DEFAULT_MAT_COL };
             } else {
-                return { CRGBA(190, 190, 190, 255), DEFAULT_MAT_COL };
+                return { CRGBA(100, 100, 100, 255), DEFAULT_MAT_COL };
             }
         }
         if (type == eMaterialType::TailLightLeft || type == eMaterialType::TailLightRight) {
@@ -264,6 +264,8 @@ void LightManager::ProcessPointLights(CVehicle *pVeh) {
 
 void LightManager::Reload(CVehicle* pVeh) {
     LightsConfig::Get().InitConfig();
-    m_VehData.Get(pVeh) = VehLightData(pVeh);
-    DataMgr::Reload(pVeh->m_nModelIndex);
+    if (pVeh) {
+        m_VehData.Get(pVeh).ClearDummies();
+        DataMgr::Reload(pVeh->m_nModelIndex);
+    }
 }
