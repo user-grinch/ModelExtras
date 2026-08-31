@@ -96,6 +96,7 @@ void PedColors::Init() {
 	};
 
 	Events::pedRenderEvent.before += [](CPed *pPed) {
+		if (!CBaseFeature::IsEnabled(eFeatureMatrix::PedCols)) return;
 		auto &data = PedColors::m_PedData.Get(pPed);
 		if (data.m_bUsingPedCols) {
 			PedColors::m_pCurrentPed = pPed;

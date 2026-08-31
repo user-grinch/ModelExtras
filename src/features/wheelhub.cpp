@@ -26,6 +26,7 @@ void WheelHub::Init()
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
     {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::RotatingWheelHubs)) return;
         if (!pVeh || !pVeh->GetIsOnScreen()) {
             return;
         }

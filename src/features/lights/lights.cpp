@@ -9,6 +9,7 @@ void LightsFeature::Init() {
 		return;
 	}
 
+    ReloadConfig();
     LightManager::Init();
 
     patch::Nop(0x6E2722, 19);	  // CVehicle::DoHeadLightReflection
@@ -32,6 +33,7 @@ void LightsFeature::Init() {
 	};
 
     ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat) {
+        if (!m_bEnabled) return eMaterialType::UnknownMaterial;
         return LightManager::GetMatType(pMat); 
     });
 
@@ -41,11 +43,13 @@ void LightsFeature::Init() {
 
 	MEEvents::vehPreRenderEvent.before += [](CVehicle *pVeh)
 	{
+		if (!m_bEnabled) return;
 		LightManager::ProcessPointLights(pVeh);
 	};
 
 	Events::processScriptsEvent += []()
 	{
+		if (!m_bEnabled) return;
 		BlinkerState::Get().Update();
 
 		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
@@ -61,6 +65,7 @@ void LightsFeature::Init() {
 	};
 
 	ModelInfoMgr::RegisterRender([](CVehicle *pControlVeh) {
+		if (!m_bEnabled) return;
 		int model = pControlVeh->m_nModelIndex;
 
 		if (CModelInfo::IsTrailerModel(model)) {
@@ -78,6 +83,7 @@ void LightsFeature::Init() {
 
 void LightsFeature::ReloadConfig() {
 	CBaseFeature::ReloadConfig();
+	m_bEnabled = m_bActive;
 	LightsConfig::Get().InitConfig();
 }
 

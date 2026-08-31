@@ -59,6 +59,7 @@ void ExtraWheel::Init()
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
                                  {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::ExtraWheels)) return;
         if (!pVeh || !pVeh->GetIsOnScreen())
         {
             return;

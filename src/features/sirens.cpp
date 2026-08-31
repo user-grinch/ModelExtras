@@ -65,6 +65,7 @@ static uint32_t g_nSirenKey = VK_L;
 void Sirens::ReloadConfig()
 {
 	CBaseFeature::ReloadConfig();
+	m_bEnabled = m_bActive;
 	g_nSirenKey = gConfig.ReadInteger("KEYS", "SirenLightKey", VK_L);
 }
 
@@ -605,7 +606,7 @@ int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat)
 
 void Sirens::Init()
 {
-	m_bEnabled = true;
+	ReloadConfig();
 	ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat)
 								   {
 		if (!m_bEnabled) {

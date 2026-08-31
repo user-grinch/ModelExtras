@@ -66,11 +66,13 @@ bool IsDummyPointingUp(CMatrix mat)
 
 static bool gbLightCoronas = false;
 static bool gbLightShadows = false;
-static float gfCoronaDistanceMul = 0.0f;
+static float gfCoronaDistanceMul = 0.1f;
 static float gfCoronaNearClip = 0.45f;
 static float gfLightHeightLimit = 0.0f;
 static bool gbConfigInitialized = false;
 static float gfLightShadowDistance = 120.0f;
+static int gnHeadLightShadowIntensity = 80;
+static int gnTailLightShadowIntensity = 80;
 
 extern int gGlobalShadowIntensity;
 extern int gGlobalCoronaIntensity;
@@ -79,11 +81,13 @@ void RenderUtil::ReloadConfig()
 {
     gbLightCoronas = gConfig.ReadBoolean("LIGHTS", "LightCoronas", gConfig.ReadBoolean("FEATURES", "LightCoronas", true));
     gbLightShadows = gConfig.ReadBoolean("LIGHTS", "LightShadows", gConfig.ReadBoolean("FEATURES", "LightShadows", true));
-    gfCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "CoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.0f));
+    gfCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "CoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.1f));
     gfCoronaNearClip = gConfig.ReadFloat("LIGHTS", "CoronaNearClip", gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 0.45f));
     gfLightHeightLimit = gConfig.ReadFloat("LIGHTS", "LightHeightLimit", gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 0.0f));
     gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 80));
     gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 80));
+    gnHeadLightShadowIntensity = gConfig.ReadInteger("LIGHTS", "HeadLightShadowIntensity", gGlobalShadowIntensity);
+    gnTailLightShadowIntensity = gConfig.ReadInteger("LIGHTS", "TailLightShadowIntensity", gGlobalShadowIntensity);
     gfLightShadowDistance = gConfig.ReadFloat("LIGHTS", "LightShadowDistance", 120.0f);
     gbConfigInitialized = true;
 }
@@ -397,7 +401,26 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
     RegisterCorona(pConfig->pVeh, reinterpret_cast<int32_t>(pConfig), pConfig->position, col, sz);
 }
 
-extern int gGlobalShadowIntensity;
+// Shadow opacity is resolved here so the per light type INI keys are respected. The dummy's
+// alpha is baked in when the dummy is created, so reading it back would go stale after a reload.
+static int GetShadowIntensity(eMaterialType lightType)
+{
+    int intensity = gGlobalShadowIntensity;
+    switch (lightType)
+    {
+    case eMaterialType::HeadLightLeft:
+    case eMaterialType::HeadLightRight:
+        intensity = gnHeadLightShadowIntensity;
+        break;
+    case eMaterialType::TailLightLeft:
+    case eMaterialType::TailLightRight:
+        intensity = gnTailLightShadowIntensity;
+        break;
+    default:
+        break;
+    }
+    return std::clamp(intensity, 0, 255);
+}
 
 void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std::string &shadwTexName, float shdwSz)
 {
@@ -488,7 +511,7 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
         alphaMul = (SHDW_MAX_DIST - distToCam) / (SHDW_MAX_DIST - SHDW_FADE_DIST);
     }
 
-    float shadowIntensityFactor = static_cast<float>(gGlobalShadowIntensity) / 255.0f;
+    float shadowIntensityFactor = static_cast<float>(GetShadowIntensity(pConfig->lightType)) / 255.0f;
     unsigned char r = static_cast<unsigned char>(pConfig->shadow.color.r * shadowIntensityFactor);
     unsigned char g = static_cast<unsigned char>(pConfig->shadow.color.g * shadowIntensityFactor);
     unsigned char b = static_cast<unsigned char>(pConfig->shadow.color.b * shadowIntensityFactor);

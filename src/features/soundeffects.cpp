@@ -20,6 +20,7 @@ static bool bOnlyPlayerVehicle = true;
 
 void SoundEffects::ReloadConfig()
 {
+    CBaseFeature::ReloadConfig();
     std::string line = gConfig.ReadString("TABLE", "SoundEffects_BigVehicleModels", "");
     ValidForReverseSound.clear();
     Util::GetModelsFromIni(line, ValidForReverseSound);
@@ -38,12 +39,17 @@ void SoundEffects::Reload(CVehicle *pVeh)
 
 void SoundEffects::Init()
 {
-    Events::initGameEvent += []()
+    ReloadConfig();
+
+    Events::initGameEvent += [this]()
     {
         ReloadConfig();
     };
 
     Events::processScriptsEvent += []() {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::SoundEffects)) {
+            return;
+        }
         CPed *pPlayer = FindPlayerPed();
         if (!pPlayer) {
             return;

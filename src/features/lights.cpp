@@ -26,8 +26,17 @@ static bool gbLightCoronasFeature = false;
 float gfGlobalCoronaSize = 0.3f;
 int gGlobalCoronaIntensity = 80;
 int gGlobalShadowIntensity = 80;
-float gfTailLightCoronaSize = 0.8f;
+
+float gfHeadLightCoronaSize = 0.4f;
+int gHeadLightCoronaIntensity = 80;
+int gHeadLightShadowIntensity = 80;
+float gfHeadLightShadowSize = 1.0f;
+
+float gfTailLightCoronaSize = 0.4f;
 int gTailLightCoronaIntensity = 60;
+int gTailLightShadowIntensity = 80;
+float gfTailLightShadowSize = 1.0f;
+
 float headlightSz = 5.0f;
 
 int GetStrobeIndex(CVehicle *pVeh, RpMaterial *pMat)
@@ -70,7 +79,7 @@ inline float GetZAngleForPoint(CVector2D const &point)
 }
 
 bool gbLightPointLights = true;
-bool gbSirenPointLights = true;
+bool gbSirenPointLights = false;
 
 static uint32_t g_nFogLightKey = VK_J;
 static uint32_t g_nLongLightKey = VK_G;
@@ -86,13 +95,21 @@ void Lights::InitConfig()
 	gbGlobalIndicatorLights = gConfig.ReadBoolean("LIGHTS", "StandardLights_GlobalIndicatorLights", gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false));
 	gbLightCoronasFeature = gConfig.ReadBoolean("LIGHTS", "LightCoronas", gConfig.ReadBoolean("FEATURES", "LightCoronas", false));
 	gbLightPointLights = gConfig.ReadBoolean("LIGHTS", "PointLights", gConfig.ReadBoolean("LIGHTS", "LightPointLights", gConfig.ReadBoolean("FEATURES", "PointLights", true)));
-	gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", gConfig.ReadBoolean("FEATURES", "SirenPointLights", true));
+	gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", gConfig.ReadBoolean("FEATURES", "SirenPointLights", false));
 
 	gfGlobalCoronaSize = gConfig.ReadFloat("LIGHTS", "LightCoronaSize", gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f));
 	gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 80));
 	gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 80));
-	gfTailLightCoronaSize = gConfig.ReadFloat("LIGHTS", "TailLightCoronaSize", gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 0.8f));
+
+	gfHeadLightCoronaSize = gConfig.ReadFloat("LIGHTS", "HeadLightCoronaSize", gfGlobalCoronaSize);
+	gHeadLightCoronaIntensity = gConfig.ReadInteger("LIGHTS", "HeadLightCoronaIntensity", gGlobalCoronaIntensity);
+	gHeadLightShadowIntensity = gConfig.ReadInteger("LIGHTS", "HeadLightShadowIntensity", gGlobalShadowIntensity);
+	gfHeadLightShadowSize = gConfig.ReadFloat("LIGHTS", "HeadLightShadowSize", 1.0f);
+
+	gfTailLightCoronaSize = gConfig.ReadFloat("LIGHTS", "TailLightCoronaSize", gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 0.4f));
 	gTailLightCoronaIntensity = gConfig.ReadInteger("LIGHTS", "TailLightCoronaIntensity", gConfig.ReadInteger("VISUAL", "TailLightCoronaIntensity", 60));
+	gTailLightShadowIntensity = gConfig.ReadInteger("LIGHTS", "TailLightShadowIntensity", gGlobalShadowIntensity);
+	gfTailLightShadowSize = gConfig.ReadFloat("LIGHTS", "TailLightShadowSize", 1.0f);
 
 	g_nFogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", VK_J);
 	g_nLongLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", VK_G);
@@ -110,7 +127,7 @@ void Lights::Init()
 		return;
 	}
 
-	m_bEnabled = true;
+	ReloadConfig();
 	patch::Nop(0x6E2722, 19);	  // CVehicle::DoHeadLightReflection
 	patch::SetUChar(0x6E1A22, 0); // CVehicle::DoTailLightEffect
 
@@ -371,7 +388,8 @@ void Lights::Init()
 			c.lightType = eMaterialType::TailLightRight;
 			c.corona.size = gfTailLightCoronaSize;
 			c.corona.color = {250, 0, 0, static_cast<unsigned char>(gTailLightCoronaIntensity)};
-			c.shadow.color = {250, 0, 0, static_cast<unsigned char>(gGlobalShadowIntensity)};
+			c.shadow.color = {250, 0, 0, static_cast<unsigned char>(gTailLightShadowIntensity)};
+			c.shadow.size = gfTailLightShadowSize;
 			c.corona.lightingType = eLightingMode::Directional; 				
 			c.shadow.render = name != "taillights2";
 			dummies[c.lightType].push_back(new VehicleDummy(c));
@@ -385,7 +403,10 @@ void Lights::Init()
 		else if (name == "headlights" || name == "headlights2") {
 			c.dummyPos = eDummyPos::Front;
 			c.lightType = eMaterialType::HeadLightLeft;
-			c.corona.color = c.shadow.color = {250, 250, 250, static_cast<unsigned char>(gGlobalCoronaIntensity)};
+			c.corona.size = gfHeadLightCoronaSize;
+			c.corona.color = {250, 250, 250, static_cast<unsigned char>(gHeadLightCoronaIntensity)};
+			c.shadow.color = {250, 250, 250, static_cast<unsigned char>(gHeadLightShadowIntensity)};
+			c.shadow.size = gfHeadLightShadowSize;
 			c.corona.lightingType = eLightingMode::Directional;
 			c.shadow.render = name != "headlights2";
 			c.mirroredX = true;
@@ -506,7 +527,7 @@ void Lights::Init()
 				continue;
 			}
 
-			if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) < 150.0f || pVeh->GetIsOnScreen())
+			if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) < 300.0f || pVeh->GetIsOnScreen())
 			{
 				bool isLeftFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT);
 				bool isRightFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT);
@@ -603,7 +624,7 @@ void Lights::Init()
 		}
 
 		std::string shdwName = (isBike ? "taillight_bike" : "taillight");
-		float shdwSz = 2.0f;
+		float shdwSz = 1.6f;
 
 		if (pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_MTRUCK
 			|| pControlVeh->m_nVehicleSubClass == VEHICLE_QUAD || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE
@@ -994,9 +1015,16 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMu
 
 // NOT
 
+void Lights::ReloadConfig()
+{
+	CBaseFeature::ReloadConfig();
+	m_bEnabled = m_bActive;
+	InitConfig();
+}
+
 void Lights::Reload(CVehicle* pVeh)
 {
-	InitConfig();
+	ReloadConfig();
 	if (pVeh) {
 		auto it = m_Dummies.find(pVeh);
 		if (it != m_Dummies.end()) {

@@ -10,9 +10,15 @@
      (type.g == VEHCOL.g) &&        \
      (type.b == VEHCOL.b))
 
+void Carcols::ReloadConfig()
+{
+    CBaseFeature::ReloadConfig();
+    m_bEnabled = m_bActive;
+}
+
 void Carcols::Init()
 {
-    m_bEnabled = true;
+    ReloadConfig();
 }
 
 bool Carcols::GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA &col)

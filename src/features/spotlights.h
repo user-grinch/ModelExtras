@@ -29,7 +29,7 @@ public:
 	static void ProcessPointLights(CVehicle *pVeh);
 
 public:
-    SpotLights() : CVehFeature<SpotlightData>("SpotLights", "FEATURES", eFeatureMatrix::StandardLights) {}
+    SpotLights() : CVehFeature<SpotlightData>("SpotLights", "LIGHTS", eFeatureMatrix::SpotLights) {}
 	static bool IsEnabled(CVehicle *pVeh);
 	void ReloadConfig() override;
 	void Reload(CVehicle *pVeh) override;

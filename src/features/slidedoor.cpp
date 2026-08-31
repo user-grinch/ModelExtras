@@ -60,6 +60,7 @@ void SlideDoor::Init()
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
                                  {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::AnimatedDoors)) return;
         if (!pVeh || !pVeh->GetIsOnScreen()) return;
 
         SlideDoorData& data = m_VehData.Get(pVeh);

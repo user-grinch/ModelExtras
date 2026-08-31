@@ -25,6 +25,10 @@ NitroFn_t ogNitro1 = nullptr, ogNitro2 = nullptr, ogNitro3 = nullptr;
 void __fastcall ExhaustFx::hkAddExhaustParticles1(CVehicle * pVeh)
 {
     if (!pVeh) return;
+    if (!CBaseFeature::IsEnabled(eFeatureMatrix::ExhaustFx)) {
+        if (ogFunc1) ogFunc1(pVeh);
+        return;
+    }
     auto &data = m_VehData.Get(pVeh);
     if (!data.isUsed && ogFunc1) {
         ogFunc1(pVeh);
@@ -34,6 +38,10 @@ void __fastcall ExhaustFx::hkAddExhaustParticles1(CVehicle * pVeh)
 void __fastcall ExhaustFx::hkAddExhaustParticles2(CVehicle *pVeh)
 {
     if (!pVeh) return;
+    if (!CBaseFeature::IsEnabled(eFeatureMatrix::ExhaustFx)) {
+        if (ogFunc2) ogFunc2(pVeh);
+        return;
+    }
     auto &data = m_VehData.Get(pVeh);
     if (!data.isUsed && ogFunc2) {
         ogFunc2(pVeh);
@@ -266,6 +274,10 @@ ExhaustData ExhaustFx::LoadData(CVehicle *pVeh, RwFrame *pFrame)
 
 void ExhaustFx::RenderSmokeFx(CVehicle *pVeh, const ExhaustData &info)
 {
+    if (!CBaseFeature::IsEnabled(eFeatureMatrix::ExhaustFx))
+    {
+        return;
+    }
     if (!pVeh || !pVeh->GetIsOnScreen() || !pVeh->bEngineOn || pVeh->bEngineBroken)
     {
         return;
@@ -377,6 +389,10 @@ void ExhaustFx::RenderSmokeFx(CVehicle *pVeh, const ExhaustData &info)
 
 void ExhaustFx::RenderNitroFx(CVehicle *pVeh, float power)
 {
+    if (!CBaseFeature::IsEnabled(eFeatureMatrix::ExhaustFx))
+    {
+        return;
+    }
     const auto &mi = CModelInfo::GetModelInfo(pVeh->m_nModelIndex);
 
     auto &data = m_VehData.Get(pVeh);

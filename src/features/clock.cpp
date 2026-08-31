@@ -73,6 +73,7 @@ void DigitalClockFeature::Init()
 
     ModelInfoMgr::RegisterRender([](CVehicle *pVeh)
     {
+        if (!CBaseFeature::IsEnabled(eFeatureMatrix::Clock)) return;
         if (!pVeh || !pVeh->GetIsOnScreen())
         {
             return;

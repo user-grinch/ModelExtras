@@ -20,8 +20,9 @@ private:
 	
 protected:
     void Init() override;
+    void ReloadConfig() override;
+    void Reload(CVehicle *pVeh) override { ReloadConfig(); }
 
 public:
-	public:
     DashboardLEDs() : CVehFeature<VehLEDData>("DashboardLED", "FEATURES", eFeatureMatrix::DashboardLED) {}
 };
