@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "manager.h"
 #include "utils/modelinfomgr.h"
 #include "utils/render.h"
@@ -47,6 +47,19 @@ void LightManager::Init() {
                 return { CRGBA(255, 255, 255, 255), DEFAULT_MAT_COL };
             } else {
                 return { CRGBA(190, 190, 190, 255), DEFAULT_MAT_COL };
+            }
+        }
+        if (type == eMaterialType::TailLightLeft || type == eMaterialType::TailLightRight) {
+            if (pVeh) {
+                bool hasDedicatedBrake = LightManager::IsMaterialAvailable(pVeh, {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight, eMaterialType::NABrakeLightLeft, eMaterialType::NABrakeLightRight, eMaterialType::STTLightLeft, eMaterialType::STTLightRight});
+                if (!hasDedicatedBrake) {
+                    bool isBraking = (pVeh->m_fBreakPedal > 0.05f) && (pVeh->m_pDriver != nullptr);
+                    if (isBraking) {
+                        return { CRGBA(255, 255, 255, 255), DEFAULT_MAT_COL };
+                    } else {
+                        return { CRGBA(180, 180, 180, 255), DEFAULT_MAT_COL };
+                    }
+                }
             }
         }
         return { DEFAULT_MAT_COL, DEFAULT_MAT_COL };
@@ -176,7 +189,11 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
                 continue;
             }
 
-            EnableDummy((int)pVeh + 42 + id++, dummy, pVeh, highlight ? 3.00f : 1.0f);
+            float szMul = 1.0f;
+            if (highlight) {
+                szMul = (type == eMaterialType::TailLightLeft || type == eMaterialType::TailLightRight) ? 1.50f : 3.00f;
+            }
+            EnableDummy((int)pVeh + 42 + id++, dummy, pVeh, szMul);
 
             // Skip front shadows on bike wheelie
             if (c.dummyPos == eDummyPos::Front && Util::IsVehicleDoingWheelie(pVeh)) {

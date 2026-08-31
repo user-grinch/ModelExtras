@@ -157,6 +157,25 @@ void Lights::Init()
 				return { CRGBA(190, 190, 190, 255), DEFAULT_MAT_COL };
 			}
 		}
+		if (type == eMaterialType::TailLightLeft || type == eMaterialType::TailLightRight)
+		{
+			if (pVeh)
+			{
+				bool hasDedicatedBrake = IsMatAvail(pVeh, {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight, eMaterialType::NABrakeLightLeft, eMaterialType::NABrakeLightRight, eMaterialType::STTLightLeft, eMaterialType::STTLightRight});
+				if (!hasDedicatedBrake)
+				{
+					bool isBraking = (pVeh->m_fBreakPedal > 0.05f) && (pVeh->m_pDriver != nullptr);
+					if (isBraking)
+					{
+						return { CRGBA(255, 255, 255, 255), DEFAULT_MAT_COL };
+					}
+					else
+					{
+						return { CRGBA(180, 180, 180, 255), DEFAULT_MAT_COL };
+					}
+				}
+			}
+		}
 		return { DEFAULT_MAT_COL, DEFAULT_MAT_COL };
 	});
 
@@ -623,10 +642,10 @@ void Lights::Init()
 					}
 					else if (IsMatAvail(pTowedVeh, {eMaterialType::TailLightLeft, eMaterialType::TailLightRight})) {
 						if (isLeftRearOk) {
-							RenderLights(pControlVeh, pTowedVeh, eMaterialType::TailLightLeft, true, shdwName, shdwSz, false, isLeftRearOk);
+							RenderLights(pControlVeh, pTowedVeh, eMaterialType::TailLightLeft, true, shdwName, shdwSz, true, isLeftRearOk);
 						}
 						if (isRightRearOk) {
-							RenderLights(pControlVeh, pTowedVeh, eMaterialType::TailLightRight, true, shdwName, shdwSz, false, isRightRearOk);
+							RenderLights(pControlVeh, pTowedVeh, eMaterialType::TailLightRight, true, shdwName, shdwSz, true, isRightRearOk);
 						}
 					}
 				}
@@ -655,13 +674,18 @@ void Lights::Init()
 					}
 				}
 				else {
+					bool hasDedicatedBrake = IsMatAvail(pTowedVeh, {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight, eMaterialType::NABrakeLightLeft, eMaterialType::NABrakeLightRight, eMaterialType::STTLightLeft, eMaterialType::STTLightRight}) ||
+					                         IsDummyAvail(pTowedVeh, {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight, eMaterialType::NABrakeLightLeft, eMaterialType::NABrakeLightRight, eMaterialType::STTLightLeft, eMaterialType::STTLightRight});
+					bool isBraking = (pControlVeh->m_fBreakPedal > 0.05f) && (pControlVeh->m_pDriver != nullptr);
+					bool tailHighlight = !hasDedicatedBrake && isBraking;
+
 					auto tailLightsRender = [&](bool leftOk, bool rightOk) {
 						if (IsMatAvail(pTowedVeh, {eMaterialType::TailLightLeft, eMaterialType::TailLightRight}) || IsDummyAvail(pTowedVeh, {eMaterialType::TailLightLeft, eMaterialType::TailLightRight})) {
 							if (leftOk) {
-								RenderLights(pControlVeh, pTowedVeh, eMaterialType::TailLightLeft, true, shdwName, shdwSz, false, leftOk);
+								RenderLights(pControlVeh, pTowedVeh, eMaterialType::TailLightLeft, true, shdwName, shdwSz, tailHighlight, leftOk);
 							}
 							if (rightOk) {
-								RenderLights(pControlVeh, pTowedVeh, eMaterialType::TailLightRight, true, shdwName, shdwSz, false, rightOk);
+								RenderLights(pControlVeh, pTowedVeh, eMaterialType::TailLightRight, true, shdwName, shdwSz, tailHighlight, rightOk);
 							}
 						} else if (IsMatAvail(pTowedVeh, {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight}) || IsDummyAvail(pTowedVeh, {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight})) {
 							if (leftOk) {
@@ -868,7 +892,12 @@ void Lights::RenderLight(CVehicle *pVeh, eMaterialType state, bool shadows, std:
 				continue;
 			}
 
-			EnableDummy((int)pVeh + 42 + id++, e, pVeh, highlight ? 3.00f : 1.0f);
+			float szMul = 1.0f;
+			if (highlight)
+			{
+				szMul = (state == eMaterialType::TailLightLeft || state == eMaterialType::TailLightRight) ? 1.50f : 3.00f;
+			}
+			EnableDummy((int)pVeh + 42 + id++, e, pVeh, szMul);
 
 			// Skip front shadows on bike wheelie
 			if (c.dummyPos == eDummyPos::Front && Util::IsVehicleDoingWheelie(pVeh))
