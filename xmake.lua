@@ -69,14 +69,33 @@ target("ModelExtras")
         "/utf-8",
         "/EHsc",
         "/Gw",
+        "/Gy",
+        "/GF",
+        "/guard:cf-",
+        "/Qspectre-",
         "/Zc:threadSafeInit-",
+        "/Zc:inline",
+        "/Zc:throwingNew",
+        "/Zc:lambda",
+        "/Zc:enumTypes",
+        "/Zc:templateScope",
+        "/Zc:ternary",
+        "/Zc:rvalueCast",
+        "/volatile:iso",
+        "/arch:SSE2",
+        "/fp:fast",
+        "/fp:except-",
+        "/Oi",
         "/MP"
     )
 
     add_shflags(
         "/SAFESEH:NO",
         "/FORCE:MULTIPLE",
-        "/LARGEADDRESSAWARE"
+        "/LARGEADDRESSAWARE",
+        "/DYNAMICBASE:NO",
+        "/NXCOMPAT:NO",
+        "/MANIFEST:NO"
     )
 
     if is_mode("debug") then
@@ -89,6 +108,8 @@ target("ModelExtras")
         set_runtimes("MT")
         set_optimize("fastest")
         set_symbols("hidden")
+        add_cxflags("/Ob3", "/Ot", "/GS-")
+        add_shflags("/OPT:REF", "/OPT:ICF", "/INCREMENTAL:NO")
     end
 
     after_build(function (target)
