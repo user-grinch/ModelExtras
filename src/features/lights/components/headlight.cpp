@@ -45,10 +45,9 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
 void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
     if (pVeh->m_pDriver == FindPlayerPed() && !Util::IsEngineOff(pVeh)) {
         static size_t prev = 0;
-        static uint32_t longLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", VK_G);
         bool isHeadlightsActiveForLong = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime() || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
         bool canToggleLongLights = !(gbProperShadersDetected && !LightsConfig::Get().gbLightPointLights);
-        if (Util::IsKeyPressed(longLightKey) && isHeadlightsActiveForLong && canToggleLongLights) {
+        if (Util::IsKeyPressed(LightsConfig::Get().nLongLightKey) && isHeadlightsActiveForLong && canToggleLongLights) {
             size_t now = CTimer::m_snTimeInMilliseconds;
             if (now - prev > 500.0f) {
                 data.bLongLightsOn = !data.bLongLightsOn;
