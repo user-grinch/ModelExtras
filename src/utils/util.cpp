@@ -8,6 +8,7 @@
 #include <CBike.h>
 #include <CWorld.h>
 #include <CClock.h>
+#include <CWeather.h>
 #include <CMenuManager.h>
 #include "utils/texmgr.h"
 #include "defines.h"

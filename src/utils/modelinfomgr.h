@@ -71,6 +71,15 @@ private:
   static void __fastcall SetupRender(CVehicle *ptr);
 
 public:
+  static inline float gfMaterialAmbientMul = 1.0f;
+  static void ReloadConfig();
+  static float GetMaterialAmbientMul() { return gfMaterialAmbientMul; }
+  static RwSurfaceProperties GetLightSurfaceProps(float ambientScale = 1.0f) {
+    RwSurfaceProperties props = *reinterpret_cast<RwSurfaceProperties *>(0x8A645C);
+    props.ambient = std::max(0.0f, props.ambient * gfMaterialAmbientMul * ambientScale);
+    return props;
+  }
+
   static void EnableMaterial(CVehicle *pVeh, eMaterialType type);
   static void EnableSirenMaterial(CVehicle *pVeh, int idx);
   static void EnableStrobeMaterial(CVehicle *pVeh, int idx);

@@ -75,7 +75,8 @@ void ConvertibleRoof::Init()
                                     // Randomly open the roofs
                                     if (isRoof)
                                     {
-                                        if (!data.m_bRoofTargetExpanded && CWeather::NewWeatherType != eWeatherType::WEATHER_RAINY_SF && CWeather::OldWeatherType != eWeatherType::WEATHER_RAINY_SF && CWeather::NewWeatherType != eWeatherType::WEATHER_RAINY_COUNTRYSIDE && CWeather::OldWeatherType != eWeatherType::WEATHER_RAINY_COUNTRYSIDE)
+                                        bool isRainy = (CWeather::Rain > 0.05f) || (CWeather::WetRoads > 0.1f) || (CWeather::NewWeatherType == eWeatherType::WEATHER_RAINY_SF || CWeather::OldWeatherType == eWeatherType::WEATHER_RAINY_SF || CWeather::NewWeatherType == eWeatherType::WEATHER_RAINY_COUNTRYSIDE || CWeather::OldWeatherType == eWeatherType::WEATHER_RAINY_COUNTRYSIDE);
+                                        if (!data.m_bRoofTargetExpanded && !isRainy)
                                         {
                                             MatrixUtil::SetRotationXAbsolute(&pFrame->modelling, c.targetRot - c.prevRot);
                                             c.prevRot = c.targetRot;
@@ -90,7 +91,8 @@ void ConvertibleRoof::Init()
 
     Events::vehicleRenderEvent += [](CVehicle *pVeh)
     {
-        if (CWeather::NewWeatherType != eWeatherType::WEATHER_RAINY_SF && CWeather::OldWeatherType != eWeatherType::WEATHER_RAINY_SF && CWeather::NewWeatherType != eWeatherType::WEATHER_RAINY_COUNTRYSIDE && CWeather::OldWeatherType != eWeatherType::WEATHER_RAINY_COUNTRYSIDE)
+        bool isRainy = (CWeather::Rain > 0.05f) || (CWeather::WetRoads > 0.1f) || (CWeather::NewWeatherType == eWeatherType::WEATHER_RAINY_SF || CWeather::OldWeatherType == eWeatherType::WEATHER_RAINY_SF || CWeather::NewWeatherType == eWeatherType::WEATHER_RAINY_COUNTRYSIDE || CWeather::OldWeatherType == eWeatherType::WEATHER_RAINY_COUNTRYSIDE);
+        if (!isRainy)
         {
             return;
         }

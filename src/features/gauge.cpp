@@ -82,7 +82,10 @@ void MileageIndicator::Init()
         float diff = curWheelRot - indicator.fLastWheelRot;
         if (abs(diff) > 5.0f) diff = 0.0f;
 
-        indicator.dCurrentDistance += (abs(diff) / (2.86f * indicator.fMul));
+        CVehicleModelInfo *pModelInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));
+        float wheelRadius = (pModelInfo && pModelInfo->m_fWheelSizeRear > 0.0f) ? pModelInfo->m_fWheelSizeRear : 0.35f;
+        float wheelDivisor = (wheelRadius * 8.17f) * indicator.fMul;
+        indicator.dCurrentDistance += (abs(diff) / (wheelDivisor > 0.0f ? wheelDivisor : 2.86f));
         indicator.fLastWheelRot = curWheelRot;
 
         int displayVal = static_cast<int>(indicator.dCurrentDistance) % 1000000;
@@ -147,7 +150,16 @@ void RPMGauge::Init()
                 float rpm = 0.0f;
 
                 if (pVeh->m_nCurrentGear != 0) {
-                  rpm = (speed / abs((float)pVeh->m_nCurrentGear)) * 100.0f;
+                    if (pVeh->m_pHandlingData && pVeh->m_nCurrentGear > 0 && pVeh->m_nCurrentGear <= pVeh->m_pHandlingData->m_transmissionData.m_nNumberOfGears) {
+                        float maxGearVel = pVeh->m_pHandlingData->m_transmissionData.m_aGears[pVeh->m_nCurrentGear].m_fMaxVelocity;
+                        if (maxGearVel > 0.0f) {
+                            rpm = std::clamp((speed / (maxGearVel * 160.9f)), 0.1f, 1.0f) * e.second.iMaxRPM;
+                        } else {
+                            rpm = (speed / abs((float)pVeh->m_nCurrentGear)) * 100.0f;
+                        }
+                    } else {
+                        rpm = (speed / abs((float)pVeh->m_nCurrentGear)) * 100.0f;
+                    }
                 }
 
                 if (pVeh->bEngineOn) {

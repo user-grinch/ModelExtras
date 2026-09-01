@@ -1139,8 +1139,13 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 				continue;
 			}
 
-			float sirenRadius = (mat.second->Shadow.Size > 0.0f) ? (mat.second->Shadow.Size * 2.5f) : (mat.second->Size * 3.0f);
-			sirenRadius = std::clamp(sirenRadius, 7.0f, 11.0f);
+			float sirenRadius = 8.5f;
+			if (mat.second->Shadow.Size > 0.0f) {
+				sirenRadius = mat.second->Shadow.Size * 2.5f;
+			} else if (mat.second->Size > 0.0f) {
+				sirenRadius = mat.second->Size * 3.0f;
+			}
+			sirenRadius = std::clamp(sirenRadius, 5.0f, 15.0f);
 
 			float r = std::clamp(activeColor.r / 255.0f, 0.0f, 1.0f);
 			float g = std::clamp(activeColor.g / 255.0f, 0.0f, 1.0f);

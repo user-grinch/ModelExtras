@@ -957,7 +957,7 @@ void Lights::RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRight
 
 	if (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime())
 	{
-		bool isFoggy = (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
+		bool isFoggy = (CWeather::Foggyness > 0.1f) || (CWeather::Rain > 0.3f) || (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
 		std::string texName = data.m_bLongLightsOn ? "headlight_long" : "headlight_short";
 		bool shadow = !gbProperShadersDetected;
 		bool highlight = isFoggy || data.m_bLongLightsOn;
@@ -997,16 +997,18 @@ void Lights::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMu
 void Lights::Reload(CVehicle* pVeh)
 {
 	InitConfig();
-	auto it = m_Dummies.find(pVeh);
-	if (it != m_Dummies.end()) {
-		for (auto &pair : it->second) {
-			for (auto *pDummy : pair.second) {
-				delete pDummy;
+	if (pVeh) {
+		auto it = m_Dummies.find(pVeh);
+		if (it != m_Dummies.end()) {
+			for (auto &pair : it->second) {
+				for (auto *pDummy : pair.second) {
+					delete pDummy;
+				}
 			}
+			m_Dummies.erase(it);
 		}
-		m_Dummies.erase(it);
+		DataMgr::Reload(pVeh->m_nModelIndex);
 	}
-	DataMgr::Reload(pVeh->m_nModelIndex);
 }
 
 bool Lights::IsDummyAvail(CVehicle *pVeh, eMaterialType state)

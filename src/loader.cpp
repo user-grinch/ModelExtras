@@ -71,9 +71,9 @@ void ModelExtras::Init()
     {
         Events::processScriptsEvent += []()
         {
-            CVehicle *pVeh = FindPlayerVehicle(-1, false);
-            if (pVeh && plugin::Command<TEST_CHEAT>("MERELOAD"))
+            if (plugin::Command<TEST_CHEAT>("MERELOAD"))
             {
+                CVehicle *pVeh = FindPlayerVehicle(-1, false);
                 Reload(pVeh);
             }
         };
@@ -140,6 +140,7 @@ void ModelExtras::Init()
 
 void ModelExtras::Reload(CVehicle *pVeh)
 {
+    gConfig = CIniReader();
     gConfig.SetIniPath();
     gVerboseLogging = gConfig.ReadBoolean("CONFIG", "VerboseLogging", false);
     AudioMgr::ReloadConfig();
@@ -150,5 +151,7 @@ void ModelExtras::Reload(CVehicle *pVeh)
         }
     }
     ModelInfoMgr::Reload(pVeh);
-    CHud::SetHelpMessage("Config reloaded", false, false, true);
+    static std::string msg = "~g~ModelExtras:~w~ Config reloaded";
+    CMessages::AddMessageWithString(const_cast<char*>(msg.c_str()), 3000, false, nullptr, true);
+    LOG(INFO) << "ModelExtras: Configuration reloaded successfully.";
 }

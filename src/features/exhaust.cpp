@@ -179,9 +179,10 @@ void ExhaustFx::ProcessPointLights(CVehicle *pVeh)
         return;
     }
 
-    const float radius = 0.70f;
+    float nitroScale = std::clamp(pVeh->m_fGasPedal, 0.5f, 1.0f);
+    const float radius = 0.70f * nitroScale;
     const float r = 0.0f;
-    const float g = 0.45f;
+    const float g = 0.45f * nitroScale;
     const float b = 1.0f;
     const float rearOffset = 0.25f;
 

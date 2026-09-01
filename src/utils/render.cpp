@@ -70,7 +70,7 @@ static float gfCoronaDistanceMul = 0.0f;
 static float gfCoronaNearClip = 0.45f;
 static float gfLightHeightLimit = 0.0f;
 static bool gbConfigInitialized = false;
-static float gbLightShadowDistance = 120.0f;
+static float gfLightShadowDistance = 120.0f;
 
 extern int gGlobalShadowIntensity;
 extern int gGlobalCoronaIntensity;
@@ -84,7 +84,7 @@ void RenderUtil::ReloadConfig()
     gfLightHeightLimit = gConfig.ReadFloat("LIGHTS", "LightHeightLimit", gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 0.0f));
     gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 80));
     gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 80));
-    gbLightShadowDistance = gConfig.ReadFloat("LIGHTS", "LightShadowDistance", 120.0f);
+    gfLightShadowDistance = gConfig.ReadFloat("LIGHTS", "LightShadowDistance", 120.0f);
     gbConfigInitialized = true;
 }
 
@@ -110,11 +110,12 @@ void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRG
     if (Util::IsNightTime() && gfCoronaDistanceMul != 0.0f) {
         // pEntity is null for unattached coronas, pos is already in world space then
         CVector refPos = pEntity ? pEntity->GetPosition() : pos;
-        coronaSz *= CVector::Distance(TheCamera.GetPosition(), refPos) * gfCoronaDistanceMul;
+        float dist = CVector::Distance(TheCamera.GetPosition(), refPos);
+        coronaSz = std::max(size, size * dist * gfCoronaDistanceMul);
     }
 
     CCoronas::RegisterCorona(coronaID, pEntity, col.r, col.g, col.b, col.a, pos,
-                             coronaSz, 260.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, true, false, 0, 0.0f, false, gfCoronaNearClip, 0, 30.0f, false, false);
+                             coronaSz, 350.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, true, false, 0, 0.0f, false, gfCoronaNearClip, 0, 30.0f, false, false);
 };
 
 // Vanilla reach of the headlight spotlight
@@ -162,8 +163,9 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
     localDir.y = CVector::Dot(mat.up, vehMat.up);
     localDir.z = CVector::Dot(mat.up, vehMat.at);
     if (pConfig->mirroredX) localDir.x = -localDir.x;
-    if (localDir.y < 0.2f) localDir.y = 1.0f;
-    if (localDir.z > -0.15f) localDir.z = -0.15f;
+    if (localDir.Magnitude() < 0.1f || localDir.y <= 0.0f) {
+        localDir = CVector(0.0f, 1.0f, -0.10f);
+    }
     localDir.Normalize();
 
     CVector lightDir = vehMat.right * localDir.x + vehMat.up * localDir.y + vehMat.at * localDir.z;
@@ -401,8 +403,8 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
 {
     EnsureConfigLoaded();
     const float SHDW_SZ_MUL = 2.0f;
-    const float SHDW_MAX_DIST = 120.0f;
-    const float SHDW_FADE_DIST = 70.0f;
+    const float SHDW_MAX_DIST = gfLightShadowDistance;
+    const float SHDW_FADE_DIST = gfLightShadowDistance * 0.60f;
     if (!pConfig || !pConfig->pVeh || shdwSz == 0.0f || !gbLightShadows)
     {
         return;
