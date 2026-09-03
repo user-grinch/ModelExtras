@@ -49,9 +49,11 @@ void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
 
 void FogLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
     bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
-    bool shouldRenderFog = !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
+    bool isFoggy = Util::IsFoggy();
+    bool shouldRenderFog = isFoggy || !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
+    bool isFogLightOn = (data.bFogLightsOn || isFoggy) && !CarUtil::IsLightsForcedOff(pControlVeh);
 
-    if (!data.bFogLightsOn || !shouldRenderFog) return;
+    if (!isFogLightOn || !shouldRenderFog) return;
     bool isFogOk = !Util::IsPanelDamaged(pControlVeh, ePanels::BUMP_FRONT);
     LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::FogLightLeft, true, "foglight", 3.0f, false, isFogOk);
     LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::FogLightRight, true, "foglight", 3.0f, false, isFogOk);
@@ -59,9 +61,11 @@ void FogLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLi
 
 void FogLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
     bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh)) || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
-    bool shouldRenderFog = !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsOn;
+    bool isFoggy = Util::IsFoggy();
+    bool shouldRenderFog = isFoggy || !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsOn;
+    bool isFogLightOn = (data.bFogLightsOn || isFoggy) && !CarUtil::IsLightsForcedOff(pVeh);
 
-    if (data.bFogLightsOn && shouldRenderFog) {
+    if (isFogLightOn && shouldRenderFog) {
         for (eMaterialType type : {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) {
             if (!LightManager::IsDummyAvailable(data, type) || !data.bLightStates[type]) continue;
 

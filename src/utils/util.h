@@ -11,6 +11,7 @@ class Util
 {
 public:
   static bool IsNightTime();
+  static bool IsFoggy();
   static bool IsEngineOff(CVehicle *pVeh);
   static bool IsWindowFocused();
   static bool IsKeyPressed(int keyCode);
