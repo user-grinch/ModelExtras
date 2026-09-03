@@ -19,6 +19,9 @@ struct VehLightDatav1
 	// and shadows. The render callback compares it against CTimer::m_FrameCounter so
 	// that exactly one of the two paths registers them per frame.
 	unsigned int m_nHeadlightTickFrame = 0;
+	bool m_bHasVehFuncsPopUp = false;
+	unsigned int m_nHeadlightsTurnedOnTime = 0;
+	bool m_bPrevHeadlightsOn = false;
 	bool m_bLightStates[eMaterialType::TotalMaterial];
 
 	VehLightDatav1(CVehicle *pVeh) {

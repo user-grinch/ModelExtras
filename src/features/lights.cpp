@@ -311,6 +311,11 @@ void Lights::Init()
 		c.corona.lightingType = eLightingMode::NonDirectional;
 		
 		auto &dummies = m_Dummies[pVeh];
+
+		if (name.starts_with("f_pop")) {
+			m_VehData.Get(pVeh).m_bHasVehFuncsPopUp = true;
+			return;
+		}
 		
 		if ((name.starts_with("fogl") || name.starts_with("fog_")) && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r"))) {
 			c.dummyPos = eDummyPos::Front;
@@ -977,12 +982,24 @@ void Lights::RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRight
 	}
 
 	int model = pControlVeh->m_nModelIndex;
-	if (CModelInfo::IsTrailerModel(model) || CarUtil::IsLightsForcedOff(pControlVeh) || CModelInfo::IsBmxModel(model) || CModelInfo::IsBoatModel(model) || CModelInfo::IsHeliModel(model) || CModelInfo::IsPlaneModel(model))
+	if (CModelInfo::IsTrailerModel(model) || CarUtil::IsLightsForcedOff(pControlVeh) || CModelInfo::IsBmxModel(model) || CModelInfo::IsBoatModel(model) || CModelInfo::IsHeliModel(model) || CModelInfo::IsPlaneModel(model) || !CarUtil::AreHeadlightsPopUpOpen(pControlVeh))
 	{
 		return;
 	}
 
-	if (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime())
+	bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime());
+	if (isHeadlightsActive && !data.m_bPrevHeadlightsOn)
+	{
+		data.m_nHeadlightsTurnedOnTime = CTimer::m_snTimeInMilliseconds;
+	}
+	data.m_bPrevHeadlightsOn = isHeadlightsActive;
+
+	if (data.m_bHasVehFuncsPopUp && (CTimer::m_snTimeInMilliseconds - data.m_nHeadlightsTurnedOnTime < 800))
+	{
+		return;
+	}
+
+	if (isHeadlightsActive)
 	{
 		bool isFoggy = Util::IsFoggy();
 		std::string texName = data.m_bLongLightsOn ? "headlight_long" : "headlight_short";
@@ -1096,7 +1113,7 @@ void Lights::ProcessPointLights(CVehicle *pVeh)
 	bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime() || (isBike && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
 
 	// 1. High Beam Headlights
-	if (data.m_bLongLightsOn && isHeadlightsOn)
+	if (data.m_bLongLightsOn && isHeadlightsOn && CarUtil::AreHeadlightsPopUpOpen(pVeh))
 	{
 		static float rawMul = gConfig.ReadFloat("LIGHTS", "HighBeamPointLightMul", gConfig.ReadFloat("TWEAKS", "HighBeamPointLightMul", 2.0f));
 		static float highBeamMul = (rawMul < 1.0f) ? 1.0f : ((rawMul > 4.0f) ? 4.0f : rawMul);
