@@ -31,7 +31,7 @@ bool FogLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
 }
 
 void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
-    if (pVeh->IsDriver(FindPlayerPed()) && !Util::IsEngineOff(pVeh)) {
+    if (pVeh->IsDriver(FindPlayerPed())) {
         static size_t prev = 0;
         bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pVeh);
         bool canToggleFogLight = !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
