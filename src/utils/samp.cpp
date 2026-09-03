@@ -8,117 +8,143 @@ namespace SAMP
 {
     namespace
     {
-        uintptr_t s_sampBase = 0;
-        uintptr_t s_pCachedVehPool = 0;
-
-        struct SAMPVersionOffset
+        struct Offsets
         {
-            uintptr_t netGame;
-            uintptr_t pools;
-            uintptr_t vehPool;
+            uintptr_t netGame; // Offset to CNetGame*
+            uintptr_t pools;   // Offset to m_pPools in CNetGame
+            uintptr_t vehPool; // Offset to m_pVehicle in Pools
+            uintptr_t input;   // Offset to CInput*
+            uintptr_t dialog;  // Offset to CDialog*
         };
 
-        constexpr SAMPVersionOffset s_SampOffsets[] = {
-            { 0x26EB94, 0x3DA, 0x00 }, // 0.3.7-R5 / open.mp
-            { 0x26E8DC, 0x3DE, 0x0C }, // 0.3.7-R3
-            { 0x21A0F8, 0x3CD, 0x1C }, // 0.3.7-R1
-            { 0x2ACA24, 0x3DE, 0x0C }, // 0.3.DL
-            { 0x26EA0C, 0x3DE, 0x0C }, // 0.3.7-R4
-            { 0x21A100, 0x3CD, 0x1C }  // 0.3.7-R2
-        };
+        uintptr_t s_baseAddr = 0;
+        const Offsets *s_offsets = nullptr;
+        bool s_initialized = false;
 
-        bool IsValidPtr(const void *ptr, size_t size = 4)
+        const Offsets *ResolveOffsets(HMODULE hMod)
         {
-            if (!ptr || reinterpret_cast<uintptr_t>(ptr) < 0x10000) return false;
-            MEMORY_BASIC_INFORMATION mbi;
-            if (VirtualQuery(ptr, &mbi, sizeof(mbi)) == sizeof(mbi))
+            if (!hMod) return nullptr;
+            auto *dos = reinterpret_cast<const IMAGE_DOS_HEADER *>(hMod);
+            if (dos->e_magic != IMAGE_DOS_SIGNATURE) return nullptr;
+            auto *nt = reinterpret_cast<const IMAGE_NT_HEADERS32 *>(reinterpret_cast<const uint8_t *>(hMod) + dos->e_lfanew);
+            if (nt->Signature != IMAGE_NT_SIGNATURE) return nullptr;
+
+            switch (nt->OptionalHeader.AddressOfEntryPoint)
             {
-                return (mbi.State == MEM_COMMIT) && !(mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD));
+                // 0.3.7-R1
+                case 0x31DF13: { static constexpr Offsets r1 = { 0x21A0F8, 0x3CD, 0x1C, 0x21A0E8, 0x21A0B8 }; return &r1; }
+                // 0.3.7-R3 and R3-1
+                case 0x0CC490:
+                case 0x0CC4D0: { static constexpr Offsets r3 = { 0x26E8DC, 0x3DE, 0x0C, 0x26E8CC, 0x26E898 }; return &r3; }
+                // 0.3.7-R5
+                case 0x0CBC90: { static constexpr Offsets r5 = { 0x26EB94, 0x3DE, 0x00, 0x26EB84, 0x26EB50 }; return &r5; }
+                // 0.3.DL-1
+                case 0x0FDB60: { static constexpr Offsets dl = { 0x2ACA24, 0x3DE, 0x0C, 0x2ACA14, 0x2AC9E0 }; return &dl; }
+                default:       return nullptr;
             }
-            return false;
         }
 
-        uintptr_t TryFindVehiclePoolSEH(uintptr_t base)
+        void Init()
         {
+            if (s_initialized) return;
+            s_initialized = true;
+
+            HMODULE hMod = GetModuleHandleA("samp.dll");
+            if (!hMod) return;
+
+            s_baseAddr = reinterpret_cast<uintptr_t>(hMod);
+            s_offsets = ResolveOffsets(hMod);
+        }
+
+        uintptr_t GetVehiclePool()
+        {
+            if (!s_baseAddr || !s_offsets) return 0;
             __try
             {
-                for (const auto &v : s_SampOffsets)
-                {
-                    uintptr_t pNetGameAddr = base + v.netGame;
-                    if (!IsValidPtr(reinterpret_cast<const void *>(pNetGameAddr))) continue;
-
-                    uintptr_t pNetGame = *reinterpret_cast<const uintptr_t *>(pNetGameAddr);
-                    if (!pNetGame || !IsValidPtr(reinterpret_cast<const void *>(pNetGame + v.pools))) continue;
-
-                    uintptr_t pPools = *reinterpret_cast<const uintptr_t *>(pNetGame + v.pools);
-                    if (!pPools || !IsValidPtr(reinterpret_cast<const void *>(pPools + v.vehPool))) continue;
-
-                    uintptr_t pVehPool = *reinterpret_cast<const uintptr_t *>(pPools + v.vehPool);
-                    if (pVehPool && IsValidPtr(reinterpret_cast<const void *>(pVehPool + 0x1134)) &&
-                        IsValidPtr(reinterpret_cast<const void *>(pVehPool + 0x4FB4)))
-                    {
-                        return pVehPool;
-                    }
-                }
+                uintptr_t pNetGame = *reinterpret_cast<const uintptr_t *>(s_baseAddr + s_offsets->netGame);
+                if (!pNetGame) return 0;
+                uintptr_t pPools = *reinterpret_cast<const uintptr_t *>(pNetGame + s_offsets->pools);
+                if (!pPools) return 0;
+                return *reinterpret_cast<const uintptr_t *>(pPools + s_offsets->vehPool);
             }
             __except (EXCEPTION_EXECUTE_HANDLER)
             {
                 return 0;
             }
-            return 0;
         }
 
-        uintptr_t GetVehiclePool()
+        std::string SanitizeAndFormatPlateText(std::string_view raw)
         {
-            if (!IsPresent()) return 0;
-
-            if (s_pCachedVehPool != 0)
+            std::string clean;
+            for (size_t i = 0; i < raw.size(); ++i)
             {
-                if (IsValidPtr(reinterpret_cast<const void *>(s_pCachedVehPool + 0x1134)))
+                if (raw[i] == '{' && raw.find('}', i) != std::string_view::npos)
                 {
-                    return s_pCachedVehPool;
+                    i = raw.find('}', i);
                 }
-                s_pCachedVehPool = 0;
+                else if (raw[i] == '~' && i + 2 < raw.size() && raw[i + 2] == '~')
+                {
+                    i += 2;
+                }
+                else if (static_cast<unsigned char>(raw[i]) >= 32 && static_cast<unsigned char>(raw[i]) <= 126)
+                {
+                    clean += static_cast<char>(std::toupper(static_cast<unsigned char>(raw[i])));
+                }
             }
 
-            uintptr_t pool = TryFindVehiclePoolSEH(s_sampBase);
-            if (pool != 0)
+            size_t s = clean.find_first_not_of(" \t\r\n");
+            size_t e = clean.find_last_not_of(" \t\r\n");
+            if (s == std::string::npos || (clean = clean.substr(s, e - s + 1)) == "XYZSR998")
             {
-                s_pCachedVehPool = pool;
-                return pool;
+                return "";
             }
-            return 0;
-        }
 
-        const char *FindPlateTextSEH(uintptr_t pVehPool, CVehicle *pGameVeh)
+            if (clean.size() > 8) clean.resize(8);
+            size_t pad = (8 - clean.size()) / 2;
+            return std::string(pad, ' ') + clean + std::string(8 - clean.size() - pad, ' ');
+        }
+    }
+
+    bool IsPresent()
+    {
+        Init();
+        return s_offsets != nullptr;
+    }
+
+    bool IsInputActive()
+    {
+        if (!s_baseAddr || !s_offsets) return false;
+        __try
+        {
+            uintptr_t pInput = *reinterpret_cast<const uintptr_t *>(s_baseAddr + s_offsets->input);
+            if (pInput && *reinterpret_cast<const int *>(pInput + 0x14E0) != 0) return true;
+
+            uintptr_t pDialog = *reinterpret_cast<const uintptr_t *>(s_baseAddr + s_offsets->dialog);
+            if (pDialog && *reinterpret_cast<const int *>(pDialog + 0x28) != 0) return true;
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+            return false;
+        }
+        return false;
+    }
+
+    namespace
+    {
+        const char *FindPlateText(uintptr_t pool, CVehicle *pGameVeh)
         {
             __try
             {
-                auto pGameObjects = reinterpret_cast<CVehicle **>(pVehPool + 0x4FB4); // m_pGameObject[2000]
-                auto pObjects = reinterpret_cast<uintptr_t *>(pVehPool + 0x1134);     // m_pObject[2000]
-                auto pNotEmpty = reinterpret_cast<int *>(pVehPool + 0x3074);          // m_bNotEmpty[2000]
+                auto pGameObjects = reinterpret_cast<CVehicle **>(pool + 0x4FB4);
+                auto pObjects     = reinterpret_cast<uintptr_t *>(pool + 0x1134);
+                auto pNotEmpty    = reinterpret_cast<const int *>(pool + 0x3074);
 
                 for (size_t i = 0; i < 2000; ++i)
                 {
-                    if (pNotEmpty[i])
+                    if (pNotEmpty[i] && pGameObjects[i] == pGameVeh && pObjects[i])
                     {
-                        bool match = (pGameObjects[i] == pGameVeh);
-                        uintptr_t pSampVeh = pObjects[i];
-
-                        if (!match && pSampVeh && IsValidPtr(reinterpret_cast<const void *>(pSampVeh + 0x4C)))
-                        {
-                            match = (*reinterpret_cast<CVehicle **>(pSampVeh + 0x4C) == pGameVeh);
-                        }
-
-                        if (match && pSampVeh && IsValidPtr(reinterpret_cast<const void *>(pSampVeh + 0x93), 33))
-                        {
-                            const char *szText = reinterpret_cast<const char *>(pSampVeh + 0x93);
-                            if (szText && szText[0] != '\0')
-                            {
-                                return szText;
-                            }
-                            return nullptr;
-                        }
+                        const char *text = reinterpret_cast<const char *>(pObjects[i] + 0x93);
+                        return (text && text[0] != '\0') ? text : nullptr;
                     }
                 }
             }
@@ -128,114 +154,14 @@ namespace SAMP
             }
             return nullptr;
         }
-
-        std::string SanitizeAndFormatPlateText(std::string_view rawText)
-        {
-            std::string clean;
-            clean.reserve(rawText.size());
-
-            for (size_t i = 0; i < rawText.size(); ++i)
-            {
-                if (rawText[i] == '{')
-                {
-                    size_t close = rawText.find('}', i);
-                    if (close != std::string_view::npos && (close - i == 7 || close - i == 9))
-                    {
-                        i = close;
-                        continue;
-                    }
-                }
-                if (rawText[i] == '~' && i + 2 < rawText.size() && rawText[i + 2] == '~')
-                {
-                    i += 2;
-                    continue;
-                }
-                unsigned char c = static_cast<unsigned char>(rawText[i]);
-                if (c >= 32 && c <= 126)
-                {
-                    clean.push_back(static_cast<char>(std::toupper(c)));
-                }
-            }
-
-            size_t start = clean.find_first_not_of(" \t\r\n");
-            if (start == std::string::npos) return "";
-            size_t end = clean.find_last_not_of(" \t\r\n");
-            clean = clean.substr(start, end - start + 1);
-
-            if (clean.empty() || clean == "XYZSR998") return "";
-
-            if (clean.size() > 8) clean = clean.substr(0, 8);
-
-            size_t len = clean.size();
-            size_t rem = 8 - len;
-            size_t left = rem / 2;
-            size_t right = rem - left;
-
-            std::string formatted;
-            formatted.reserve(8);
-            formatted.append(left, ' ');
-            formatted.append(clean);
-            formatted.append(right, ' ');
-            return formatted;
-        }
-    }
-
-    static bool s_bSampChecked = false;
-    static bool s_bSampPresent = false;
-
-    bool IsPresent()
-    {
-        if (!s_bSampChecked)
-        {
-            HMODULE hMod = GetModuleHandleA("samp.dll");
-            if (!hMod) hMod = GetModuleHandleA("omp-client.dll");
-            if (!hMod) hMod = GetModuleHandleA("openmp.dll");
-            if (!hMod) hMod = GetModuleHandleA("omp.dll");
-            if (hMod)
-            {
-                s_sampBase = reinterpret_cast<uintptr_t>(hMod);
-                s_bSampPresent = true;
-            }
-            s_bSampChecked = true;
-        }
-        return s_bSampPresent;
-    }
-
-    bool IsInputActive()
-    {
-        if (!IsPresent()) return false;
-
-        __try
-        {
-            constexpr uintptr_t inputOffsets[] = { 0x26EB84, 0x26E8CC, 0x21A0E8, 0x2ACA14 };
-            for (uintptr_t off : inputOffsets)
-            {
-                uintptr_t pInputAddr = s_sampBase + off;
-                if (IsValidPtr(reinterpret_cast<const void *>(pInputAddr)))
-                {
-                    uintptr_t pInput = *reinterpret_cast<const uintptr_t *>(pInputAddr);
-                    if (pInput && IsValidPtr(reinterpret_cast<const void *>(pInput + 0x8)))
-                    {
-                        int enabled = *reinterpret_cast<const int *>(pInput + 0x8);
-                        if (enabled != 0) return true;
-                    }
-                }
-            }
-        }
-        __except (EXCEPTION_EXECUTE_HANDLER)
-        {
-            return false;
-        }
-        return false;
     }
 
     std::string GetVehiclePlateText(CVehicle *pGameVeh)
     {
-        if (!pGameVeh) return "";
-        uintptr_t pVehPool = GetVehiclePool();
-        if (!pVehPool) return "";
-        const char *szPlate = FindPlateTextSEH(pVehPool, pGameVeh);
-        if (!szPlate || szPlate[0] == '\0') return "";
-        return SanitizeAndFormatPlateText(szPlate);
+        uintptr_t pool = GetVehiclePool();
+        if (!pool || !pGameVeh) return "";
+
+        const char *text = FindPlateText(pool, pGameVeh);
+        return text ? SanitizeAndFormatPlateText(text) : "";
     }
 }

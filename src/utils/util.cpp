@@ -14,6 +14,7 @@
 #include "defines.h"
 #include "features/core/dummy.h"
 #include "enums/lightoverride.h"
+#include "utils/samp.h"
 #include <math.h>
 
 float Util::NormalizeAngle(float angle)
@@ -50,7 +51,7 @@ bool Util::IsWindowFocused() {
 }
 
 bool Util::IsKeyPressed(int keyCode) {
-    if (!IsWindowFocused()) {
+    if (!IsWindowFocused() || SAMP::IsInputActive()) {
         return false;
     }
     return (GetAsyncKeyState(keyCode) & 0x8000) != 0;
