@@ -470,7 +470,7 @@ void Lights::Init()
 		}
 
 		CVehicle *pVeh = FindPlayerVehicle(-1, false);
-		if (pVeh && pVeh->IsDriver(FindPlayerPed()) && !Util::IsEngineOff(pVeh))
+		if (pVeh && pVeh->IsDriver(FindPlayerPed()))
 		{
 			static size_t prev = 0;
 			bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pVeh);
@@ -487,14 +487,18 @@ void Lights::Init()
 				}
 			}
 
-			bool isHeadlightsActiveForLong = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime() || !Util::IsEngineOff(pVeh)) && !CarUtil::IsLightsForcedOff(pVeh);
+			VehLightDatav1 &data = m_VehData.Get(pVeh);
+			if (!isHeadlightsActive)
+			{
+				data.m_bLongLightsOn = false;
+			}
+
 			bool canToggleLongLights = !(gbProperShadersDetected && !gbLightPointLights);
-			if (Util::IsKeyPressed(g_nLongLightKey) && isHeadlightsActiveForLong && canToggleLongLights)
+			if (Util::IsKeyPressed(g_nLongLightKey) && isHeadlightsActive && canToggleLongLights)
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
 				{
-					VehLightDatav1 &data = m_VehData.Get(pVeh);
 					data.m_bLongLightsOn = !data.m_bLongLightsOn;
 					prev = now;
 					AudioMgr::PlaySwitchSound(pVeh);

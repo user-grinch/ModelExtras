@@ -46,11 +46,15 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
 }
 
 void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
-    if (pVeh->IsDriver(FindPlayerPed()) && !Util::IsEngineOff(pVeh)) {
+    if (pVeh->IsDriver(FindPlayerPed())) {
         static size_t prev = 0;
-        bool isHeadlightsActiveForLong = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime() || !Util::IsEngineOff(pVeh)) && !CarUtil::IsLightsForcedOff(pVeh);
+        bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pVeh);
+        if (!isHeadlightsActive) {
+            data.bLongLightsOn = false;
+        }
+
         bool canToggleLongLights = !(gbProperShadersDetected && !LightsConfig::Get().gbLightPointLights);
-        if (Util::IsKeyPressed(LightsConfig::Get().nLongLightKey) && isHeadlightsActiveForLong && canToggleLongLights) {
+        if (Util::IsKeyPressed(LightsConfig::Get().nLongLightKey) && isHeadlightsActive && canToggleLongLights) {
             size_t now = CTimer::m_snTimeInMilliseconds;
             if (now - prev > 500.0f) {
                 data.bLongLightsOn = !data.bLongLightsOn;
