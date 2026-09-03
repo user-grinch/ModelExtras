@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 #include <string>
 
 class CVehicle;
 
 namespace SAMP
 {
-    // Returns true if SA-MP or open.mp (samp.dll / omp-client.dll) is loaded in the current process
+    // Returns true if a supported SA-MP version (0.3.7-R1, R3, R5, 0.3.DL) is loaded
     bool IsPresent();
 
     // Returns true if the SA-MP chat box, input box, or dialog is currently open/focused
