@@ -50,7 +50,7 @@ jobs:
       uses: actions/cache@v6
       with:
         path: plugin-sdk
-        key: plugin-sdk-win32-msvc-${{ steps.plugin-sdk-ref.outputs.sha }}
+        key: plugin-sdk-win32-msvc-vs2026-${{ steps.plugin-sdk-ref.outputs.sha }}
 
     - name: Build plugin-sdk
       if: steps.plugin-sdk-cache.outputs.cache-hit != 'true'
@@ -66,9 +66,12 @@ jobs:
         )
         set PLUGIN_SDK_DIR=%GITHUB_WORKSPACE%\plugin-sdk
         cd tools\premake
-        premake5.exe vs2022
+        premake5.exe vs2026
         cd ..\..
-        if exist plugin.sln (
+        if exist plugin.slnx (
+          msbuild plugin.slnx /t:plugin_sa /p:Configuration=Release /m
+          msbuild plugin.slnx /t:plugin_sa /p:Configuration=zDebug /m
+        ) else if exist plugin.sln (
           msbuild plugin.sln /t:plugin_sa /p:Configuration=Release /m
           msbuild plugin.sln /t:plugin_sa /p:Configuration=zDebug /m
         ) else if exist tools\premake\plugin.sln (
