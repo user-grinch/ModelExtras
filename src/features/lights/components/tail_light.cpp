@@ -18,23 +18,33 @@ eMaterialType TailLightComponent::GetMatType(CRGBA matCol) {
 }
 
 bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
-    if (name == "taillights" || name == "taillights2") {
+    if (name.starts_with("taillight")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Rear;
-        c.lightType = eMaterialType::TailLightRight;
+        bool isLeft = STR_FOUND(name, "_l");
+        bool isRight = STR_FOUND(name, "_r");
         c.corona.size = LightsConfig::Get().gfTailLightCoronaSize;
         c.corona.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
         c.shadow.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
         c.shadow.size = LightsConfig::Get().gfTailLightShadowSize;
         c.corona.lightingType = eLightingMode::Directional;
-        c.shadow.render = name != "taillights2";
-        c.mirroredX = false;
-        data.dummies[c.lightType].push_back(new VehicleDummy(c));
-        
-        if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
-            c.mirroredX = true;
+        c.shadow.render = !STR_FOUND(name, "2");
+
+        if (isLeft) {
             c.lightType = eMaterialType::TailLightLeft;
             data.dummies[c.lightType].push_back(new VehicleDummy(c));
+        } else if (isRight) {
+            c.lightType = eMaterialType::TailLightRight;
+            data.dummies[c.lightType].push_back(new VehicleDummy(c));
+        } else {
+            c.lightType = eMaterialType::TailLightRight;
+            c.mirroredX = false;
+            data.dummies[c.lightType].push_back(new VehicleDummy(c));
+            if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
+                c.mirroredX = true;
+                c.lightType = eMaterialType::TailLightLeft;
+                data.dummies[c.lightType].push_back(new VehicleDummy(c));
+            }
         }
         return true;
     }
@@ -43,7 +53,7 @@ bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
 
 void TailLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
     bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
-    std::string shdwName = (isBike ? "taillight_bike" : "taillight");
+    std::string shdwName = "taillight";
     float shdwSz = 1.6f;
 
     if (pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_MTRUCK
@@ -55,7 +65,7 @@ void TailLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
         bool isRightRearOk = damage.isRearRightOk;
 
         bool indicatorOn = data.bUsingGlobalIndicators && data.nIndicatorState != eIndicatorState::Off;
-        bool tailLightFlag = (Util::IsNightTime() || pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh)) && !CarUtil::IsLightsForcedOff(pControlVeh);
+        bool tailLightFlag = CarUtil::AreHeadlightsActive(pControlVeh);
         bool sttInstalled = LightManager::IsMaterialAvailable(pTowedVeh, {eMaterialType::STTLightLeft, eMaterialType::STTLightRight});
 
         if ((tailLightFlag || indicatorOn) && !sttInstalled) {
@@ -102,7 +112,7 @@ void TailLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
 }
 
 void TailLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
-    bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh)) || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+    bool isHeadlightsOn = CarUtil::AreHeadlightsActive(pVeh);
     bool isBraking = (pVeh->m_fBreakPedal > 0.05f) && (pVeh->m_pDriver != nullptr);
     bool isBike = CModelInfo::IsBikeModel(pVeh->m_nModelIndex);
     bool hasDedicatedBrakeDummy = LightManager::IsDummyAvailable(data, {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight, eMaterialType::STTLightLeft, eMaterialType::STTLightRight, eMaterialType::NABrakeLightLeft, eMaterialType::NABrakeLightRight});

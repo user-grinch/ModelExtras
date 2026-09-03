@@ -5,6 +5,7 @@
 #include "utils/audiomgr.h"
 #include "utils/render.h"
 #include "../damage.h"
+#include "defines.h"
 #include <CWeather.h>
 
 extern bool gbProperShadersDetected;
@@ -21,24 +22,33 @@ eMaterialType HeadlightComponent::GetMatType(CRGBA matCol) {
 }
 
 bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
-    if (name == "headlights" || name == "headlights2") {
+    if (name.starts_with("headlight")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Front;
-        c.lightType = eMaterialType::HeadLightLeft;
+        bool isLeft = STR_FOUND(name, "_l");
+        bool isRight = STR_FOUND(name, "_r");
         c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
         c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
         c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
         c.shadow.size = LightsConfig::Get().gfHeadLightShadowSize;
         c.corona.lightingType = eLightingMode::Directional;
-        c.shadow.render = name != "headlights2";
-        
-        c.mirroredX = true;
-        data.dummies[eMaterialType::HeadLightLeft].push_back(new VehicleDummy(c));
-        
-        if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
-            c.mirroredX = false;
+        c.shadow.render = !STR_FOUND(name, "2");
+
+        if (isLeft) {
+            c.lightType = eMaterialType::HeadLightLeft;
+            data.dummies[eMaterialType::HeadLightLeft].push_back(new VehicleDummy(c));
+        } else if (isRight) {
             c.lightType = eMaterialType::HeadLightRight;
             data.dummies[eMaterialType::HeadLightRight].push_back(new VehicleDummy(c));
+        } else {
+            c.mirroredX = true;
+            c.lightType = eMaterialType::HeadLightLeft;
+            data.dummies[eMaterialType::HeadLightLeft].push_back(new VehicleDummy(c));
+            if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
+                c.mirroredX = false;
+                c.lightType = eMaterialType::HeadLightRight;
+                data.dummies[eMaterialType::HeadLightRight].push_back(new VehicleDummy(c));
+            }
         }
         return true;
     }
@@ -52,12 +62,15 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
 void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
     if (pVeh->IsDriver(FindPlayerPed())) {
         static size_t prev = 0;
-        bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pVeh);
+        bool isHeadlightsActive = CarUtil::AreHeadlightsActive(pVeh);
         if (!isHeadlightsActive) {
             data.bLongLightsOn = false;
         }
 
-        bool canToggleLongLights = !(gbProperShadersDetected && !LightsConfig::Get().gbLightPointLights);
+        bool hasHeadlights = CarUtil::CanHaveHeadlights(pVeh) &&
+                             (LightManager::IsMaterialAvailable(pVeh, {eMaterialType::HeadLightLeft, eMaterialType::HeadLightRight}) ||
+                              LightManager::IsDummyAvailable(data, {eMaterialType::HeadLightLeft, eMaterialType::HeadLightRight}));
+        bool canToggleLongLights = !(gbProperShadersDetected && !LightsConfig::Get().gbLightPointLights) && hasHeadlights;
         if (Util::IsKeyPressed(LightsConfig::Get().nLongLightKey) && isHeadlightsActive && canToggleLongLights) {
             size_t now = CTimer::m_snTimeInMilliseconds;
             if (now - prev > 500.0f) {
@@ -67,14 +80,14 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
             }
         }
     } else if (pVeh->m_nVehicleSubClass != VEHICLE_BMX && pVeh->m_nVehicleSubClass != VEHICLE_BOAT && pVeh->m_nVehicleSubClass != VEHICLE_TRAILER && pVeh->m_fHealth > 0.0f) {
-        if (CarUtil::IsLightsForcedOff(pVeh) || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn)) {
+        if (CarUtil::IsLightsForcedOff(pVeh) || !CarUtil::AreHeadlightsActive(pVeh) || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh))) {
             return;
         }
 
         if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) < 300.0f || pVeh->GetIsOnScreen()) {
             bool isLeftFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT);
             bool isRightFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT);
-            bool isNightOrOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+            bool isNightOrOn = CarUtil::AreHeadlightsActive(pVeh);
             if (isNightOrOn && !data.bPrevHeadlightsOn) {
                 data.nHeadlightsTurnedOnTime = CTimer::m_snTimeInMilliseconds;
             }
@@ -101,7 +114,7 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
         return;
     }
 
-    bool isNightOrOn = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pControlVeh))) && !CarUtil::IsLightsForcedOff(pControlVeh);
+    bool isNightOrOn = CarUtil::AreHeadlightsActive(pControlVeh);
     if (isNightOrOn && !data.bPrevHeadlightsOn) {
         data.nHeadlightsTurnedOnTime = CTimer::m_snTimeInMilliseconds;
     }
@@ -131,7 +144,8 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
 }
 
 void HeadlightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
-    bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh)) || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+    bool isHeadlightsOn = CarUtil::AreHeadlightsActive(pVeh);
+
 
     if (data.bLongLightsOn && isHeadlightsOn && CarUtil::AreHeadlightsPopUpOpen(pVeh)) {
         float highBeamMul = LightsConfig::Get().fHighBeamPointLightMul;

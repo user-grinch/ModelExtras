@@ -31,7 +31,7 @@ bool STTLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
 
 void STTLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
     bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
-    std::string shdwName = (isBike ? "taillight_bike" : "taillight");
+    std::string shdwName = "taillight";
     float shdwSz = 2.0f;
 
     if (pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_MTRUCK

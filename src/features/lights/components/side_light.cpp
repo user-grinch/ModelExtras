@@ -34,6 +34,9 @@ bool SideLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
 }
 
 void SideLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
+    bool isDriverOrForced = pControlVeh->m_pDriver != nullptr || CarUtil::IsLightsForcedOn(pControlVeh);
+    if (!isDriverOrForced && !Util::IsNightTime()) return;
+
     auto damage = LightDamageState::Get(pControlVeh, pTowedVeh);
     bool isLeftMiddleOk = damage.isMiddleLeftOk;
     bool isRightMiddleOk = damage.isMiddleRightOk;
@@ -42,7 +45,7 @@ void SideLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
 }
 
 void SideLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
-    bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh)) || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+    bool isHeadlightsOn = CarUtil::AreHeadlightsActive(pVeh);
 
     if (isHeadlightsOn) {
         for (eMaterialType type : {eMaterialType::SideLightLeft, eMaterialType::SideLightRight}) {

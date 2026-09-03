@@ -175,8 +175,7 @@ RpMaterial *__cdecl LicensePlate::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
         }
     }
 
-    bool isBike = pCurrentVeh->m_nVehicleSubClass == VEHICLE_BIKE;
-    bool lightsOn = (pCurrentVeh->bLightsOn || CarUtil::IsLightsForcedOn(pCurrentVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pCurrentVeh)) || (isBike && !Util::IsEngineOff(pCurrentVeh))) && !CarUtil::IsLightsForcedOff(pCurrentVeh);
+    bool lightsOn = CarUtil::AreHeadlightsActive(pCurrentVeh) && (!Util::IsEngineOff(pCurrentVeh) || pCurrentVeh->bLightsOn);
     if (pCurrentVeh->m_fHealth > 0.0f && lightsOn)
     {
         ModelInfoMgr::RegisterRestoreSurfProps(material);

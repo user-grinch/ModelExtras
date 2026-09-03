@@ -107,6 +107,11 @@ void LightManager::RegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::str
 void LightManager::Process(CVehicle* pVeh) {
     if (!pVeh) return;
 
+    if (!CarUtil::AreHeadlightsActive(pVeh) || !CarUtil::AreHeadlightsPopUpOpen(pVeh)) {
+        pVeh->m_renderLights.m_bLeftFront = false;
+        pVeh->m_renderLights.m_bRightFront = false;
+    }
+
     VehLightData& data = m_VehData.Get(pVeh);
     for (const auto& comp : m_Components) {
         comp->Process(pVeh, data);
@@ -119,7 +124,7 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
 
     // Fix for UIF SAMP server https://github.com/user-grinch/ModelExtras/issues/112
     // Don't clear light state when lights are forced on/already on via SAMP
-    if (((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn) || CarUtil::IsLightsForcedOff(pControlVeh)) {
+    if (pControlVeh->m_fHealth <= 0.0f || ((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn) || CarUtil::IsLightsForcedOff(pControlVeh)) {
         pControlVeh->bLightsOn = false;
         pControlVeh->m_renderLights.m_bLeftFront = false;
         pControlVeh->m_renderLights.m_bRightFront = false;
@@ -132,6 +137,14 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
     if (pControlVeh->m_fHealth <= 0.0f || ((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn)) {
         return;
     }
+
+    bool isHeadlightsActive = CarUtil::AreHeadlightsActive(pControlVeh);
+    bool bPopUpOpen = CarUtil::AreHeadlightsPopUpOpen(pControlVeh);
+    static bool bHeadLightBeams = gConfig.ReadBoolean("LIGHTS", "HeadLightBeams", gConfig.ReadBoolean("TWEAKS", "HeadLightBeams", true));
+    bool isLeftFrontDamaged = Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT) || Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_LEFT);
+    bool isRightFrontDamaged = Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT) || Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_RIGHT);
+    pControlVeh->m_renderLights.m_bLeftFront = isHeadlightsActive && bPopUpOpen && !isLeftFrontDamaged && bHeadLightBeams;
+    pControlVeh->m_renderLights.m_bRightFront = isHeadlightsActive && bPopUpOpen && !isRightFrontDamaged && bHeadLightBeams;
 
     for (const auto& comp : m_Components) {
         comp->Render(pControlVeh, pTowedVeh, data);

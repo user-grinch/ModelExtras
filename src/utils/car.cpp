@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "car.h"
 #include "enums/lightoverride.h"
+#include "utils/util.h"
 
 bool CarUtil::IsLightsForcedOn(CVehicle *pVeh)
 {
@@ -32,3 +33,46 @@ bool CarUtil::AreHeadlightsPopUpOpen(CVehicle *pVeh)
     }
     return true;
 }
+
+bool CarUtil::CanHaveHeadlights(CVehicle *pVeh)
+{
+    if (!pVeh || pVeh->m_fHealth <= 0.0f)
+    {
+        return false;
+    }
+
+    // Only road motor vehicles can have headlights (automobiles, motorcycles, quads, monster trucks).
+    // Excludes bicycles (BMX), boats, planes, helicopters, trailers, trains, etc.
+    return pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE ||
+           pVeh->m_nVehicleSubClass == VEHICLE_BIKE ||
+           pVeh->m_nVehicleSubClass == VEHICLE_QUAD ||
+           pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK;
+}
+
+bool CarUtil::AreHeadlightsActive(CVehicle *pVeh)
+{
+    if (!CanHaveHeadlights(pVeh))
+    {
+        return false;
+    }
+
+    if (IsLightsForcedOff(pVeh))
+    {
+        return false;
+    }
+
+    if (IsLightsForcedOn(pVeh))
+    {
+        return true;
+    }
+
+    if (Util::IsNightTime())
+    {
+        return true;
+    }
+
+    // During daytime, vehicles require an active driver to have headlights on (unless forced on above).
+    // This prevents unoccupied parked cars from displaying daytime ghost headlights.
+    return pVeh->bLightsOn && pVeh->m_pDriver != nullptr;
+}
+

@@ -3,6 +3,7 @@
 #include "lights.h"
 #include "manager.h"
 #include "utils/meevents.h"
+#include "utils/samp.h"
 
 void LightsFeature::Init() {
     if (!gConfig.ReadBoolean("LIGHTS", "StandardLightsv2", gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false))) {
@@ -18,6 +19,8 @@ void LightsFeature::Init() {
 	// CVehicle::DoHeadLightEffect
 	patch::SetUChar(0x6E0CF8, 0);
 	patch::SetUChar(0x6E0DEE, 0);
+
+	SAMP::PatchVehicleLights();
 
 	// NOP CVehicle::DoHeadLightBeam
 	if (!gConfig.ReadBoolean("LIGHTS", "HeadLightBeams", gConfig.ReadBoolean("TWEAKS", "HeadLightBeams", true)))

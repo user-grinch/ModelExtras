@@ -164,4 +164,24 @@ namespace SAMP
         const char *text = FindPlateText(pool, pGameVeh);
         return text ? SanitizeAndFormatPlateText(text) : "";
     }
+
+    void PatchVehicleLights()
+    {
+        if (!IsPresent()) return;
+
+        static bool s_patched = false;
+        if (s_patched) return;
+        s_patched = true;
+
+        // Apply the exact 7 NOP patches that SA-MP normally applies at 0xAA800 (0.3.DL)
+        // inside CVehicle::DoVehicleLights when ManualVehicleEngineAndLights() is enabled.
+        patch::Nop(0x6E1BA0, 6);
+        patch::Nop(0x6E1BB1, 6);
+        patch::Nop(0x6E1BD2, 7);
+        patch::Nop(0x6E1BE3, 0x25);
+        patch::Nop(0x6E1C38, 8);
+        patch::Nop(0x6E1D98, 0xF);
+        patch::Nop(0x6E1DBC, 8);
+    }
 }
+

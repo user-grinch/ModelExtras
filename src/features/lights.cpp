@@ -16,6 +16,7 @@
 #include <CPointLights.h>
 #include "ModelExtrasAPI.h"
 #include "utils/meevents.h"
+#include "utils/samp.h"
 #include "lights/manager.h"
 
 using namespace plugin;
@@ -134,6 +135,8 @@ void Lights::Init()
 	// // CVehicle::DoHeadLightEffect
 	patch::SetUChar(0x6E0CF8, 0);
 	patch::SetUChar(0x6E0DEE, 0);
+
+	SAMP::PatchVehicleLights();
 
 	// NOP CVehicle::DoHeadLightBeam
 	if (!gConfig.ReadBoolean("LIGHTS", "HeadLightBeams", gConfig.ReadBoolean("TWEAKS", "HeadLightBeams", true)))
@@ -388,40 +391,62 @@ void Lights::Init()
 			c.shadow.size = 1.85f;
 			c.shadow.color = {220, 220, 220, static_cast<unsigned char>(gGlobalShadowIntensity)};
 		}
-		else if (name == "taillights" || name == "taillights2") { // some models have dummies starting with taillights
+		else if (name.starts_with("taillight")) {
 			c.dummyPos = eDummyPos::Rear;
-			c.lightType = eMaterialType::TailLightRight;
+			bool isLeft = STR_FOUND(name, "_l");
+			bool isRight = STR_FOUND(name, "_r");
 			c.corona.size = gfTailLightCoronaSize;
 			c.corona.color = {250, 0, 0, static_cast<unsigned char>(gTailLightCoronaIntensity)};
 			c.shadow.color = {250, 0, 0, static_cast<unsigned char>(gTailLightShadowIntensity)};
 			c.shadow.size = gfTailLightShadowSize;
 			c.corona.lightingType = eLightingMode::Directional; 				
-			c.shadow.render = name != "taillights2";
-			dummies[c.lightType].push_back(new VehicleDummy(c));
-			if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
-				c.mirroredX = true;
+			c.shadow.render = !STR_FOUND(name, "2");
+
+			if (isLeft) {
 				c.lightType = eMaterialType::TailLightLeft;
 				dummies[c.lightType].push_back(new VehicleDummy(c));
+			} else if (isRight) {
+				c.lightType = eMaterialType::TailLightRight;
+				dummies[c.lightType].push_back(new VehicleDummy(c));
+			} else {
+				c.lightType = eMaterialType::TailLightRight;
+				dummies[c.lightType].push_back(new VehicleDummy(c));
+				if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
+					c.mirroredX = true;
+					c.lightType = eMaterialType::TailLightLeft;
+					dummies[c.lightType].push_back(new VehicleDummy(c));
+				}
 			}
 			return;
 		}
-		else if (name == "headlights" || name == "headlights2") {
+		else if (name.starts_with("headlight")) {
 			c.dummyPos = eDummyPos::Front;
-			c.lightType = eMaterialType::HeadLightLeft;
+			bool isLeft = STR_FOUND(name, "_l");
+			bool isRight = STR_FOUND(name, "_r");
 			c.corona.size = gfHeadLightCoronaSize;
 			c.corona.color = {250, 250, 250, static_cast<unsigned char>(gHeadLightCoronaIntensity)};
 			c.shadow.color = {250, 250, 250, static_cast<unsigned char>(gHeadLightShadowIntensity)};
 			c.shadow.size = gfHeadLightShadowSize;
 			c.corona.lightingType = eLightingMode::Directional;
-			c.shadow.render = name != "headlights2";
-			c.mirroredX = true;
-			dummies[c.lightType].push_back(new VehicleDummy(c));
-			// A single centered dummy would only produce a second corona in the same
-			// spot, so mirror it for bikes that actually have it off to one side
-			if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
-				c.mirroredX = false;
+			c.shadow.render = !STR_FOUND(name, "2");
+
+			if (isLeft) {
+				c.lightType = eMaterialType::HeadLightLeft;
+				dummies[c.lightType].push_back(new VehicleDummy(c));
+			} else if (isRight) {
 				c.lightType = eMaterialType::HeadLightRight;
 				dummies[c.lightType].push_back(new VehicleDummy(c));
+			} else {
+				c.mirroredX = true;
+				c.lightType = eMaterialType::HeadLightLeft;
+				dummies[c.lightType].push_back(new VehicleDummy(c));
+				// A single centered dummy would only produce a second corona in the same
+				// spot, so mirror it for bikes that actually have it off to one side
+				if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
+					c.mirroredX = false;
+					c.lightType = eMaterialType::HeadLightRight;
+					dummies[c.lightType].push_back(new VehicleDummy(c));
+				}
 			}
 			return;
 		}
@@ -478,9 +503,12 @@ void Lights::Init()
 		if (pVeh && pVeh->IsDriver(FindPlayerPed()))
 		{
 			static size_t prev = 0;
-			bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pVeh);
-			bool canToggleFogLight = !g_bFoglightTiedToHeadlight || isHeadlightsActive;
-			if (Util::IsKeyPressed(g_nFogLightKey) && IsMatAvail(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) && canToggleFogLight)
+			bool isHeadlightsActive = CarUtil::AreHeadlightsActive(pVeh);
+			bool hasFogLights = CarUtil::CanHaveHeadlights(pVeh) &&
+			                    (IsMatAvail(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) ||
+			                     IsDummyAvail(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}));
+			bool canToggleFogLight = (!g_bFoglightTiedToHeadlight || isHeadlightsActive) && hasFogLights;
+			if (Util::IsKeyPressed(g_nFogLightKey) && canToggleFogLight)
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
 				if (now - prev > 500.0f)
@@ -498,7 +526,7 @@ void Lights::Init()
 				data.m_bLongLightsOn = false;
 			}
 
-			bool canToggleLongLights = !(gbProperShadersDetected && !gbLightPointLights);
+			bool canToggleLongLights = !(gbProperShadersDetected && !gbLightPointLights) && HasHeadlights(pVeh);
 			if (Util::IsKeyPressed(g_nLongLightKey) && isHeadlightsActive && canToggleLongLights)
 			{
 				size_t now = CTimer::m_snTimeInMilliseconds;
@@ -529,9 +557,16 @@ void Lights::Init()
 				ProcessPointLights(pVeh);
 			}
 
+			// Clear headlight beams when headlights are inactive or pop-ups are closed
+			if (!CarUtil::AreHeadlightsActive(pVeh) || !CarUtil::AreHeadlightsPopUpOpen(pVeh))
+			{
+				pVeh->m_renderLights.m_bLeftFront = false;
+				pVeh->m_renderLights.m_bRightFront = false;
+			}
+
 			// Mirrors the checks in the render callback below so both paths agree on
 			// which vehicles get headlights
-			if (pVeh->m_pDriver == FindPlayerPed() || pVeh->m_fHealth <= 0.0f || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn))
+			if (pVeh->m_pDriver == FindPlayerPed() || pVeh->m_fHealth <= 0.0f || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER || !CarUtil::AreHeadlightsActive(pVeh) || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh)))
 			{
 				continue;
 			}
@@ -569,7 +604,7 @@ void Lights::Init()
 
 		// Fix for UIF SAMP server https://github.com/user-grinch/ModelExtras/issues/112
 		// Don't clear light state when lights are forced on/already on via SAMP
-		if (((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn) || CarUtil::IsLightsForcedOff(pControlVeh)) {
+		if (pControlVeh->m_fHealth <= 0.0f || ((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn) || CarUtil::IsLightsForcedOff(pControlVeh)) {
 			pControlVeh->bLightsOn = false;
 			pControlVeh->m_renderLights.m_bLeftFront = false;
 			pControlVeh->m_renderLights.m_bRightFront = false;
@@ -597,19 +632,27 @@ void Lights::Init()
 		bool isFrontBumperDamaged = Util::IsPanelDamaged(pControlVeh, ePanels::BUMP_FRONT);
 		bool isLeftRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_LEFT));
 		bool isRightRearOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_RIGHT));
-		RenderLights(pControlVeh, pTowedVeh, eMaterialType::AllDayLight, true, "indicator", 1.85f);
-		RenderLights(pControlVeh, pTowedVeh, eMaterialType::StrobeLight);
-		RenderLights(pControlVeh, pTowedVeh, eMaterialType::SideLightLeft, true, "indicator", 1.85f, false, isLeftMiddleOk);
-		RenderLights(pControlVeh, pTowedVeh, eMaterialType::SideLightRight, true, "indicator", 1.85f, false, isRightMiddleOk);
+		bool isDriverOrForced = pControlVeh->m_pDriver != nullptr || CarUtil::IsLightsForcedOn(pControlVeh);
+		if (isDriverOrForced || Util::IsNightTime()) {
+			RenderLights(pControlVeh, pTowedVeh, eMaterialType::AllDayLight, true, "indicator", 1.85f);
+			RenderLights(pControlVeh, pTowedVeh, eMaterialType::StrobeLight);
+			RenderLights(pControlVeh, pTowedVeh, eMaterialType::SideLightLeft, true, "indicator", 1.85f, false, isLeftMiddleOk);
+			RenderLights(pControlVeh, pTowedVeh, eMaterialType::SideLightRight, true, "indicator", 1.85f, false, isRightMiddleOk);
+		}
 		
 		if (Util::IsNightTime()) {
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::NightLight, true, "indicator", 1.85f);
-		} else {
+		} else if (isDriverOrForced) {
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::DayLight, true, "indicator", 1.85f);
 		}
 		
 		static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true));
-		bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
+		bool isHeadlightsActive = CarUtil::AreHeadlightsActive(pControlVeh);
+		bool bPopUpOpen = CarUtil::AreHeadlightsPopUpOpen(pControlVeh);
+		static bool bHeadLightBeams = gConfig.ReadBoolean("LIGHTS", "HeadLightBeams", gConfig.ReadBoolean("TWEAKS", "HeadLightBeams", true));
+		pControlVeh->m_renderLights.m_bLeftFront = isHeadlightsActive && bPopUpOpen && isHeadlightLeftOk && bHeadLightBeams;
+		pControlVeh->m_renderLights.m_bRightFront = isHeadlightsActive && bPopUpOpen && isHeadlightRightOk && bHeadLightBeams;
+
 		bool isFoggy = Util::IsFoggy();
 		bool shouldRenderFog = isFoggy || !foglightTiedtoHeadlight || isHeadlightsActive;
 		bool isFogLightOn = (data.m_bFogLightsOn || isFoggy) && !CarUtil::IsLightsForcedOff(pControlVeh);
@@ -634,7 +677,7 @@ void Lights::Init()
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::SpotLight, false, "", 1.0f, false, true, true);
 		}
 
-		std::string shdwName = (isBike ? "taillight_bike" : "taillight");
+		std::string shdwName = "taillight";
 		float shdwSz = 1.6f;
 
 		if (pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_MTRUCK
@@ -665,7 +708,7 @@ void Lights::Init()
 						RenderLights(pControlVeh, pTowedVeh, eMaterialType::STTLightRight, true, shdwName, shdwSz, false, isRightRearOk);
 					}
 				} else {
-					if (IsMatAvail(pTowedVeh, {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight})) {
+					if (IsMatAvail(pTowedVeh, {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight}) || IsDummyAvail(pTowedVeh, {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight})) {
 						if (isLeftRearOk) {
 							RenderLights(pControlVeh, pTowedVeh, eMaterialType::BrakeLightLeft, true, shdwName, shdwSz, false, isLeftRearOk);
 						}
@@ -673,7 +716,7 @@ void Lights::Init()
 							RenderLights(pControlVeh, pTowedVeh, eMaterialType::BrakeLightRight, true, shdwName, shdwSz, false, isRightRearOk);
 						}
 					}
-					else if (IsMatAvail(pTowedVeh, {eMaterialType::TailLightLeft, eMaterialType::TailLightRight})) {
+					else if (IsMatAvail(pTowedVeh, {eMaterialType::TailLightLeft, eMaterialType::TailLightRight}) || IsDummyAvail(pTowedVeh, {eMaterialType::TailLightLeft, eMaterialType::TailLightRight})) {
 						if (isLeftRearOk) {
 							RenderLights(pControlVeh, pTowedVeh, eMaterialType::TailLightLeft, true, shdwName, shdwSz, true, isLeftRearOk);
 						}
@@ -695,7 +738,7 @@ void Lights::Init()
 			}
 
 			bool indicatorOn = data.m_bUsingGlobalIndicators && data.m_nIndicatorState != eIndicatorState::Off;
-			bool tailLightFlag = (Util::IsNightTime() || pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh)) && !CarUtil::IsLightsForcedOff(pControlVeh);
+			bool tailLightFlag = CarUtil::AreHeadlightsActive(pControlVeh);
 			if (tailLightFlag || indicatorOn) {
 				if (sttInstalled) {
 					if (isLeftRearOk) {
@@ -987,7 +1030,7 @@ void Lights::RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRight
 		return;
 	}
 
-	bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime());
+	bool isHeadlightsActive = CarUtil::AreHeadlightsActive(pControlVeh);
 	if (isHeadlightsActive && !data.m_bPrevHeadlightsOn)
 	{
 		data.m_nHeadlightsTurnedOnTime = CTimer::m_snTimeInMilliseconds;
@@ -1096,6 +1139,16 @@ bool Lights::IsMatAvail(CVehicle *pVeh, std::initializer_list<eMaterialType> sta
 	return false;
 }
 
+bool Lights::HasHeadlights(CVehicle *pVeh)
+{
+	if (!CarUtil::CanHaveHeadlights(pVeh))
+	{
+		return false;
+	}
+	return IsMatAvail(pVeh, {eMaterialType::HeadLightLeft, eMaterialType::HeadLightRight}) ||
+	       IsDummyAvail(pVeh, {eMaterialType::HeadLightLeft, eMaterialType::HeadLightRight});
+}
+
 void Lights::ProcessPointLights(CVehicle *pVeh)
 {
 	if (!gbLightPointLights || !pVeh || pVeh->m_fHealth <= 0.0f || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER)
@@ -1110,7 +1163,7 @@ void Lights::ProcessPointLights(CVehicle *pVeh)
 
 	VehLightDatav1 &data = m_VehData.Get(pVeh);
 	bool isBike = pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
-	bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime() || (isBike && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+	bool isHeadlightsOn = CarUtil::AreHeadlightsActive(pVeh);
 
 	// 1. High Beam Headlights
 	if (data.m_bLongLightsOn && isHeadlightsOn && CarUtil::AreHeadlightsPopUpOpen(pVeh))

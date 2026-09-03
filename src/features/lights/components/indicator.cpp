@@ -176,7 +176,7 @@ void IndicatorComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
         }
     } else {
         bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
-        std::string shdwName = (isBike ? "taillight_bike" : "taillight");
+        std::string shdwName = "taillight";
         float shdwSz = 2.0f;
 
         if (data.nIndicatorState == eIndicatorState::BothOn || data.nIndicatorState == eIndicatorState::LeftOn) {

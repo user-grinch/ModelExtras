@@ -52,6 +52,7 @@ private:
 	static bool IsDummyAvail(CVehicle* pVeh, std::initializer_list<eMaterialType> states);
 	static bool IsMatAvail(CVehicle *pVeh, eMaterialType state);
 	static bool IsMatAvail(CVehicle* pVeh, std::initializer_list<eMaterialType> states);
+	static bool HasHeadlights(CVehicle *pVeh);
 	
 protected:
     void Init() override;
