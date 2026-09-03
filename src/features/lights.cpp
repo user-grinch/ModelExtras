@@ -580,8 +580,10 @@ void Lights::Init()
 		
 		static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true));
 		bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
-		bool shouldRenderFog = !foglightTiedtoHeadlight || isHeadlightsActive;
-		if (data.m_bFogLightsOn && shouldRenderFog) {
+		bool isFoggy = Util::IsFoggy();
+		bool shouldRenderFog = isFoggy || !foglightTiedtoHeadlight || isHeadlightsActive;
+		bool isFogLightOn = (data.m_bFogLightsOn || isFoggy) && !CarUtil::IsLightsForcedOff(pControlVeh);
+		if (isFogLightOn && shouldRenderFog) {
 			bool isFogOk = !isFrontBumperDamaged;
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::FogLightLeft, true, "foglight", 3.0f, false, isFogOk);
 			RenderLights(pControlVeh, pTowedVeh, eMaterialType::FogLightRight, true, "foglight", 3.0f, false, isFogOk);
@@ -957,7 +959,7 @@ void Lights::RenderHeadlights(CVehicle *pControlVeh, bool isLeftOn, bool isRight
 
 	if (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime())
 	{
-		bool isFoggy = (CWeather::Foggyness > 0.1f) || (CWeather::Rain > 0.3f) || (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
+		bool isFoggy = Util::IsFoggy();
 		std::string texName = data.m_bLongLightsOn ? "headlight_long" : "headlight_short";
 		bool shadow = !gbProperShadersDetected;
 		bool highlight = isFoggy || data.m_bLongLightsOn;
@@ -1092,8 +1094,10 @@ void Lights::ProcessPointLights(CVehicle *pVeh)
 
 	// 2. Fog Lights
 	static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true));
-	bool shouldRenderFog = !foglightTiedtoHeadlight || isHeadlightsOn;
-	if (data.m_bFogLightsOn && shouldRenderFog)
+	bool isFoggy = Util::IsFoggy();
+	bool shouldRenderFog = isFoggy || !foglightTiedtoHeadlight || isHeadlightsOn;
+	bool isFogLightOn = (data.m_bFogLightsOn || isFoggy) && !CarUtil::IsLightsForcedOff(pVeh);
+	if (isFogLightOn && shouldRenderFog)
 	{
 		for (eMaterialType type : {eMaterialType::FogLightLeft, eMaterialType::FogLightRight})
 		{

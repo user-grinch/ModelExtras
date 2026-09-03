@@ -65,7 +65,7 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
             bool isRightFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT);
             bool isNightOrOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
             if (isNightOrOn) {
-                bool isFoggy = (CWeather::Foggyness > 0.1f) || (CWeather::Rain > 0.3f) || (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
+                bool isFoggy = Util::IsFoggy();
                 std::string texName = data.bLongLightsOn ? "headlight_long" : "headlight_short";
                 bool shadow = !gbProperShadersDetected;
                 bool highlight = isFoggy || data.bLongLightsOn;
@@ -92,7 +92,7 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
     bool isHeadlightRightOk = damage.isHeadlightRightOk;
 
     bool bTickRegistered = (data.nHeadlightTickFrame == CTimer::m_FrameCounter);
-    bool isFoggy = (CWeather::Foggyness > 0.1f) || (CWeather::Rain > 0.3f) || (CWeather::NewWeatherType == WEATHER_FOGGY_SF || CWeather::NewWeatherType == WEATHER_SANDSTORM_DESERT || CWeather::OldWeatherType == WEATHER_FOGGY_SF || CWeather::OldWeatherType == WEATHER_SANDSTORM_DESERT);
+    bool isFoggy = Util::IsFoggy();
     std::string texName = data.bLongLightsOn ? "headlight_long" : "headlight_short";
     bool shadow = !gbProperShadersDetected;
     bool highlight = isFoggy || data.bLongLightsOn;
