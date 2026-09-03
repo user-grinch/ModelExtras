@@ -24,7 +24,8 @@ bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         c.lightType = eMaterialType::TailLightRight;
         c.corona.size = LightsConfig::Get().gfTailLightCoronaSize;
         c.corona.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
-        c.shadow.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gGlobalShadowIntensity)};
+        c.shadow.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
+        c.shadow.size = LightsConfig::Get().gfTailLightShadowSize;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = name != "taillights2";
         c.mirroredX = false;
@@ -43,7 +44,7 @@ bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
 void TailLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
     bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
     std::string shdwName = (isBike ? "taillight_bike" : "taillight");
-    float shdwSz = 2.0f;
+    float shdwSz = 1.6f;
 
     if (pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_MTRUCK
         || pControlVeh->m_nVehicleSubClass == VEHICLE_QUAD || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE

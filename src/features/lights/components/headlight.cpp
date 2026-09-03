@@ -25,7 +25,10 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Front;
         c.lightType = eMaterialType::HeadLightLeft;
-        c.corona.color = c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
+        c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
+        c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
+        c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
+        c.shadow.size = LightsConfig::Get().gfHeadLightShadowSize;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = name != "headlights2";
         
@@ -60,7 +63,7 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
             return;
         }
 
-        if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) < 150.0f || pVeh->GetIsOnScreen()) {
+        if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) < 300.0f || pVeh->GetIsOnScreen()) {
             bool isLeftFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT);
             bool isRightFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT);
             bool isNightOrOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);

@@ -17,13 +17,22 @@ struct LightsConfig {
     bool gbGlobalIndicatorLights = false;
     bool gbLightCoronasFeature = false;
     bool gbLightPointLights = true;
-    bool gbSirenPointLights = true;
+    bool gbSirenPointLights = false;
 
     float gfGlobalCoronaSize = 0.3f;
     int gGlobalCoronaIntensity = 80;
     int gGlobalShadowIntensity = 80;
-    float gfTailLightCoronaSize = 0.8f;
+
+    float gfHeadLightCoronaSize = 0.4f;
+    int gHeadLightCoronaIntensity = 80;
+    int gHeadLightShadowIntensity = 80;
+    float gfHeadLightShadowSize = 1.0f;
+
+    float gfTailLightCoronaSize = 0.4f;
     int gTailLightCoronaIntensity = 60;
+    int gTailLightShadowIntensity = 80;
+    float gfTailLightShadowSize = 1.0f;
+
     float headlightSz = 5.0f;
 
     uint32_t nFogLightKey = 'J';
@@ -40,13 +49,21 @@ struct LightsConfig {
         gbGlobalIndicatorLights = gConfig.ReadBoolean("LIGHTS", "StandardLights_GlobalIndicatorLights", gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false));
         gbLightCoronasFeature = gConfig.ReadBoolean("LIGHTS", "LightCoronas", gConfig.ReadBoolean("FEATURES", "LightCoronas", false));
         gbLightPointLights = gConfig.ReadBoolean("LIGHTS", "PointLights", gConfig.ReadBoolean("LIGHTS", "LightPointLights", gConfig.ReadBoolean("FEATURES", "PointLights", true)));
-        gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", gConfig.ReadBoolean("FEATURES", "SirenPointLights", true));
+        gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", gConfig.ReadBoolean("FEATURES", "SirenPointLights", false));
 
         gfGlobalCoronaSize = gConfig.ReadFloat("LIGHTS", "LightCoronaSize", gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f));
         gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 80));
         gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 80));
-        gfTailLightCoronaSize = gConfig.ReadFloat("LIGHTS", "TailLightCoronaSize", gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 0.8f));
+
+        gfHeadLightCoronaSize = gConfig.ReadFloat("LIGHTS", "HeadLightCoronaSize", gfGlobalCoronaSize);
+        gHeadLightCoronaIntensity = gConfig.ReadInteger("LIGHTS", "HeadLightCoronaIntensity", gGlobalCoronaIntensity);
+        gHeadLightShadowIntensity = gConfig.ReadInteger("LIGHTS", "HeadLightShadowIntensity", gGlobalShadowIntensity);
+        gfHeadLightShadowSize = gConfig.ReadFloat("LIGHTS", "HeadLightShadowSize", 1.0f);
+
+        gfTailLightCoronaSize = gConfig.ReadFloat("LIGHTS", "TailLightCoronaSize", gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 0.4f));
         gTailLightCoronaIntensity = gConfig.ReadInteger("LIGHTS", "TailLightCoronaIntensity", gConfig.ReadInteger("VISUAL", "TailLightCoronaIntensity", 60));
+        gTailLightShadowIntensity = gConfig.ReadInteger("LIGHTS", "TailLightShadowIntensity", gGlobalShadowIntensity);
+        gfTailLightShadowSize = gConfig.ReadFloat("LIGHTS", "TailLightShadowSize", 1.0f);
 
         nFogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", 'J');
         nLongLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", 'G');

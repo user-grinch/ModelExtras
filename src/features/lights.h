@@ -60,6 +60,7 @@ public:
 	static VehLightDatav1 GetVehicleData(CVehicle *pVeh);
 
 	friend int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat);
+	void ReloadConfig() override;
 	void Reload(CVehicle* pVeh) override;
 
 	static bool GetLightState(CVehicle *pVeh, eMaterialType lightId);

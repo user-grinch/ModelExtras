@@ -60,9 +60,10 @@ private:
 
 protected:
     void Init() override;
+    void ReloadConfig() override;
+    void Reload(CVehicle *pVeh) override { ReloadConfig(); }
 
 public:
-  public:
     LicensePlate() : CVehFeature<PlateData>("HDLicensePlate", "FEATURES", eFeatureMatrix::HDLicensePlate) {}
   static void ProcessTextures(CVehicle *pVeh, RpMaterial *pMat);
 };

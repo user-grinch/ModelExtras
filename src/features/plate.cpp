@@ -18,9 +18,15 @@ using namespace plugin;
 
 static CVehicle *pCurrentVeh = nullptr;
 
+void LicensePlate::ReloadConfig()
+{
+    CBaseFeature::ReloadConfig();
+    m_bEnabled = m_bActive;
+}
+
 void LicensePlate::Init()
 {
-    m_bEnabled = true;
+    ReloadConfig();
     // RpMaterial *__cdecl CCustomCarPlateMgr::SetupMaterialPlatebackTexture(RpMaterial *material, char plateType)
     patch::PutRetn(0x6FDE50);
     patch::ReplaceFunction(0x6FD500, (void *)CCustomCarPlateMgr_Initialise);

@@ -25,6 +25,7 @@ static inline CVector2D GetPerpRight(const CVector2D &vec)
 
 void SpotLights::Init()
 {
+	ReloadConfig();
 	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
 	{
 		SpotlightData &data = m_VehData.Get(pVeh);
@@ -38,6 +39,7 @@ void SpotLights::Init()
 
 	Events::vehicleRenderEvent += [](CVehicle *pVeh)
 	{
+		if (!CBaseFeature::IsEnabled(eFeatureMatrix::SpotLights)) return;
 		if (!pVeh || !pVeh->GetIsOnScreen())
 		{
 			return;
@@ -47,11 +49,13 @@ void SpotLights::Init()
 
 	MEEvents::vehPreRenderEvent.before += [](CVehicle *pVeh)
 	{
+		if (!CBaseFeature::IsEnabled(eFeatureMatrix::SpotLights)) return;
 		ProcessPointLights(pVeh);
 	};
 
 	Events::processScriptsEvent += []()
 	{
+		if (!CBaseFeature::IsEnabled(eFeatureMatrix::SpotLights)) return;
 		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
 		{
 			if (pVeh && pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
@@ -63,6 +67,7 @@ void SpotLights::Init()
 
 	Events::drawingEvent += []()
 	{
+		if (!CBaseFeature::IsEnabled(eFeatureMatrix::SpotLights)) return;
 		OnHudRender();
 	};
 

@@ -1,12 +1,13 @@
 #pragma once
 #include "core/base.h"
 
-class LightsFeature : public CBaseFeature{
+class LightsFeature : public CBaseFeature {
 protected:
     void Init() override;
 
 public:
-    LightsFeature() : CBaseFeature("StandardLightsv2", "FEATURES", eFeatureMatrix::StandardLights) {}
+    static inline bool m_bEnabled = false;
+    LightsFeature() : CBaseFeature("StandardLightsv2", "LIGHTS", eFeatureMatrix::REMOVED_NULL) {}
     void ReloadConfig() override;
     void Reload(CVehicle* pVeh) override;
 };
