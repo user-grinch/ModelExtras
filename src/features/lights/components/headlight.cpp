@@ -42,6 +42,10 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         }
         return true;
     }
+    if (name.starts_with("f_pop")) {
+        data.bHasVehFuncsPopUp = true;
+        return true;
+    }
     return false;
 }
 
@@ -71,7 +75,13 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
             bool isLeftFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT);
             bool isRightFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT);
             bool isNightOrOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
-            if (isNightOrOn) {
+            if (isNightOrOn && !data.bPrevHeadlightsOn) {
+                data.nHeadlightsTurnedOnTime = CTimer::m_snTimeInMilliseconds;
+            }
+            data.bPrevHeadlightsOn = isNightOrOn;
+
+            bool isVehFuncsOpening = data.bHasVehFuncsPopUp && (CTimer::m_snTimeInMilliseconds - data.nHeadlightsTurnedOnTime < 800);
+            if (isNightOrOn && CarUtil::AreHeadlightsPopUpOpen(pVeh) && !isVehFuncsOpening) {
                 bool isFoggy = Util::IsFoggy();
                 std::string texName = data.bLongLightsOn ? "headlight_long" : "headlight_short";
                 bool shadow = !gbProperShadersDetected;
@@ -87,12 +97,18 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
 
 void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
     int model = pControlVeh->m_nModelIndex;
-    if (CModelInfo::IsTrailerModel(model) || CarUtil::IsLightsForcedOff(pControlVeh) || CModelInfo::IsBmxModel(model) || CModelInfo::IsBoatModel(model) || CModelInfo::IsHeliModel(model) || CModelInfo::IsPlaneModel(model)) {
+    if (CModelInfo::IsTrailerModel(model) || CarUtil::IsLightsForcedOff(pControlVeh) || CModelInfo::IsBmxModel(model) || CModelInfo::IsBoatModel(model) || CModelInfo::IsHeliModel(model) || CModelInfo::IsPlaneModel(model) || !CarUtil::AreHeadlightsPopUpOpen(pControlVeh)) {
         return;
     }
 
     bool isNightOrOn = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pControlVeh))) && !CarUtil::IsLightsForcedOff(pControlVeh);
-    if (!isNightOrOn) return;
+    if (isNightOrOn && !data.bPrevHeadlightsOn) {
+        data.nHeadlightsTurnedOnTime = CTimer::m_snTimeInMilliseconds;
+    }
+    data.bPrevHeadlightsOn = isNightOrOn;
+
+    bool isVehFuncsOpening = data.bHasVehFuncsPopUp && (CTimer::m_snTimeInMilliseconds - data.nHeadlightsTurnedOnTime < 800);
+    if (!isNightOrOn || isVehFuncsOpening) return;
 
     auto damage = LightDamageState::Get(pControlVeh, pTowedVeh);
     bool isHeadlightLeftOk = damage.isHeadlightLeftOk;
@@ -117,7 +133,7 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
 void HeadlightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
     bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh)) || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
 
-    if (data.bLongLightsOn && isHeadlightsOn) {
+    if (data.bLongLightsOn && isHeadlightsOn && CarUtil::AreHeadlightsPopUpOpen(pVeh)) {
         float highBeamMul = LightsConfig::Get().fHighBeamPointLightMul;
 
         for (eMaterialType type : {eMaterialType::HeadLightLeft, eMaterialType::HeadLightRight}) {
