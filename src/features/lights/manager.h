@@ -34,6 +34,6 @@ public:
     static bool GetLightState(CVehicle* pVeh, eMaterialType lightId) { return m_VehData.Get(pVeh).bLightStates[lightId]; }
     static void SetLightState(CVehicle* pVeh, eMaterialType lightId, bool state) { m_VehData.Get(pVeh).bLightStates[lightId] = state; }
     static bool IsIndicatorOn(CVehicle* pVeh) {
-        return pVeh->m_fHealth > 0.0f && (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) && BlinkerState::Get().bIndicatorsDelay && m_VehData.Get(pVeh).nIndicatorState != eIndicatorState::Off;
+        return pVeh && pVeh->m_fHealth > 0.0f && (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE || pVeh->m_nVehicleSubClass == VEHICLE_QUAD || pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK) && BlinkerState::Get().bIndicatorsDelay && m_VehData.Get(pVeh).nIndicatorState != eIndicatorState::Off;
     }
 };

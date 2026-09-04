@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "defines.h"
 #include "soundeffects.h"
-#include "lights.h"
+#include "lights/lights.h"
 #include "eVehicleClass.h"
 
 using namespace plugin;

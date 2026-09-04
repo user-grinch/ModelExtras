@@ -8,6 +8,12 @@
 #include <string>
 #include <algorithm>
 
+extern float gfGlobalCoronaSize;
+extern int gGlobalCoronaIntensity;
+extern int gGlobalShadowIntensity;
+extern bool gbLightPointLights;
+extern bool gbSirenPointLights;
+
 struct LightsConfig {
     static LightsConfig& Get() {
         static LightsConfig instance;
@@ -48,12 +54,12 @@ struct LightsConfig {
     void InitConfig() {
         gbGlobalIndicatorLights = gConfig.ReadBoolean("LIGHTS", "StandardLights_GlobalIndicatorLights", gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false));
         gbLightCoronasFeature = gConfig.ReadBoolean("LIGHTS", "LightCoronas", gConfig.ReadBoolean("FEATURES", "LightCoronas", false));
-        gbLightPointLights = gConfig.ReadBoolean("LIGHTS", "PointLights", gConfig.ReadBoolean("LIGHTS", "LightPointLights", gConfig.ReadBoolean("FEATURES", "PointLights", true)));
-        gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", gConfig.ReadBoolean("FEATURES", "SirenPointLights", false));
+        gbLightPointLights = ::gbLightPointLights = gConfig.ReadBoolean("LIGHTS", "PointLights", gConfig.ReadBoolean("LIGHTS", "LightPointLights", gConfig.ReadBoolean("FEATURES", "PointLights", true)));
+        gbSirenPointLights = ::gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", gConfig.ReadBoolean("FEATURES", "SirenPointLights", false));
 
-        gfGlobalCoronaSize = gConfig.ReadFloat("LIGHTS", "LightCoronaSize", gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f));
-        gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 80));
-        gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 80));
+        gfGlobalCoronaSize = ::gfGlobalCoronaSize = gConfig.ReadFloat("LIGHTS", "LightCoronaSize", gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f));
+        gGlobalShadowIntensity = ::gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 80));
+        gGlobalCoronaIntensity = ::gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 80));
 
         gfHeadLightCoronaSize = gConfig.ReadFloat("LIGHTS", "HeadLightCoronaSize", gfGlobalCoronaSize);
         gHeadLightCoronaIntensity = gConfig.ReadInteger("LIGHTS", "HeadLightCoronaIntensity", gGlobalCoronaIntensity);

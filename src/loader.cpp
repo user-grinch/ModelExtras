@@ -12,7 +12,6 @@
 #include "features/spotlights.h"
 #include "features/wheelhub.h"
 #include "features/remap.h"
-#include "features/lights.h"
 #include "features/sirens.h"
 #include "features/plate.h"
 #include "features/carcols.h"
@@ -124,7 +123,6 @@ void ModelExtras::Init()
     RegisterFeature<RollbackBed>();
     RegisterFeature<WheelHub>();
     RegisterFeature<Lights>();
-    RegisterFeature<LightsFeature>();
     RegisterFeature<Sirens>();
     RegisterFeature<SoundEffects>();
     RegisterFeature<SpotLights>();

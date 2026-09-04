@@ -3,13 +3,20 @@
 #include "lights.h"
 #include "manager.h"
 #include "utils/meevents.h"
+#include "ModelExtrasAPI.h"
 
-void LightsFeature::Init() {
-    if (!gConfig.ReadBoolean("LIGHTS", "StandardLightsv2", gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false))) {
-		return;
-	}
+float gfGlobalCoronaSize = 0.3f;
+int gGlobalCoronaIntensity = 80;
+int gGlobalShadowIntensity = 80;
+bool gbLightPointLights = true;
+bool gbSirenPointLights = false;
 
+void Lights::Init() {
     ReloadConfig();
+    if (!m_bEnabled) {
+        return;
+    }
+
     LightManager::Init();
 
     patch::Nop(0x6E2722, 19);	  // CVehicle::DoHeadLightReflection
@@ -81,13 +88,51 @@ void LightsFeature::Init() {
 	});
 }
 
-void LightsFeature::ReloadConfig() {
+void Lights::ReloadConfig() {
 	CBaseFeature::ReloadConfig();
+	if (!m_bActive) {
+		m_bActive = gConfig.ReadBoolean("LIGHTS", "StandardLightsv2", gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false));
+	}
 	m_bEnabled = m_bActive;
 	LightsConfig::Get().InitConfig();
 }
 
-void LightsFeature::Reload(CVehicle* pVeh) {
+void Lights::Reload(CVehicle* pVeh) {
 	ReloadConfig();
 	LightManager::Reload(pVeh);
+}
+
+VehLightData& Lights::GetVehicleData(CVehicle* pVeh) {
+    return LightManager::m_VehData.Get(pVeh);
+}
+
+bool Lights::IsIndicatorOn(CVehicle* pVeh) {
+    return LightManager::IsIndicatorOn(pVeh);
+}
+
+bool Lights::GetLightState(CVehicle* pVeh, eMaterialType lightId) {
+    return LightManager::GetLightState(pVeh, lightId);
+}
+
+void Lights::SetLightState(CVehicle* pVeh, eMaterialType lightId, bool state) {
+    LightManager::SetLightState(pVeh, lightId, state);
+}
+
+extern "C"
+{
+	ME_WRAPPER bool ME_GetVehicleLightState(CVehicle *pVeh, ME_LightID lightId)
+	{
+		return LightManager::GetLightState(pVeh, static_cast<eMaterialType>(lightId));
+	}
+
+	ME_WRAPPER void ME_SetVehicleLightState(CVehicle *pVeh, ME_LightID lightId, bool state)
+	{
+		LightManager::SetLightState(pVeh, static_cast<eMaterialType>(lightId), state);
+	}
+
+	// Dummy function to show on crash logs
+	int __declspec(dllexport) ignore4(int i)
+	{
+		return 1;
+	}
 }

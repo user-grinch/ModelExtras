@@ -6,7 +6,7 @@
 #include <rpworld.h>
 #include <CPointLights.h>
 #include "defines.h"
-#include "lights.h"
+#include "lights/lights.h"
 #include "utils/audiomgr.h"
 #include "utils/util.h"
 #include "utils/datamgr.h"

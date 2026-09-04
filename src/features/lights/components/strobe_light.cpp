@@ -1,3 +1,7 @@
+int GetStrobeIndex(CVehicle *pVeh, RpMaterial *pMat) {
+    return pMat->color.blue;
+}
+
 #include "pch.h"
 #include "strobe_light.h"
 #include "utils/modelinfomgr.h"

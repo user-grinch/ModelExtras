@@ -126,6 +126,10 @@ extern "C"
     ME_WRAPPER ME_ExhaustInfo ME_GetExhaustData(CVehicle *pVeh, int index);
     ME_WRAPPER void ME_SetExhaustData(CVehicle *pVeh, int index, ME_ExhaustInfo &data);
 
+    // Lights
+    ME_WRAPPER bool ME_GetVehicleLightState(CVehicle *pVeh, ME_LightID lightId);
+    ME_WRAPPER void ME_SetVehicleLightState(CVehicle *pVeh, ME_LightID lightId, bool state);
+
 #ifdef __cplusplus
 }
 #endif

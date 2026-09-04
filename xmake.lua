@@ -4,6 +4,11 @@ add_rules("mode.debug", "mode.releasedbg", "mode.release")
 set_defaultmode("release")
 
 local PLUGIN_SDK_DIR = os.getenv("PLUGIN_SDK_DIR")
+if not PLUGIN_SDK_DIR or not os.isdir(PLUGIN_SDK_DIR) then
+    if os.isdir("D:/Dev/plugin-sdk") then
+        PLUGIN_SDK_DIR = "D:/Dev/plugin-sdk"
+    end
+end
 local GAME_DIR = os.getenv("GTASA_DIR") or "D:/Games/GTA San Andreas"
 
 target("ModelExtras")
@@ -109,7 +114,7 @@ target("ModelExtras")
         set_optimize("fastest")
         set_symbols("hidden")
         add_cxflags("/Ob3", "/Ot", "/GS-")
-        add_shflags("/OPT:REF", "/OPT:ICF", "/INCREMENTAL:NO")
+        add_shflags("/OPT:REF", "/OPT:ICF", "/INCREMENTAL:NO", "/LTCG")
     end
 
     after_build(function (target)

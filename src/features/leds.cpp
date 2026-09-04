@@ -15,7 +15,7 @@
 #include <CPointLights.h>
 
 #include "roof.h"
-#include "lights.h"
+#include "lights/lights.h"
 
 void DashboardLEDs::ReloadConfig()
 {
@@ -103,18 +103,18 @@ void DashboardLEDs::Init()
 			}
 		}
 
-		auto data = Lights::GetVehicleData(pControlVeh);
+		const auto& data = Lights::GetVehicleData(pControlVeh);
 		static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true);
 		bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pControlVeh))) && !CarUtil::IsLightsForcedOff(pControlVeh);
 		bool isFoggy = Util::IsFoggy();
 		bool shouldShowFog = isFoggy || !foglightTiedtoHeadlight || isHeadlightsActive;
-		bool isFogLightOn = (data.m_bFogLightsOn || isFoggy) && !CarUtil::IsLightsForcedOff(pControlVeh);
+		bool isFogLightOn = (data.bFogLightsOn || isFoggy) && !CarUtil::IsLightsForcedOff(pControlVeh);
 		if (isFogLightOn && shouldShowFog) {
 			EnableLED(pControlVeh, eMaterialType::FogLightLed);
 		}
 		bool headlightsOn = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pControlVeh))) && !CarUtil::IsLightsForcedOff(pControlVeh);
 		if (headlightsOn) {
-			if (data.m_bLongLightsOn) {
+			if (data.bLongLightsOn) {
 				EnableLED(pControlVeh, eMaterialType::HighBeamLed);
 			} else {
 				EnableLED(pControlVeh, eMaterialType::LowBeamLed);
@@ -122,10 +122,10 @@ void DashboardLEDs::Init()
 		}
 
 		if (Lights::IsIndicatorOn(pControlVeh)) {
-			if (data.m_nIndicatorState == eIndicatorState::LeftOn || data.m_nIndicatorState == eIndicatorState::BothOn) {
+			if (data.nIndicatorState == eIndicatorState::LeftOn || data.nIndicatorState == eIndicatorState::BothOn) {
 				EnableLED(pControlVeh, eMaterialType::IndicatorLeftLed);
 			}
-			if (data.m_nIndicatorState == eIndicatorState::RightOn || data.m_nIndicatorState == eIndicatorState::BothOn) {
+			if (data.nIndicatorState == eIndicatorState::RightOn || data.nIndicatorState == eIndicatorState::BothOn) {
 				EnableLED(pControlVeh, eMaterialType::IndicatorRightLed);
 			}
 		}
