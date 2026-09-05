@@ -13,7 +13,10 @@ private:
     DummyConfig data;
 
 public:
+    VehicleDummy() = default;
     VehicleDummy(const DummyConfig& config);
+    VehicleDummy* operator->() { return this; }
+    const VehicleDummy* operator->() const { return this; }
 
     const DummyConfig& GetRef() {
         return data;

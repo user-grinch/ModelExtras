@@ -27,7 +27,7 @@ bool SideLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
             c.lightType = eMaterialType::SideLightRight;
             c.dummyPos = eDummyPos::Right;
         }
-        data.dummies[c.lightType].push_back(new VehicleDummy(c));
+        data.dummies[c.lightType].push_back(VehicleDummy(c));
         return true;
     }
     return false;
@@ -55,7 +55,7 @@ void SideLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
                 continue;
             }
 
-            for (auto e : data.dummies[type]) {
+            for (auto& e : data.dummies[type]) {
                 e->Update();
                 RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 1.5f, true);
             }

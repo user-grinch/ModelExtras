@@ -168,10 +168,7 @@ void ConvertibleRoof::Init()
     Events::processScriptsEvent += []()
     {
         if (!CBaseFeature::IsEnabled(eFeatureMatrix::ConvertibleRoof)) return;
-        size_t now = CTimer::m_snTimeInMilliseconds;
-        static size_t prev = 0;
-
-        if (Util::IsKeyPressed(g_nRoofToggleKey) && now - prev > 500.0f)
+        if (InputMgr::IsKeyJustDown(g_nRoofToggleKey))
         {
             CVehicle *pVeh = FindPlayerVehicle();
             if (pVeh)
@@ -181,7 +178,6 @@ void ConvertibleRoof::Init()
                 if (data.m_bInit)
                 {
                     data.m_bRoofTargetExpanded = !data.m_bRoofTargetExpanded;
-                    prev = now;
                     AudioMgr::PlaySwitchSound(pVeh);
                 }
             }

@@ -37,7 +37,7 @@ bool DRLLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
     c.dummyPos = eDummyPos::Front;
     c.shadow.size = 1.85f;
     c.shadow.color = {220, 220, 220, static_cast<unsigned char>(LightsConfig::Get().gGlobalShadowIntensity)};
-    data.dummies[type].push_back(new VehicleDummy(c));
+    data.dummies[type].push_back(VehicleDummy(c));
     return true;
 }
 
@@ -54,7 +54,7 @@ void DRLLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLi
 void DRLLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
     auto renderDRLPointLight = [&](eMaterialType type) {
         if (!LightManager::IsDummyAvailable(data, type) || !data.bLightStates[type]) return;
-        for (auto* dummy : data.dummies[type]) {
+        for (auto& dummy : data.dummies[type]) {
             dummy->Update();
             RenderUtil::RegisterPointLight(&dummy->Get(), dummy->Get().corona.color, 0.85f, true);
         }

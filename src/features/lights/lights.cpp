@@ -54,22 +54,7 @@ void Lights::Init() {
 		LightManager::ProcessPointLights(pVeh);
 	};
 
-	Events::processScriptsEvent += []()
-	{
-		if (!m_bEnabled) return;
-		BlinkerState::Get().Update();
 
-		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
-		{
-			if (pVeh) {
-				if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
-				{
-					LightManager::ProcessPointLights(pVeh);
-				}
-				LightManager::Process(pVeh);
-			}
-		}
-	};
 
 	ModelInfoMgr::RegisterRender([](CVehicle *pControlVeh) {
 		if (!m_bEnabled) return;
@@ -135,4 +120,19 @@ extern "C"
 	{
 		return 1;
 	}
+}
+
+void Lights::ProcessTick() {
+    if (!m_bEnabled) return;
+    BlinkerState::Get().Update();
+}
+
+void Lights::ProcessVehicle(CVehicle* pVeh) {
+    if (!m_bEnabled) return;
+    LightManager::Process(pVeh);
+}
+
+void Lights::ProcessBikePointLights(CVehicle* pVeh) {
+    if (!m_bEnabled) return;
+    LightManager::ProcessPointLights(pVeh);
 }

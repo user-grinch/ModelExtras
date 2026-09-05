@@ -24,7 +24,7 @@ bool FogLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
         c.shadow.render = false;
         c.corona.color = c.shadow.color = {255, 255, 255, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
         c.corona.lightingType = eLightingMode::NonDirectional;
-        data.dummies[c.lightType].push_back(new VehicleDummy(c));
+        data.dummies[c.lightType].push_back(VehicleDummy(c));
         return true;
     }
     return false;
@@ -36,13 +36,9 @@ void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
         bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pVeh);
         bool canToggleFogLight = !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
 
-        if (Util::IsKeyPressed(LightsConfig::Get().nFogLightKey) && LightManager::IsMaterialAvailable(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) && canToggleFogLight) {
-            size_t now = CTimer::m_snTimeInMilliseconds;
-            if (now - prev > 500.0f) {
-                data.bFogLightsOn = !data.bFogLightsOn;
-                prev = now;
-                AudioMgr::PlaySwitchSound(pVeh);
-            }
+        if (InputMgr::IsKeyJustDown(LightsConfig::Get().nFogLightKey) && LightManager::IsMaterialAvailable(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) && canToggleFogLight) {
+            data.bFogLightsOn = !data.bFogLightsOn;
+            AudioMgr::PlaySwitchSound(pVeh);
         }
     }
 }
@@ -76,7 +72,7 @@ void FogLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
                 continue;
             }
 
-            for (auto e : data.dummies[type]) {
+            for (auto& e : data.dummies[type]) {
                 e->Update();
                 RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 8.5f, true);
             }

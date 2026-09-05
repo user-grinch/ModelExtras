@@ -46,23 +46,25 @@ void SoundEffects::Init()
         ReloadConfig();
     };
 
-    Events::processScriptsEvent += []() {
-        if (!CBaseFeature::IsEnabled(eFeatureMatrix::SoundEffects)) {
-            return;
-        }
-        CPed *pPlayer = FindPlayerPed();
-        if (!pPlayer) {
-            return;
-        }
-        CVector playerPos = pPlayer->GetPosition();
+}
 
-		for (CVehicle *pVeh : CPools::ms_pVehiclePool) {
+void SoundEffects::ProcessVehicle(CVehicle *pVeh)
+{
+    if (!CBaseFeature::IsEnabled(eFeatureMatrix::SoundEffects)) {
+        return;
+    }
+    CPed *pPlayer = FindPlayerPed();
+    if (!pPlayer) {
+        return;
+    }
+    CVector playerPos = pPlayer->GetPosition();
+
 			if (CVector::Distance(pVeh->GetPosition(), playerPos) > 75.0f ) {
-				continue;
+				return;
 			}
 
             if (bOnlyPlayerVehicle && pVeh->m_pDriver != FindPlayerPed()) {
-                continue;
+                return;
             }
 
             auto &data = m_VehData.Get(pVeh);
@@ -76,7 +78,7 @@ void SoundEffects::Init()
                 data.m_bEngineState = pVeh->bEngineOn;
                 data.m_bIndicatorState = Lights::IsIndicatorOn(pVeh);
                 data.m_bInitialized = true;
-                continue;
+                return;
             }
 
             int animGroup = pVeh->m_pHandlingData ? pVeh->m_pHandlingData->m_nAnimGroup : 0;
@@ -173,6 +175,5 @@ void SoundEffects::Init()
                     }
                 }
             }
-		}
-	};
+
 }

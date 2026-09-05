@@ -29,12 +29,12 @@ bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = name != "taillights2";
         c.mirroredX = false;
-        data.dummies[c.lightType].push_back(new VehicleDummy(c));
+        data.dummies[c.lightType].push_back(VehicleDummy(c));
         
         if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
             c.mirroredX = true;
             c.lightType = eMaterialType::TailLightLeft;
-            data.dummies[c.lightType].push_back(new VehicleDummy(c));
+            data.dummies[c.lightType].push_back(VehicleDummy(c));
         }
         return true;
     }
@@ -138,7 +138,7 @@ void TailLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
                 if (data.nIndicatorState == eIndicatorState::RightOn && !isLeft) continue;
             }
 
-            for (auto e : data.dummies[actualType]) {
+            for (auto& e : data.dummies[actualType]) {
                 e->Update();
                 CRGBA baseCol = e->Get().corona.color;
                 CRGBA tailColor = (isBraking && !hasDedicatedBrakeDummy)
@@ -161,7 +161,7 @@ void TailLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
             ePanels wingEnum = isLeft ? ePanels::WING_REAR_LEFT : ePanels::WING_REAR_RIGHT;
             if (Util::IsLightDamaged(pVeh, lightEnum) || Util::IsPanelDamaged(pVeh, wingEnum)) continue;
 
-            for (auto e : data.dummies[t]) {
+            for (auto& e : data.dummies[t]) {
                 e->Update();
                 RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 3.5f, true);
             }

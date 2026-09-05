@@ -53,17 +53,7 @@ void SpotLights::Init()
 		ProcessPointLights(pVeh);
 	};
 
-	Events::processScriptsEvent += []()
-	{
-		if (!CBaseFeature::IsEnabled(eFeatureMatrix::SpotLights)) return;
-		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
-		{
-			if (pVeh && pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
-			{
-				ProcessPointLights(pVeh);
-			}
-		}
-	};
+
 
 	Events::drawingEvent += []()
 	{

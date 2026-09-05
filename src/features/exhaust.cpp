@@ -143,16 +143,7 @@ void ExhaustFx::Init()
         ExhaustFx::ProcessPointLights(pVeh);
     };
 
-    Events::processScriptsEvent += []()
-    {
-        for (CVehicle *pVeh : CPools::ms_pVehiclePool)
-        {
-            if (pVeh && pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
-            {
-                ExhaustFx::ProcessPointLights(pVeh);
-            }
-        }
-    };
+
 
     ogFunc1 = injector::GetBranchDestination(0x6AB344, true).get();
     injector::MakeCALL(0x6AB344, hkAddExhaustParticles1, true);

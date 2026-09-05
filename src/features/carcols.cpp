@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "utils/datamgr.h"
 #include "carcols.h"
 #include <rwcore.h>
 #include <rpworld.h>
@@ -19,6 +20,9 @@ void Carcols::ReloadConfig()
 void Carcols::Init()
 {
     ReloadConfig();
+    DataMgr::RegisterListener("carcols", [](int model, const nlohmann::json &data) {
+        Carcols::Parse(data, model);
+    });
 }
 
 bool Carcols::GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA &col)

@@ -23,7 +23,7 @@ bool STTLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
         c.dummyPos = eDummyPos::Rear;
         c.corona.color = c.shadow.color = {240, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
         c.corona.lightingType = eLightingMode::Directional;
-        data.dummies[c.lightType].push_back(new VehicleDummy(c));
+        data.dummies[c.lightType].push_back(VehicleDummy(c));
         return true;
     }
     return false;

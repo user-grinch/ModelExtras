@@ -157,7 +157,7 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
     bool isAvailable = IsDummyAvailable(data, type);
 
     if (isAvailable) {
-        for (auto* dummy : data.dummies[type]) {
+        for (auto& dummy : data.dummies[type]) {
             const DummyConfig& c = dummy->GetRef();
             dummy->Update();
             RwFrame *parent = RwFrameGetParent(dummy->Get().frame);
@@ -193,7 +193,7 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
             if (highlight) {
                 szMul = (type == eMaterialType::TailLightLeft || type == eMaterialType::TailLightRight) ? 1.50f : 3.00f;
             }
-            EnableDummy((int)pVeh + 42 + id++, dummy, pVeh, szMul);
+            EnableDummy((int)pVeh + 42 + id++, &dummy, pVeh, szMul);
 
             // Skip front shadows on bike wheelie
             if (c.dummyPos == eDummyPos::Front && Util::IsVehicleDoingWheelie(pVeh)) {

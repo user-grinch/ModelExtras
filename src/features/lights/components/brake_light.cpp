@@ -23,7 +23,7 @@ bool BrakeLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, cons
         c.lightType = STR_FOUND(name, "_l") ? eMaterialType::BrakeLightLeft : eMaterialType::BrakeLightRight;
         c.corona.color = c.shadow.color = {240, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
         c.corona.lightingType = eLightingMode::Directional;
-        data.dummies[c.lightType].push_back(new VehicleDummy(c));
+        data.dummies[c.lightType].push_back(VehicleDummy(c));
         return true;
     }
     return false;

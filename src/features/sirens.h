@@ -231,6 +231,11 @@ public:
     static void Parse(const nlohmann::json &data, int model);
     void ReloadConfig() override;
     void Reload(CVehicle* pVeh) override;
+    void ProcessBikePointLights(CVehicle* pVeh) override {
+        if (pVeh && pVeh->bSirenOrAlarm) {
+            ProcessPointLights(pVeh);
+        }
+    }
     friend int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat);
 
 private:

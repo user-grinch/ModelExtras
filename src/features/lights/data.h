@@ -120,7 +120,7 @@ struct VehLightData {
     bool bUsingGlobalIndicators = false;
     bool bWasAutoSteerActive = false;
     
-    std::array<std::vector<VehicleDummy*>, eMaterialType::TotalMaterial> dummies;
+    std::array<std::vector<VehicleDummy>, eMaterialType::TotalMaterial> dummies;
     
     bool bLightStates[eMaterialType::TotalMaterial];
     unsigned int nHeadlightTickFrame = 0;
@@ -162,9 +162,6 @@ struct VehLightData {
 
     void ClearDummies() {
         for (auto& vec : dummies) {
-            for (auto* dummy : vec) {
-                delete dummy;
-            }
             vec.clear();
         }
     }

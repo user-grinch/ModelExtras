@@ -606,6 +606,8 @@ int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat)
 
 void Sirens::Init()
 {
+	DataMgr::RegisterListener("sirens", Sirens::Parse);
+
 	ReloadConfig();
 	ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat)
 								   {
@@ -992,16 +994,7 @@ void Sirens::Init()
 		ProcessPointLights(pVeh);
 	};
 
-	Events::processScriptsEvent += []()
-	{
-		for (CVehicle *pVeh : CPools::ms_pVehiclePool)
-		{
-			if (pVeh && pVeh->m_nVehicleSubClass == VEHICLE_BIKE && pVeh->bSirenOrAlarm)
-			{
-				ProcessPointLights(pVeh);
-			}
-		}
-	};
+
 };
 
 void Sirens::hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const &posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay)

@@ -1,5 +1,6 @@
-#include "lights/lights.h"
 #include "pch.h"
+#include "utils/inputmgr.h"
+#include "lights/lights.h"
 #include <plugin.h>
 #include <CHud.h>
 #include <CMessages.h>
@@ -133,6 +134,38 @@ void ModelExtras::Init()
             pFeature->Init();
         }
     }
+
+    Events::processScriptsEvent += []()
+    {
+        InputMgr::Update();
+
+        for (const auto &pFeature : m_Features)
+        {
+            if (pFeature && pFeature->IsActiveCached())
+            {
+                pFeature->ProcessTick();
+            }
+        }
+
+        for (CVehicle *pVeh : CPools::ms_pVehiclePool)
+        {
+            if (!pVeh) continue;
+
+            bool isBike = (pVeh->m_nVehicleSubClass == VEHICLE_BIKE);
+
+            for (const auto &pFeature : m_Features)
+            {
+                if (pFeature && pFeature->IsActiveCached())
+                {
+                    if (isBike)
+                    {
+                        pFeature->ProcessBikePointLights(pVeh);
+                    }
+                    pFeature->ProcessVehicle(pVeh);
+                }
+            }
+        }
+    };
 }
 
 void ModelExtras::Reload()

@@ -177,10 +177,7 @@ void RollbackBed::Init()
     Events::processScriptsEvent += []()
     {
         if (!CBaseFeature::IsEnabled(eFeatureMatrix::RollbackBed)) return;
-        size_t now = CTimer::m_snTimeInMilliseconds;
-        static size_t prev = 0;
-
-        if (Util::IsKeyPressed(g_nRollbackBedToggleKey) && now - prev > 500.0f)
+        if (InputMgr::IsKeyJustDown(g_nRollbackBedToggleKey))
         {
             CVehicle *pVeh = FindPlayerVehicle();
             if (pVeh)
@@ -190,7 +187,6 @@ void RollbackBed::Init()
                 if (data.bInit && !Util::IsEngineOff(pVeh))
                 {
                     data.bExpanded = !data.bExpanded;
-                    prev = now;
                     AudioMgr::PlaySwitchSound(pVeh);
                 }
             }

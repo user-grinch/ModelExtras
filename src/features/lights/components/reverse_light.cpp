@@ -28,7 +28,7 @@ bool ReverseLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, co
         c.lightType = isLeft ? eMaterialType::ReverseLightLeft : eMaterialType::ReverseLightRight;
         c.corona.color = c.shadow.color = {255, 255, 255, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
         c.corona.lightingType = eLightingMode::Directional;
-        data.dummies[c.lightType].push_back(new VehicleDummy(c));
+        data.dummies[c.lightType].push_back(VehicleDummy(c));
         return true;
     }
     return false;
@@ -77,7 +77,7 @@ void ReverseLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& dat
                 continue;
             }
 
-            for (auto e : data.dummies[type]) {
+            for (auto& e : data.dummies[type]) {
                 e->Update();
                 RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 3.2f, true);
             }

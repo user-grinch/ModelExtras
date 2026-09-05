@@ -3,8 +3,6 @@
 #include "utils/datamgr.h"
 #include <string>
 #include <game_sa/CModelInfo.h>
-#include "features/sirens.h"
-#include "features/carcols.h"
 
 bool is_number(const std::string &s)
 {
@@ -141,8 +139,11 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
 
             data[model] = jsonData;
 
-            Sirens::Parse(data[model], model);
-            Carcols::Parse(data[model], model);
+            for (const auto &[name, listener] : listeners) {
+                if (listener) {
+                    listener(model, data[model]);
+                }
+            }
             LOG(INFO) << std::format("Registered file '{}'", filename);
         }
         catch (const nlohmann::json::parse_error &ex)
@@ -158,7 +159,33 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
     }
 }
 
+bool DataMgr::Has(int model)
+{
+    return data.find(model) != data.end();
+}
+
+const nlohmann::json* DataMgr::Find(int model)
+{
+    auto it = data.find(model);
+    return (it != data.end()) ? &it->second : nullptr;
+}
+
 nlohmann::json& DataMgr::Get(int model)
 {
-    return data[model];
+    auto it = data.find(model);
+    if (it == data.end())
+    {
+        static nlohmann::json s_Empty = nlohmann::json::object();
+        return s_Empty;
+    }
+    return it->second;
+}
+
+void DataMgr::RegisterListener(std::string_view name, ModelDataListener_t listener)
+{
+    listeners.push_back({std::string(name), listener});
+    for (const auto &[model, jsonData] : data)
+    {
+        listener(model, jsonData);
+    }
 }

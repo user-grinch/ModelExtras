@@ -60,7 +60,7 @@ bool IndicatorComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
                     c.dummyPos = eDummyPos::Front;
                     break;
             }
-            data.dummies[c.lightType].push_back(new VehicleDummy(c));
+            data.dummies[c.lightType].push_back(VehicleDummy(c));
             return true;
         }
     }
@@ -101,14 +101,14 @@ void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
     if (pVeh->IsDriver(FindPlayerPed()) &&
         (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE || pVeh->m_nVehicleSubClass == VEHICLE_QUAD || pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK))
     {
-        if (Util::IsKeyPressed(LightsConfig::Get().nIndicatorNoneKey)) {
+        if (InputMgr::IsKeyJustDown(LightsConfig::Get().nIndicatorNoneKey)) {
             data.nIndicatorState = eIndicatorState::Off;
             BlinkerState::Get().Reset();
-        } else if (Util::IsKeyPressed(LightsConfig::Get().nIndicatorLeftKey)) {
+        } else if (InputMgr::IsKeyJustDown(LightsConfig::Get().nIndicatorLeftKey)) {
             data.nIndicatorState = eIndicatorState::LeftOn;
-        } else if (Util::IsKeyPressed(LightsConfig::Get().nIndicatorRightKey)) {
+        } else if (InputMgr::IsKeyJustDown(LightsConfig::Get().nIndicatorRightKey)) {
             data.nIndicatorState = eIndicatorState::RightOn;
-        } else if (Util::IsKeyPressed(LightsConfig::Get().nIndicatorBothKey)) {
+        } else if (InputMgr::IsKeyJustDown(LightsConfig::Get().nIndicatorBothKey)) {
             data.nIndicatorState = eIndicatorState::BothOn;
         }
 
@@ -218,7 +218,7 @@ void IndicatorComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
         if (BlinkerState::Get().bIndicatorsDelay) {
             auto renderIndPointLight = [&](eMaterialType type, bool isDamaged) {
                 if (isDamaged || !LightManager::IsDummyAvailable(data, type) || !data.bLightStates[type]) return;
-                for (auto e : data.dummies[type]) {
+                for (auto& e : data.dummies[type]) {
                     e->Update();
                     RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, indRadius, true);
                 }
@@ -266,7 +266,7 @@ void IndicatorComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
                     }
 
                     if (LightManager::IsDummyAvailable(data, actualType) && data.bLightStates[actualType]) {
-                        for (auto e : data.dummies[actualType]) {
+                        for (auto& e : data.dummies[actualType]) {
                             e->Update();
                             RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, indRadius, true);
                         }

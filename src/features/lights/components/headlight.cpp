@@ -33,12 +33,12 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         c.shadow.render = name != "headlights2";
         
         c.mirroredX = true;
-        data.dummies[eMaterialType::HeadLightLeft].push_back(new VehicleDummy(c));
+        data.dummies[eMaterialType::HeadLightLeft].push_back(VehicleDummy(c));
         
         if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
             c.mirroredX = false;
             c.lightType = eMaterialType::HeadLightRight;
-            data.dummies[eMaterialType::HeadLightRight].push_back(new VehicleDummy(c));
+            data.dummies[eMaterialType::HeadLightRight].push_back(VehicleDummy(c));
         }
         return true;
     }
@@ -58,13 +58,9 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
         }
 
         bool canToggleLongLights = !(gbProperShadersDetected && !LightsConfig::Get().gbLightPointLights);
-        if (Util::IsKeyPressed(LightsConfig::Get().nLongLightKey) && isHeadlightsActive && canToggleLongLights) {
-            size_t now = CTimer::m_snTimeInMilliseconds;
-            if (now - prev > 500.0f) {
-                data.bLongLightsOn = !data.bLongLightsOn;
-                prev = now;
-                AudioMgr::PlaySwitchSound(pVeh);
-            }
+        if (InputMgr::IsKeyJustDown(LightsConfig::Get().nLongLightKey) && isHeadlightsActive && canToggleLongLights) {
+            data.bLongLightsOn = !data.bLongLightsOn;
+            AudioMgr::PlaySwitchSound(pVeh);
         }
     } else if (pVeh->m_nVehicleSubClass != VEHICLE_BMX && pVeh->m_nVehicleSubClass != VEHICLE_BOAT && pVeh->m_nVehicleSubClass != VEHICLE_TRAILER && pVeh->m_fHealth > 0.0f) {
         if (CarUtil::IsLightsForcedOff(pVeh) || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn)) {
@@ -148,7 +144,7 @@ void HeadlightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
                 continue;
             }
 
-            for (auto e : data.dummies[type]) {
+            for (auto& e : data.dummies[type]) {
                 e->Update();
                 RenderUtil::RegisterHeadlightPointLight(&e->Get(), highBeamMul);
             }

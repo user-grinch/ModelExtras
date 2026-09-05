@@ -12,6 +12,10 @@ public:
     void ReloadConfig() override;
     void Reload(CVehicle* pVeh) override;
 
+    void ProcessTick() override;
+    void ProcessVehicle(CVehicle* pVeh) override;
+    void ProcessBikePointLights(CVehicle* pVeh) override;
+
     static VehLightData& GetVehicleData(CVehicle* pVeh);
     static bool IsIndicatorOn(CVehicle* pVeh);
     static bool GetLightState(CVehicle* pVeh, eMaterialType lightId);

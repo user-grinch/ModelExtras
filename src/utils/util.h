@@ -4,37 +4,46 @@
 #include "car.h"
 #include "frame.h"
 #include "render.h"
+#include "mathutil.h"
+#include "stringutil.h"
+#include "worldutil.h"
+#include "inputmgr.h"
 
 typedef enum class eModelEntityType eModelEntityType;
 
 class Util
 {
 public:
-  static bool IsNightTime();
-  static bool IsFoggy();
-  static bool IsEngineOff(CVehicle *pVeh);
+  static inline bool IsNightTime() { return WorldUtil::IsNightTime(); }
+  static inline bool IsFoggy() { return WorldUtil::IsFoggy(); }
+  static inline bool IsEngineOff(CVehicle *pVeh) { return CarUtil::IsEngineOff(pVeh); }
   static bool IsWindowFocused();
-  static bool IsKeyPressed(int keyCode);
-  static bool IsDoorDamaged(CVehicle *pVeh, eDoors door);
-  static bool IsLightDamaged(CVehicle *pVeh, eLights light);
-  static bool IsPanelDamaged(CVehicle *pVeh, ePanels panel);
-  static bool IsFrameDamaged(CVehicle *pVeh, RwFrame *frame);
-  static CVector UpdateRelativeToBoundingBox(CVehicle *pVeh, eDummyPos dummyPos, CVector center, CVector up, CVector right);
+  static inline bool IsKeyPressed(int keyCode) { return InputMgr::IsKeyDown(keyCode); }
+  static inline bool IsDoorDamaged(CVehicle *pVeh, eDoors door) { return CarUtil::IsDoorDamaged(pVeh, door); }
+  static inline bool IsLightDamaged(CVehicle *pVeh, eLights light) { return CarUtil::IsLightDamaged(pVeh, light); }
+  static inline bool IsPanelDamaged(CVehicle *pVeh, ePanels panel) { return CarUtil::IsPanelDamaged(pVeh, panel); }
+  static inline bool IsFrameDamaged(CVehicle *pVeh, RwFrame *frame) { return CarUtil::IsFrameDamaged(pVeh, frame); }
+  static inline CVector UpdateRelativeToBoundingBox(CVehicle *pVeh, eDummyPos dummyPos, CVector center, CVector up, CVector right) {
+    return CarUtil::UpdateRelativeToBoundingBox(pVeh, dummyPos, center, up, right);
+  }
 
-  static float NormalizeAngle(float angle);
-  static double RadToDeg(double rad);
-  static double DegToRad(double rad);
+  static inline float NormalizeAngle(float angle) { return MathUtil::NormalizeAngle(angle); }
+  static inline double RadToDeg(double rad) { return MathUtil::RadToDeg(rad); }
+  static inline double DegToRad(double deg) { return MathUtil::DegToRad(deg); }
 
-  // Returns the speed of the vehicle handler
-  static float GetVehiclePitch(CVehicle *pVeh);
-  static bool IsVehicleDoingWheelie(CVehicle *pVeh);
-  static float GetVehicleSpeed(CVehicle *pVeh);
-  static float GetVehicleSpeedRealistic(CVehicle *vehicle);
-  static void GetModelsFromIni(std::string &line, std::vector<int> &vec);
+  static inline float GetVehiclePitch(CVehicle *pVeh) { return CarUtil::GetVehiclePitch(pVeh); }
+  static inline bool IsVehicleDoingWheelie(CVehicle *pVeh) { return CarUtil::IsVehicleDoingWheelie(pVeh); }
+  static inline float GetVehicleSpeed(CVehicle *pVeh) { return CarUtil::GetVehicleSpeed(pVeh); }
+  static inline float GetVehicleSpeedRealistic(CVehicle *vehicle) { return CarUtil::GetVehicleSpeedRealistic(vehicle); }
+  static inline void GetModelsFromIni(std::string &line, std::vector<int> &vec) { StringUtil::GetModelsFromIni(line, vec); }
 
-  static std::optional<int> GetDigitsAfter(const std::string_view str, const std::string_view prefix);
-  static std::optional<std::string> GetCharsAfterPrefix(const std::string_view str, const std::string_view prefix, size_t num_chars);
+  static inline std::optional<int> GetDigitsAfter(const std::string_view str, const std::string_view prefix) {
+    return StringUtil::GetDigitsAfter(str, prefix);
+  }
+  static inline std::optional<std::string> GetCharsAfterPrefix(const std::string_view str, const std::string_view prefix, size_t num_chars) {
+    return StringUtil::GetCharsAfterPrefix(str, prefix, num_chars);
+  }
 
-  static CRGBA GetMaterialColor(RpMaterial*pMat);
+  static CRGBA GetMaterialColor(RpMaterial *pMat);
   static bool IsAntiPatternLightMaterial(RpMaterial *pMat);
 };

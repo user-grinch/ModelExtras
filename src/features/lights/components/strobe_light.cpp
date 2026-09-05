@@ -23,7 +23,7 @@ bool StrobeLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, con
         c.lightType = eMaterialType::StrobeLight;
         c.dummyPos = eDummyPos::Front;
         c.dummyIdx = d.value();
-        data.dummies[c.lightType].push_back(new VehicleDummy(c));
+        data.dummies[c.lightType].push_back(VehicleDummy(c));
         return true;
     }
     return false;
@@ -37,7 +37,7 @@ void StrobeLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, Ve
 
 void StrobeLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
     if (LightManager::IsDummyAvailable(data, eMaterialType::StrobeLight) && data.bLightStates[eMaterialType::StrobeLight]) {
-        for (auto* dummy : data.dummies[eMaterialType::StrobeLight]) {
+        for (auto& dummy : data.dummies[eMaterialType::StrobeLight]) {
             dummy->Update();
             const auto& c = dummy->GetRef();
             if (c.strobe.enabled) {
