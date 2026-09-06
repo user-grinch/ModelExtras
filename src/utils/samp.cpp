@@ -164,4 +164,32 @@ namespace SAMP
         const char *text = FindPlateText(pool, pGameVeh);
         return text ? SanitizeAndFormatPlateText(text) : "";
     }
+
+    void PatchVehicleLights()
+    {
+        if (!IsPresent()) return;
+
+        static bool s_patched = false;
+        if (s_patched) return;
+        s_patched = true;
+
+        // Apply the exact patches that SA-MP applies across all versions (0.3.7-R1, R3, R5, 0.3.DL)
+        // inside CVehicle::DoVehicleLights when ManualVehicleEngineAndLights() is enabled.
+        patch::Nop(0x6E1BA0, 6);
+        patch::Nop(0x6E1BB1, 6);
+        patch::Nop(0x6E1BD2, 7);
+
+        // SA-MP replaces the driver/clock check at 0x6E1BE3 with a test of bLightsOn (bit 6 of 0x428):
+        // 0x6E1BE3: NOP NOP
+        // 0x6E1BE5: mov al, byte ptr [esi + 0x428]
+        // 0x6E1BEB: test al, 0x40
+        // 0x6E1BED: je 0x6E1C17 (+0x28)
+        // 0x6E1BEF..0x6E1C07: NOPs (25 bytes)
+        patch::Nop(0x6E1BE3, 0x25);
+        patch::SetRaw(0x6E1BE5, (void *)"\x8A\x86\x28\x04\x00\x00\xA8\x40\x74\x28", 10);
+
+        patch::Nop(0x6E1C38, 8);
+        patch::Nop(0x6E1D98, 0xF);
+        patch::Nop(0x6E1DBC, 8);
+    }
 }
