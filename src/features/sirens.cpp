@@ -606,7 +606,9 @@ int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat)
 
 void Sirens::Init()
 {
-	DataMgr::RegisterListener("sirens", Sirens::Parse);
+	DataMgr::RegisterListener("sirens", [](int model, const nlohmann::json &data) {
+		Sirens::Parse(data, model);
+	});
 
 	ReloadConfig();
 	ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat)
