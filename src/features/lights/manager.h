@@ -36,4 +36,5 @@ public:
     static bool IsIndicatorOn(CVehicle* pVeh) {
         return pVeh && pVeh->m_fHealth > 0.0f && (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE || pVeh->m_nVehicleSubClass == VEHICLE_QUAD || pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK) && BlinkerState::Get().bIndicatorsDelay && m_VehData.Get(pVeh).nIndicatorState != eIndicatorState::Off;
     }
+    static bool IsBraking(CVehicle* pVeh);
 };

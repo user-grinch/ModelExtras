@@ -42,7 +42,7 @@ void NABrakeLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, V
         bool isLeftRearOk = damage.isRearLeftOk;
         bool isRightRearOk = damage.isRearRightOk;
 
-        bool brakeOn = pControlVeh->m_fBreakPedal && pControlVeh->m_pDriver;
+        bool brakeOn = LightManager::IsBraking(pControlVeh);
         if (brakeOn && data.nIndicatorState != eIndicatorState::BothOn) {
             if (data.nIndicatorState != eIndicatorState::LeftOn && isLeftRearOk) {
                 LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::NABrakeLightLeft, true, shdwName, shdwSz, false, isLeftRearOk);

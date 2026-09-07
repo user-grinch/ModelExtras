@@ -269,3 +269,30 @@ void LightManager::Reload(CVehicle* pVeh) {
         DataMgr::Reload(pVeh->m_nModelIndex);
     }
 }
+
+bool LightManager::IsBraking(CVehicle* pVeh) {
+    if (!pVeh || !pVeh->m_pDriver) {
+        return false;
+    }
+
+    if (pVeh->m_fBreakPedal > 0.05f) {
+        return true;
+    }
+
+    if (LightsConfig::Get().bPlayerIdleBrakeLights) {
+        CPed* pPlayer = FindPlayerPed();
+        if (pPlayer && pVeh->IsDriver(pPlayer)) {
+            if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK || 
+                pVeh->m_nVehicleSubClass == VEHICLE_QUAD || pVeh->m_nVehicleSubClass == VEHICLE_BIKE) 
+            {
+                if (!CarUtil::IsEngineOff(pVeh) && pVeh->m_fHealth > 0.0f) {
+                    if (pVeh->m_fGasPedal <= 0.05f && CarUtil::GetVehicleSpeed(pVeh) < 0.5f) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
+}
