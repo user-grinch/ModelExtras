@@ -148,6 +148,10 @@ RpMaterial *__cdecl LicensePlate::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
 {
     if (plateType == -1)
     {
+        if (!pCurrentVeh)
+        {
+            return material;
+        }
         PlateData &data = m_VehData.Get(pCurrentVeh);
         if (data.cityId == -1)
         {
