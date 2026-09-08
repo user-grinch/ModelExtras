@@ -103,6 +103,11 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
     VehLightData& data = m_VehData.Get(pControlVeh);
     eIndicatorState indState = data.nIndicatorState;
 
+    data.bLightRenderedThisFrame.fill(false);
+    if (pControlVeh != pTowedVeh) {
+        m_VehData.Get(pTowedVeh).bLightRenderedThisFrame.fill(false);
+    }
+
     // Fix for UIF SAMP server https://github.com/user-grinch/ModelExtras/issues/112
     // Don't clear light state when lights are forced on/already on via SAMP
     if (((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn) || CarUtil::IsLightsForcedOff(pControlVeh)) {
@@ -122,25 +127,108 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
     for (const auto& comp : m_Components) {
         comp->Render(pControlVeh, pTowedVeh, data);
     }
+
+    auto ProcessFadeOut = [](CVehicle* pVeh, VehLightData& vData) {
+        for (int t = 0; t < eMaterialType::TotalMaterial; ++t) {
+            eMaterialType type = static_cast<eMaterialType>(t);
+            if (!vData.bLightRenderedThisFrame[type] && vData.fLightFactor[type] > 0.001f) {
+                float inertia = GetLightInertia(pVeh, vData, type);
+                if (inertia > 0.01f) {
+                    float step = (CTimer::ms_fTimeStep / 50.0f) / inertia;
+                    vData.fLightFactor[type] = std::max(0.0f, vData.fLightFactor[type] - step);
+                } else {
+                    vData.fLightFactor[type] = 0.0f;
+                }
+
+                if (vData.fLightFactor[type] > 0.001f) {
+                    float factor = vData.fLightFactor[type];
+                    ModelInfoMgr::EnableMaterial(pVeh, type);
+
+                    int id = static_cast<int>(type) * 1000;
+                    for (auto& dummy : vData.dummies[type]) {
+                        const DummyConfig& c = dummy->GetRef();
+                        dummy->Update();
+                        RwFrame *parent = RwFrameGetParent(dummy->Get().frame);
+                        bool isBike = pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
+                        bool isDamaged = Util::IsFrameDamaged(pVeh, parent) || !FrameUtil::IsOkAtomicVisible(parent);
+                        bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && isDamaged;
+                        if (atomicCheck || (c.dummyPos == eDummyPos::Rear && pVeh->m_pTrailer)) continue;
+
+                        float szMul = 1.0f;
+                        if (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) {
+                            szMul = 1.0f + 2.0f * vData.fHighBeamFactor;
+                        }
+                        EnableDummy((int)pVeh + 42 + id++, &dummy, pVeh, szMul, factor);
+
+                        if (c.shadow.render && factor > 0.01f) {
+                            std::string tex = c.shadow.texture.empty() ? (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight ? ((vData.fHighBeamFactor > 0.3f) ? "headlight_long" : "headlight_short") : "") : c.shadow.texture;
+                            if (!tex.empty()) {
+                                float sz = (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) ? LightsConfig::Get().headlightSz : 1.0f;
+                                RenderUtil::RegisterShadowDirectional(&dummy->Get(), tex, sz * c.shadow.size, factor);
+                            }
+                        }
+                    }
+                } else {
+                    if (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) {
+                        vData.fHighBeamFactor = 0.0f;
+                        vData.bLongLightsOn = false;
+                    }
+                }
+            }
+        }
+    };
+
+    ProcessFadeOut(pControlVeh, data);
+    if (pControlVeh != pTowedVeh) {
+        ProcessFadeOut(pTowedVeh, m_VehData.Get(pTowedVeh));
+    }
 }
 
-void LightManager::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMul) {
-    if (LightsConfig::Get().gbLightCoronasFeature) {
-        const DummyConfig &c = dummy->GetRef();
+void LightManager::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMul, float alphaMul) {
+    if (LightsConfig::Get().gbLightCoronasFeature && alphaMul > 0.01f) {
+        DummyConfig &c = dummy->Get();
+        CRGBA origColor = c.corona.color;
+        c.corona.color.a = static_cast<unsigned char>(std::clamp(static_cast<float>(origColor.a) * alphaMul, 0.0f, 255.0f));
         if (c.corona.lightingType == eLightingMode::NonDirectional) {
             RenderUtil::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, c.position, c.corona.color, c.corona.size * szMul);
         } else {
             RenderUtil::RegisterCoronaDirectional(&dummy->Get(), c.rotation.angle, 180.0f, szMul, c.corona.lightingType == eLightingMode::Inversed, false);
         }
+        c.corona.color = origColor;
     }
 }
 
 void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType type, bool isOn, const std::string& texture, float sz, bool highlight, bool isDummyOk, bool materialsOnly) {
     if (!isOn || !data.bLightStates[type]) return;
 
+    data.bLightRenderedThisFrame[type] = true;
+    bool isAvailable = IsDummyAvailable(data, type);
+    float inertia = GetLightInertia(pVeh, data, type);
+
+    if (inertia > 0.01f) {
+        float step = (CTimer::ms_fTimeStep / 50.0f) / inertia;
+        data.fLightFactor[type] = std::min(1.0f, data.fLightFactor[type] + step);
+    } else {
+        data.fLightFactor[type] = 1.0f;
+    }
+
+    if (type == eMaterialType::HeadLightLeft) {
+        float target = (data.bLongLightsOn && isOn) ? 1.0f : 0.0f;
+        if (inertia > 0.01f) {
+            float hbStep = (CTimer::ms_fTimeStep / 50.0f) / inertia;
+            if (data.fHighBeamFactor < target) {
+                data.fHighBeamFactor = std::min(target, data.fHighBeamFactor + hbStep);
+            } else if (data.fHighBeamFactor > target) {
+                data.fHighBeamFactor = std::max(target, data.fHighBeamFactor - hbStep);
+            }
+        } else {
+            data.fHighBeamFactor = target;
+        }
+    }
+
+    float factor = data.fLightFactor[type];
     int id = static_cast<int>(type) * 1000;
     bool hasActiveDummy = false;
-    bool isAvailable = IsDummyAvailable(data, type);
 
     if (isAvailable) {
         for (auto& dummy : data.dummies[type]) {
@@ -176,20 +264,28 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
             }
 
             float szMul = 1.0f;
-            if (highlight) {
+            if (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) {
+                szMul = 1.0f + 2.0f * data.fHighBeamFactor;
+                if (highlight && !data.bLongLightsOn) {
+                    szMul = std::max(szMul, 3.00f);
+                }
+            } else if (highlight) {
                 szMul = (type == eMaterialType::TailLightLeft || type == eMaterialType::TailLightRight) ? 1.50f : 3.00f;
             }
-            EnableDummy((int)pVeh + 42 + id++, &dummy, pVeh, szMul);
+            EnableDummy((int)pVeh + 42 + id++, &dummy, pVeh, szMul, factor);
 
             // Skip front shadows on bike wheelie
             if (c.dummyPos == eDummyPos::Front && Util::IsVehicleDoingWheelie(pVeh)) {
                 continue;
             }
 
-            if (c.shadow.render) {
-                std::string tex = (c.shadow.texture == "") ? texture : c.shadow.texture;
+            if (c.shadow.render && factor > 0.01f) {
+                std::string tex = c.shadow.texture.empty() ? texture : c.shadow.texture;
+                if ((type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) && data.fHighBeamFactor > 0.3f) {
+                    tex = "headlight_long";
+                }
                 if (!tex.empty()) {
-                    RenderUtil::RegisterShadowDirectional(&dummy->Get(), tex, sz * c.shadow.size);
+                    RenderUtil::RegisterShadowDirectional(&dummy->Get(), tex, sz * c.shadow.size, factor);
                 }
             }
         }
@@ -300,4 +396,83 @@ bool LightManager::IsBraking(CVehicle* pVeh) {
     }
 
     return false;
+}
+
+const char* LightManager::GetLightGroupKey(eMaterialType type) {
+    switch (type) {
+    case eMaterialType::HeadLightLeft:
+    case eMaterialType::HeadLightRight:
+        return "headlights";
+    case eMaterialType::TailLightLeft:
+    case eMaterialType::TailLightRight:
+        return "taillights";
+    case eMaterialType::BrakeLightLeft:
+    case eMaterialType::BrakeLightRight:
+    case eMaterialType::NABrakeLightLeft:
+    case eMaterialType::NABrakeLightRight:
+        return "brakelights";
+    case eMaterialType::ReverseLightLeft:
+    case eMaterialType::ReverseLightRight:
+        return "reverselights";
+    case eMaterialType::IndicatorLightLeftFront:
+    case eMaterialType::IndicatorLightRightFront:
+    case eMaterialType::IndicatorLightLeftRear:
+    case eMaterialType::IndicatorLightRightRear:
+    case eMaterialType::IndicatorLightLeftMiddle:
+    case eMaterialType::IndicatorLightRightMiddle:
+        return "indicators";
+    case eMaterialType::FogLightLeft:
+    case eMaterialType::FogLightRight:
+        return "foglights";
+    default:
+        return nullptr;
+    }
+}
+
+const char* LightManager::GetLightSpecificKey(eMaterialType type) {
+    switch (type) {
+    case eMaterialType::HeadLightLeft: return "headlight_l";
+    case eMaterialType::HeadLightRight: return "headlight_r";
+    case eMaterialType::TailLightLeft: return "taillight_l";
+    case eMaterialType::TailLightRight: return "taillight_r";
+    case eMaterialType::BrakeLightLeft:
+    case eMaterialType::NABrakeLightLeft: return "brakelight_l";
+    case eMaterialType::BrakeLightRight:
+    case eMaterialType::NABrakeLightRight: return "brakelight_r";
+    case eMaterialType::ReverseLightLeft: return "reverselight_l";
+    case eMaterialType::ReverseLightRight: return "reverselight_r";
+    case eMaterialType::IndicatorLightLeftFront: return "indicator_lf";
+    case eMaterialType::IndicatorLightRightFront: return "indicator_rf";
+    case eMaterialType::IndicatorLightLeftRear: return "indicator_lr";
+    case eMaterialType::IndicatorLightRightRear: return "indicator_rr";
+    case eMaterialType::IndicatorLightLeftMiddle: return "indicator_lm";
+    case eMaterialType::IndicatorLightRightMiddle: return "indicator_rm";
+    case eMaterialType::FogLightLeft: return "foglight_l";
+    case eMaterialType::FogLightRight: return "foglight_r";
+    default: return nullptr;
+    }
+}
+
+float LightManager::GetLightInertia(CVehicle* pVeh, VehLightData& data, eMaterialType type) {
+    if (type >= 0 && type < eMaterialType::TotalMaterial && !data.dummies[type].empty()) {
+        float dInertia = data.dummies[type][0]->GetRef().inertia;
+        if (dInertia > 0.0f) return dInertia;
+    }
+
+    if (!pVeh) return 0.0f;
+    auto& json = DataMgr::Get(pVeh->m_nModelIndex);
+    if (!json.contains("lights")) return 0.0f;
+    auto& lights = json["lights"];
+
+    const char* specKey = GetLightSpecificKey(type);
+    if (specKey && lights.contains(specKey) && lights[specKey].contains("inertia")) {
+        return lights[specKey].value("inertia", 0.0f);
+    }
+
+    const char* grpKey = GetLightGroupKey(type);
+    if (grpKey && lights.contains(grpKey) && lights[grpKey].contains("inertia")) {
+        return lights[grpKey].value("inertia", 0.0f);
+    }
+
+    return lights.value("inertia", 0.0f);
 }

@@ -118,6 +118,7 @@ using LightsGlobal = LightsConfig;
 struct VehLightData {
     bool bFogLightsOn = false;
     bool bLongLightsOn = false;
+    float fHighBeamFactor = 0.0f;
     eIndicatorState nIndicatorState = eIndicatorState::Off;
     bool bUsingGlobalIndicators = false;
     bool bWasAutoSteerActive = false;
@@ -127,9 +128,13 @@ struct VehLightData {
     bool bLightStates[eMaterialType::TotalMaterial];
     unsigned int nHeadlightTickFrame = 0;
     bool bHasVehFuncsPopUp = false;
+    std::array<float, eMaterialType::TotalMaterial> fLightFactor = {};
+    std::array<bool, eMaterialType::TotalMaterial> bLightRenderedThisFrame = {};
 
     VehLightData(CVehicle* pVeh = nullptr) {
         std::fill(std::begin(bLightStates), std::end(bLightStates), true);
+        fLightFactor.fill(0.0f);
+        bLightRenderedThisFrame.fill(false);
     }
 
     VehLightData(const VehLightData&) = delete;
@@ -144,10 +149,13 @@ struct VehLightData {
             ClearDummies();
             bFogLightsOn = other.bFogLightsOn;
             bLongLightsOn = other.bLongLightsOn;
+            fHighBeamFactor = other.fHighBeamFactor;
             nIndicatorState = other.nIndicatorState;
             bUsingGlobalIndicators = other.bUsingGlobalIndicators;
             bWasAutoSteerActive = other.bWasAutoSteerActive;
             bHasVehFuncsPopUp = other.bHasVehFuncsPopUp;
+            fLightFactor = other.fLightFactor;
+            bLightRenderedThisFrame = other.bLightRenderedThisFrame;
             dummies = std::move(other.dummies);
             for (auto& vec : other.dummies) {
                 vec.clear();
@@ -162,6 +170,9 @@ struct VehLightData {
         for (auto& vec : dummies) {
             vec.clear();
         }
+        fLightFactor.fill(0.0f);
+        fHighBeamFactor = 0.0f;
+        bLightRenderedThisFrame.fill(false);
         bHasVehFuncsPopUp = false;
     }
     

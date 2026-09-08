@@ -15,6 +15,7 @@
 #include "features/dirtfx.h"
 #include "features/plate.h"
 #include "features/remap.h"
+#include "features/lights/manager.h"
 #include "defines.h"
 #include "utils/meevents.h"
 #include "utils/texmgr.h"
@@ -339,6 +340,16 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
     pColor->blue = matCol.on.b;
 
     if (lightOn) {
+      float factor = 1.0f;
+      if (iLightIndex != eMaterialType::SirenLight &&
+          iLightIndex != eMaterialType::SpotLight &&
+          iLightIndex < eMaterialType::EngineOnLed &&
+          iLightIndex >= 0 && iLightIndex < eMaterialType::TotalMaterial) {
+        VehLightData &lData = LightManager::m_VehData.Get(pCurVeh);
+        if (lData.fLightFactor[iLightIndex] > 0.001f) {
+          factor = lData.fLightFactor[iLightIndex];
+        }
+      }
       m_RestoreEntries.push_back({&material->texture, material->texture});
 
       if (material->texture) {
@@ -356,11 +367,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
         }
       }
       m_SurfPropsRestoreEntries.push_back({material, material->surfaceProps});
-      material->surfaceProps = GetLightSurfaceProps();
-    } else {
-      pColor->red = matCol.off.r;
-      pColor->green = matCol.off.g;
-      pColor->blue = matCol.off.b;
+      material->surfaceProps = GetLightSurfaceProps(factor);
     }
   } else {
     CRGBA col = {255, 255, 255, 255};

@@ -446,7 +446,7 @@ static int GetShadowIntensity(eMaterialType lightType)
     return std::clamp(intensity, 0, 255);
 }
 
-void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std::string &shadwTexName, float shdwSz)
+void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std::string &shadwTexName, float shdwSz, float alphaMul)
 {
     EnsureConfigLoaded();
     const float SHDW_SZ_MUL = 2.0f;
@@ -514,11 +514,14 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
         rightDir = -rightDir;
     }
 
-    // Push shadow forward along light direction
-    CVector shdwCenter = worldPos + lightDir * (shdwSz * SHDW_SZ_MUL + 0.2f);
+    // Scale shadow size/thickness with inertia factor so it expands/contracts naturally
+    float currentShdwSz = shdwSz * (0.35f + 0.65f * std::clamp(alphaMul, 0.0f, 1.0f));
 
-    CVector2D shdwFront(lightDir.x * (shdwSz * SHDW_SZ_MUL), lightDir.y * (shdwSz * SHDW_SZ_MUL));
-    CVector2D shdwSide(rightDir.x * shdwSz, rightDir.y * shdwSz);
+    // Push shadow forward along light direction
+    CVector shdwCenter = worldPos + lightDir * (currentShdwSz * SHDW_SZ_MUL + 0.2f);
+
+    CVector2D shdwFront(lightDir.x * (currentShdwSz * SHDW_SZ_MUL), lightDir.y * (currentShdwSz * SHDW_SZ_MUL));
+    CVector2D shdwSide(rightDir.x * currentShdwSz, rightDir.y * currentShdwSz);
 
     RwTexture *pTex = TextureMgr::Get(shadwTexName);
     if (!pTex)
@@ -529,11 +532,12 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     CVector shdwPos(shdwCenter.x, shdwCenter.y, pConfig->pVeh->GetPosition().z + 2.0f);
 
     // Fade towards the cutoff so distant shadows don't pop in and out
-    float alphaMul = 1.0f;
+    float distAlpha = 1.0f;
     if (distToCam > SHDW_FADE_DIST)
     {
-        alphaMul = (SHDW_MAX_DIST - distToCam) / (SHDW_MAX_DIST - SHDW_FADE_DIST);
+        distAlpha = (SHDW_MAX_DIST - distToCam) / (SHDW_MAX_DIST - SHDW_FADE_DIST);
     }
+    float finalAlpha = distAlpha * std::clamp(alphaMul, 0.0f, 1.0f);
 
     float shadowIntensityFactor = static_cast<float>(GetShadowIntensity(pConfig->lightType)) / 255.0f;
     unsigned char r = static_cast<unsigned char>(pConfig->shadow.color.r * shadowIntensityFactor);
@@ -546,7 +550,7 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
         &shdwPos,
         shdwFront.x, shdwFront.y,
         shdwSide.x, shdwSide.y,
-        static_cast<short>(255 * alphaMul),
+        static_cast<short>(255 * finalAlpha),
         r,
         g,
         b,
