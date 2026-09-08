@@ -11,4 +11,6 @@ public:
     void Process(CVehicle* pVeh, VehLightData& data) override;
     void Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) override;
     void ProcessPointLights(CVehicle* pVeh, VehLightData& data) override;
+
+    static bool AreHeadlightsOpen(CVehicle* pVeh, const VehLightData& data);
 };

@@ -94,10 +94,21 @@ eMaterialType LightManager::GetMatType(RpMaterial* pMat) {
 }
 
 void LightManager::RegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name) {
-    if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
+    if (!pVeh || !pFrame) return;
+
+    VehLightData& data = m_VehData.Get(pVeh);
+
+    if (!rwLinkListEmpty(&pFrame->objectList)) {
+        // Pop-up headlights are animated geometry frames (RpAtomic attached), not empty dummies.
+        // Only HeadlightComponent inspects non-empty frames to detect pop-up lights.
+        for (const auto& comp : m_Components) {
+            if (dynamic_cast<HeadlightComponent*>(comp.get())) {
+                comp->TryRegisterDummy(pVeh, pFrame, name, data);
+                break;
+            }
+        }
         return;
     }
-    VehLightData& data = m_VehData.Get(pVeh);
 
     for (const auto& comp : m_Components) {
         if (comp->TryRegisterDummy(pVeh, pFrame, name, data)) return;
