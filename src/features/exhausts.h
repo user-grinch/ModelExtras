@@ -21,7 +21,7 @@ struct ExhaustData
     std::string sName;
     RwFrame *pFrame = nullptr;
     CRGBA Color = {150, 150, 150, 200}; // Dark grey default
-    float fLifeTime = 1.0f;             // Longer lifetime for larger pipes
+    float fLifeTime = 0.4f;             // Default smoke lifetime (shortened to prevent excessive rising)
     float fSpeedMul = 1.0f;             // Speed multiplier
     float fSizeMul = 1.0f;
     bool bNitroEffect = true;
