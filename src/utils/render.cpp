@@ -114,7 +114,8 @@ void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRG
     if (Util::IsNightTime() && gfCoronaDistanceMul != 0.0f) {
         // pEntity is null for unattached coronas, pos is already in world space then
         CVector refPos = pEntity ? pEntity->GetPosition() : pos;
-        float dist = CVector::Distance(TheCamera.GetPosition(), refPos);
+        float distSq = MathUtil::DistanceSquared(TheCamera.GetPosition(), refPos);
+        float dist = std::sqrt(distSq);
         coronaSz = std::max(size, size * dist * gfCoronaDistanceMul);
     }
 
@@ -137,7 +138,16 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
     if (!isBike && pConfig->pVeh->GetIsOnScreen())
     {
         RwFrame *parent = pConfig->frame ? RwFrameGetParent(pConfig->frame) : nullptr;
-        if (Util::IsFrameDamaged(pConfig->pVeh, parent) || !FrameUtil::IsOkAtomicVisible(parent))
+        bool isDamaged = false;
+        if (pConfig->damagePanel != -1 || pConfig->damageDoor != -1) {
+            isDamaged = CarUtil::IsDummyDamaged(pConfig->pVeh, *pConfig);
+        } else if (parent) {
+            isDamaged = Util::IsFrameDamaged(pConfig->pVeh, parent);
+        }
+        if (!isDamaged && parent) {
+            isDamaged = !FrameUtil::IsOkAtomicVisible(parent);
+        }
+        if (isDamaged)
         {
             return;
         }
@@ -200,8 +210,7 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
         return;
     }
 
-    float distToCam = CVector::Distance(pConfig->pVeh->GetPosition(), TheCamera.GetPosition());
-    if (distToCam > 75.0f)
+    if (MathUtil::DistanceSquared(pConfig->pVeh->GetPosition(), TheCamera.GetPosition()) > (75.0f * 75.0f))
     {
         return;
     }
@@ -210,7 +219,16 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
     if (!isBike && pConfig->pVeh->GetIsOnScreen())
     {
         RwFrame *parent = pConfig->frame ? RwFrameGetParent(pConfig->frame) : nullptr;
-        if (Util::IsFrameDamaged(pConfig->pVeh, parent) || !FrameUtil::IsOkAtomicVisible(parent))
+        bool isDamaged = false;
+        if (pConfig->damagePanel != -1 || pConfig->damageDoor != -1) {
+            isDamaged = CarUtil::IsDummyDamaged(pConfig->pVeh, *pConfig);
+        } else if (parent) {
+            isDamaged = Util::IsFrameDamaged(pConfig->pVeh, parent);
+        }
+        if (!isDamaged && parent) {
+            isDamaged = !FrameUtil::IsOkAtomicVisible(parent);
+        }
+        if (isDamaged)
         {
             return;
         }
@@ -360,9 +378,10 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
 
     CVector plightPos = lightPos + lightDir * pushDist;
 
-    float r = std::clamp(col.r / 255.0f, 0.0f, 1.0f);
-    float g = std::clamp(col.g / 255.0f, 0.0f, 1.0f);
-    float b = std::clamp(col.b / 255.0f, 0.0f, 1.0f);
+    constexpr float INV_255 = 1.0f / 255.0f;
+    float r = std::clamp(col.r * INV_255, 0.0f, 1.0f);
+    float g = std::clamp(col.g * INV_255, 0.0f, 1.0f);
+    float b = std::clamp(col.b * INV_255, 0.0f, 1.0f);
 
     unsigned char lightType = isSpotlight ? PLTYPE_SPOTLIGHT : PLTYPE_POINTLIGHT;
     CPointLights::AddLight(lightType, plightPos, lightDir, radius, r, g, b, 0, false, nullptr);
@@ -458,8 +477,8 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     }
 
     // Cull first, the shadow isn't visible past this range anyway
-    float distToCam = CVector::Distance(pConfig->pVeh->GetPosition(), TheCamera.GetPosition());
-    if (distToCam > SHDW_MAX_DIST)
+    float distSq = MathUtil::DistanceSquared(pConfig->pVeh->GetPosition(), TheCamera.GetPosition());
+    if (distSq > (SHDW_MAX_DIST * SHDW_MAX_DIST))
     {
         return;
     }
@@ -486,8 +505,6 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     {
         RotateMatrix180Z(mat);
     }
-
-    CMatrix vehMat = pConfig->pVeh->GetMatrix();
 
     // Calculate correct world position using shadow.position (which contains mirroredX translation)
     CVector worldPos = pConfig->pVeh->TransformFromObjectSpace(pConfig->shadow.position);
@@ -533,13 +550,15 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
 
     // Fade towards the cutoff so distant shadows don't pop in and out
     float distAlpha = 1.0f;
-    if (distToCam > SHDW_FADE_DIST)
+    if (distSq > (SHDW_FADE_DIST * SHDW_FADE_DIST))
     {
+        float distToCam = std::sqrt(distSq);
         distAlpha = (SHDW_MAX_DIST - distToCam) / (SHDW_MAX_DIST - SHDW_FADE_DIST);
     }
     float finalAlpha = distAlpha * std::clamp(alphaMul, 0.0f, 1.0f);
 
-    float shadowIntensityFactor = static_cast<float>(GetShadowIntensity(pConfig->lightType)) / 255.0f;
+    constexpr float INV_255 = 1.0f / 255.0f;
+    float shadowIntensityFactor = static_cast<float>(GetShadowIntensity(pConfig->lightType)) * INV_255;
     unsigned char r = static_cast<unsigned char>(pConfig->shadow.color.r * shadowIntensityFactor);
     unsigned char g = static_cast<unsigned char>(pConfig->shadow.color.g * shadowIntensityFactor);
     unsigned char b = static_cast<unsigned char>(pConfig->shadow.color.b * shadowIntensityFactor);

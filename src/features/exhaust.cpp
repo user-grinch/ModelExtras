@@ -122,9 +122,12 @@ void ExhaustFx::Init()
         ExhaustVehData &data = m_VehData.Get(pVeh);
 
         // Must be here to work with VehFuncs recursive extras
-        if (!data.isUsed) {
-            RwFrame *pFrame = (RwFrame*)pVeh->m_pRwClump->object.parent;
-            FindNodes(pVeh, pFrame);
+        if (!data.bNodesSearched) {
+            data.bNodesSearched = true;
+            if (pVeh->m_pRwClump && pVeh->m_pRwClump->object.parent) {
+                RwFrame *pFrame = (RwFrame*)pVeh->m_pRwClump->object.parent;
+                FindNodes(pVeh, pFrame);
+            }
         }
 
         for (auto& e : data.m_pDummies) {
@@ -479,6 +482,9 @@ void ExhaustFx::Reload(CVehicle* pVeh)
                 e.second.pFxSysem = nullptr;
             }
         }
+        data.bNodesSearched = false;
+        data.isUsed = false;
+        data.m_pDummies.clear();
     }
     nReloadCount++;
 }
