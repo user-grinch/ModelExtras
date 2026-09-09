@@ -98,6 +98,20 @@ static inline float GetZAngleForPoint(CVector2D const &point) {
 void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
     static bool bSAMP = GetModuleHandle("samp.dll") != nullptr;
 
+    bool hasIndicators = data.bUsingGlobalIndicators ||
+                         LightManager::IsMaterialAvailable(pVeh, INDICATOR_LIGHTS_TYPE) ||
+                         LightManager::IsDummyAvailable(data, INDICATOR_LIGHTS_TYPE) ||
+                         LightManager::IsMaterialAvailable(pVeh, {eMaterialType::STTLightLeft, eMaterialType::STTLightRight}) ||
+                         (LightsConfig::Get().gbGlobalIndicatorLights &&
+                          (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK) &&
+                          !CModelInfo::IsBikeModel(pVeh->m_nModelIndex) &&
+                          pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE);
+
+    if (!hasIndicators) {
+        data.nIndicatorState = eIndicatorState::Off;
+        return;
+    }
+
     if (pVeh->IsDriver(FindPlayerPed()) &&
         (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE || pVeh->m_nVehicleSubClass == VEHICLE_QUAD || pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK))
     {
@@ -169,8 +183,9 @@ void IndicatorComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
 
     // Global turn lights activation check
     if (LightsConfig::Get().gbGlobalIndicatorLights && !LightManager::IsMaterialAvailable(pControlVeh, INDICATOR_LIGHTS_TYPE) && !LightManager::IsMaterialAvailable(pControlVeh, {eMaterialType::STTLightLeft, eMaterialType::STTLightRight})) {
-        if ((pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE || pControlVeh->m_nVehicleSubClass == VEHICLE_QUAD) &&
-            (pControlVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE || pControlVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) &&
+        if ((pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_MTRUCK) &&
+            !CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex) &&
+            (pControlVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE) &&
             pControlVeh->bEngineOn && pControlVeh->m_fHealth > 0 && !pControlVeh->bIsDrowning && !pControlVeh->m_pAttachedTo) {
             data.bUsingGlobalIndicators = true;
         }

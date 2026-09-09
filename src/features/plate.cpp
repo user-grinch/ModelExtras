@@ -27,6 +27,10 @@ void LicensePlate::ReloadConfig()
 void LicensePlate::Init()
 {
     ReloadConfig();
+    if (!m_bEnabled)
+    {
+        return;
+    }
     // RpMaterial *__cdecl CCustomCarPlateMgr::SetupMaterialPlatebackTexture(RpMaterial *material, char plateType)
     patch::PutRetn(0x6FDE50);
     patch::ReplaceFunction(0x6FD500, (void *)CCustomCarPlateMgr_Initialise);
@@ -112,8 +116,8 @@ bool __cdecl LicensePlate::CCustomCarPlateMgr_Initialise()
 {
     pCharSetTex = TextureMgr::Get("plate_char");
     RwTextureSetFilterMode(pCharSetTex, rwFILTERLINEAR);
-    RwTextureSetAddressingU(pCharSetTex, rwFILTERMIPNEAREST);
-    RwTextureSetAddressingV(pCharSetTex, rwFILTERMIPNEAREST);
+    RwTextureSetAddressingU(pCharSetTex, rwTEXTUREADDRESSCLAMP);
+    RwTextureSetAddressingV(pCharSetTex, rwTEXTUREADDRESSCLAMP);
     pCharSetTex->raster->stride = 512;
 
     m_Plates[DAY_CS] = TextureMgr::Get("plate_cs");
@@ -131,13 +135,9 @@ bool __cdecl LicensePlate::CCustomCarPlateMgr_Initialise()
         if (m_Plates[i])
         {
             RwTextureSetName(m_Plates[i], "carpback");
-            RwTextureSetAddressingU(m_Plates[i], rwFILTERMIPNEAREST);
-            RwTextureSetAddressingV(m_Plates[i], rwFILTERMIPNEAREST);
-            if (RwTextureGetRaster(m_Plates[i]))
-            {
-                RwTextureRasterGenerateMipmaps(RwTextureGetRaster(m_Plates[i]), nullptr);
-            }
-            RwTextureSetFilterMode(m_Plates[i], rwFILTERLINEARMIPLINEAR);
+            RwTextureSetAddressingU(m_Plates[i], rwTEXTUREADDRESSCLAMP);
+            RwTextureSetAddressingV(m_Plates[i], rwTEXTUREADDRESSCLAMP);
+            RwTextureSetFilterMode(m_Plates[i], rwFILTERLINEAR);
         }
     }
     pCharsetLockedData = RwRasterLock(RwTextureGetRaster(pCharSetTex), 0, rwRASTERLOCKREAD);
@@ -148,6 +148,10 @@ RpMaterial *__cdecl LicensePlate::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
 {
     if (plateType == -1)
     {
+        if (!pCurrentVeh)
+        {
+            return material;
+        }
         PlateData &data = m_VehData.Get(pCurrentVeh);
         if (data.cityId == -1)
         {
@@ -371,8 +375,8 @@ RwTexture *LicensePlate::CCustomCarPlateMgr_CreatePlateTexture(char *text, uint8
 {
     assert(text);
 
-    // Create a new raster for the plate with mipmap support
-    const auto plateRaster = RwRasterCreate(256, 64, 32, rwRASTERFORMAT8888 | rwRASTERFORMATMIPMAP | rwRASTERFORMATAUTOMIPMAP | rwRASTERPIXELLOCKEDWRITE);
+    // Create a new raster for the plate
+    const auto plateRaster = RwRasterCreate(256, 64, 32, rwRASTERFORMAT8888 | rwRASTERPIXELLOCKEDWRITE);
     if (!plateRaster)
     {
         return nullptr;
@@ -397,8 +401,7 @@ RwTexture *LicensePlate::CCustomCarPlateMgr_CreatePlateTexture(char *text, uint8
     {
         // Set the texture name and filter mode
         RwTextureSetName(plateTex, text);
-        RwTextureRasterGenerateMipmaps(plateRaster, nullptr);
-        RwTextureSetFilterMode(plateTex, rwFILTERLINEARMIPLINEAR);
+        RwTextureSetFilterMode(plateTex, rwFILTERLINEAR);
         return plateTex;
     }
 

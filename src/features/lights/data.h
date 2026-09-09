@@ -127,8 +127,6 @@ struct VehLightData {
     bool bLightStates[eMaterialType::TotalMaterial];
     unsigned int nHeadlightTickFrame = 0;
     bool bHasVehFuncsPopUp = false;
-    unsigned int nHeadlightsTurnedOnTime = 0;
-    bool bPrevHeadlightsOn = false;
 
     VehLightData(CVehicle* pVeh = nullptr) {
         std::fill(std::begin(bLightStates), std::end(bLightStates), true);
@@ -150,8 +148,6 @@ struct VehLightData {
             bUsingGlobalIndicators = other.bUsingGlobalIndicators;
             bWasAutoSteerActive = other.bWasAutoSteerActive;
             bHasVehFuncsPopUp = other.bHasVehFuncsPopUp;
-            nHeadlightsTurnedOnTime = other.nHeadlightsTurnedOnTime;
-            bPrevHeadlightsOn = other.bPrevHeadlightsOn;
             dummies = std::move(other.dummies);
             for (auto& vec : other.dummies) {
                 vec.clear();
@@ -166,6 +162,7 @@ struct VehLightData {
         for (auto& vec : dummies) {
             vec.clear();
         }
+        bHasVehFuncsPopUp = false;
     }
     
     ~VehLightData() {

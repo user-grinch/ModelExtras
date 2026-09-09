@@ -130,7 +130,7 @@ void ModelInfoMgr::Init() {
   patch::ReplaceFunction(
       0x4C8460, reinterpret_cast<void *>(ModelInfoMgr::ResetEditableMaterials));
   MEEvents::vehRenderEvent.before += [](CVehicle *pVeh) {
-    if (!pVeh || !pVeh->m_pRwClump) {
+    if (!pVeh || pVeh->m_nType != ENTITY_TYPE_VEHICLE || !pVeh->m_pRwClump) {
       return;
     }
 
@@ -147,8 +147,25 @@ void ModelInfoMgr::Init() {
   };
 
   MEEvents::heliRenderEvent.after += [](CVehicle *pVeh) {
-    if (pVeh && CModelInfo::IsHeliModel(pVeh->m_nModelIndex)) {
-      ModelInfoMgr::OnRender(pVeh);
+    if (!pVeh || pVeh->m_nType != ENTITY_TYPE_VEHICLE) {
+      return;
+    }
+
+    uint16_t modelIndex = static_cast<uint16_t>(pVeh->m_nModelIndex);
+    if (CModelInfo::IsHeliModel(modelIndex)) {
+      if (!pVeh->m_pRwClump) {
+        return;
+      }
+      auto &data = m_VehData.Get(pVeh);
+      if (data.nFrameCount > 10) {
+        ModelInfoMgr::OnRender(pVeh);
+      } else if (data.nFrameCount == 10) {
+        ModelInfoMgr::FindDummies(
+            pVeh, reinterpret_cast<RwFrame *>(pVeh->m_pRwClump->object.parent));
+        data.nFrameCount++;
+      } else {
+        data.nFrameCount++;
+      }
     }
   };
 }
@@ -228,6 +245,9 @@ void ModelInfoMgr::RegisterMaterialColProvider(
 }
 
 void ModelInfoMgr::SetupRender(CVehicle *ptr) {
+  if (!ptr) {
+    return;
+  }
   pCurVeh = ptr;
   auto &data = m_VehData.Get(pCurVeh);
   ptr->SetupRender();

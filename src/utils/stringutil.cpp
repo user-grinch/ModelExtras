@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "stringutil.h"
+#include <algorithm>
+#include <cctype>
 #include <regex>
 #include <sstream>
 
@@ -10,10 +12,9 @@ bool StringUtil::IsNumber(const std::string &s)
 
 std::optional<int> StringUtil::GetDigitsAfter(const std::string_view str, const std::string_view prefix)
 {
-    size_t pos = str.find(prefix);
-    if (pos == std::string_view::npos) return std::nullopt;
+    if (!str.starts_with(prefix)) return std::nullopt;
 
-    pos += prefix.length();
+    size_t pos = prefix.length();
     if (pos < str.length() && (str[pos] == '_' || str[pos] == '-')) {
         pos++;
     }
@@ -34,16 +35,18 @@ std::optional<int> StringUtil::GetDigitsAfter(const std::string_view str, const 
 
 std::optional<std::string> StringUtil::GetCharsAfterPrefix(const std::string_view str, const std::string_view prefix, size_t num_chars)
 {
-    size_t pos = str.find(prefix);
-    if (pos == std::string_view::npos) return std::nullopt;
+    if (!str.starts_with(prefix)) return std::nullopt;
 
-    pos += prefix.length();
+    size_t pos = prefix.length();
     if (pos < str.length() && (str[pos] == '_' || str[pos] == '-')) {
         pos++;
     }
 
     if (pos + num_chars <= str.length()) {
-        return std::string(str.substr(pos, num_chars));
+        std::string result(str.substr(pos, num_chars));
+        std::transform(result.begin(), result.end(), result.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+        return result;
     }
     return std::nullopt;
 }

@@ -94,10 +94,21 @@ eMaterialType LightManager::GetMatType(RpMaterial* pMat) {
 }
 
 void LightManager::RegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name) {
-    if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
+    if (!pVeh || !pFrame) return;
+
+    VehLightData& data = m_VehData.Get(pVeh);
+
+    if (!rwLinkListEmpty(&pFrame->objectList)) {
+        // Pop-up headlights are animated geometry frames (RpAtomic attached), not empty dummies.
+        // Only HeadlightComponent inspects non-empty frames to detect pop-up lights.
+        for (const auto& comp : m_Components) {
+            if (dynamic_cast<HeadlightComponent*>(comp.get())) {
+                comp->TryRegisterDummy(pVeh, pFrame, name, data);
+                break;
+            }
+        }
         return;
     }
-    VehLightData& data = m_VehData.Get(pVeh);
 
     for (const auto& comp : m_Components) {
         if (comp->TryRegisterDummy(pVeh, pFrame, name, data)) return;
@@ -245,6 +256,23 @@ bool LightManager::IsMaterialAvailable(CVehicle* pVeh, std::initializer_list<eMa
         if (IsMaterialAvailable(pVeh, type)) return true;
     }
     return false;
+}
+
+bool LightManager::IsIndicatorOn(CVehicle* pVeh) {
+    if (!pVeh || pVeh->m_fHealth <= 0.0f || !BlinkerState::Get().bIndicatorsDelay) {
+        return false;
+    }
+    if ((pVeh->m_nVehicleSubClass != VEHICLE_AUTOMOBILE && pVeh->m_nVehicleSubClass != VEHICLE_MTRUCK) || CModelInfo::IsBikeModel(pVeh->m_nModelIndex)) {
+        return false;
+    }
+    VehLightData& data = m_VehData.Get(pVeh);
+    if (data.nIndicatorState == eIndicatorState::Off) {
+        return false;
+    }
+    return data.bUsingGlobalIndicators ||
+           IsMaterialAvailable(pVeh, INDICATOR_LIGHTS_TYPE) ||
+           IsDummyAvailable(data, INDICATOR_LIGHTS_TYPE) ||
+           IsMaterialAvailable(pVeh, {eMaterialType::STTLightLeft, eMaterialType::STTLightRight});
 }
 
 void LightManager::ProcessPointLights(CVehicle *pVeh) {
