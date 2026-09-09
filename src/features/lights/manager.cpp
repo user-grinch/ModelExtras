@@ -258,6 +258,23 @@ bool LightManager::IsMaterialAvailable(CVehicle* pVeh, std::initializer_list<eMa
     return false;
 }
 
+bool LightManager::IsIndicatorOn(CVehicle* pVeh) {
+    if (!pVeh || pVeh->m_fHealth <= 0.0f || !BlinkerState::Get().bIndicatorsDelay) {
+        return false;
+    }
+    if ((pVeh->m_nVehicleSubClass != VEHICLE_AUTOMOBILE && pVeh->m_nVehicleSubClass != VEHICLE_MTRUCK) || CModelInfo::IsBikeModel(pVeh->m_nModelIndex)) {
+        return false;
+    }
+    VehLightData& data = m_VehData.Get(pVeh);
+    if (data.nIndicatorState == eIndicatorState::Off) {
+        return false;
+    }
+    return data.bUsingGlobalIndicators ||
+           IsMaterialAvailable(pVeh, INDICATOR_LIGHTS_TYPE) ||
+           IsDummyAvailable(data, INDICATOR_LIGHTS_TYPE) ||
+           IsMaterialAvailable(pVeh, {eMaterialType::STTLightLeft, eMaterialType::STTLightRight});
+}
+
 void LightManager::ProcessPointLights(CVehicle *pVeh) {
     if (!LightsConfig::Get().gbLightPointLights || !pVeh || pVeh->m_fHealth <= 0.0f || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER) {
         return;
