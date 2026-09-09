@@ -131,8 +131,3 @@ void Lights::ProcessVehicle(CVehicle* pVeh) {
     if (!m_bEnabled) return;
     LightManager::Process(pVeh);
 }
-
-void Lights::ProcessBikePointLights(CVehicle* pVeh) {
-    if (!m_bEnabled) return;
-    LightManager::ProcessPointLights(pVeh);
-}

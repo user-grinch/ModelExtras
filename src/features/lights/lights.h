@@ -14,7 +14,6 @@ public:
 
     void ProcessTick() override;
     void ProcessVehicle(CVehicle* pVeh) override;
-    void ProcessBikePointLights(CVehicle* pVeh) override;
 
     static VehLightData& GetVehicleData(CVehicle* pVeh);
     static bool IsIndicatorOn(CVehicle* pVeh);

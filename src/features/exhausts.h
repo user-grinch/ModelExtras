@@ -76,11 +76,6 @@ protected:
 
 public:
 
-    public:
     ExhaustFx() : CVehFeature<ExhaustVehData>("ExhaustFx", "FEATURES", eFeatureMatrix::ExhaustFx) {}
-    void ProcessBikePointLights(CVehicle *pVeh) override {
-        ProcessPointLights(pVeh);
-    }
-
     void Reload(CVehicle* pVeh) override;
 };

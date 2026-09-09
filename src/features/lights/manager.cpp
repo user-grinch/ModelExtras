@@ -284,6 +284,8 @@ void LightManager::ProcessPointLights(CVehicle *pVeh) {
         return;
     }
 
+    pVeh->UpdateRwFrame();
+
     VehLightData &data = m_VehData.Get(pVeh);
     for (const auto& comp : m_Components) {
         comp->ProcessPointLights(pVeh, data);
