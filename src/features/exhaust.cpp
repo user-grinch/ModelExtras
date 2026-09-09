@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "exhausts.h"
 #include <CWorld.h>
+#include <CAutomobile.h>
 #include <CCamera.h>
 #include <CGeneral.h>
 #include <CWaterLevel.h>
@@ -51,7 +52,7 @@ void __fastcall ExhaustFx::hkAddExhaustParticles2(CVehicle *pVeh)
 char __fastcall ExhaustFx::hkDoNitroEffect1(CAutomobile* pVeh, float power)
 {
     auto& data = m_VehData.Get(pVeh);
-    if (pVeh->m_fGasPedal > 0.05f) {
+    if (pVeh->m_fGasPedal > 0.05f && pVeh->m_fNitroValue < 0.0f) {
         data.lastNitroFrame = CTimer::m_FrameCounter;
     }
     if (data.isUsed) {
@@ -64,7 +65,7 @@ char __fastcall ExhaustFx::hkDoNitroEffect1(CAutomobile* pVeh, float power)
 char __fastcall ExhaustFx::hkDoNitroEffect2(CAutomobile* pVeh, float power)
 {
     auto& data = m_VehData.Get(pVeh);
-    if (pVeh->m_fGasPedal > 0.05f) {
+    if (pVeh->m_fGasPedal > 0.05f && pVeh->m_fNitroValue < 0.0f) {
         data.lastNitroFrame = CTimer::m_FrameCounter;
     }
     if (data.isUsed) {
@@ -77,11 +78,7 @@ char __fastcall ExhaustFx::hkDoNitroEffect2(CAutomobile* pVeh, float power)
 char __fastcall ExhaustFx::hkDoNitroEffect3(CAutomobile* pVeh, float power)
 {
     auto& data = m_VehData.Get(pVeh);
-    if (pVeh->m_fGasPedal > 0.05f) {
-        data.lastNitroFrame = CTimer::m_FrameCounter;
-    }
     if (data.isUsed) {
-        RenderNitroFx(pVeh, power);
         return 1;
     }
     return ogNitro3(pVeh, power);
@@ -167,6 +164,15 @@ void ExhaustFx::ProcessPointLights(CVehicle *pVeh)
     if (!gbLightPointLights || !pVeh || !pVeh->GetIsOnScreen() || !pVeh->bEngineOn || pVeh->bEngineBroken)
     {
         return;
+    }
+
+    if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE)
+    {
+        CAutomobile *pAuto = reinterpret_cast<CAutomobile *>(pVeh);
+        if (!pAuto->m_nHandlingFlags.bNosInst || pAuto->m_fNitroValue >= 0.0f)
+        {
+            return;
+        }
     }
 
     ExhaustVehData &data = m_VehData.Get(pVeh);
@@ -380,9 +386,18 @@ void ExhaustFx::RenderSmokeFx(CVehicle *pVeh, const ExhaustData &info)
 
 void ExhaustFx::RenderNitroFx(CVehicle *pVeh, float power)
 {
-    if (!CBaseFeature::IsEnabled(eFeatureMatrix::ExhaustFx))
+    if (!CBaseFeature::IsEnabled(eFeatureMatrix::ExhaustFx) || !pVeh)
     {
         return;
+    }
+
+    if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE)
+    {
+        CAutomobile *pAuto = reinterpret_cast<CAutomobile *>(pVeh);
+        if (!pAuto->m_nHandlingFlags.bNosInst || pAuto->m_fNitroValue >= 0.0f)
+        {
+            return;
+        }
     }
     const auto &mi = CModelInfo::GetModelInfo(pVeh->m_nModelIndex);
 
