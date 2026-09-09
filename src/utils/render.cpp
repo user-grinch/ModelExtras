@@ -68,7 +68,7 @@ static bool gbLightCoronas = false;
 static bool gbLightShadows = false;
 static float gfCoronaDistanceMul = 0.1f;
 static float gfCoronaNearClip = 0.45f;
-static float gfLightHeightLimit = 0.0f;
+static float gfLightHeightLimit = 1.4f;
 static bool gbConfigInitialized = false;
 static float gfLightShadowDistance = 120.0f;
 static int gnHeadLightShadowIntensity = 80;
@@ -83,7 +83,7 @@ void RenderUtil::ReloadConfig()
     gbLightShadows = gConfig.ReadBoolean("LIGHTS", "LightShadows", gConfig.ReadBoolean("FEATURES", "LightShadows", true));
     gfCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "CoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.1f));
     gfCoronaNearClip = gConfig.ReadFloat("LIGHTS", "CoronaNearClip", gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 0.45f));
-    gfLightHeightLimit = gConfig.ReadFloat("LIGHTS", "LightHeightLimit", gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 0.0f));
+    gfLightHeightLimit = gConfig.ReadFloat("LIGHTS", "LightHeightLimit", gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 1.4f));
     gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 80));
     gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 80));
     gnHeadLightShadowIntensity = gConfig.ReadInteger("LIGHTS", "HeadLightShadowIntensity", gGlobalShadowIntensity);
