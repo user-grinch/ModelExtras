@@ -245,6 +245,9 @@ void ModelInfoMgr::RegisterMaterialColProvider(
 }
 
 void ModelInfoMgr::SetupRender(CVehicle *ptr) {
+  if (!ptr) {
+    return;
+  }
   pCurVeh = ptr;
   auto &data = m_VehData.Get(pCurVeh);
   ptr->SetupRender();
