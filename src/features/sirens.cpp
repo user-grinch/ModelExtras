@@ -1094,6 +1094,8 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 		return;
 	}
 
+	pVeh->UpdateRwFrame();
+
 	if (modelData.contains(pVeh->m_nModelIndex))
 	{
 		auto &data = m_VehData.Get(pVeh);

@@ -157,6 +157,9 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
 }
 
 void VehicleDummy::Update() {
+    if (!data.frame || !data.pVeh) return;
+    RwFrameGetLTM(data.frame);
+
     // The corona is expanded again through the entity matrix, so the offset has to be
     // taken apart with the matrix that placed the frame. On a bike the lights sit under
     // chassis_dummy, which is rolled by m_mLeanMatrix, so using the entity matrix here

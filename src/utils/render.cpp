@@ -160,6 +160,18 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
     }
 
     CVector lightPos = pConfig->pVeh->TransformFromObjectSpace(pConfig->shadow.position);
+    if (pConfig->pVeh->m_nVehicleSubClass == VEHICLE_BIKE && pConfig->leanAffected)
+    {
+        CBike *pBike = static_cast<CBike *>(pConfig->pVeh);
+        bool wasCalculated = pBike->m_bLeanMatrixCalculated;
+        if (!wasCalculated)
+        {
+            pBike->CalculateLeanMatrix();
+        }
+
+        lightPos = pBike->m_mLeanMatrix * pConfig->shadow.position;
+        pBike->m_bLeanMatrixCalculated = wasCalculated;
+    }
 
     CMatrix vehMat = pConfig->pVeh->GetMatrix();
     CVector localDir;
@@ -264,6 +276,18 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
 
     CMatrix vehMat = pConfig->pVeh->GetMatrix();
     CVector lightPos = pConfig->pVeh->TransformFromObjectSpace(pConfig->shadow.position);
+    if (pConfig->pVeh->m_nVehicleSubClass == VEHICLE_BIKE && pConfig->leanAffected)
+    {
+        CBike *pBike = static_cast<CBike *>(pConfig->pVeh);
+        bool wasCalculated = pBike->m_bLeanMatrixCalculated;
+        if (!wasCalculated)
+        {
+            pBike->CalculateLeanMatrix();
+        }
+
+        lightPos = pBike->m_mLeanMatrix * pConfig->shadow.position;
+        pBike->m_bLeanMatrixCalculated = wasCalculated;
+    }
 
     // Extract dummy forward vector directly in vehicle space (respecting modder's 3D rotation)
     CVector localDir;

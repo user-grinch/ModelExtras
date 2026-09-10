@@ -37,7 +37,6 @@ public:
   // Centralized processing hooks
   virtual void ProcessTick() {}
   virtual void ProcessVehicle(CVehicle *pVeh) {}
-  virtual void ProcessBikePointLights(CVehicle *pVeh) {}
 };
 
 template <typename T> class CVehFeature : public CBaseFeature {

@@ -9,7 +9,6 @@ namespace MEEvents
     // vehicle
     static inline ThiscallEvent<AddressList<0x6C4523, H_CALL>, PRIORITY_AFTER, ArgPickN<CVehicle *, 0>, void(CVehicle *)> heliRenderEvent;
     static inline ThiscallEvent<AddressList<0x6D0E89, H_JUMP>, PRIORITY_BEFORE, ArgPickN<CVehicle *, 0>, void(CVehicle *)> vehRenderEvent;
-    // CAutomobile::PreRender only. Bikes go through the processScriptsEvent loop in each
-    // feature instead, CBike::PreRender has no equivalent call site to hook here.
-    static inline ThiscallEvent<AddressList<0x6AAB71, H_CALL>, PRIORITY_BEFORE, ArgPickN<CVehicle *, 0>, void(CVehicle *)> vehPreRenderEvent;
+    // CAutomobile::PreRender (0x6AAB8B, after UpdateRwFrame) and CBike::PreRender (0x6BD3A8, after CalculateLeanMatrix)
+    static inline ThiscallEvent<AddressList<0x6AAB8B, H_CALL, 0x6BD3A8, H_CALL>, PRIORITY_AFTER, ArgPickN<CVehicle *, 0>, void(CVehicle *)> vehPreRenderEvent;
 }

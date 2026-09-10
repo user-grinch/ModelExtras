@@ -151,16 +151,10 @@ void ModelExtras::Init()
         {
             if (!pVeh) continue;
 
-            bool isBike = (pVeh->m_nVehicleSubClass == VEHICLE_BIKE);
-
             for (const auto &pFeature : m_Features)
             {
                 if (pFeature && pFeature->IsActiveCached())
                 {
-                    if (isBike)
-                    {
-                        pFeature->ProcessBikePointLights(pVeh);
-                    }
                     pFeature->ProcessVehicle(pVeh);
                 }
             }
