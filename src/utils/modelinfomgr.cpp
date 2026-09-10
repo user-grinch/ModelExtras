@@ -356,15 +356,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
         }
       }
       m_SurfPropsRestoreEntries.push_back({material, material->surfaceProps});
-
-      float ambientScale = 1.0f;
-      if (iLightIndex == eMaterialType::HeadLightLeft || iLightIndex == eMaterialType::HeadLightRight) {
-        if (matCol.on.r < 255) {
-          ambientScale = 0.8f;
-        }
-      }
-
-      material->surfaceProps = GetLightSurfaceProps(ambientScale);
+      material->surfaceProps = GetLightSurfaceProps();
     } else {
       pColor->red = matCol.off.r;
       pColor->green = matCol.off.g;

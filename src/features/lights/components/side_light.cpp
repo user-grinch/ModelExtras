@@ -42,7 +42,7 @@ void SideLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
 }
 
 void SideLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
-    bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh)) || (pVeh->m_nVehicleSubClass == VEHICLE_BIKE && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+    bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
 
     if (isHeadlightsOn) {
         for (eMaterialType type : {eMaterialType::SideLightLeft, eMaterialType::SideLightRight}) {
