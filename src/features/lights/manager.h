@@ -34,4 +34,5 @@ public:
     static bool GetLightState(CVehicle* pVeh, eMaterialType lightId) { return m_VehData.Get(pVeh).bLightStates[lightId]; }
     static void SetLightState(CVehicle* pVeh, eMaterialType lightId, bool state) { m_VehData.Get(pVeh).bLightStates[lightId] = state; }
     static bool IsIndicatorOn(CVehicle* pVeh);
+    static bool IsBraking(CVehicle* pVeh);
 };

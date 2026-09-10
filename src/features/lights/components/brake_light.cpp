@@ -38,7 +38,7 @@ void BrakeLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, Veh
         || pControlVeh->m_nVehicleSubClass == VEHICLE_QUAD || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE
         || pControlVeh->m_nVehicleSubClass == VEHICLE_TRAILER) 
     {
-        bool brakeOn = pControlVeh->m_fBreakPedal && pControlVeh->m_pDriver;
+        bool brakeOn = LightManager::IsBraking(pControlVeh);
         if (brakeOn) {
             auto damage = LightDamageState::Get(pControlVeh, pTowedVeh);
             bool isLeftRearOk = damage.isRearLeftOk;
