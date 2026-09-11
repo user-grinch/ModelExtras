@@ -438,6 +438,12 @@ static int GetShadowIntensity(eMaterialType lightType)
         break;
     case eMaterialType::TailLightLeft:
     case eMaterialType::TailLightRight:
+    case eMaterialType::STTLightLeft:
+    case eMaterialType::STTLightRight:
+    case eMaterialType::BrakeLightLeft:
+    case eMaterialType::BrakeLightRight:
+    case eMaterialType::NABrakeLightLeft:
+    case eMaterialType::NABrakeLightRight:
         intensity = gnTailLightShadowIntensity;
         break;
     default:

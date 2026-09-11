@@ -21,7 +21,10 @@ bool NABrakeLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, co
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.lightType = (d == "L") ? eMaterialType::NABrakeLightLeft : eMaterialType::NABrakeLightRight;
         c.dummyPos = eDummyPos::Rear;
-        c.corona.color = c.shadow.color = {240, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
+        c.corona.size = LightsConfig::Get().gfTailLightCoronaSize;
+        c.corona.color = {240, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
+        c.shadow.color = {240, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
+        c.shadow.size = LightsConfig::Get().gfTailLightShadowSize;
         c.corona.lightingType = eLightingMode::Directional;
         data.dummies[c.lightType].push_back(VehicleDummy(c));
         return true;
