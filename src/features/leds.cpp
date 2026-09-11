@@ -104,11 +104,10 @@ void DashboardLEDs::Init()
 		}
 
 		const auto& data = Lights::GetVehicleData(pControlVeh);
-		static bool foglightTiedtoHeadlight = gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", true);
 		bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pControlVeh))) && !CarUtil::IsLightsForcedOff(pControlVeh);
 		bool isFoggy = Util::IsFoggy();
-		bool shouldShowFog = isFoggy || !foglightTiedtoHeadlight || isHeadlightsActive;
-		bool isFogLightOn = (data.bFogLightsOn || isFoggy) && !CarUtil::IsLightsForcedOff(pControlVeh);
+		bool shouldShowFog = isFoggy || !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
+		bool isFogLightOn = (data.bFogLightsOn || isFoggy) && (!LightsConfig::Get().bFoglightTiedToHeadlight || !CarUtil::IsLightsForcedOff(pControlVeh));
 		if (isFogLightOn && shouldShowFog) {
 			EnableLED(pControlVeh, eMaterialType::FogLightLed);
 		}
