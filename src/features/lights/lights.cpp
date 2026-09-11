@@ -3,6 +3,7 @@
 #include "lights.h"
 #include "manager.h"
 #include "utils/meevents.h"
+#include "utils/datamgr.h"
 #include "ModelExtrasAPI.h"
 
 float gfGlobalCoronaSize = 0.3f;
@@ -46,6 +47,62 @@ void Lights::Init() {
 
 	ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName) {
         LightManager::RegisterDummy(pVeh, pFrame, nodeName);
+    });
+
+    ModelInfoMgr::RegisterMaterialColProvider([](CVehicle *pVeh, RpMaterial *pMat, eMaterialType type) -> MatStateColor {
+        if (!m_bEnabled || !pVeh || type < 0 || type >= eMaterialType::TotalMaterial) {
+            return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
+        }
+        VehLightData &data = LightManager::m_VehData.Get(pVeh);
+        if (LightManager::IsDummyAvailable(data, type)) {
+            const DummyConfig &c = data.dummies[type][0]->GetRef();
+            if (c.hasCustomColor) {
+                return MatStateColor{c.corona.color, DEFAULT_MAT_COL};
+            }
+        }
+
+        auto &json = DataMgr::Get(pVeh->m_nModelIndex);
+        if (json.contains("lights")) {
+            auto &lights = json["lights"];
+            auto CheckCol = [&](const char *key) -> std::optional<CRGBA> {
+                if (lights.contains(key) && lights[key].contains("corona") && lights[key]["corona"].contains("color")) {
+                    auto &c = lights[key]["corona"]["color"];
+                    CRGBA col;
+                    col.r = c.value("red", 255);
+                    col.g = c.value("green", 255);
+                    col.b = c.value("blue", 255);
+                    col.a = 255;
+                    return col;
+                }
+                return std::nullopt;
+            };
+
+            std::optional<CRGBA> col;
+            switch (type) {
+            case eMaterialType::HeadLightLeft: col = CheckCol("headlight_l"); if (!col) col = CheckCol("headlights"); break;
+            case eMaterialType::HeadLightRight: col = CheckCol("headlight_r"); if (!col) col = CheckCol("headlights"); break;
+            case eMaterialType::TailLightLeft: col = CheckCol("taillight_l"); if (!col) col = CheckCol("taillights"); break;
+            case eMaterialType::TailLightRight: col = CheckCol("taillight_r"); if (!col) col = CheckCol("taillights"); break;
+            case eMaterialType::BrakeLightLeft: case eMaterialType::NABrakeLightLeft: col = CheckCol("brakelight_l"); if (!col) col = CheckCol("brakelights"); break;
+            case eMaterialType::BrakeLightRight: case eMaterialType::NABrakeLightRight: col = CheckCol("brakelight_r"); if (!col) col = CheckCol("brakelights"); break;
+            case eMaterialType::ReverseLightLeft: col = CheckCol("reverselight_l"); if (!col) col = CheckCol("reverselights"); break;
+            case eMaterialType::ReverseLightRight: col = CheckCol("reverselight_r"); if (!col) col = CheckCol("reverselights"); break;
+            case eMaterialType::IndicatorLightLeftFront: col = CheckCol("indicator_lf"); if (!col) col = CheckCol("indicators"); break;
+            case eMaterialType::IndicatorLightRightFront: col = CheckCol("indicator_rf"); if (!col) col = CheckCol("indicators"); break;
+            case eMaterialType::IndicatorLightLeftRear: col = CheckCol("indicator_lr"); if (!col) col = CheckCol("indicators"); break;
+            case eMaterialType::IndicatorLightRightRear: col = CheckCol("indicator_rr"); if (!col) col = CheckCol("indicators"); break;
+            case eMaterialType::IndicatorLightLeftMiddle: col = CheckCol("indicator_lm"); if (!col) col = CheckCol("indicators"); break;
+            case eMaterialType::IndicatorLightRightMiddle: col = CheckCol("indicator_rm"); if (!col) col = CheckCol("indicators"); break;
+            case eMaterialType::FogLightLeft: col = CheckCol("foglight_l"); if (!col) col = CheckCol("fogl_l"); if (!col) col = CheckCol("foglights"); break;
+            case eMaterialType::FogLightRight: col = CheckCol("foglight_r"); if (!col) col = CheckCol("fogl_r"); if (!col) col = CheckCol("foglights"); break;
+            default: break;
+            }
+            if (col) {
+                return MatStateColor{*col, DEFAULT_MAT_COL};
+            }
+        }
+
+        return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
     });
 
 	MEEvents::vehPreRenderEvent.before += [](CVehicle *pVeh)

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "dummy.h"
 #include "defines.h"
+#include "features/lights/manager.h"
 #include "utils/datamgr.h"
 #include "enums/dummypos.h"
 #include <CWorld.h>
@@ -48,15 +49,30 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
     if (jsonData.contains("lights"))
     {
         std::string newName(name.substr(0, name.find("_prm")));
+        const nlohmann::json* pLightsSec = nullptr;
         if (jsonData["lights"].contains(newName))
         {
-            auto &lights = jsonData["lights"][newName];
+            pLightsSec = &jsonData["lights"][newName];
+        }
+        else
+        {
+            const char* fallbackKey = LightManager::GetLightGroupKey(data.lightType);
+            if (fallbackKey && jsonData["lights"].contains(fallbackKey))
+            {
+                pLightsSec = &jsonData["lights"][fallbackKey];
+            }
+        }
+
+        if (pLightsSec)
+        {
+            auto &lights = *pLightsSec;
 
             if (lights.contains("corona"))
             {
                 auto &coronaSec = lights["corona"];
                 if (coronaSec.contains("color"))
                 {
+                    data.hasCustomColor = true;
                     data.corona.color.r = coronaSec["color"].value("red", data.corona.color.r);
                     data.corona.color.g = coronaSec["color"].value("green", data.corona.color.g);
                     data.corona.color.b = coronaSec["color"].value("blue", data.corona.color.b);
@@ -82,6 +98,19 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
 
                 // shadows will be force enabled if there is JSON data for it.
                 data.shadow.render = true;
+            }
+
+            if (lights.contains("inertia"))
+            {
+                data.inertia = lights.value("inertia", 0.0f);
+            }
+
+            // Inherit corona color to shadow if no explicit shadow color was set
+            if (data.hasCustomColor && !(lights.contains("shadow") && lights["shadow"].contains("color")))
+            {
+                data.shadow.color.r = data.corona.color.r;
+                data.shadow.color.g = data.corona.color.g;
+                data.shadow.color.b = data.corona.color.b;
             }
 
             // Only for StrobeLights
