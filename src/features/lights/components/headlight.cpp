@@ -142,6 +142,8 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
     bool highlight = isFoggy || data.bLongLightsOn;
 
     if (isHeadlightLeftOk || isHeadlightRightOk) {
+        pControlVeh->m_renderLights.m_bLeftFront = isHeadlightLeftOk;
+        pControlVeh->m_renderLights.m_bRightFront = isHeadlightRightOk;
         if (isHeadlightLeftOk) {
             LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::HeadLightLeft, true, shadow ? texName : "", LightsConfig::Get().headlightSz, highlight, true, bTickRegistered);
         }
