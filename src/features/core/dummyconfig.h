@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <cstdint>
 #include "RenderWare.h"
 #include "CRGBA.h"
 #include "CVector.h"
@@ -24,6 +25,8 @@ struct DummyConfig {
     bool leanAffected = false;
     bool hasCustomColor = false;
     float inertia = 0.0f;
+    int8_t damagePanel = -1;
+    int8_t damageDoor = -1;
     
     struct {
         float angle = 0.0f;

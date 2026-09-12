@@ -22,15 +22,16 @@ protected:
 public:
 	static inline RwTexture *pSpotlightTex = nullptr;
 
-	
-
 	static void OnHudRender();
 	static void OnVehicleRender(CVehicle *pVeh);
 	static void ProcessPointLights(CVehicle *pVeh);
 
-public:
     SpotLights() : CVehFeature<SpotlightData>("SpotLights", "LIGHTS", eFeatureMatrix::SpotLights) {}
 	static bool IsEnabled(CVehicle *pVeh);
 	void ReloadConfig() override;
 	void Reload(CVehicle *pVeh) override;
+	bool HasProcessBikePointLights() const override { return true; }
+	void ProcessBikePointLights(CVehicle *pVeh) override {
+		ProcessPointLights(pVeh);
+	}
 };

@@ -23,6 +23,7 @@ protected:
     void Init() override;
     void Reload(CVehicle *pVeh) override;
     void ReloadConfig() override;
+    bool HasProcessVehicle() const override { return true; }
     void ProcessVehicle(CVehicle *pVeh) override;
 
 public:

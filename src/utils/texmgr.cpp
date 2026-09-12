@@ -52,62 +52,70 @@ RwTexture *TextureMgr::RwReadTexture(const char *name, char *Maskname)
     return ((RwTexture * (__cdecl *)(char const *, char const *))0x4C7510)(name, Maskname);
 }
 
-RwTexture *TextureMgr::Get(std::string name, RwUInt8 alpha)
+RwTexture *TextureMgr::Get(std::string_view name, RwUInt8 alpha)
 {
-    if (Textures.contains(name) && Textures[name].contains(alpha) && Textures[name][alpha])
+    auto it = Textures.find(name);
+    if (it != Textures.end())
     {
-        return Textures[name][alpha];
+        auto itAlpha = it->second.find(alpha);
+        if (itAlpha != it->second.end() && itAlpha->second)
+        {
+            return itAlpha->second;
+        }
     }
 
     static auto pDict = CFileLoader::LoadTexDictionary(MOD_DATA_PATH("ME_TEXDB.TXD"));
-    RwTexture *pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
+    char nameBuf[64];
+    size_t copyLen = std::min(name.size(), sizeof(nameBuf) - 1);
+    std::memcpy(nameBuf, name.data(), copyLen);
+    nameBuf[copyLen] = '\0';
+
+    RwTexture *pTex = RwTexDictionaryFindNamedTexture(pDict, nameBuf);
     if (pTex == nullptr) {
         return nullptr;
     }
 
-    Textures[name][alpha] = pTex;
-    // int index = CTxdStore::FindTxdSlot("ME_TEXDB");
-    // if (index == -1)
-    // {
-    //     index = CTxdStore::AddTxdSlot("ME_TEXDB");
-    //     CTxdStore::LoadTxd(index, MOD_DATA_PATH("ME_TEXDB.TXD"));
-    //     CTxdStore::AddRef(index);
-    // }
-    // CTxdStore::PushCurrentTxd();
-    // CTxdStore::SetCurrentTxd(index);
-
-    // Textures[name][alpha] = RwReadTexture(name.c_str());
+    std::string keyStr(name);
+    Textures[keyStr][alpha] = pTex;
 
     if (alpha != 255)
     {
-        SetAlpha(Textures[name][alpha], alpha);
+        SetAlpha(Textures[keyStr][alpha], alpha);
     }
-    // CTxdStore::PopCurrentTxd();
-    return Textures[name][alpha];
+    return Textures[keyStr][alpha];
 }
 
 RwTexture *TextureMgr::FindOnTextureInDict(RpMaterial *pMat, RwTexDictionary *pDict, bool fallback)
 {
-    if ((pMat == nullptr) || (pMat->texture == nullptr)) {
+    if ((pMat == nullptr) || (pMat->texture == nullptr) || (pMat->texture->name == nullptr)) {
         return nullptr;
     }
-    
-	const std::string baseName = pMat->texture->name;
-	const std::vector<std::string> texNames = {
-		baseName + "on",
-		baseName + "_on",
-	};
 
-	RwTexture *pTex = nullptr;
-	for (const auto &name : texNames)
-	{
-		pTex = TextureMgr::FindInDict(name, pDict, fallback);
-		if (pTex != nullptr)
-		{
-			break;
-		}
-	}
-	return pTex;
+    const char *baseName = pMat->texture->name;
+    size_t baseLen = std::strlen(baseName);
+    if (baseLen == 0 || baseLen >= 58) {
+        return nullptr;
+    }
+
+    char texBuf[64];
+    // Try baseName + "on"
+    std::memcpy(texBuf, baseName, baseLen);
+    texBuf[baseLen] = 'o';
+    texBuf[baseLen + 1] = 'n';
+    texBuf[baseLen + 2] = '\0';
+
+    RwTexture *pTex = TextureMgr::FindInDict(std::string_view(texBuf, baseLen + 2), pDict, fallback);
+    if (pTex != nullptr) {
+        return pTex;
+    }
+
+    // Try baseName + "_on"
+    texBuf[baseLen] = '_';
+    texBuf[baseLen + 1] = 'o';
+    texBuf[baseLen + 2] = 'n';
+    texBuf[baseLen + 3] = '\0';
+
+    return TextureMgr::FindInDict(std::string_view(texBuf, baseLen + 3), pDict, fallback);
 }
 
 void TextureMgr::SetAlpha(RwTexture *texture, RwUInt8 alpha)
@@ -152,13 +160,20 @@ void TextureMgr::SetAlpha(RwTexture *texture, RwUInt8 alpha)
 // 1. Vehicle's txd 
 // 2. ModelExtras txd
 // 3. vehicle.txd (Supports vehfuncs additional txds)
-RwTexture *TextureMgr::FindInDict(std::string name, RwTexDictionary *pDict, bool fallback)
+RwTexture *TextureMgr::FindInDict(std::string_view name, RwTexDictionary *pDict, bool fallback)
 {
+    if (name.empty()) return nullptr;
+
+    char nameBuf[64];
+    size_t copyLen = std::min(name.size(), sizeof(nameBuf) - 1);
+    std::memcpy(nameBuf, name.data(), copyLen);
+    nameBuf[copyLen] = '\0';
+
     RwTexture *pTex = nullptr;
 
     if (pDict)
     {
-        pTex = RwTexDictionaryFindNamedTexture(pDict, name.c_str());
+        pTex = RwTexDictionaryFindNamedTexture(pDict, nameBuf);
     }
 
     if (fallback) {
@@ -169,7 +184,7 @@ RwTexture *TextureMgr::FindInDict(std::string name, RwTexDictionary *pDict, bool
 
         if (!pTex) {
             LOG_VERBOSE("TextureMgr: Unable to find '{}' in the ModelExtras TXD file. Searching in the vehicle TXD file instead.", name);
-            pTex = RwTexDictionaryFindNamedTexture(CVehicleModelInfo::ms_pVehicleTxd, name.c_str());
+            pTex = RwTexDictionaryFindNamedTexture(CVehicleModelInfo::ms_pVehicleTxd, nameBuf);
         }
 
         if (!pTex) {

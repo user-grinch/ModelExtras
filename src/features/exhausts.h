@@ -30,10 +30,11 @@ struct ExhaustData
 
 struct ExhaustVehData {
     bool isUsed = false;
+    bool bNodesSearched = false;
     size_t reloadCount = 0;
     unsigned int lastNitroFrame = 0;
     std::vector<std::pair<std::string, ExhaustData>> m_pDummies;
-    ExhaustVehData(CVehicle *pVeh) { isUsed = false; }
+    ExhaustVehData(CVehicle *pVeh) { isUsed = false; bNodesSearched = false; }
 
     ~ExhaustVehData() {
         for (auto &e : m_pDummies) {
@@ -75,7 +76,6 @@ protected:
     void Init() override;
 
 public:
-
     ExhaustFx() : CVehFeature<ExhaustVehData>("ExhaustFx", "FEATURES", eFeatureMatrix::ExhaustFx) {}
     void Reload(CVehicle* pVeh) override;
 };

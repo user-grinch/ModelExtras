@@ -618,9 +618,9 @@ void Sirens::Init()
 		}
 		CRGBA col = *reinterpret_cast<CRGBA *>(RpMaterialGetColor(pMat));
 
-		if (pMat && pMat->texture && modelData.contains(pVeh->m_nModelIndex)) {
-			bool isSirenTex = std::string(pMat->texture->name).find("siren", 0) != 0
-								|| std::string(pMat->texture->name).find("vehiclelights128", 0) != 0;
+		if (pMat && pMat->texture && pMat->texture->name && modelData.contains(pVeh->m_nModelIndex)) {
+			std::string_view texName(pMat->texture->name);
+			bool isSirenTex = (texName.find("siren") != 0 || texName.find("vehiclelights128") != 0);
 			bool isIVFSiren = modelData[pVeh->m_nModelIndex]->isImVehFtSiren;
 
 			if (isIVFSiren) {
@@ -927,12 +927,7 @@ void Sirens::Init()
 			}
 		}
 
-		CVector distance = vehicle->GetPosition() - TheCamera.GetPosition();
-		eCoronaFlareType type = FLARETYPE_NONE;
-
-		if (distance.Magnitude() > 30.0f) {
-			type = FLARETYPE_HEADLIGHTS;
-		}
+		eCoronaFlareType type = (MathUtil::DistanceSquared(vehicle->GetPosition(), TheCamera.GetPosition()) > (30.0f * 30.0f)) ? FLARETYPE_HEADLIGHTS : FLARETYPE_NONE;
 
 		for (auto& mat : state->Materials) {
 			if (!mat.second->State) {
