@@ -47,7 +47,7 @@ void FogLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLi
     bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
     bool isFoggy = Util::IsFoggy();
     bool shouldRenderFog = isFoggy || !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
-    bool isFogLightOn = (data.bFogLightsOn || isFoggy) && !CarUtil::IsLightsForcedOff(pControlVeh);
+    bool isFogLightOn = (data.bFogLightsOn || isFoggy) && (!LightsConfig::Get().bFoglightTiedToHeadlight || !CarUtil::IsLightsForcedOff(pControlVeh));
 
     if (!isFogLightOn || !shouldRenderFog) return;
     bool isFogOk = !Util::IsPanelDamaged(pControlVeh, ePanels::BUMP_FRONT);
@@ -59,7 +59,7 @@ void FogLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
     bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
     bool isFoggy = Util::IsFoggy();
     bool shouldRenderFog = isFoggy || !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsOn;
-    bool isFogLightOn = (data.bFogLightsOn || isFoggy) && !CarUtil::IsLightsForcedOff(pVeh);
+    bool isFogLightOn = (data.bFogLightsOn || isFoggy) && (!LightsConfig::Get().bFoglightTiedToHeadlight || !CarUtil::IsLightsForcedOff(pVeh));
 
     if (isFogLightOn && shouldRenderFog) {
         for (eMaterialType type : {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) {
