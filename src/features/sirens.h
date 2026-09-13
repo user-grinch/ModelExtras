@@ -8,6 +8,7 @@
 #include <CCoronas.h>
 #include "core/dummy.h"
 #include "utils/modelinfomgr.h"
+#include "utils/audiomgr.h"
 #include "enums/lightingmode.h"
 
 enum class VehicleSirenStates
@@ -153,6 +154,7 @@ class VehicleSirenState
 public:
     bool Validate = false;
     std::string Name;
+    std::string Sound;
     int Paintjob = -1;
     std::map<int, VehicleSirenMaterial *> Materials;
 
@@ -199,10 +201,18 @@ public:
     bool bUsesSirenChecked = false;
     bool bUsesSiren = false;
     unsigned int nLastTickFrame = 0;
+    uint32_t m_nSirenStream = 0;
+    int m_nActiveSirenSoundState = -1;
+    int SoundMode = 0;
+    bool m_bPlayingCustomSiren = false;
 
     VehicleSiren(CVehicle *_vehicle = nullptr);
     ~VehicleSiren()
     {
+        if (m_nSirenStream) {
+            AudioMgr::StopSirenStream(m_nSirenStream);
+            m_nSirenStream = 0;
+        }
         for (auto &pair : Dummies) {
             for (auto *dummy : pair.second) {
                 delete dummy;
@@ -239,6 +249,25 @@ public:
     }
     friend int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat);
 
+    static VehicleSirenData* GetModelData(int modelIndex) {
+        auto it = modelData.find(modelIndex);
+        return (it != modelData.end()) ? it->second : nullptr;
+    }
+
+    static VehicleSiren* GetVehicleData(CVehicle* pVeh) {
+        if (!pVeh) return nullptr;
+        return &m_VehData.Get(pVeh);
+    }
+
+    static bool IsSirenModel(int modelIndex) {
+        return modelData.contains(modelIndex);
+    }
+
+    static bool IsPlayingCustomSiren(CVehicle* pVeh) {
+        if (!pVeh) return false;
+        auto &data = m_VehData.Get(pVeh);
+        return data.m_bPlayingCustomSiren;
+    }
 private:
     static inline bool m_bEnabled = false;
     static inline std::map<int, VehicleSirenData *> modelData;
@@ -251,6 +280,8 @@ private:
     static bool hkUsesSiren(std::function<hkUsesSirenFunc> originalCall, CVehicle* ptr);
     static void __cdecl hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, CVector const &posn, float radius, float farClip, eCoronaType coronaType, eCoronaFlareType flaretype, bool enableReflection, bool checkObstacles, int _param_not_used, float angle, bool longDistance, float nearClip, unsigned char fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay);
     static void hkAddPointLights(std::function<hkAddPointLightsFunc> originalCall, uint8_t& type, CVector& position, CVector& direction, float& range, float& red, float& green, float& blue, uint8_t& fogEffect, bool& bCastsShadowFromPlayerCarAndPed, CEntity*& castingEntity);
+    static void __fastcall hkUsesSirenAudio(CAEVehicleAudioEntity* pThis, void* edx, bool* pbSiren, bool* pbAlarm, class cVehicleParams* pParams);
+    static void __fastcall hkServiceHornOrSiren(CAEVehicleAudioEntity* pThis, void* edx, bool bHorn, bool bSiren, bool bAlarm, class cVehicleParams* pParams);
 
     static void RegisterMaterial(CVehicle *vehicle, RpMaterial *material);
     static void EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time);
