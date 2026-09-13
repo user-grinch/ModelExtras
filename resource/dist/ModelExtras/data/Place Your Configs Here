@@ -1,0 +1,2 @@
+Place your ModelExtras .jsonc configuration files here. For more information: https://github.com/user-grinch/ModelExtras/wiki
+You can place your AVS .json, ImVehFt .eml and .ifvc files here too. They will be automatically converted to ModelExtras .jsonc format and will move original files to backup folder.
