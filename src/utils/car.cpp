@@ -3,6 +3,7 @@
 #include "mathutil.h"
 #include "frame.h"
 #include "enums/lightoverride.h"
+#include "features/core/dummyconfig.h"
 #include <CModelInfo.h>
 #include <CVehicleModelInfo.h>
 #include <CColModel.h>
@@ -162,6 +163,19 @@ bool CarUtil::IsFrameDamaged(CVehicle *pVeh, RwFrame *frame) {
             }
         }
         current = RwFrameGetParent(current);
+    }
+    return false;
+}
+
+bool CarUtil::IsDummyDamaged(CVehicle *pVeh, const DummyConfig &c) {
+    if (!pVeh || pVeh->m_nVehicleSubClass != VEHICLE_AUTOMOBILE) {
+        return false;
+    }
+    if (c.damagePanel != -1) {
+        return IsPanelDamaged(pVeh, static_cast<ePanels>(c.damagePanel));
+    }
+    if (c.damageDoor != -1) {
+        return IsDoorDamaged(pVeh, static_cast<eDoors>(c.damageDoor));
     }
     return false;
 }

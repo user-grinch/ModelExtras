@@ -4,8 +4,10 @@
 #include "features/lights/manager.h"
 #include "utils/datamgr.h"
 #include "enums/dummypos.h"
+#include <cstdint>
 #include <CWorld.h>
 #include <CBike.h>
+#include <CAutomobile.h>
 #include <CModelInfo.h>
 
 extern float gfGlobalCoronaSize;
@@ -36,13 +38,40 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
         data.isParentDummy = true;
     }
 
-    // The bike lean is applied to chassis_dummy, so only frames somewhere below it get
-    // rolled with the bike. Lights parented straight to the root keep the plain entity
-    // matrix, and using the lean matrix on those would tilt them the wrong way instead.
+    // Pre-resolve damage component and bike lean inheritance in a single hierarchy walk
     for (RwFrame *pParent = RwFrameGetParent(data.frame); pParent; pParent = RwFrameGetParent(pParent)) {
-        if (GetSafeFrameNodeName(pParent).ends_with("_dummy")) {
+        std::string_view pName = GetSafeFrameNodeName(pParent);
+        if (pName.ends_with("_dummy")) {
             data.leanAffected = true;
-            break;
+        }
+        if (data.damagePanel == -1 && data.damageDoor == -1) {
+            if (pName.starts_with("bump_front") || pName.starts_with("bump_f")) {
+                data.damagePanel = static_cast<int8_t>(ePanels::BUMP_FRONT);
+            } else if (pName.starts_with("bump_rear") || pName.starts_with("bump_r")) {
+                data.damagePanel = static_cast<int8_t>(ePanels::BUMP_REAR);
+            } else if (pName.starts_with("wing_lf")) {
+                data.damagePanel = static_cast<int8_t>(ePanels::WING_FRONT_LEFT);
+            } else if (pName.starts_with("wing_rf")) {
+                data.damagePanel = static_cast<int8_t>(ePanels::WING_FRONT_RIGHT);
+            } else if (pName.starts_with("wing_lr")) {
+                data.damagePanel = static_cast<int8_t>(ePanels::WING_REAR_LEFT);
+            } else if (pName.starts_with("wing_rr")) {
+                data.damagePanel = static_cast<int8_t>(ePanels::WING_REAR_RIGHT);
+            } else if (pName.starts_with("bonnet")) {
+                data.damageDoor = static_cast<int8_t>(eDoors::BONNET);
+            } else if (pName.starts_with("boot")) {
+                data.damageDoor = static_cast<int8_t>(eDoors::BOOT);
+            } else if (pName.starts_with("windscreen")) {
+                data.damagePanel = static_cast<int8_t>(ePanels::WINDSCREEN);
+            } else if (pName.starts_with("door_lf")) {
+                data.damageDoor = static_cast<int8_t>(eDoors::DOOR_FRONT_LEFT);
+            } else if (pName.starts_with("door_rf")) {
+                data.damageDoor = static_cast<int8_t>(eDoors::DOOR_FRONT_RIGHT);
+            } else if (pName.starts_with("door_lr")) {
+                data.damageDoor = static_cast<int8_t>(eDoors::DOOR_REAR_LEFT);
+            } else if (pName.starts_with("door_rr")) {
+                data.damageDoor = static_cast<int8_t>(eDoors::DOOR_REAR_RIGHT);
+            }
         }
     }
 
@@ -195,7 +224,8 @@ void VehicleDummy::Update() {
     // leaves the lean in the offset and the corona tilts with it. The lean matrix is
     // only valid for the frame that calculated it, so refresh it when the flag is down
     // and put the flag back so the game still recalculates it when it needs to.
-    CMatrix basis = data.pVeh->GetMatrix();
+    const CMatrix *pBasis = &data.pVeh->GetMatrix();
+    CMatrix leanBasis;
     if (data.pVeh->m_nVehicleSubClass == VEHICLE_BIKE && data.leanAffected)
     {
         CBike *pBike = static_cast<CBike *>(data.pVeh);
@@ -205,9 +235,11 @@ void VehicleDummy::Update() {
             pBike->CalculateLeanMatrix();
         }
 
-        basis = pBike->m_mLeanMatrix;
+        leanBasis = pBike->m_mLeanMatrix;
+        pBasis = &leanBasis;
         pBike->m_bLeanMatrixCalculated = wasCalculated;
     }
+    const CMatrix &basis = *pBasis;
 
     CVector offset = data.frame->ltm.pos - basis.pos;
 

@@ -91,23 +91,27 @@ void Remap::LoadRemaps(CVehicle* vehicle)
 
 void Remap::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat)
 {
-    if (!m_bEnabled || !pVeh || !pMat || !pMat->texture)
+    if (!m_bEnabled || !pVeh || !pMat || !pMat->texture || !pMat->texture->name)
     {
         return;
     }
 
     int model = pVeh->m_nModelIndex;
-    RemapData &data = xRemaps[model];
-    if (!data.bRemapsLoaded)
+    auto itModel = xRemaps.find(model);
+    if (itModel == xRemaps.end() || !itModel->second.bRemapsLoaded)
     {
+        RemapData &newData = xRemaps[model];
         LoadRemaps(pVeh);
-        data.bRemapsLoaded = true;
+        newData.bRemapsLoaded = true;
+        itModel = xRemaps.find(model);
     }
 
-    if (data.pTextures.empty())
+    if (itModel == xRemaps.end() || itModel->second.pTextures.empty())
     {
         return;
     }
+
+    RemapData &data = itModel->second;
 
     char lowerBuf[32];
     size_t len = 0;

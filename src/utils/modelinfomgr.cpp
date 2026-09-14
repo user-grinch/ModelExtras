@@ -104,6 +104,9 @@ void ModelInfoMgr::ResetEditableMaterials() {
 
 void ModelInfoMgr::ReloadConfig() {
   gfMaterialAmbientMul = std::max(0.0f, gConfig.ReadFloat("LIGHTS", "MaterialAmbientMul", 1.0f));
+  RwSurfaceProperties baseProps = *reinterpret_cast<RwSurfaceProperties *>(0x8A645C);
+  baseProps.ambient = std::max(0.0f, baseProps.ambient * gfMaterialAmbientMul);
+  ms_LightSurfaceProps = baseProps;
 }
 
 void ModelInfoMgr::Init() {
@@ -353,7 +356,10 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
       m_RestoreEntries.push_back({&material->texture, material->texture});
 
       if (material->texture) {
-        if (material->texture == TextureMgr::FindInDict("vehiclelights128", material->texture->dict, true)) {
+        const char *matTexName = material->texture->name;
+        if (matTexName && strcmp(matTexName, "vehiclelights128") == 0) {
+          material->texture = TextureMgr::FindInDict("vehiclelightson128", material->texture->dict, true);
+        } else if (material->texture == TextureMgr::FindInDict("vehiclelights128", material->texture->dict, true)) {
           material->texture = TextureMgr::FindInDict("vehiclelightson128", material->texture->dict, true);
         } else {
           RwTexture *pTex = TextureMgr::FindOnTextureInDict(

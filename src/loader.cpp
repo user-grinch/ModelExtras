@@ -127,11 +127,21 @@ void ModelExtras::Init()
     RegisterFeature<Sirens>();
     RegisterFeature<SoundEffects>();
     RegisterFeature<SpotLights>();
+    static std::vector<CBaseFeature *> s_ActiveTickFeatures;
+    static std::vector<CBaseFeature *> s_ActiveVehicleFeatures;
+    static std::vector<CBaseFeature *> s_ActiveBikePointLightFeatures;
+
     for (const auto &pFeature : m_Features)
     {
         if (pFeature)
         {
             pFeature->Init();
+            if (pFeature->HasProcessTick())
+                s_ActiveTickFeatures.push_back(pFeature.get());
+            if (pFeature->HasProcessVehicle())
+                s_ActiveVehicleFeatures.push_back(pFeature.get());
+            if (pFeature->HasProcessBikePointLights())
+                s_ActiveBikePointLightFeatures.push_back(pFeature.get());
         }
     }
 
@@ -139,9 +149,9 @@ void ModelExtras::Init()
     {
         InputMgr::Update();
 
-        for (const auto &pFeature : m_Features)
+        for (auto *pFeature : s_ActiveTickFeatures)
         {
-            if (pFeature && pFeature->IsActiveCached())
+            if (pFeature->IsActiveCached())
             {
                 pFeature->ProcessTick();
             }
@@ -151,9 +161,20 @@ void ModelExtras::Init()
         {
             if (!pVeh) continue;
 
-            for (const auto &pFeature : m_Features)
+            if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
             {
-                if (pFeature && pFeature->IsActiveCached())
+                for (auto *pFeature : s_ActiveBikePointLightFeatures)
+                {
+                    if (pFeature->IsActiveCached())
+                    {
+                        pFeature->ProcessBikePointLights(pVeh);
+                    }
+                }
+            }
+
+            for (auto *pFeature : s_ActiveVehicleFeatures)
+            {
+                if (pFeature->IsActiveCached())
                 {
                     pFeature->ProcessVehicle(pVeh);
                 }
