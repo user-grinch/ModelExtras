@@ -90,9 +90,6 @@ void Lights::Init() {
 
 void Lights::ReloadConfig() {
 	CBaseFeature::ReloadConfig();
-	if (!m_bActive) {
-		m_bActive = gConfig.ReadBoolean("LIGHTS", "StandardLightsv2", gConfig.ReadBoolean("FEATURES", "StandardLightsv2", false));
-	}
 	m_bEnabled = m_bActive;
 	LightsConfig::Get().InitConfig();
 }
