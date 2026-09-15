@@ -28,7 +28,8 @@ target("ModelExtras")
         "RW",
         "NOMINMAX",
         "WIN32_LEAN_AND_MEAN",
-        "_USE_MATH_DEFINES"
+        "_USE_MATH_DEFINES",
+        "_CRT_SECURE_NO_WARNINGS"
     )
 
     if PLUGIN_SDK_DIR then
@@ -86,6 +87,15 @@ target("ModelExtras")
         "/Zc:templateScope",
         "/Zc:ternary",
         "/Zc:rvalueCast",
+        "/Zc:nrvo",
+        "/Zc:sizedDealloc",
+        "/Zc:checkGwOdr",
+        "/Zc:alignedNew",
+        "/Zc:hiddenFriend",
+        "/Zc:strictStrings",
+        "/Zc:implicitNoexcept",
+        "/Zc:referenceBinding",
+        "/diagnostics:caret",
         "/volatile:iso",
         "/arch:SSE2",
         "/fp:fast",
@@ -108,12 +118,19 @@ target("ModelExtras")
         set_runtimes("MTd")
         set_optimize("none")
         set_symbols("debug")
+    elseif is_mode("releasedbg") then
+        add_links("plugin")
+        set_runtimes("MT")
+        set_optimize("fastest")
+        set_symbols("debug")
+        add_cxflags("/Ob3", "/Ot", "/Oy", "/GS-")
+        add_shflags("/OPT:REF", "/OPT:ICF", "/INCREMENTAL:NO", "/LTCG", "/DEBUG")
     else
         add_links("plugin")
         set_runtimes("MT")
         set_optimize("fastest")
         set_symbols("hidden")
-        add_cxflags("/Ob3", "/Ot", "/GS-")
+        add_cxflags("/Ob3", "/Ot", "/Oy", "/GS-")
         add_shflags("/OPT:REF", "/OPT:ICF", "/INCREMENTAL:NO", "/LTCG")
     end
 
