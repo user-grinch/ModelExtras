@@ -730,14 +730,6 @@ void Sirens::Init()
 					if (state->Materials.contains(matIdx)) {
 						CRGBA onCol = state->Materials[matIdx]->Color;
 						CRGBA offCol = modelData[pVeh->m_nModelIndex]->isImVehFtSiren ? state->Materials[matIdx]->Color : DEFAULT_MAT_COL;
-
-						if (state->Materials[matIdx]->PatternTotal != 0 && state->Materials[matIdx]->Inertia != 0.0f) {
-							float mult = state->Materials[matIdx]->InertiaMultiplier;
-							onCol.r = static_cast<unsigned char>(offCol.r + (onCol.r - offCol.r) * mult);
-							onCol.g = static_cast<unsigned char>(offCol.g + (onCol.g - offCol.g) * mult);
-							onCol.b = static_cast<unsigned char>(offCol.b + (onCol.b - offCol.b) * mult);
-						}
-
 						return MatStateColor{onCol, offCol};
 					}
 				}
@@ -1002,10 +994,14 @@ void Sirens::Init()
 			for (auto& mat : state->Materials) {
 				mat.second->ColorTime = time;
 				mat.second->PatternTime = time;
+				mat.second->InertiaMultiplier = 1.0f;
 			}
 		}
 		else if (data.SirenState == true && sirenState == false) {
 			data.SirenState = false;
+			for (auto& mat : state->Materials) {
+				mat.second->InertiaMultiplier = 1.0f;
+			}
 		}
 
 		if (!data.GetSirenState() && !data.Trailer) {
@@ -1086,11 +1082,13 @@ void Sirens::Init()
 				continue;
 			}
 
-			if (mat.second->PatternTotal != 0 && mat.second->Inertia != 0.0f) {
-				float currentTime = (float)(time - mat.second->PatternTime);
-				float patternTotalTime = (float)mat.second->Pattern[mat.second->PatternCount];
-				float inertia = std::clamp(mat.second->Inertia, 0.0f, 1.0f);
-				float changeTime = (patternTotalTime / 2.0f) * inertia;
+			if (mat.second->PatternTotal != 0 && mat.second->Inertia > 0.0001f) {
+				float currentTime = static_cast<float>(time - mat.second->PatternTime);
+				float patternTotalTime = static_cast<float>(mat.second->Pattern[mat.second->PatternCount]);
+				float inertiaFactor = (mat.second->Inertia <= 1.0f) ? mat.second->Inertia : (mat.second->Inertia <= 100.0f ? (mat.second->Inertia / 100.0f) : 1.0f);
+				inertiaFactor = std::clamp(inertiaFactor, 0.0f, 1.0f);
+
+				float changeTime = (patternTotalTime / 2.0f) * inertiaFactor;
 				mat.second->InertiaMultiplier = 1.0f;
 
 				if (changeTime > 0.0f) {
@@ -1102,6 +1100,8 @@ void Sirens::Init()
 						mat.second->InertiaMultiplier = std::clamp(fadeOutTime / changeTime, 0.0f, 1.0f);
 					}
 				}
+			} else {
+				mat.second->InertiaMultiplier = 1.0f;
 			}
 
 			int id = 0;
@@ -1110,7 +1110,7 @@ void Sirens::Init()
 				EnableDummy((mat.first * 16) + id, e, vehicle, mat.second, type, time);
 			}
 
-			ModelInfoMgr::EnableSirenMaterial(vehicle, mat.first);
+			ModelInfoMgr::EnableSirenMaterial(vehicle, mat.first, mat.second->InertiaMultiplier);
 		}
 	});
 
@@ -1170,7 +1170,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 	CVector position = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
 	CRGBA activeColor = material->Color;
 
-	if (material->PatternTotal != 0 && material->Inertia != 0.0f)
+	if (material->Inertia > 0.0001f)
 	{
 		activeColor.a = static_cast<unsigned char>(std::clamp(static_cast<float>(activeColor.a) * material->InertiaMultiplier, 0.0f, 255.0f));
 	}
@@ -1217,7 +1217,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 
 	if (material->Type == eLightingMode::Directional)
 	{
-		RenderUtil::RegisterShadowDirectional(pDummyConfig, material->Shadow.Type, material->Shadow.Size);
+		RenderUtil::RegisterShadowDirectional(pDummyConfig, material->Shadow.Type, material->Shadow.Size, material->InertiaMultiplier);
 	}
 	else
 	{
@@ -1261,10 +1261,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 
 		for (auto &mat : state->Materials)
 		{
-			if (!mat.second || !mat.second->State)
-			{
-				continue;
-			}
+			if (!mat.second || !mat.second->State) continue;
 
 			if (mat.second->Delay != 0 && time - data.Delay < mat.second->Delay)
 			{
@@ -1272,7 +1269,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 			}
 
 			CRGBA activeColor = mat.second->Color;
-			if (mat.second->PatternTotal != 0 && mat.second->Inertia != 0.0f)
+			if (mat.second->Inertia > 0.0001f)
 			{
 				activeColor.a = static_cast<unsigned char>(std::clamp(static_cast<float>(activeColor.a) * mat.second->InertiaMultiplier, 0.0f, 255.0f));
 			}

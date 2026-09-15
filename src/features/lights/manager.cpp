@@ -133,7 +133,7 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
             eMaterialType type = static_cast<eMaterialType>(t);
             if (!vData.bLightRenderedThisFrame[type] && vData.fLightFactor[type] > 0.001f) {
                 float inertia = GetLightInertia(pVeh, vData, type);
-                if (inertia > 0.01f) {
+                if (inertia > 0.0001f) {
                     float step = (CTimer::ms_fTimeStep / 50.0f) / inertia;
                     vData.fLightFactor[type] = std::max(0.0f, vData.fLightFactor[type] - step);
                 } else {
@@ -205,7 +205,7 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
     bool isAvailable = IsDummyAvailable(data, type);
     float inertia = GetLightInertia(pVeh, data, type);
 
-    if (inertia > 0.01f) {
+    if (inertia > 0.0001f) {
         float step = (CTimer::ms_fTimeStep / 50.0f) / inertia;
         data.fLightFactor[type] = std::min(1.0f, data.fLightFactor[type] + step);
     } else {
@@ -214,7 +214,7 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
 
     if (type == eMaterialType::HeadLightLeft) {
         float target = (data.bLongLightsOn && isOn) ? 1.0f : 0.0f;
-        if (inertia > 0.01f) {
+        if (inertia > 0.0001f) {
             float hbStep = (CTimer::ms_fTimeStep / 50.0f) / inertia;
             if (data.fHighBeamFactor < target) {
                 data.fHighBeamFactor = std::min(target, data.fHighBeamFactor + hbStep);

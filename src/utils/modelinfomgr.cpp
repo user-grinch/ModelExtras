@@ -189,10 +189,11 @@ void ModelInfoMgr::EnableMaterial(CVehicle *pVeh, eMaterialType type) {
   }
 }
 
-void ModelInfoMgr::EnableSirenMaterial(CVehicle *pVeh, int idx) {
+void ModelInfoMgr::EnableSirenMaterial(CVehicle *pVeh, int idx, float factor) {
   if (idx >= 0 && idx < static_cast<int>(MAX_LIGHTS)) {
     auto &data = m_VehData.Get(pVeh);
     data.m_SirenStatus[idx] = true;
+    data.m_SirenFactor[idx] = factor;
   }
 }
 
@@ -258,6 +259,7 @@ void ModelInfoMgr::SetupRender(CVehicle *ptr) {
 
   data.m_MatStatus.fill(false);
   data.m_SirenStatus.fill(false);
+  data.m_SirenFactor.fill(0.0f);
   data.m_StrobeStatus.fill(false);
 }
 
@@ -319,10 +321,14 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
     bool lightOn = false;
     vData.m_MatAvail[iLightIndex] = true;
 
+    float factor = 1.0f;
     if (iLightIndex == eMaterialType::SirenLight) {
       int idx = GetSirenIndex(pCurVeh, material);
       if (idx >= 0 && idx < static_cast<int>(MAX_LIGHTS)) {
         lightOn = vData.m_SirenStatus[idx];
+        if (vData.m_SirenFactor[idx] > 0.0001f) {
+          factor = vData.m_SirenFactor[idx];
+        }
       }
     } else if (iLightIndex == eMaterialType::StrobeLight) {
       int idx = GetStrobeIndex(pCurVeh, material);
@@ -331,6 +337,14 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
       }
     } else {
       lightOn = vData.m_MatStatus[iLightIndex];
+      if (iLightIndex != eMaterialType::SpotLight &&
+          iLightIndex < eMaterialType::EngineOnLed &&
+          iLightIndex >= 0 && iLightIndex < eMaterialType::TotalMaterial) {
+        VehLightData &lData = LightManager::m_VehData.Get(pCurVeh);
+        if (lData.fLightFactor[iLightIndex] > 0.001f) {
+          factor = lData.fLightFactor[iLightIndex];
+        }
+      }
     }
 
     MatStateColor matCol = FetchMaterialCol(pCurVeh, material, iLightIndex);
@@ -343,16 +357,6 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
     pColor->blue = matCol.on.b;
 
     if (lightOn) {
-      float factor = 1.0f;
-      if (iLightIndex != eMaterialType::SirenLight &&
-          iLightIndex != eMaterialType::SpotLight &&
-          iLightIndex < eMaterialType::EngineOnLed &&
-          iLightIndex >= 0 && iLightIndex < eMaterialType::TotalMaterial) {
-        VehLightData &lData = LightManager::m_VehData.Get(pCurVeh);
-        if (lData.fLightFactor[iLightIndex] > 0.001f) {
-          factor = lData.fLightFactor[iLightIndex];
-        }
-      }
       m_RestoreEntries.push_back({&material->texture, material->texture});
 
       if (material->texture) {
