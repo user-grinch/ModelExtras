@@ -29,10 +29,10 @@ protected:
   void ReloadConfig() override;
   void Reload(CVehicle *pVeh) override { ReloadConfig(); }
   static void EnsureSystemsCreated(CVehicle *pVeh, BackfireData &data);
-  static void BackFireSingle(CVehicle *pVeh, bool bPlaySound = true);
-  static void BackFireMulti(CVehicle *pVeh, bool bPlaySound = true);
   static void Process(CVehicle *pVeh);
 
 public:
   BackFireEffect() : CVehFeature<BackfireData>("BackfireEffect", "FEATURES", eFeatureMatrix::BackfireEffect) {}
+  static void BackFireSingle(CVehicle *pVeh, bool bPlaySound = true);
+  static void BackFireMulti(CVehicle *pVeh, bool bPlaySound = true);
 };

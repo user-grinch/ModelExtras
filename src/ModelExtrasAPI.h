@@ -3,7 +3,7 @@
  */
 
 #pragma once
-#define ME_API_VERSION 11001
+#define ME_API_VERSION 30001
 
 #ifdef MODELEXTRAS_DEV
 #define ME_WRAPPER __declspec(dllexport)
@@ -58,8 +58,10 @@ enum ME_FeatureID
     ME_GangHands,
     ME_PedCols,
     ME_ExhaustFx,
-    ME_ConvertableRoof,
-    ME_DashboardLEDs,
+    ME_ConvertibleRoof,
+    ME_ConvertableRoof = ME_ConvertibleRoof,
+    ME_DashboardLED,
+    ME_DashboardLEDs = ME_DashboardLED,
     ME_RollbackBed,
     ME_Clock,
     ME_ExtraWheels,
@@ -108,7 +110,22 @@ enum ME_LightID
     ME_BonnetOpenLed,
     ME_DoorOpenLed,
     ME_RoofOpenLed,
-    ME_LightCount,
+    ME_LightCount
+};
+
+enum ME_IndicatorState
+{
+    ME_IndicatorOff = 0,
+    ME_IndicatorLeft = 1,
+    ME_IndicatorRight = 2,
+    ME_IndicatorBoth = 3
+};
+
+enum ME_LightOverride
+{
+    ME_LightOverrideNone = 0,
+    ME_LightOverrideForceOff = 1,
+    ME_LightOverrideForceOn = 2
 };
 
 #ifdef __cplusplus
@@ -116,19 +133,86 @@ extern "C"
 {
 #endif
 
-    // Core
-    ME_WRAPPER int ME_GetAPIVersion();
-    ME_WRAPPER int ME_GetVersion();
+    // Core & Lifecycle
+    ME_WRAPPER int  ME_GetAPIVersion();
+    ME_WRAPPER int  ME_GetVersion();
     ME_WRAPPER bool ME_IsFeatureAvail(ME_FeatureID featureId);
+    ME_WRAPPER void ME_Reload();
+    ME_WRAPPER void ME_ReloadVehicle(CVehicle *pVeh);
 
-    // Vehicle
-    ME_WRAPPER unsigned int ME_GetExhaustCount(CVehicle *pVeh);
-    ME_WRAPPER ME_ExhaustInfo ME_GetExhaustData(CVehicle *pVeh, int index);
-    ME_WRAPPER void ME_SetExhaustData(CVehicle *pVeh, int index, ME_ExhaustInfo &data);
-
-    // Lights
+    // Vehicle Lights
     ME_WRAPPER bool ME_GetVehicleLightState(CVehicle *pVeh, ME_LightID lightId);
     ME_WRAPPER void ME_SetVehicleLightState(CVehicle *pVeh, ME_LightID lightId, bool state);
+    ME_WRAPPER bool ME_IsLightAvailable(CVehicle *pVeh, ME_LightID lightId);
+    ME_WRAPPER int  ME_GetIndicatorState(CVehicle *pVeh);
+    ME_WRAPPER void ME_SetIndicatorState(CVehicle *pVeh, int state);
+    ME_WRAPPER int  ME_GetLightOverride(CVehicle *pVeh);
+    ME_WRAPPER void ME_SetLightOverride(CVehicle *pVeh, int overrideMode);
+
+    // Sirens
+    ME_WRAPPER int  ME_GetSirenStateCount(CVehicle *pVeh);
+    ME_WRAPPER int  ME_GetSirenStateCountByModel(int modelIndex);
+    ME_WRAPPER int  ME_GetSirenState(CVehicle *pVeh);
+    ME_WRAPPER bool ME_SetSirenState(CVehicle *pVeh, int state);
+    ME_WRAPPER int  ME_GetSirenSoundMode(CVehicle *pVeh);
+    ME_WRAPPER bool ME_SetSirenSoundMode(CVehicle *pVeh, int soundMode);
+    ME_WRAPPER bool ME_GetSirenMute(CVehicle *pVeh);
+    ME_WRAPPER void ME_SetSirenMute(CVehicle *pVeh, bool mute);
+    ME_WRAPPER bool ME_IsSirenActive(CVehicle *pVeh);
+    ME_WRAPPER bool ME_IsSirenVehicle(CVehicle *pVeh);
+    ME_WRAPPER bool ME_IsCustomSirenPlaying(CVehicle *pVeh);
+
+    // License Plate
+    ME_WRAPPER bool ME_GetPlateText(CVehicle *pVeh, char *outBuffer, int maxLen);
+    ME_WRAPPER bool ME_SetPlateText(CVehicle *pVeh, const char *text);
+    ME_WRAPPER bool ME_HasCustomPlate(CVehicle *pVeh);
+
+    // Carcols & Colors
+    ME_WRAPPER bool ME_GetVehicleColors(CVehicle *pVeh, ME_Color *col1, ME_Color *col2, ME_Color *col3, ME_Color *col4);
+    ME_WRAPPER bool ME_SetVehicleColors(CVehicle *pVeh, ME_Color col1, ME_Color col2, ME_Color col3, ME_Color col4);
+    ME_WRAPPER int  ME_GetCarcolVariationCount(int modelIndex);
+    ME_WRAPPER int  ME_GetCarcolVariation(CVehicle *pVeh);
+    ME_WRAPPER bool ME_SetCarcolVariation(CVehicle *pVeh, int variationIndex);
+
+    // Exhausts & Nitro
+    ME_WRAPPER unsigned int   ME_GetExhaustCount(CVehicle *pVeh);
+    ME_WRAPPER ME_ExhaustInfo ME_GetExhaustData(CVehicle *pVeh, int index);
+    ME_WRAPPER void           ME_SetExhaustData(CVehicle *pVeh, int index, ME_ExhaustInfo &data);
+    ME_WRAPPER void           ME_TriggerNitro(CVehicle *pVeh, bool enable);
+
+    // Backfire
+    ME_WRAPPER void ME_TriggerBackfire(CVehicle *pVeh, bool bPlaySound);
+    ME_WRAPPER bool ME_IsBackfireActive(CVehicle *pVeh);
+
+    // Dashboard & Gauges
+    ME_WRAPPER float ME_GetVehicleMileage(CVehicle *pVeh);
+    ME_WRAPPER void  ME_SetVehicleMileage(CVehicle *pVeh, float mileageKm);
+    ME_WRAPPER bool  ME_GetDashboardLEDState(CVehicle *pVeh, ME_LightID ledId);
+    ME_WRAPPER void  ME_SetDashboardLEDState(CVehicle *pVeh, ME_LightID ledId, bool state);
+
+    // Dirt FX
+    ME_WRAPPER float ME_GetDirtLevel(CVehicle *pVeh);
+    ME_WRAPPER void  ME_SetDirtLevel(CVehicle *pVeh, float dirtLevel);
+
+    // Remap
+    ME_WRAPPER int  ME_GetRemapIndex(CVehicle *pVeh);
+    ME_WRAPPER void ME_SetRemapIndex(CVehicle *pVeh, int remapIndex);
+
+    // Spoilers & Convertible Roof
+    ME_WRAPPER bool  ME_IsRoofOpen(CVehicle *pVeh);
+    ME_WRAPPER void  ME_SetRoofOpen(CVehicle *pVeh, bool open);
+    ME_WRAPPER float ME_GetSpoilerAngle(CVehicle *pVeh, int spoilerIndex);
+
+    // Rollback Bed
+    ME_WRAPPER bool ME_IsRollbackBedExpanded(CVehicle *pVeh);
+    ME_WRAPPER void ME_SetRollbackBedExpanded(CVehicle *pVeh, bool expanded);
+
+    // Spotlights
+    ME_WRAPPER bool ME_IsSpotlightActive(CVehicle *pVeh);
+    ME_WRAPPER void ME_SetSpotlightActive(CVehicle *pVeh, bool active);
+
+    // Ped Colors
+    ME_WRAPPER int ME_GetPedVariationCount(int modelIndex);
 
 #ifdef __cplusplus
 }
