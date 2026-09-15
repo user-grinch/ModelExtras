@@ -36,6 +36,13 @@ void LicensePlate::Init()
     patch::ReplaceFunction(0x6FD500, (void *)CCustomCarPlateMgr_Initialise);
     patch::ReplaceFunction(0x6FD720, (void *)CCustomCarPlateMgr_Shudown);
     patch::ReplaceFunction(0x6FDEA0, (void *)CCustomCarPlateMgr_CreatePlateTexture);
+
+    Events::vehicleDtorEvent += [](CVehicle *pVeh) {
+        if (pCurrentVeh == pVeh)
+        {
+            pCurrentVeh = nullptr;
+        }
+    };
 }
 
 void LicensePlate::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat)

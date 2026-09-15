@@ -100,6 +100,7 @@ void ModelInfoMgr::ResetEditableMaterials() {
     }
   }
   m_SurfPropsRestoreEntries.clear();
+  pCurVeh = nullptr;
 }
 
 void ModelInfoMgr::ReloadConfig() {
@@ -133,6 +134,13 @@ void ModelInfoMgr::Init() {
       0x4C8220, reinterpret_cast<void *>(ModelInfoMgr::SetEditableMaterialsCB));
   patch::ReplaceFunction(
       0x4C8460, reinterpret_cast<void *>(ModelInfoMgr::ResetEditableMaterials));
+
+  Events::vehicleDtorEvent += [](CVehicle *vehicle) {
+    if (pCurVeh == vehicle) {
+      pCurVeh = nullptr;
+    }
+  };
+
   MEEvents::vehRenderEvent.before += [](CVehicle *pVeh) {
     if (!pVeh || pVeh->m_nType != ENTITY_TYPE_VEHICLE || !pVeh->m_pRwClump) {
       return;
