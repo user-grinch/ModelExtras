@@ -27,7 +27,7 @@ bool CarUtil::AreHeadlightsPopUpOpen(CVehicle *pVeh)
     if (pVeh && pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE)
     {
         CAutomobile *pAuto = static_cast<CAutomobile *>(pVeh);
-        if (!pAuto->m_aCarNodes[CAR_MISC_A])
+        if (pVeh->m_nModelIndex != MODEL_ZR350 || !pAuto->m_aCarNodes[CAR_MISC_A])
         {
             return true;
         }

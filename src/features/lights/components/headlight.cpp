@@ -38,7 +38,7 @@ bool HeadlightComponent::AreHeadlightsOpen(CVehicle* pVeh, const VehLightData& d
     }
 
     CAutomobile* pAuto = static_cast<CAutomobile*>(pVeh);
-    bool hasPopUp = (pAuto->m_aCarNodes[CAR_MISC_A] != nullptr) || data.bHasVehFuncsPopUp;
+    bool hasPopUp = (pVeh->m_nModelIndex == MODEL_ZR350 && pAuto->m_aCarNodes[CAR_MISC_A] != nullptr) || data.bHasVehFuncsPopUp;
     if (!hasPopUp) {
         return true;
     }
