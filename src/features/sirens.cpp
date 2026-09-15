@@ -675,6 +675,13 @@ void Sirens::Init()
 	});
 
 	ReloadConfig();
+
+	Events::vehicleDtorEvent += [](CVehicle *vehicle) {
+		if (pCurrentVeh == vehicle) {
+			pCurrentVeh = nullptr;
+		}
+	};
+
 	ModelInfoMgr::RegisterMaterial([](CVehicle *pVeh, RpMaterial *pMat)
 								   {
 		if (!m_bEnabled) {
