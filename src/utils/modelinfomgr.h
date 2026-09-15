@@ -32,6 +32,7 @@ struct VehModelData {
   std::array<bool, eMaterialType::TotalMaterial> m_MatStatus{};
   std::array<bool, eMaterialType::TotalMaterial> m_MatAvail{};
   std::array<bool, MAX_LIGHTS> m_SirenStatus{};
+  std::array<float, MAX_LIGHTS> m_SirenFactor{};
   std::array<bool, MAX_LIGHTS> m_StrobeStatus{};
   uint32_t nFrameCount = 0;
 
@@ -77,14 +78,12 @@ public:
   static float GetMaterialAmbientMul() { return gfMaterialAmbientMul; }
   static RwSurfaceProperties GetLightSurfaceProps(float ambientScale = 1.0f) {
     RwSurfaceProperties props = ms_LightSurfaceProps;
-    if (ambientScale != 1.0f) {
-      props.ambient = std::max(0.0f, props.ambient * ambientScale);
-    }
+    props.ambient = 1.0f + (ms_LightSurfaceProps.ambient - 1.0f) * std::clamp(ambientScale, 0.0f, 1.0f);
     return props;
   }
 
   static void EnableMaterial(CVehicle *pVeh, eMaterialType type);
-  static void EnableSirenMaterial(CVehicle *pVeh, int idx);
+  static void EnableSirenMaterial(CVehicle *pVeh, int idx, float factor = 1.0f);
   static void EnableStrobeMaterial(CVehicle *pVeh, int idx);
   static bool IsMaterialAvailable(CVehicle *pVeh, eMaterialType type);
 
