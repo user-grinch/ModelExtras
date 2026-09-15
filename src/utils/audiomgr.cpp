@@ -269,3 +269,147 @@ void AudioMgr::PlayFileSound(const std::string &path, float volume)
         }
     }
 }
+
+std::string AudioMgr::GetSirenAudioPath(int modeIndex)
+{
+    if (modeIndex < 1 || modeIndex > 9)
+    {
+        return "";
+    }
+
+    std::string baseName = "audio/siren" + std::to_string(modeIndex);
+    const char *extensions[] = {".wav", ".mp3", ".ogg"};
+
+    for (const char *ext : extensions)
+    {
+        std::string relPath = "ModelExtras/" + baseName + ext;
+        std::string fullPath = PLUGIN_PATH((char *)relPath.c_str());
+        DWORD attr = GetFileAttributesA(fullPath.c_str());
+        if (attr != INVALID_FILE_ATTRIBUTES && !(attr & FILE_ATTRIBUTE_DIRECTORY))
+        {
+            return fullPath;
+        }
+    }
+    return "";
+}
+
+StreamHandle AudioMgr::PlaySirenStream(const std::string &path, const CVector &worldPos, float baseVolume, float maxDistance)
+{
+    if (path.empty() || !BassAPI::bReady || !BassAPI::fnStreamCreate || !BassAPI::fnChannelPlay)
+    {
+        return 0;
+    }
+
+    float distSq = MathUtil::DistanceSquared(worldPos, TheCamera.GetPosition());
+    if (distSq > (maxDistance * maxDistance))
+    {
+        return 0;
+    }
+
+    float dist = std::sqrt(distSq);
+    const float nearDist = 5.0f;
+    float distFactor = 1.0f;
+    if (dist > nearDist)
+    {
+        float ratio = std::clamp((dist - nearDist) / (maxDistance - nearDist), 0.0f, 1.0f);
+        distFactor = (1.0f - ratio) * (1.0f - ratio);
+    }
+
+    float pan = 0.0f;
+    if (dist > 0.1f)
+    {
+        CVector toSound = worldPos - TheCamera.GetPosition();
+        CVector camRight = TheCamera.m_mCameraMatrix.right;
+        float rightDot = (toSound.x * camRight.x + toSound.y * camRight.y + toSound.z * camRight.z) / dist;
+        pan = std::clamp(rightDot, -1.0f, 1.0f);
+    }
+
+    constexpr float INV_64 = 1.0f / 64.0f;
+    float masterSfxVol = *(BYTE *)0xBA6797 * INV_64;
+    float finalVolume = baseVolume * distFactor * gfSoundMult * masterSfxVol;
+
+    constexpr DWORD BASS_SAMPLE_LOOP = 4;
+    BassAPI::HSTREAM stream = BassAPI::fnStreamCreate(FALSE, path.c_str(), 0, 0, BASS_SAMPLE_LOOP);
+    if (!stream)
+    {
+        std::string altPath = path;
+        std::replace(altPath.begin(), altPath.end(), '/', '\\');
+        stream = BassAPI::fnStreamCreate(FALSE, altPath.c_str(), 0, 0, BASS_SAMPLE_LOOP);
+    }
+
+    if (stream)
+    {
+        BassAPI::fnChannelSetAttr(stream, 2 /* BASS_ATTRIB_VOL */, std::clamp(finalVolume, 0.0f, 1.0f));
+        BassAPI::fnChannelSetAttr(stream, 3 /* BASS_ATTRIB_PAN */, pan);
+        BassAPI::fnChannelPlay(stream, FALSE);
+        needToFree.push_back(stream);
+        return stream;
+    }
+
+    return 0;
+}
+
+void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, float baseVolume, float maxDistance)
+{
+    if (!stream || !BassAPI::bReady || !BassAPI::fnChannelSetAttr || !BassAPI::fnChannelIsActive)
+    {
+        return;
+    }
+
+    if (BassAPI::fnChannelIsActive(stream) != 1 /* BASS_ACTIVE_PLAYING */)
+    {
+        return;
+    }
+
+    float distSq = MathUtil::DistanceSquared(worldPos, TheCamera.GetPosition());
+    float dist = std::sqrt(distSq);
+    const float nearDist = 5.0f;
+    float distFactor = 1.0f;
+    if (dist > nearDist)
+    {
+        float ratio = std::clamp((dist - nearDist) / (maxDistance - nearDist), 0.0f, 1.0f);
+        distFactor = (1.0f - ratio) * (1.0f - ratio);
+    }
+
+    float pan = 0.0f;
+    if (dist > 0.1f)
+    {
+        CVector toSound = worldPos - TheCamera.GetPosition();
+        CVector camRight = TheCamera.m_mCameraMatrix.right;
+        float rightDot = (toSound.x * camRight.x + toSound.y * camRight.y + toSound.z * camRight.z) / dist;
+        pan = std::clamp(rightDot, -1.0f, 1.0f);
+    }
+
+    constexpr float INV_64 = 1.0f / 64.0f;
+    float masterSfxVol = *(BYTE *)0xBA6797 * INV_64;
+    float finalVolume = baseVolume * distFactor * gfSoundMult * masterSfxVol;
+
+    BassAPI::fnChannelSetAttr(stream, 2 /* BASS_ATTRIB_VOL */, std::clamp(finalVolume, 0.0f, 1.0f));
+    BassAPI::fnChannelSetAttr(stream, 3 /* BASS_ATTRIB_PAN */, pan);
+}
+
+void AudioMgr::StopSirenStream(StreamHandle &stream)
+{
+    if (!stream)
+    {
+        return;
+    }
+
+    if (BassAPI::bReady)
+    {
+        if (BassAPI::fnChannelPause)
+        {
+            BassAPI::fnChannelPause(stream);
+        }
+        if (BassAPI::fnStreamFree)
+        {
+            BassAPI::fnStreamFree(stream);
+        }
+    }
+    auto it = std::find(needToFree.begin(), needToFree.end(), stream);
+    if (it != needToFree.end())
+    {
+        needToFree.erase(it);
+    }
+    stream = 0;
+}

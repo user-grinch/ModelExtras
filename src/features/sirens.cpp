@@ -12,6 +12,8 @@
 #include "utils/datamgr.h"
 #include "enums/materialtype.h"
 #include "utils/meevents.h"
+#include <CPools.h>
+#include <CAEVehicleAudioEntity.h>
 
 bool VehicleSiren::GetSirenState()
 {
@@ -481,6 +483,20 @@ VehicleSirenState::VehicleSirenState(std::string_view state, const nlohmann::jso
 			continue;
 		}
 
+		if (material.key() == "audio" || material.key() == "sound")
+		{
+			if (material.value().is_string())
+			{
+				Sound = material.value().get<std::string>();
+			}
+			continue;
+		}
+
+		if (material.key().empty() || !std::isdigit(material.key()[0]))
+		{
+			continue;
+		}
+
 		int materialIndex = std::stoi(material.key());
 
 		Materials[materialIndex] = new VehicleSirenMaterial(state, materialIndex, material.value());
@@ -604,6 +620,54 @@ int GetSirenIndex(CVehicle *pVeh, RpMaterial *pMat)
 	return -1;
 }
 
+void __fastcall Sirens::hkUsesSirenAudio(CAEVehicleAudioEntity* pThis, void* edx, bool* pbSiren, bool* pbAlarm, class cVehicleParams* pParams)
+{
+	reinterpret_cast<void(__thiscall*)(CAEVehicleAudioEntity*, bool*, bool*, cVehicleParams*)>(0x4F62A0)(pThis, pbSiren, pbAlarm, pParams);
+	if (pThis && pbSiren)
+	{
+		CVehicle* pVeh = (CVehicle*)pThis->m_pEntity;
+		if (pVeh && pVeh->m_nType == ENTITY_TYPE_VEHICLE && Sirens::IsPlayingCustomSiren(pVeh))
+		{
+			*pbSiren = false;
+			if (pThis->m_pSirenSound)
+			{
+				reinterpret_cast<void(__thiscall*)(CAESound*)>(0x4EF850)(pThis->m_pSirenSound);
+				pThis->m_pSirenSound = nullptr;
+			}
+			if (pThis->m_pPoliceSirenSound)
+			{
+				reinterpret_cast<void(__thiscall*)(CAESound*)>(0x4EF850)(pThis->m_pPoliceSirenSound);
+				pThis->m_pPoliceSirenSound = nullptr;
+			}
+			pThis->m_bSirenOrAlarmPlaying = false;
+		}
+	}
+}
+
+void __fastcall Sirens::hkServiceHornOrSiren(CAEVehicleAudioEntity* pThis, void* edx, bool bHorn, bool bSiren, bool bAlarm, class cVehicleParams* pParams)
+{
+	if (pThis)
+	{
+		CVehicle* pVeh = (CVehicle*)pThis->m_pEntity;
+		if (pVeh && pVeh->m_nType == ENTITY_TYPE_VEHICLE && Sirens::IsPlayingCustomSiren(pVeh))
+		{
+			if (pThis->m_pSirenSound)
+			{
+				reinterpret_cast<void(__thiscall*)(CAESound*)>(0x4EF850)(pThis->m_pSirenSound);
+				pThis->m_pSirenSound = nullptr;
+			}
+			if (pThis->m_pPoliceSirenSound)
+			{
+				reinterpret_cast<void(__thiscall*)(CAESound*)>(0x4EF850)(pThis->m_pPoliceSirenSound);
+				pThis->m_pPoliceSirenSound = nullptr;
+			}
+			bSiren = false;
+			pThis->m_bSirenOrAlarmPlaying = false;
+		}
+	}
+	reinterpret_cast<void(__thiscall*)(CAEVehicleAudioEntity*, bool, bool, bool, cVehicleParams*)>(0x4F99D0)(pThis, bHorn, bSiren, bAlarm, pParams);
+}
+
 void Sirens::Init()
 {
 	DataMgr::RegisterListener("sirens", [](int model, const nlohmann::json &data) {
@@ -714,111 +778,195 @@ void Sirens::Init()
 	Events::processScriptsEvent += []()
 	{
 		CVehicle *vehicle = FindPlayerVehicle(-1, false);
-		if (!vehicle)
+		if (vehicle)
 		{
-			return;
-		}
+			static size_t prev = 0;
+			size_t now = CTimer::m_snTimeInMilliseconds;
 
-		static size_t prev = 0;
-		size_t now = CTimer::m_snTimeInMilliseconds;
-
-		if (now - prev > 300.0f)
-		{
-			if (Util::IsKeyPressed(g_nSirenKey))
+			if (now - prev > 300.0f)
 			{
-				int model = vehicle->m_nModelIndex;
-
-				if (!modelData.contains(model))
-					return;
-
-				auto &data = m_VehData.Get(vehicle);
-				data.vehicle = vehicle;
-				data.Mute = !data.Mute;
-
-				if (data.Mute)
-					vehicle->bSirenOrAlarm = false;
-
-				AudioMgr::PlaySwitchSound(vehicle);
-			}
-
-			if (Util::IsKeyPressed(VK_R))
-			{
-				int model = vehicle->m_nModelIndex;
-
-				if (!modelData.contains(model))
-					return;
-
-				auto &data = m_VehData.Get(vehicle);
-				data.vehicle = vehicle;
-
-				if (!data.GetSirenState())
-					return;
-
-				if (modelData[model]->States.size() == 0)
-					return;
-
-				int addition = (Util::IsKeyPressed(0x10)) ? (-1) : (1);
-
-				data.State += addition;
-
-				if (data.State == (int)modelData[model]->States.size())
-					data.State = 0;
-
-				if (data.State == -1)
-					data.State = (int)modelData[model]->States.size() - 1;
-
-				while (modelData[model]->States[data.State]->Paintjob != -1 && modelData[model]->States[data.State]->Paintjob != vehicle->GetRemapIndex())
+				if (Util::IsKeyPressed(g_nSirenKey))
 				{
-					data.State += (Util::IsKeyPressed(0x10)) ? (-1) : (1);
+					int model = vehicle->m_nModelIndex;
 
-					if (data.State == (int)modelData[model]->States.size())
+					if (modelData.contains(model))
 					{
-						data.State = 0;
+						auto &data = m_VehData.Get(vehicle);
+						data.vehicle = vehicle;
+						data.Mute = !data.Mute;
 
-						break;
-					}
-					else if (data.State == -1)
-					{
-						data.State = (int)modelData[model]->States.size() - 1;
+						if (data.Mute)
+							vehicle->bSirenOrAlarm = false;
 
-						break;
+						AudioMgr::PlaySwitchSound(vehicle);
 					}
 				}
-				AudioMgr::PlaySwitchSound(vehicle);
+
+				if (Util::IsKeyPressed(VK_R))
+				{
+					int model = vehicle->m_nModelIndex;
+
+					if (modelData.contains(model))
+					{
+						auto &data = m_VehData.Get(vehicle);
+						data.vehicle = vehicle;
+
+						if (data.GetSirenState() && modelData[model]->States.size() > 0)
+						{
+							int addition = (Util::IsKeyPressed(0x10)) ? (-1) : (1);
+
+							data.State += addition;
+
+							if (data.State == (int)modelData[model]->States.size())
+								data.State = 0;
+
+							if (data.State == -1)
+								data.State = (int)modelData[model]->States.size() - 1;
+
+							while (modelData[model]->States[data.State]->Paintjob != -1 && modelData[model]->States[data.State]->Paintjob != vehicle->GetRemapIndex())
+							{
+								data.State += (Util::IsKeyPressed(0x10)) ? (-1) : (1);
+
+								if (data.State == (int)modelData[model]->States.size())
+								{
+									data.State = 0;
+									break;
+								}
+								else if (data.State == -1)
+								{
+									data.State = (int)modelData[model]->States.size() - 1;
+									break;
+								}
+							}
+							AudioMgr::PlaySwitchSound(vehicle);
+						}
+					}
+				}
+				prev = now;
 			}
-			prev = now;
+			bool bCtrl = Util::IsKeyPressed(VK_CONTROL) || Util::IsKeyPressed(VK_LCONTROL) || Util::IsKeyPressed(VK_RCONTROL);
+
+			for (int number = 0; number < 9; number++)
+			{
+				if (Util::IsKeyPressed(VK_1 + number))
+				{ // 1 -> 9
+					int model = vehicle->m_nModelIndex;
+
+					if (modelData.contains(model))
+					{
+						auto &data = m_VehData.Get(vehicle);
+						data.vehicle = vehicle;
+
+						if (data.GetSirenState())
+						{
+							if (bCtrl)
+							{
+								int newSound = number;
+								if (data.SoundMode != newSound)
+								{
+									data.SoundMode = newSound;
+									AudioMgr::PlaySwitchSound(vehicle);
+								}
+							}
+							else if (modelData[model]->States.size() > 0)
+							{
+								int newState = number;
+
+								if ((int)modelData[model]->States.size() > newState && data.State != newState)
+								{
+									if (modelData[model]->States[newState]->Paintjob == -1 || modelData[model]->States[newState]->Paintjob == vehicle->GetRemapIndex())
+									{
+										data.State = newState;
+										AudioMgr::PlaySwitchSound(vehicle);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
-		for (int number = 0; number < 9; number++)
+
+		for (auto pVeh : CPools::ms_pVehiclePool)
 		{
-			if (Util::IsKeyPressed(VK_1 + number))
-			{ // 1 -> 9
-				int model = vehicle->m_nModelIndex;
+			if (!pVeh) continue;
+			int model = pVeh->m_nModelIndex;
+			if (!modelData.contains(model)) continue;
 
-				if (!modelData.contains(model))
-					return;
+			auto &data = m_VehData.Get(pVeh);
+			data.vehicle = pVeh;
 
-				auto &data = m_VehData.Get(vehicle);
-				data.vehicle = vehicle;
+			if (pVeh->m_fHealth <= 0.0f || pVeh->bEngineBroken)
+			{
+				data.Mute = false;
+			}
+			else if (pVeh->bSirenOrAlarm)
+			{
+				data.Mute = false;
+			}
 
-				if (!data.GetSirenState())
-					return;
+			bool bSirenActive = data.GetSirenState() && pVeh->m_fHealth > 0.0f && !pVeh->bEngineBroken && !data.Mute;
 
-				if (modelData[model]->States.size() == 0)
-					return;
+			if (!bSirenActive)
+			{
+				if (data.m_nSirenStream)
+				{
+					AudioMgr::StopSirenStream(data.m_nSirenStream);
+					data.m_nActiveSirenSoundState = -1;
+					data.m_bPlayingCustomSiren = false;
+				}
+				continue;
+			}
 
-				int newState = number;
+			int curSoundMode = data.SoundMode;
+			std::string soundPath;
+			if (curSoundMode > 0)
+			{
+				soundPath = AudioMgr::GetSirenAudioPath(curSoundMode + 1);
+			}
+			else
+			{
+				int curState = data.GetCurrentState();
+				if (curState >= 0 && static_cast<size_t>(curState) < modelData[model]->States.size())
+				{
+					auto *state = modelData[model]->States[curState];
+					if (!state->Sound.empty())
+					{
+						std::string rel = "ModelExtras/audio/" + state->Sound;
+						soundPath = PLUGIN_PATH((char *)rel.c_str());
+					}
+				}
+				if (soundPath.empty())
+				{
+					soundPath = AudioMgr::GetSirenAudioPath(1);
+				}
+			}
 
-				if ((int)modelData[model]->States.size() <= newState)
-					return;
-
-				if (data.State == newState)
-					return;
-
-				if (modelData[model]->States[newState]->Paintjob != -1 && modelData[model]->States[newState]->Paintjob != vehicle->GetRemapIndex())
-					return;
-
-				data.State = newState;
-				AudioMgr::PlaySwitchSound(vehicle);
+			if (!soundPath.empty())
+			{
+				if (data.m_nActiveSirenSoundState != curSoundMode || !data.m_nSirenStream)
+				{
+					if (data.m_nSirenStream)
+					{
+						AudioMgr::StopSirenStream(data.m_nSirenStream);
+					}
+					data.m_nSirenStream = AudioMgr::PlaySirenStream(soundPath, pVeh->GetPosition());
+					data.m_nActiveSirenSoundState = curSoundMode;
+					data.m_bPlayingCustomSiren = (data.m_nSirenStream != 0);
+				}
+				else if (data.m_nSirenStream)
+				{
+					AudioMgr::UpdateSirenStream(data.m_nSirenStream, pVeh->GetPosition());
+				}
+			}
+			else
+			{
+				if (data.m_nSirenStream)
+				{
+					AudioMgr::StopSirenStream(data.m_nSirenStream);
+					data.m_nActiveSirenSoundState = -1;
+					data.m_bPlayingCustomSiren = false;
+				}
 			}
 		}
 	};
@@ -978,6 +1126,8 @@ void Sirens::Init()
 
 	Events::initGameEvent += []
 	{
+		injector::MakeCALL((void *)0x5002E7, hkUsesSirenAudio, true);
+		injector::MakeCALL((void *)0x500366, hkServiceHornOrSiren, true);
 		injector::MakeCALL((void *)0x6ABA60, hkRegisterCorona, true);
 		injector::MakeCALL((void *)0x6ABB35, hkRegisterCorona, true);
 		injector::MakeCALL((void *)0x6ABC69, hkRegisterCorona, true);
