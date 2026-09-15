@@ -30,6 +30,6 @@ protected:
   void Reload(CVehicle *pVeh) override { ReloadConfig(); }
 
 public:
-  Remap() : CVehFeature<RemapVehData>("TextureRemaper", "FEATURES", eFeatureMatrix::TextureRemapper) {}
+  Remap() : CVehFeature<RemapVehData>("TextureRemapper", "FEATURES", eFeatureMatrix::TextureRemapper) {}
   static void ProcessTextures(CVehicle *pVeh, RpMaterial *pMat);
 };
