@@ -463,7 +463,7 @@ const char* LightManager::GetLightSpecificKey(eMaterialType type) {
 
 float LightManager::GetLightInertia(CVehicle* pVeh, VehLightData& data, eMaterialType type) {
     if (type >= 0 && type < eMaterialType::TotalMaterial && !data.dummies[type].empty()) {
-        float dInertia = data.dummies[type][0]->GetRef().inertia;
+        float dInertia = data.dummies[type][0].GetRef().inertia;
         if (dInertia > 0.0f) return dInertia;
     }
 
@@ -484,3 +484,82 @@ float LightManager::GetLightInertia(CVehicle* pVeh, VehLightData& data, eMateria
 
     return lights.value("inertia", 0.0f);
 }
+
+static std::optional<CRGBA> GetJsonCoronaColor(const nlohmann::json& lights, const char* key) {
+    if (!key || !lights.contains(key)) return std::nullopt;
+    const auto& sec = lights[key];
+    if (sec.contains("corona") && sec["corona"].contains("color")) {
+        const auto& c = sec["corona"]["color"];
+        CRGBA col;
+        col.r = c.value("red", 255);
+        col.g = c.value("green", 255);
+        col.b = c.value("blue", 255);
+        col.a = 255;
+        return col;
+    }
+    return std::nullopt;
+}
+
+static std::optional<CRGBA> GetJsonOffColor(const nlohmann::json& lights, const char* key) {
+    if (!key || !lights.contains(key)) return std::nullopt;
+    const auto* pSec = &lights[key];
+    if (pSec->contains("material") && (*pSec)["material"].contains("color_off")) {
+        pSec = &(*pSec)["material"]["color_off"];
+    } else if (pSec->contains("color_off")) {
+        pSec = &(*pSec)["color_off"];
+    } else {
+        return std::nullopt;
+    }
+    CRGBA off;
+    off.r = pSec->value("red", 255);
+    off.g = pSec->value("green", 255);
+    off.b = pSec->value("blue", 255);
+    off.a = 255;
+    return off;
+}
+
+MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type) {
+    if (type < 0 || type >= eMaterialType::TotalMaterial || !pVeh) {
+        return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
+    }
+    VehLightData& data = m_VehData.Get(pVeh);
+    if (IsDummyAvailable(data, type)) {
+        const DummyConfig& c = data.dummies[type][0].GetRef();
+        if (c.hasCustomColor) {
+            return MatStateColor{c.corona.color, DEFAULT_MAT_COL};
+        }
+    }
+
+    auto& json = DataMgr::Get(pVeh->m_nModelIndex);
+    if (!json.contains("lights")) {
+        return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
+    }
+
+    const auto& lights = json["lights"];
+    const char* specKey = GetLightSpecificKey(type);
+    const char* grpKey = GetLightGroupKey(type);
+
+    std::optional<CRGBA> onCol;
+    std::optional<CRGBA> offCol;
+
+    if (specKey) {
+        onCol = GetJsonCoronaColor(lights, specKey);
+        offCol = GetJsonOffColor(lights, specKey);
+    }
+    if (!onCol && type == eMaterialType::FogLightLeft) onCol = GetJsonCoronaColor(lights, "fogl_l");
+    if (!offCol && type == eMaterialType::FogLightLeft) offCol = GetJsonOffColor(lights, "fogl_l");
+    if (!onCol && type == eMaterialType::FogLightRight) onCol = GetJsonCoronaColor(lights, "fogl_r");
+    if (!offCol && type == eMaterialType::FogLightRight) offCol = GetJsonOffColor(lights, "fogl_r");
+
+    if (grpKey) {
+        if (!onCol) onCol = GetJsonCoronaColor(lights, grpKey);
+        if (!offCol) offCol = GetJsonOffColor(lights, grpKey);
+    }
+
+    if (onCol || offCol) {
+        return MatStateColor{onCol.value_or(DEFAULT_MAT_COL), offCol.value_or(DEFAULT_MAT_COL)};
+    }
+
+    return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
+}
+

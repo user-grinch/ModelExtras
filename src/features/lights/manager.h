@@ -38,4 +38,5 @@ public:
     static const char* GetLightGroupKey(eMaterialType type);
     static const char* GetLightSpecificKey(eMaterialType type);
     static float GetLightInertia(CVehicle* pVeh, VehLightData& data, eMaterialType type);
+    static MatStateColor GetMaterialColor(CVehicle* pVeh, eMaterialType type);
 };

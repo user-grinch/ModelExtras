@@ -352,11 +352,10 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
     RwRGBA *pColor = RpMaterialGetColor(material);
     m_RestoreEntries.push_back({pColor, *reinterpret_cast<void **>(pColor)});
 
-    pColor->red = matCol.on.r;
-    pColor->green = matCol.on.g;
-    pColor->blue = matCol.on.b;
-
     if (lightOn) {
+      pColor->red   = matCol.on.r;
+      pColor->green = matCol.on.g;
+      pColor->blue  = matCol.on.b;
       m_RestoreEntries.push_back({&material->texture, material->texture});
 
       if (material->texture) {
@@ -378,6 +377,10 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
       }
       m_SurfPropsRestoreEntries.push_back({material, material->surfaceProps});
       material->surfaceProps = GetLightSurfaceProps(factor);
+    } else {
+      pColor->red   = matCol.off.r;
+      pColor->green = matCol.off.g;
+      pColor->blue  = matCol.off.b;
     }
   } else {
     CRGBA col = {255, 255, 255, 255};
