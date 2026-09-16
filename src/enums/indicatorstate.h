@@ -2,8 +2,8 @@
 
 enum class eIndicatorState
 {
-    LeftOn,
-    RightOn,
-    BothOn,
-    Off,
-};
+    Off = 0,
+    LeftOn = 1,
+    RightOn = 2,
+    BothOn = 3,
+};

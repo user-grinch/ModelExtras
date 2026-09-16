@@ -305,7 +305,7 @@ void ME_TriggerNitro(CVehicle *pVeh, bool enable) {
   if (!pVeh) return;
   if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE) {
     auto *pAuto = reinterpret_cast<CAutomobile *>(pVeh);
-    pAuto->m_fNitroValue = enable ? 1.0f : 0.0f;
+    pAuto->m_fNitroValue = enable ? -1.0f : 0.0f;
   }
 }
 
