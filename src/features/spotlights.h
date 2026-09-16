@@ -30,8 +30,4 @@ public:
 	static bool IsEnabled(CVehicle *pVeh);
 	void ReloadConfig() override;
 	void Reload(CVehicle *pVeh) override;
-	bool HasProcessBikePointLights() const override { return true; }
-	void ProcessBikePointLights(CVehicle *pVeh) override {
-		ProcessPointLights(pVeh);
-	}
 };

@@ -37,11 +37,9 @@ public:
   // Centralized processing hooks
   virtual bool HasProcessTick() const { return false; }
   virtual bool HasProcessVehicle() const { return false; }
-  virtual bool HasProcessBikePointLights() const { return false; }
 
   virtual void ProcessTick() {}
   virtual void ProcessVehicle(CVehicle *pVeh) {}
-  virtual void ProcessBikePointLights(CVehicle *pVeh) {}
 };
 
 template <typename T> class CVehFeature : public CBaseFeature {

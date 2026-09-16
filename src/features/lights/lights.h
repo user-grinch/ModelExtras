@@ -14,11 +14,9 @@ public:
 
     bool HasProcessTick() const override { return true; }
     bool HasProcessVehicle() const override { return true; }
-    bool HasProcessBikePointLights() const override { return true; }
 
     void ProcessTick() override;
     void ProcessVehicle(CVehicle* pVeh) override;
-    void ProcessBikePointLights(CVehicle* pVeh) override;
 
     static VehLightData& GetVehicleData(CVehicle* pVeh);
     static bool IsIndicatorOn(CVehicle* pVeh);

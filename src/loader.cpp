@@ -129,7 +129,6 @@ void ModelExtras::Init()
     RegisterFeature<SpotLights>();
     static std::vector<CBaseFeature *> s_ActiveTickFeatures;
     static std::vector<CBaseFeature *> s_ActiveVehicleFeatures;
-    static std::vector<CBaseFeature *> s_ActiveBikePointLightFeatures;
 
     for (const auto &pFeature : m_Features)
     {
@@ -140,8 +139,6 @@ void ModelExtras::Init()
                 s_ActiveTickFeatures.push_back(pFeature.get());
             if (pFeature->HasProcessVehicle())
                 s_ActiveVehicleFeatures.push_back(pFeature.get());
-            if (pFeature->HasProcessBikePointLights())
-                s_ActiveBikePointLightFeatures.push_back(pFeature.get());
         }
     }
 
@@ -160,17 +157,6 @@ void ModelExtras::Init()
         for (CVehicle *pVeh : CPools::ms_pVehiclePool)
         {
             if (!pVeh) continue;
-
-            if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
-            {
-                for (auto *pFeature : s_ActiveBikePointLightFeatures)
-                {
-                    if (pFeature->IsActiveCached())
-                    {
-                        pFeature->ProcessBikePointLights(pVeh);
-                    }
-                }
-            }
 
             for (auto *pFeature : s_ActiveVehicleFeatures)
             {
