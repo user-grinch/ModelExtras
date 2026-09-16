@@ -7,6 +7,7 @@
 using namespace plugin;
 
 std::vector<int> ValidForReverseSound;
+static std::vector<int> ValidForBrakePadSound;
 
 #define ANIMGROUP_TRUCK 2
 #define ANIMGROUP_BUS 15
@@ -17,6 +18,8 @@ static bool bEngineSounds = false;
 static bool bIndicatorSounds = false;
 static bool bAirbreakSounds = false;
 static bool bOnlyPlayerVehicle = true;
+static bool bBrakePadSounds = false;
+static bool bBrakePadOnlySelected = true;
 
 void SoundEffects::ReloadConfig()
 {
@@ -30,11 +33,27 @@ void SoundEffects::ReloadConfig()
     bIndicatorSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalIndicatorSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalIndicatorSound", false));
     bAirbreakSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalAirbreakSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalAirbreakSound", false));
     bOnlyPlayerVehicle = !gConfig.ReadBoolean("SOUND", "SoundEffects_NonPlayerVehicles", gConfig.ReadBoolean("FEATURES", "SoundEffects_NonPlayerVehicles", false));
+
+    bBrakePadSounds = gConfig.ReadBoolean("SOUND", "BrakePadSound", gConfig.ReadBoolean("FEATURES", "BrakePadSound", false));
+    bBrakePadOnlySelected = gConfig.ReadBoolean("SOUND", "BrakePadOnlySelected", gConfig.ReadBoolean("FEATURES", "BrakePadOnlySelected", true));
+
+    std::string brakeLine = gConfig.ReadString("TABLE", "BrakePad_VehicleModels", "");
+    ValidForBrakePadSound.clear();
+    Util::GetModelsFromIni(brakeLine, ValidForBrakePadSound);
 }
 
 void SoundEffects::Reload(CVehicle *pVeh)
 {
     ReloadConfig();
+    if (pVeh)
+    {
+        auto &data = m_VehData.Get(pVeh);
+        if (data.m_hBrakePadStream)
+        {
+            AudioMgr::StopLoopStream(data.m_hBrakePadStream);
+        }
+        data.m_fBrakePadVol = 0.0f;
+    }
 }
 
 void SoundEffects::Init()
@@ -175,4 +194,56 @@ void SoundEffects::ProcessVehicle(CVehicle *pVeh)
                 }
             }
 
+            if (bBrakePadSounds && pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE)
+            {
+                CAutomobile *pAuto = static_cast<CAutomobile *>(pVeh);
+                bool isEligible = !bBrakePadOnlySelected || (std::find(ValidForBrakePadSound.begin(), ValidForBrakePadSound.end(), model) != ValidForBrakePadSound.end());
+                float targetVol = 0.0f;
+
+                // Wheels must touch ground (not airborne)
+                bool bOnGround = (pAuto->m_nWheelsOnGround > 0);
+
+                // Wheel lockup check: if front wheels are locked up / stopped spinning while car is moving at speed, don't squeak
+                bool bWheelLocked = (speed > 5.0f && std::abs(pAuto->m_fWheelSpeed[0]) < 0.01f && std::abs(pAuto->m_fWheelSpeed[1]) < 0.01f);
+
+                if (isEligible && bOnGround && !bWheelLocked && !pVeh->bEngineBroken && !pVeh->bIsDrowning && !isBigVeh && !pVeh->bIsBig && !pVeh->bIsBus)
+                {
+                    float brakeInput = pVeh->m_fBreakPedal;
+                    if (brakeInput > 0.05f && speed > 0.2f)
+                    {
+                        float speedFactor = std::clamp((speed - 0.2f) / 4.0f, 0.0f, 1.0f);
+                        targetVol = std::clamp(brakeInput, 0.35f, 1.0f) * speedFactor * 0.7f;
+                    }
+                }
+
+                if (targetVol > data.m_fBrakePadVol)
+                {
+                    data.m_fBrakePadVol = std::min(targetVol, data.m_fBrakePadVol + 0.1f);
+                }
+                else if (targetVol < data.m_fBrakePadVol)
+                {
+                    data.m_fBrakePadVol = std::max(targetVol, data.m_fBrakePadVol - 0.06f);
+                }
+
+                if (data.m_fBrakePadVol > 0.01f)
+                {
+                    static std::string path = MOD_DATA_PATH("audio/brake_pad.mp3");
+                    if (!data.m_hBrakePadStream)
+                    {
+                        data.m_hBrakePadStream = AudioMgr::PlayLoopStream(path, pVeh->GetPosition(), data.m_fBrakePadVol, 25.0f);
+                    }
+                    else
+                    {
+                        AudioMgr::UpdateLoopStream(data.m_hBrakePadStream, pVeh->GetPosition(), data.m_fBrakePadVol, 25.0f);
+                    }
+                }
+                else
+                {
+                    if (data.m_hBrakePadStream)
+                    {
+                        AudioMgr::StopLoopStream(data.m_hBrakePadStream);
+                    }
+                    data.m_fBrakePadVol = 0.0f;
+                }
+            }
 }
