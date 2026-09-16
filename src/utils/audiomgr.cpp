@@ -70,8 +70,8 @@ static float gfSoundMult = 1.0f;
 
 void AudioMgr::ReloadConfig()
 {
-    gbSoundEffectsEnabled = gConfig.ReadBoolean("SOUND", "SoundEffects", gConfig.ReadBoolean("FEATURES", "SoundEffects", false));
-    gfSoundMult = gConfig.ReadFloat("SOUND", "SoundMult", gConfig.ReadFloat("TWEAKS", "SoundMult", 0.6f));
+    gbSoundEffectsEnabled = gConfig.ReadBoolean("SOUND", "SoundEffects", false);
+    gfSoundMult = gConfig.ReadFloat("SOUND", "SoundMult", 0.6f);
 }
 
 void AudioMgr::Init()
@@ -97,7 +97,7 @@ void AudioMgr::Init()
     Events::processScriptsEvent += []
     {
         static bool bWasPaused = false;
-        bool bIsPaused = CTimer::m_UserPause || CTimer::m_CodePause;
+        bool bIsPaused = !Util::IsWindowFocused() || CTimer::m_UserPause || CTimer::m_CodePause;
 
         if (bIsPaused != bWasPaused)
         {
@@ -169,7 +169,19 @@ void AudioMgr::PlaySwitchSound(CEntity *pEntity)
 
 bool AudioMgr::ShouldPlaySound()
 {
-    return gbSoundEffectsEnabled;
+    if (!gbSoundEffectsEnabled)
+    {
+        return false;
+    }
+    if (!Util::IsWindowFocused())
+    {
+        return false;
+    }
+    if (CTimer::m_UserPause || CTimer::m_CodePause)
+    {
+        return false;
+    }
+    return true;
 }
 
 void AudioMgr::Play3DSound(const std::string &path, const CVector &worldPos, CEntity *pEntity, float baseVolume, float maxDistance)
@@ -293,7 +305,7 @@ std::string AudioMgr::GetSirenAudioPath(int modeIndex)
     return "";
 }
 
-StreamHandle AudioMgr::PlaySirenStream(const std::string &path, const CVector &worldPos, float baseVolume, float maxDistance)
+StreamHandle AudioMgr::PlayLoopStream(const std::string &path, const CVector &worldPos, float baseVolume, float maxDistance)
 {
     if (path.empty() || !BassAPI::bReady || !BassAPI::fnStreamCreate || !BassAPI::fnChannelPlay)
     {
@@ -349,7 +361,7 @@ StreamHandle AudioMgr::PlaySirenStream(const std::string &path, const CVector &w
     return 0;
 }
 
-void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, float baseVolume, float maxDistance)
+void AudioMgr::UpdateLoopStream(StreamHandle stream, const CVector &worldPos, float baseVolume, float maxDistance)
 {
     if (!stream || !BassAPI::bReady || !BassAPI::fnChannelSetAttr || !BassAPI::fnChannelIsActive)
     {
@@ -358,6 +370,12 @@ void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, f
 
     if (BassAPI::fnChannelIsActive(stream) != 1 /* BASS_ACTIVE_PLAYING */)
     {
+        return;
+    }
+
+    if (!ShouldPlaySound())
+    {
+        BassAPI::fnChannelSetAttr(stream, 2 /* BASS_ATTRIB_VOL */, 0.0f);
         return;
     }
 
@@ -388,7 +406,7 @@ void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, f
     BassAPI::fnChannelSetAttr(stream, 3 /* BASS_ATTRIB_PAN */, pan);
 }
 
-void AudioMgr::StopSirenStream(StreamHandle &stream)
+void AudioMgr::StopLoopStream(StreamHandle &stream)
 {
     if (!stream)
     {
@@ -412,4 +430,19 @@ void AudioMgr::StopSirenStream(StreamHandle &stream)
         needToFree.erase(it);
     }
     stream = 0;
+}
+
+StreamHandle AudioMgr::PlaySirenStream(const std::string &path, const CVector &worldPos, float baseVolume, float maxDistance)
+{
+    return PlayLoopStream(path, worldPos, baseVolume, maxDistance);
+}
+
+void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, float baseVolume, float maxDistance)
+{
+    UpdateLoopStream(stream, worldPos, baseVolume, maxDistance);
+}
+
+void AudioMgr::StopSirenStream(StreamHandle &stream)
+{
+    StopLoopStream(stream);
 }
