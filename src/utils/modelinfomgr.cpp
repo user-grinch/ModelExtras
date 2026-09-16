@@ -86,7 +86,8 @@ static size_t GuardUpgradeFrameCalls(uint32_t start, uint32_t end) {
   return patched;
 }
 
-void ModelInfoMgr::ResetEditableMaterials() {
+void ModelInfoMgr::ResetEditableMaterials(RpClump *clump) {
+  (void)clump;
   for (auto it = m_RestoreEntries.rbegin(); it != m_RestoreEntries.rend(); ++it) {
     if (it->m_pAddress) {
       *reinterpret_cast<void **>(it->m_pAddress) = it->m_pValue;
@@ -316,14 +317,12 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
     }
   }
 
-  if (!pCurVeh) {
-    return material;
-  }
+  eMaterialType iLightIndex =
+      pCurVeh ? FetchMaterialType(pCurVeh, material)
+              : eMaterialType::UnknownMaterial;
 
-  eMaterialType iLightIndex = FetchMaterialType(pCurVeh, material);
-
-  if (iLightIndex != eMaterialType::UnknownMaterial && iLightIndex >= 0 &&
-      iLightIndex < eMaterialType::TotalMaterial) {
+  if (pCurVeh && iLightIndex != eMaterialType::UnknownMaterial &&
+      iLightIndex >= 0 && iLightIndex < eMaterialType::TotalMaterial) {
     auto &vData = m_VehData.Get(pCurVeh);
 
     bool lightOn = false;

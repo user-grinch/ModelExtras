@@ -68,7 +68,7 @@ private:
   static eMaterialType FetchMaterialType(CVehicle *pVeh, RpMaterial *pMat);
 
   static RpMaterial *SetEditableMaterialsCB(RpMaterial *material, void *data);
-  static void __cdecl ResetEditableMaterials();
+  static void __cdecl ResetEditableMaterials(RpClump *clump = nullptr);
   static void __fastcall SetupRender(CVehicle *ptr);
 
 public:
