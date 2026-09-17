@@ -360,9 +360,9 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
     m_RestoreEntries.push_back({pColor, *reinterpret_cast<void **>(pColor)});
 
     if (lightOn) {
-      pColor->red   = matCol.on.r;
-      pColor->green = matCol.on.g;
-      pColor->blue  = matCol.on.b;
+      pColor->red   = static_cast<RwUInt8>(std::clamp(matCol.off.r + (matCol.on.r - matCol.off.r) * factor, 0.0f, 255.0f));
+      pColor->green = static_cast<RwUInt8>(std::clamp(matCol.off.g + (matCol.on.g - matCol.off.g) * factor, 0.0f, 255.0f));
+      pColor->blue  = static_cast<RwUInt8>(std::clamp(matCol.off.b + (matCol.on.b - matCol.off.b) * factor, 0.0f, 255.0f));
       m_RestoreEntries.push_back({&material->texture, material->texture});
 
       if (material->texture) {
@@ -382,8 +382,9 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
           }
         }
       }
-      m_SurfPropsRestoreEntries.push_back({material, material->surfaceProps});
-      material->surfaceProps = GetLightSurfaceProps(factor);
+      RwSurfaceProperties origProps = material->surfaceProps;
+      m_SurfPropsRestoreEntries.push_back({material, origProps});
+      material->surfaceProps = GetLightSurfaceProps(factor, origProps);
     } else {
       pColor->red   = matCol.off.r;
       pColor->green = matCol.off.g;

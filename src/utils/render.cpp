@@ -389,7 +389,6 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
 
 void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float angle, float radius, float szMul, bool inversed, bool skipCheck)
 {
-    const float FADE_RANGE = 20.0f;
     float sz = pConfig->corona.size * szMul;
     CRGBA col = pConfig->corona.color;
 
@@ -422,24 +421,17 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
         float dummyAngle = Util::NormalizeAngle(vehicleAngle + targetAngle);
         float diffAngle = Util::NormalizeAngle(cameraAngle - dummyAngle);
         float cutoff = (radius / 2.0f);
+        float angleFromCenter = std::fabs(diffAngle - 180.0f);
 
-        if (diffAngle < cutoff || diffAngle > (360.0f - cutoff))
+        if (angleFromCenter >= cutoff)
         {
             return;
         }
 
-        if (diffAngle < cutoff + FADE_RANGE)
-        {
-            float adjustedAngle = cutoff - diffAngle;
-            float mul = std::fabs(adjustedAngle / FADE_RANGE);
-            col.a = static_cast<unsigned char>(col.a * mul);
-        }
-        else if (diffAngle > (360.0f - cutoff - FADE_RANGE))
-        {
-            float adjustedAngle = FADE_RANGE - (diffAngle - (360.0f - cutoff - FADE_RANGE));
-            float mul = std::fabs(adjustedAngle / FADE_RANGE);
-            col.a = static_cast<unsigned char>(col.a * mul);
-        }
+        // Smooth cosine falloff from 1.0 at center facing camera to 0.0 at cutoff edge
+        float normAngle = (angleFromCenter / cutoff) * 1.57079632679f; // PI / 2
+        float angleMul = std::cos(normAngle);
+        col.a = static_cast<unsigned char>(col.a * angleMul);
     }
     RegisterCorona(pConfig->pVeh, reinterpret_cast<int32_t>(pConfig), pConfig->position, col, sz);
 }
