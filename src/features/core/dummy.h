@@ -37,7 +37,7 @@ public:
 
     void AddAngle(float angle)
     {
-        if (angle != 0.0f)
+        if (angle != 0.0f && data.frame)
         {
             RwFrameRotate(data.frame, (RwV3d *)0x008D2E18, angle, rwCOMBINEPRECONCAT);
             data.rotation.currentAngle += angle;
@@ -46,7 +46,7 @@ public:
 
     void ReduceAngle(float angle)
     {
-        if (angle != 0.0f)
+        if (angle != 0.0f && data.frame)
         {
             RwFrameRotate(data.frame, (RwV3d *)0x008D2E18, -angle, rwCOMBINEPRECONCAT);
             data.rotation.currentAngle -= angle;
