@@ -2,7 +2,6 @@
 #include "stringutil.h"
 #include <algorithm>
 #include <cctype>
-#include <regex>
 #include <sstream>
 
 bool StringUtil::IsNumber(const std::string &s)

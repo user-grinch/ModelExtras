@@ -1,9 +1,5 @@
 #include "pch.h"
 #include "dirtfx.h"
-#include "RenderWare.h"
-#include <rwcore.h>
-#include <rwplcore.h>
-#include <rpworld.h>
 #include "utils/texmgr.h"
 
 using namespace plugin;

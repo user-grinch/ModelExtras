@@ -84,10 +84,13 @@ void ModelExtras::Init()
         Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
         {
             auto &jsonData = DataMgr::Get(model);
-            if (jsonData.contains("Metadata"))
+            const nlohmann::json *pMeta = nullptr;
+            if (jsonData.contains("metadata")) pMeta = &jsonData["metadata"];
+            else if (jsonData.contains("Metadata")) pMeta = &jsonData["Metadata"];
+
+            if (pMeta)
             {
-                auto &info = jsonData["Metadata"];
-                int ver = info.value("MinVer", MOD_VERSION_NUMBER);
+                int ver = pMeta->value("minver", pMeta->value("MinVer", MOD_VERSION_NUMBER));
                 if (ver > MOD_VERSION_NUMBER)
                 {
                     static std::string text;
