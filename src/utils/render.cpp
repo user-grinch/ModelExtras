@@ -100,6 +100,24 @@ static void EnsureConfigLoaded()
     }
 }
 
+float RenderUtil::GetCoronaDistanceMul()
+{
+    EnsureConfigLoaded();
+    return gfCoronaDistanceMul;
+}
+
+float RenderUtil::GetCoronaNearClip()
+{
+    EnsureConfigLoaded();
+    return gfCoronaNearClip;
+}
+
+float RenderUtil::GetLightShadowDistance()
+{
+    EnsureConfigLoaded();
+    return gfLightShadowDistance;
+}
+
 void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRGBA col, float size)
 {
     EnsureConfigLoaded();
