@@ -413,6 +413,8 @@ const char* LightManager::GetLightGroupKey(eMaterialType type) {
         return "headlights";
     case eMaterialType::TailLightLeft:
     case eMaterialType::TailLightRight:
+    case eMaterialType::STTLightLeft:
+    case eMaterialType::STTLightRight:
         return "taillights";
     case eMaterialType::BrakeLightLeft:
     case eMaterialType::BrakeLightRight:
@@ -432,6 +434,15 @@ const char* LightManager::GetLightGroupKey(eMaterialType type) {
     case eMaterialType::FogLightLeft:
     case eMaterialType::FogLightRight:
         return "foglights";
+    case eMaterialType::SideLightLeft:
+    case eMaterialType::SideLightRight:
+        return "sidelights";
+    case eMaterialType::DayLight:
+        return "daylights";
+    case eMaterialType::NightLight:
+        return "nightlights";
+    case eMaterialType::AllDayLight:
+        return "alldaylights";
     default:
         return nullptr;
     }
@@ -443,6 +454,8 @@ const char* LightManager::GetLightSpecificKey(eMaterialType type) {
     case eMaterialType::HeadLightRight: return "headlight_r";
     case eMaterialType::TailLightLeft: return "taillight_l";
     case eMaterialType::TailLightRight: return "taillight_r";
+    case eMaterialType::STTLightLeft: return "sttlight_l";
+    case eMaterialType::STTLightRight: return "sttlight_r";
     case eMaterialType::BrakeLightLeft:
     case eMaterialType::NABrakeLightLeft: return "brakelight_l";
     case eMaterialType::BrakeLightRight:
@@ -457,6 +470,11 @@ const char* LightManager::GetLightSpecificKey(eMaterialType type) {
     case eMaterialType::IndicatorLightRightMiddle: return "indicator_rm";
     case eMaterialType::FogLightLeft: return "foglight_l";
     case eMaterialType::FogLightRight: return "foglight_r";
+    case eMaterialType::SideLightLeft: return "sidelight_l";
+    case eMaterialType::SideLightRight: return "sidelight_r";
+    case eMaterialType::DayLight: return "daylight";
+    case eMaterialType::NightLight: return "nightlight";
+    case eMaterialType::AllDayLight: return "alldaylight";
     default: return nullptr;
     }
 }
@@ -488,34 +506,26 @@ float LightManager::GetLightInertia(CVehicle* pVeh, VehLightData& data, eMateria
 static std::optional<CRGBA> GetJsonCoronaColor(const nlohmann::json& lights, const char* key) {
     if (!key || !lights.contains(key)) return std::nullopt;
     const auto& sec = lights[key];
-    if (sec.contains("corona") && sec["corona"].contains("color")) {
-        const auto& c = sec["corona"]["color"];
-        CRGBA col;
-        col.r = c.value("red", 255);
-        col.g = c.value("green", 255);
-        col.b = c.value("blue", 255);
-        col.a = 255;
-        return col;
+    const auto* pCol = sec.contains("corona") && sec["corona"].contains("color") ? &sec["corona"]["color"]
+                     : sec.contains("color") ? &sec["color"]
+                     : sec.contains("material") && sec["material"].contains("color") ? &sec["material"]["color"]
+                     : nullptr;
+    if (pCol) {
+        return CRGBA(pCol->value("red", 255), pCol->value("green", 255), pCol->value("blue", 255), 255);
     }
     return std::nullopt;
 }
 
 static std::optional<CRGBA> GetJsonOffColor(const nlohmann::json& lights, const char* key) {
     if (!key || !lights.contains(key)) return std::nullopt;
-    const auto* pSec = &lights[key];
-    if (pSec->contains("material") && (*pSec)["material"].contains("color_off")) {
-        pSec = &(*pSec)["material"]["color_off"];
-    } else if (pSec->contains("color_off")) {
-        pSec = &(*pSec)["color_off"];
-    } else {
-        return std::nullopt;
+    const auto& sec = lights[key];
+    const auto* pSec = sec.contains("material") && sec["material"].contains("color_off") ? &sec["material"]["color_off"]
+                     : sec.contains("color_off") ? &sec["color_off"]
+                     : nullptr;
+    if (pSec) {
+        return CRGBA(pSec->value("red", 255), pSec->value("green", 255), pSec->value("blue", 255), 255);
     }
-    CRGBA off;
-    off.r = pSec->value("red", 255);
-    off.g = pSec->value("green", 255);
-    off.b = pSec->value("blue", 255);
-    off.a = 255;
-    return off;
+    return std::nullopt;
 }
 
 MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type) {
@@ -523,37 +533,35 @@ MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type)
         return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
     }
     VehLightData& data = m_VehData.Get(pVeh);
-    if (IsDummyAvailable(data, type)) {
-        const DummyConfig& c = data.dummies[type][0].GetRef();
-        if (c.hasCustomColor) {
-            return MatStateColor{c.corona.color, DEFAULT_MAT_COL};
-        }
-    }
-
-    auto& json = DataMgr::Get(pVeh->m_nModelIndex);
-    if (!json.contains("lights")) {
-        return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
-    }
-
-    const auto& lights = json["lights"];
-    const char* specKey = GetLightSpecificKey(type);
-    const char* grpKey = GetLightGroupKey(type);
 
     std::optional<CRGBA> onCol;
     std::optional<CRGBA> offCol;
 
-    if (specKey) {
-        onCol = GetJsonCoronaColor(lights, specKey);
-        offCol = GetJsonOffColor(lights, specKey);
+    if (IsDummyAvailable(data, type)) {
+        const DummyConfig& c = data.dummies[type][0].GetRef();
+        if (c.hasCustomColor) {
+            onCol = c.corona.color;
+        }
     }
-    if (!onCol && type == eMaterialType::FogLightLeft) onCol = GetJsonCoronaColor(lights, "fogl_l");
-    if (!offCol && type == eMaterialType::FogLightLeft) offCol = GetJsonOffColor(lights, "fogl_l");
-    if (!onCol && type == eMaterialType::FogLightRight) onCol = GetJsonCoronaColor(lights, "fogl_r");
-    if (!offCol && type == eMaterialType::FogLightRight) offCol = GetJsonOffColor(lights, "fogl_r");
 
-    if (grpKey) {
-        if (!onCol) onCol = GetJsonCoronaColor(lights, grpKey);
-        if (!offCol) offCol = GetJsonOffColor(lights, grpKey);
+    auto& json = DataMgr::Get(pVeh->m_nModelIndex);
+    if (json.contains("lights")) {
+        const auto& lights = json["lights"];
+        const char* specKey = GetLightSpecificKey(type);
+        const char* grpKey = GetLightGroupKey(type);
+
+        auto checkKey = [&](const char* k) {
+            if (!k || !lights.contains(k)) return;
+            if (!onCol) onCol = GetJsonCoronaColor(lights, k);
+            if (!offCol) offCol = GetJsonOffColor(lights, k);
+        };
+
+        if (specKey) checkKey(specKey);
+        if (type == eMaterialType::FogLightLeft) checkKey("fogl_l");
+        if (type == eMaterialType::FogLightRight) checkKey("fogl_r");
+        if (type == eMaterialType::ReverseLightLeft) { checkKey("revl_l"); checkKey("rev_l"); }
+        if (type == eMaterialType::ReverseLightRight) { checkKey("revl_r"); checkKey("rev_r"); }
+        if (grpKey) checkKey(grpKey);
     }
 
     if (onCol || offCol) {
