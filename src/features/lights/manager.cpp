@@ -203,16 +203,17 @@ void LightManager::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, floa
 void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType type, bool isOn, const std::string& texture, float sz, bool highlight, bool isDummyOk, bool materialsOnly) {
     if (!isOn || !data.bLightStates[type]) return;
 
-    data.bLightRenderedThisFrame[type] = true;
-    bool isAvailable = IsDummyAvailable(data, type);
     float inertia = GetLightInertia(pVeh, data, type);
-
-    if (inertia > 0.0001f) {
-        float step = (CTimer::ms_fTimeStep / 50.0f) / inertia;
-        data.fLightFactor[type] = std::min(1.0f, data.fLightFactor[type] + step);
-    } else {
-        data.fLightFactor[type] = 1.0f;
+    if (!data.bLightRenderedThisFrame[type]) {
+        data.bLightRenderedThisFrame[type] = true;
+        if (inertia > 0.0001f) {
+            float step = (CTimer::ms_fTimeStep / 50.0f) / inertia;
+            data.fLightFactor[type] = std::min(1.0f, data.fLightFactor[type] + step);
+        } else {
+            data.fLightFactor[type] = 1.0f;
+        }
     }
+    bool isAvailable = IsDummyAvailable(data, type);
 
     if (type == eMaterialType::HeadLightLeft) {
         float target = (data.bLongLightsOn && isOn) ? 1.0f : 0.0f;

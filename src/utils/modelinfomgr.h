@@ -76,9 +76,12 @@ public:
   static inline RwSurfaceProperties ms_LightSurfaceProps{1.0f, 1.0f, 1.0f};
   static void ReloadConfig();
   static float GetMaterialAmbientMul() { return gfMaterialAmbientMul; }
-  static RwSurfaceProperties GetLightSurfaceProps(float ambientScale = 1.0f) {
-    RwSurfaceProperties props = ms_LightSurfaceProps;
-    props.ambient = 1.0f + (ms_LightSurfaceProps.ambient - 1.0f) * std::clamp(ambientScale, 0.0f, 1.0f);
+  static RwSurfaceProperties GetLightSurfaceProps(float factor, const RwSurfaceProperties &origProps) {
+    float f = std::clamp(factor, 0.0f, 1.0f);
+    RwSurfaceProperties props;
+    props.ambient  = origProps.ambient + (ms_LightSurfaceProps.ambient - origProps.ambient) * f;
+    props.diffuse  = origProps.diffuse + (ms_LightSurfaceProps.diffuse - origProps.diffuse) * f;
+    props.specular = origProps.specular + (ms_LightSurfaceProps.specular - origProps.specular) * f;
     return props;
   }
 
