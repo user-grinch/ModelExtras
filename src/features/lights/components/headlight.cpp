@@ -89,7 +89,14 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
 void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
     if (!CanVehicleHaveHeadlights(pVeh)) return;
 
-    bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+    bool isAlarmActive = pVeh->m_nAlarmState != 0 && pVeh->m_nAlarmState != 0xFFFF;
+    bool isAlarmLightOn = isAlarmActive && ((pVeh->m_nAlarmState & 0x100) != 0);
+
+    bool isHeadlightsActive = ((pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) || isAlarmLightOn) && !CarUtil::IsLightsForcedOff(pVeh);
+    if (isAlarmActive && !isAlarmLightOn) {
+        isHeadlightsActive = false;
+    }
+
     if (pVeh->IsDriver(FindPlayerPed())) {
         if (!isHeadlightsActive && data.fLightFactor[eMaterialType::HeadLightLeft] <= 0.001f) {
             data.bLongLightsOn = false;
@@ -101,7 +108,7 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
             AudioMgr::PlaySwitchSound(pVeh);
         }
     } else if (pVeh->m_fHealth > 0.0f) {
-        if (CarUtil::IsLightsForcedOff(pVeh) || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn)) {
+        if (CarUtil::IsLightsForcedOff(pVeh) || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn && !isAlarmActive)) {
             return;
         }
 
@@ -128,7 +135,15 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
         return;
     }
 
-    bool isNightOrOn = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pControlVeh))) && !CarUtil::IsLightsForcedOff(pControlVeh);
+    bool isAlarmActive = pControlVeh->m_nAlarmState != 0 && pControlVeh->m_nAlarmState != 0xFFFF;
+    bool isAlarmLightOn = isAlarmActive && ((pControlVeh->m_nAlarmState & 0x100) != 0);
+
+    bool isNightOrOn = ((pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pControlVeh))) || isAlarmLightOn) && !CarUtil::IsLightsForcedOff(pControlVeh);
+    if (isAlarmActive && !isAlarmLightOn) {
+        isNightOrOn = false;
+        pControlVeh->m_renderLights.m_bLeftFront = false;
+        pControlVeh->m_renderLights.m_bRightFront = false;
+    }
     if (!isNightOrOn || !AreHeadlightsOpen(pControlVeh, data)) return;
 
     auto damage = LightDamageState::Get(pControlVeh, pTowedVeh);

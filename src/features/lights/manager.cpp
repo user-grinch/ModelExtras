@@ -108,9 +108,11 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
         m_VehData.Get(pTowedVeh).bLightRenderedThisFrame.fill(false);
     }
 
+    bool isAlarmActive = pControlVeh->m_nAlarmState != 0 && pControlVeh->m_nAlarmState != 0xFFFF;
+
     // Fix for UIF SAMP server https://github.com/user-grinch/ModelExtras/issues/112
-    // Don't clear light state when lights are forced on/already on via SAMP
-    if (((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn) || CarUtil::IsLightsForcedOff(pControlVeh)) {
+    // Don't clear light state when lights are forced on/already on via SAMP or alarm is active
+    if (((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off && !isAlarmActive) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn) || CarUtil::IsLightsForcedOff(pControlVeh)) {
         pControlVeh->bLightsOn = false;
         pControlVeh->m_renderLights.m_bLeftFront = false;
         pControlVeh->m_renderLights.m_bRightFront = false;
@@ -119,8 +121,8 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
     }
 
     // Fix for park car alarm lights
-    // Allow through if lights or indicators are explicitly on
-    if (pControlVeh->m_fHealth <= 0.0f || ((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn)) {
+    // Allow through if lights, indicators, or alarm are explicitly on
+    if (pControlVeh->m_fHealth <= 0.0f || ((Util::IsEngineOff(pControlVeh) && indState == eIndicatorState::Off && !isAlarmActive) && !CarUtil::IsLightsForcedOn(pControlVeh) && !pControlVeh->bLightsOn)) {
         return;
     }
 
