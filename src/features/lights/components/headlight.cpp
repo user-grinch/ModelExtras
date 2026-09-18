@@ -172,8 +172,8 @@ void HeadlightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
     if (!CanVehicleHaveHeadlights(pVeh)) return;
     bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
 
-    if (data.bLongLightsOn && isHeadlightsOn && AreHeadlightsOpen(pVeh, data)) {
-        float highBeamMul = LightsConfig::Get().fHighBeamPointLightMul;
+    if (isHeadlightsOn && AreHeadlightsOpen(pVeh, data)) {
+        float rangeMul = data.bLongLightsOn ? LightsConfig::Get().fHighBeamPointLightMul : 1.0f;
 
         for (eMaterialType type : {eMaterialType::HeadLightLeft, eMaterialType::HeadLightRight}) {
             if (!LightManager::IsDummyAvailable(data, type) || !data.bLightStates[type]) {
@@ -189,7 +189,7 @@ void HeadlightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
 
             for (auto& e : data.dummies[type]) {
                 e->Update();
-                RenderUtil::RegisterHeadlightPointLight(&e->Get(), highBeamMul);
+                RenderUtil::RegisterHeadlightPointLight(&e->Get(), rangeMul);
             }
         }
     }

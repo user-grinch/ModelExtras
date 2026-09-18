@@ -9,6 +9,7 @@
 #include <CCamera.h>
 #include <eModelID.h>
 
+
 float gfGlobalCoronaSize = 0.3f;
 int gGlobalCoronaIntensity = 80;
 int gGlobalShadowIntensity = 80;
@@ -116,6 +117,10 @@ void Lights::Init() {
 	patch::SetUChar(0x6E228B, 0);
 	patch::SetUChar(0x6E2532, 0);
 	patch::SetUChar(0x6E2627, 0);
+
+	// Disable native hardcoded white pointlights in CVehicle::DoVehicleLights
+	patch::Nop(0x6E27E6, 5);
+	patch::Nop(0x6E28E7, 5);
 
 	SAMP::PatchVehicleLights();
 
