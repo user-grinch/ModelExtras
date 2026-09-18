@@ -9,14 +9,62 @@
 #include "utils/texmgr.h"
 #include "utils/modelinfomgr.h"
 #include "utils/samp.h"
+#include "utils/car.h"
+#include "utils/util.h"
+#include "utils/datamgr.h"
 #include <utility>
 #include <string>
 #include <string_view>
 #include <cctype>
+#include <optional>
 
 using namespace plugin;
 
 static CVehicle *pCurrentVeh = nullptr;
+
+static const nlohmann::json *FindPlateJson(int modelIndex)
+{
+    if (!DataMgr::Has(modelIndex)) return nullptr;
+    const auto &json = DataMgr::Get(modelIndex);
+    if (json.contains("plate")) return &json["plate"];
+    if (json.contains("license_plate")) return &json["license_plate"];
+    if (json.contains("lights"))
+    {
+        const auto &lights = json["lights"];
+        if (lights.contains("plate")) return &lights["plate"];
+        if (lights.contains("license_plate")) return &lights["license_plate"];
+    }
+    return nullptr;
+}
+
+static std::optional<CRGBA> ParsePlateColor(const nlohmann::json &sec, const char *key)
+{
+    const nlohmann::json *val = nullptr;
+    if (sec.contains(key))
+    {
+        val = &sec[key];
+    }
+    else if (sec.contains("material") && sec["material"].contains(key))
+    {
+        val = &sec["material"][key];
+    }
+    if (!val) return std::nullopt;
+
+    if (val->is_array() && val->size() >= 3)
+    {
+        return CRGBA((*val)[0].get<uint8_t>(), (*val)[1].get<uint8_t>(), (*val)[2].get<uint8_t>(),
+                     val->size() >= 4 ? (*val)[3].get<uint8_t>() : 255);
+    }
+    if (val->is_object())
+    {
+        uint8_t r = val->value("red", val->value("r", 255));
+        uint8_t g = val->value("green", val->value("g", 255));
+        uint8_t b = val->value("blue", val->value("b", 255));
+        uint8_t a = val->value("alpha", val->value("a", 255));
+        return CRGBA(r, g, b, a);
+    }
+    return std::nullopt;
+}
 
 void LicensePlate::ReloadConfig()
 {
@@ -47,59 +95,106 @@ void LicensePlate::Init()
 
 void LicensePlate::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat)
 {
-    if (!m_bEnabled || !pVeh || !pMat || !pMat->texture || !pMat->texture->name)
+    if (!pVeh || !pMat || !pMat->texture || !pMat->texture->name)
     {
         return;
     }
 
     pCurrentVeh = pVeh;
     const char *texName = pMat->texture->name;
+    PlateData &data = m_VehData.Get(pVeh);
 
-    if (SAMP::IsPresent())
+    bool isPlateMat = !_stricmp("carpback", texName) ||
+                      !_stricmp("carplate", texName) ||
+                      !_strnicmp(texName, "plate_", 6) ||
+                      (data.m_pCustomPlateTex && pMat->texture == data.m_pCustomPlateTex) ||
+                      (!data.m_szLastPlateText.empty() && !_stricmp(data.m_szLastPlateText.c_str(), texName));
+
+    if (!isPlateMat && pMat->texture->raster)
     {
-        PlateData &data = m_VehData.Get(pVeh);
-
-        bool isPlateTextMat = !_stricmp("carplate", texName) ||
-                              (data.m_pCustomPlateTex && pMat->texture == data.m_pCustomPlateTex) ||
-                              (!data.m_szLastPlateText.empty() && !_stricmp(data.m_szLastPlateText.c_str(), texName));
-
-        if (!isPlateTextMat && pMat->texture->raster)
+        RwRaster *r = pMat->texture->raster;
+        if (r->width == 256 && r->height == 64)
         {
-            RwRaster *r = pMat->texture->raster;
-            if (r->width == 256 && r->height == 64 &&
-                strncmp(texName, "plate_", 6) != 0 && _stricmp(texName, "carpback") != 0)
-            {
-                isPlateTextMat = true;
-            }
-        }
-
-        if (isPlateTextMat)
-        {
-            std::string formatted = SAMP::GetVehiclePlateText(pVeh);
-            if (!formatted.empty())
-            {
-                if (data.m_szLastPlateText != formatted || !data.m_pCustomPlateTex)
-                {
-                    if (data.m_pCustomPlateTex)
-                    {
-                        RwTextureDestroy(data.m_pCustomPlateTex);
-                        data.m_pCustomPlateTex = nullptr;
-                    }
-                    data.m_pCustomPlateTex = CCustomCarPlateMgr_CreatePlateTexture(formatted.data(), 0);
-                    data.m_szLastPlateText = formatted;
-                }
-
-                if (data.m_pCustomPlateTex)
-                {
-                    RpMaterialSetTexture(pMat, data.m_pCustomPlateTex);
-                }
-            }
+            isPlateMat = true;
         }
     }
 
-    if (!_stricmp("carpback", texName))
+    if (m_bEnabled)
     {
-        CCustomCarPlateMgr_SetupMaterialPlatebackTexture(pMat, -1);
+        if (SAMP::IsPresent())
+        {
+            bool isPlateTextMat = !_stricmp("carplate", texName) ||
+                                  (data.m_pCustomPlateTex && pMat->texture == data.m_pCustomPlateTex) ||
+                                  (!data.m_szLastPlateText.empty() && !_stricmp(data.m_szLastPlateText.c_str(), texName));
+
+            if (!isPlateTextMat && pMat->texture->raster)
+            {
+                RwRaster *r = pMat->texture->raster;
+                if (r->width == 256 && r->height == 64 &&
+                    strncmp(texName, "plate_", 6) != 0 && _stricmp(texName, "carpback") != 0)
+                {
+                    isPlateTextMat = true;
+                }
+            }
+
+            if (isPlateTextMat)
+            {
+                std::string formatted = SAMP::GetVehiclePlateText(pVeh);
+                if (!formatted.empty())
+                {
+                    if (data.m_szLastPlateText != formatted || !data.m_pCustomPlateTex)
+                    {
+                        if (data.m_pCustomPlateTex)
+                        {
+                            RwTextureDestroy(data.m_pCustomPlateTex);
+                            data.m_pCustomPlateTex = nullptr;
+                        }
+                        data.m_pCustomPlateTex = CCustomCarPlateMgr_CreatePlateTexture(formatted.data(), 0);
+                        data.m_szLastPlateText = formatted;
+                    }
+
+                    if (data.m_pCustomPlateTex)
+                    {
+                        RpMaterialSetTexture(pMat, data.m_pCustomPlateTex);
+                    }
+                }
+            }
+        }
+
+        if (!_stricmp("carpback", texName))
+        {
+            CCustomCarPlateMgr_SetupMaterialPlatebackTexture(pMat, -1);
+        }
+    }
+
+    if (isPlateMat)
+    {
+        if (const auto *pSec = FindPlateJson(pVeh->m_nModelIndex))
+        {
+            auto onCol = ParsePlateColor(*pSec, "color");
+            auto offCol = ParsePlateColor(*pSec, "color_off");
+
+            if (onCol || offCol)
+            {
+                bool lightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !CarUtil::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+
+                CRGBA targetCol;
+                if (lightsOn)
+                {
+                    targetCol = onCol.value_or(offCol.value_or(CRGBA(255, 255, 255, 255)));
+                }
+                else
+                {
+                    targetCol = offCol.value_or(onCol.value_or(CRGBA(255, 255, 255, 255)));
+                }
+
+                RwRGBA *pColor = RpMaterialGetColor(pMat);
+                ModelInfoMgr::RegisterRestore(pColor, *reinterpret_cast<void **>(pColor));
+                pColor->red = targetCol.r;
+                pColor->green = targetCol.g;
+                pColor->blue = targetCol.b;
+            }
+        }
     }
 }
 
