@@ -21,4 +21,7 @@ public:
     static void RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, float angle, eDummyPos dummyPos, const std::string &shadwTexName, CVector2D shdwSz = {1.0f, 1.0f}, CVector2D shdwOffset = {0.0f, 0.0f}, RwTexture *pTexture = nullptr);
     static void RegisterShadowDirectional(const DummyConfig *pConfig, const std::string &shadwTexName, float shdwSz, float alphaMul = 1.0f);
     static void ReloadConfig();
+    static float GetCoronaDistanceMul();
+    static float GetCoronaNearClip();
+    static float GetLightShadowDistance();
 };

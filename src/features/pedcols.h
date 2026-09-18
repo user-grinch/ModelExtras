@@ -33,4 +33,5 @@ protected:
 
 public:
     PedColors() : CBaseFeature("PedCols", "FEATURES", eFeatureMatrix::PedCols) {}
+    static PedExtendedData<PedData>& GetPedData() { return m_PedData; }
 };
