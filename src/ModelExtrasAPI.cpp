@@ -196,6 +196,14 @@ bool ME_IsCustomSirenPlaying(CVehicle *pVeh) {
   return Sirens::IsPlayingCustomSiren(pVeh);
 }
 
+float ME_GetSirenPointLightDistanceMul() {
+  return Sirens::GetPointLightDistanceMul();
+}
+
+void ME_SetSirenPointLightDistanceMul(float mul) {
+  Sirens::SetPointLightDistanceMul(mul);
+}
+
 // License Plate API
 bool ME_GetPlateText(CVehicle *pVeh, char *outBuffer, int maxLen) {
   if (!pVeh || !outBuffer || maxLen <= 0) return false;

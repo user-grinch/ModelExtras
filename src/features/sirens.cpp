@@ -63,12 +63,25 @@ bool Sirens::hkUsesSiren(std::function<hkUsesSirenFunc> originalCall, CVehicle* 
 static ThiscallEvent<AddressList<0x6AAB71, H_CALL>, PRIORITY_BEFORE, ArgPickN<CVehicle*, 0>, void(CVehicle*)> Automobile__PreRenderEvent;
 static CVehicle *pCurrentVeh = nullptr;
 static uint32_t g_nSirenKey = VK_L;
+static float fSirenPointLightDistanceMul = 1.0f;
+
+float Sirens::GetPointLightDistanceMul()
+{
+	return fSirenPointLightDistanceMul;
+}
+
+void Sirens::SetPointLightDistanceMul(float mul)
+{
+	fSirenPointLightDistanceMul = std::clamp(mul, 0.1f, 10.0f);
+}
 
 void Sirens::ReloadConfig()
 {
 	CBaseFeature::ReloadConfig();
 	m_bEnabled = m_bActive;
 	g_nSirenKey = gConfig.ReadInteger("KEYS", "SirenLightKey", VK_L);
+	float rawMul = gConfig.ReadFloat("LIGHTS", "SirenPointLightDistanceMul", gConfig.ReadFloat("LIGHTS", "SirenPointLightMul", 1.0f));
+	fSirenPointLightDistanceMul = std::clamp(rawMul, 0.1f, 10.0f);
 }
 
 void Sirens::Reload(CVehicle *pVeh)
@@ -1241,7 +1254,8 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 		return;
 	}
 
-	if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 75.0f)
+	float maxCameraDist = std::clamp(75.0f * fSirenPointLightDistanceMul, 75.0f, 250.0f);
+	if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > maxCameraDist)
 	{
 		return;
 	}
@@ -1292,7 +1306,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 			} else if (mat.second->Size > 0.0f) {
 				sirenRadius = mat.second->Size * 3.0f;
 			}
-			sirenRadius = std::clamp(sirenRadius, 5.0f, 15.0f);
+			sirenRadius = std::clamp(sirenRadius * fSirenPointLightDistanceMul, 1.0f, 60.0f);
 
 			float r = std::clamp(activeColor.r / 255.0f, 0.0f, 1.0f);
 			float g = std::clamp(activeColor.g / 255.0f, 0.0f, 1.0f);
@@ -1367,6 +1381,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 		static bool bSkyGfx = GetModuleHandle("skygfx.asi") != nullptr;
 		if (!bSkyGfx)
 		{
+			float bikeRadius = std::clamp(8.5f * fSirenPointLightDistanceMul, 1.0f, 60.0f);
 			uint32_t step = (CTimer::m_snTimeInMilliseconds / 120) % 4;
 			CMatrix vehMat = pVeh->GetMatrix();
 			if (step == 0 || step == 1)
@@ -1375,7 +1390,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 				CVector plightPos = pVeh->TransformFromObjectSpace(localLeft);
 				CVector worldDir = vehMat.up - vehMat.at * 0.25f;
 				worldDir.Normalize();
-				CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, worldDir, 8.5f, 1.0f, 0.1f, 0.1f, 0, false, nullptr);
+				CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, worldDir, bikeRadius, 1.0f, 0.1f, 0.1f, 0, false, nullptr);
 			}
 			else if (step == 2 || step == 3)
 			{
@@ -1383,7 +1398,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 				CVector plightPos = pVeh->TransformFromObjectSpace(localRight);
 				CVector worldDir = vehMat.up - vehMat.at * 0.25f;
 				worldDir.Normalize();
-				CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, worldDir, 8.5f, 0.1f, 0.1f, 1.0f, 0, false, nullptr);
+				CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, worldDir, bikeRadius, 0.1f, 0.1f, 1.0f, 0, false, nullptr);
 			}
 		}
 	}

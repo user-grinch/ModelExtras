@@ -262,6 +262,9 @@ public:
         auto &data = m_VehData.Get(pVeh);
         return data.m_bPlayingCustomSiren;
     }
+
+    static float GetPointLightDistanceMul();
+    static void SetPointLightDistanceMul(float mul);
 private:
     static inline bool m_bEnabled = false;
     static inline std::map<int, VehicleSirenData *> modelData;

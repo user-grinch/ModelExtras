@@ -159,8 +159,10 @@ extern "C"
     ME_WRAPPER bool ME_GetSirenMute(CVehicle *pVeh);
     ME_WRAPPER void ME_SetSirenMute(CVehicle *pVeh, bool mute);
     ME_WRAPPER bool ME_IsSirenActive(CVehicle *pVeh);
-    ME_WRAPPER bool ME_IsSirenVehicle(CVehicle *pVeh);
-    ME_WRAPPER bool ME_IsCustomSirenPlaying(CVehicle *pVeh);
+    ME_WRAPPER bool  ME_IsSirenVehicle(CVehicle *pVeh);
+    ME_WRAPPER bool  ME_IsCustomSirenPlaying(CVehicle *pVeh);
+    ME_WRAPPER float ME_GetSirenPointLightDistanceMul();
+    ME_WRAPPER void  ME_SetSirenPointLightDistanceMul(float mul);
 
     // License Plate
     ME_WRAPPER bool ME_GetPlateText(CVehicle *pVeh, char *outBuffer, int maxLen);
