@@ -5,18 +5,21 @@
 
 void FrameUtil::SetRotationX(RwFrame *frame, float angle)
 {
+    if (!frame) return;
     RwFrameRotate(frame, (RwV3d *)0x008D2E00, (RwReal)angle, rwCOMBINEPRECONCAT);
     RwFrameUpdateObjects(frame);
 }
 
 void FrameUtil::SetRotationY(RwFrame *frame, float angle)
 {
+    if (!frame) return;
     RwFrameRotate(frame, (RwV3d *)0x008D2E0C, (RwReal)angle, rwCOMBINEPRECONCAT);
     RwFrameUpdateObjects(frame);
 }
 
 void FrameUtil::SetRotationZ(RwFrame *frame, float angle)
 {
+    if (!frame) return;
     RwFrameRotate(frame, (RwV3d *)0x008D2E18, (RwReal)angle, rwCOMBINEPRECONCAT);
     RwFrameUpdateObjects(frame);
 }

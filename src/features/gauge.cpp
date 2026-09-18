@@ -97,7 +97,7 @@ void MileageIndicator::Init()
             int currentDigit = (displayVal / divisor) % 10;
             divisor /= 10;
 
-            if (indicator.lastDigits[i] != currentDigit) {
+            if (indicator.vecFrameList[i] && indicator.lastDigits[i] != currentDigit) {
                 if (indicator.lastDigits[i] != -1) {
                     int steps = currentDigit - indicator.lastDigits[i];
                     if (steps < 0) steps += 10;
