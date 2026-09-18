@@ -65,6 +65,7 @@ PedData::PedData(CPed *pPed) {
 				const auto& selectedVar = variations[varIdx];
 
 				const std::vector<std::string> keys = { "primary", "secondary", "tertiary", "quaternary" };
+				m_Colors.assign(4, CRGBA(255, 255, 255, 255));
 
 				for (size_t i = 0; i < keys.size(); ++i) {
 					if (selectedVar.contains(keys[i])) {
