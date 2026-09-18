@@ -4,6 +4,7 @@
 #include "utils/datamgr.h"
 #include "utils/audiomgr.h"
 #include "utils/util.h"
+#include "utils/matrix.h"
 
 using namespace plugin;
 
@@ -12,18 +13,19 @@ bool RollbackBed::UpdateRotation(CVehicle *pVeh, RwFrame *pFrame, float targetRo
     RollbackBedData &data = m_VehData.Get(pVeh);
     if (data.bInit && pFrame)
     {
-        // TODO FIX
-        // MatrixUtil::SetRotationX(&pFrame->modelling, curRot);
         float target = data.bExpanded ? targetRot : 0.0f;
         float delta = target - curRot;
         float step = CTimer::ms_fTimeStep * std::abs(targetRot) / 360.0f * speed;
 
         if (std::abs(delta) > step)
         {
-            curRot += step * (delta > 0.0f ? 1.0f : -1.0f);
+            float change = step * (delta > 0.0f ? 1.0f : -1.0f);
+            curRot += change;
+            MatrixUtil::SetRotationXAbsolute(&pFrame->modelling, change);
         }
         else
         {
+            MatrixUtil::SetRotationXAbsolute(&pFrame->modelling, delta);
             curRot = target;
             return true;
         }
