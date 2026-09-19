@@ -216,6 +216,7 @@ extern "C"
 
     // Visual & Render Configuration
     ME_WRAPPER float ME_GetPointLightIntensity();
+    ME_WRAPPER float ME_GetSirenPointLightMul();
 
 #ifdef __cplusplus
 }

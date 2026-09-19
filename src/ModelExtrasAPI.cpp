@@ -432,5 +432,9 @@ float ME_GetPointLightIntensity() {
   return LightsConfig::Get().fPointLightIntensity;
 }
 
+float ME_GetSirenPointLightMul() {
+  return LightsConfig::Get().fSirenPointLightMul;
+}
+
 } // extern "C"
 
