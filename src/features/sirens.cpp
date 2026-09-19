@@ -117,6 +117,55 @@ void Sirens::hkAddPointLights(
     originalCall(type, position, direction, range, red, green, blue, fogEffect, bCastsShadowFromPlayerCarAndPed, castingEntity);
 }
 
+static std::optional<CRGBA> ParseSirenColorHelper(nlohmann::json val)
+{
+	if (val.is_string())
+	{
+		std::string str = val.get<std::string>();
+		if (VehicleSirenData::ReferenceColors.contains(str))
+		{
+			val = VehicleSirenData::ReferenceColors[str];
+		}
+		else
+		{
+			std::string hexStr = str;
+			if (hexStr.length() >= 6)
+			{
+				if (hexStr[0] == '#') hexStr = hexStr.substr(1);
+				else if (hexStr.rfind("0x", 0) == 0 || hexStr.rfind("0X", 0) == 0) hexStr = hexStr.substr(2);
+				if (hexStr.length() == 6 || hexStr.length() == 8)
+				{
+					unsigned int hexVal = 0;
+					std::stringstream ss;
+					ss << std::hex << hexStr;
+					if (ss >> hexVal)
+					{
+						if (hexStr.length() == 6)
+							return CRGBA((hexVal >> 16) & 0xFF, (hexVal >> 8) & 0xFF, hexVal & 0xFF, 255);
+						else
+							return CRGBA((hexVal >> 24) & 0xFF, (hexVal >> 16) & 0xFF, (hexVal >> 8) & 0xFF, hexVal & 0xFF);
+					}
+				}
+			}
+			return std::nullopt;
+		}
+	}
+	if (val.is_object())
+	{
+		uint8_t r = val.value("red", val.value("r", 255));
+		uint8_t g = val.value("green", val.value("g", 255));
+		uint8_t b = val.value("blue", val.value("b", 255));
+		uint8_t a = val.value("alpha", val.value("a", 255));
+		return CRGBA(r, g, b, a);
+	}
+	if (val.is_array() && val.size() >= 3)
+	{
+		return CRGBA(val[0].get<uint8_t>(), val[1].get<uint8_t>(), val[2].get<uint8_t>(),
+		             val.size() >= 4 ? val[3].get<uint8_t>() : 255);
+	}
+	return std::nullopt;
+}
+
 VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material, const nlohmann::json &jsonRaw)
 {
 	nlohmann::json json = jsonRaw;
@@ -224,27 +273,23 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 
 	if (json.contains("color"))
 	{
-		if (json["color"].is_string() && VehicleSirenData::ReferenceColors.contains(json["color"]))
-			json["color"] = VehicleSirenData::ReferenceColors[json["color"]];
-
-		if (json["color"].is_object())
+		auto parsedCol = ParseSirenColorHelper(json["color"]);
+		if (parsedCol)
 		{
-			if (json["color"].contains("red"))
-				Color.r = json["color"]["red"];
-
-			if (json["color"].contains("green"))
-				Color.g = json["color"]["green"];
-
-			if (json["color"].contains("blue"))
-				Color.b = json["color"]["blue"];
-
-			if (json["color"].contains("alpha"))
-				Color.a = json["color"]["alpha"];
-
+			Color = *parsedCol;
 			DefaultColor = Color;
 		}
 		else
 			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, color property is not an object!", Sirens::CurrentModel, state, material);
+	}
+
+	if (json.contains("color_off"))
+	{
+		auto parsedOff = ParseSirenColorHelper(json["color_off"]);
+		if (parsedOff)
+		{
+			ColorOff = *parsedOff;
+		}
 	}
 
 	if (json.contains("state"))
@@ -736,7 +781,9 @@ void Sirens::Init()
 					auto& state = modelData[pVeh->m_nModelIndex]->States[curState];
 					if (state->Materials.contains(matIdx)) {
 						CRGBA onCol = state->Materials[matIdx]->Color;
-						CRGBA offCol = modelData[pVeh->m_nModelIndex]->isImVehFtSiren ? state->Materials[matIdx]->Color : DEFAULT_MAT_COL;
+						CRGBA offCol = state->Materials[matIdx]->ColorOff.value_or(
+							modelData[pVeh->m_nModelIndex]->isImVehFtSiren ? state->Materials[matIdx]->Color : DEFAULT_MAT_COL
+						);
 						return MatStateColor{onCol, offCol};
 					}
 				}

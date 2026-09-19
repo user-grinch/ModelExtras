@@ -88,6 +88,7 @@ public:
     float Radius = 180.0f;
     CRGBA Color = {255, 255, 255, 255};
     CRGBA DefaultColor = {255, 255, 255, 255};
+    std::optional<CRGBA> ColorOff;
     VehicleSirenDiffuse Diffuse;
     int ColorCount = 0;
     uint64_t ColorTime = 0;
