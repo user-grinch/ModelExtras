@@ -103,9 +103,9 @@ void DirtFx::ShutdownHook()
 {
 	for (int i = 0; i < 16; i++)
 	{
-		if (ms_aDirtTextures_2[i]) RwTextureDestroy(ms_aDirtTextures_2[i]);
-		if (ms_aDirtTextures_3[i]) RwTextureDestroy(ms_aDirtTextures_3[i]); 
-		if (ms_aDirtTextures_4[i]) RwTextureDestroy(ms_aDirtTextures_4[i]);		// RwTextureDestroy(ms_aDirtTextures_5[i]);
+		if (ms_aDirtTextures_2[i]) { RwTextureDestroy(ms_aDirtTextures_2[i]); ms_aDirtTextures_2[i] = nullptr; }
+		if (ms_aDirtTextures_3[i]) { RwTextureDestroy(ms_aDirtTextures_3[i]); ms_aDirtTextures_3[i] = nullptr; }
+		if (ms_aDirtTextures_4[i]) { RwTextureDestroy(ms_aDirtTextures_4[i]); ms_aDirtTextures_4[i] = nullptr; }
 	}
 }
 
@@ -160,34 +160,44 @@ void DirtFx::InitialiseBlendTextureSingle(const char *CleanName, const char *Dir
 void DirtFx::InitialiseDirtTextureSingle(const char *name, RwTexture **dirtTextureArray)
 {
 	RwTexture *pTex = TextureMgr::Get(name);
-	if (!pTex)
+	if (!pTex || !pTex->raster)
 	{
 		return;
 	}
 	pTex->filterAddressing = rwFILTERLINEAR;
 
+	const int width = pTex->raster->width;
+	const int height = pTex->raster->height;
+
 	for (int texid = 0; texid < 16; texid++)
 	{
 		dirtTextureArray[texid] = CClothesBuilder::CopyTexture(pTex);
+		if (!dirtTextureArray[texid])
+		{
+			continue;
+		}
+
 		RwTextureSetName(dirtTextureArray[texid], name);
-		int alpha = 255 - texid * 15;
+		dirtTextureArray[texid]->filterAddressing = rwFILTERLINEAR;
+
+		float factor = static_cast<float>(texid) / 15.0f;
 		RwRaster *dirtRaster = dirtTextureArray[texid]->raster;
 		RwUInt8 *pixelsRaw = RwRasterLock(dirtRaster, 0, rwRASTERLOCKWRITE);
 		if (!pixelsRaw)
 		{
-			return;
+			continue;
 		}
 
-		const int width = pTex->raster->width;
-		const int height = pTex->raster->height;
 		RwRGBA *pixels = reinterpret_cast<RwRGBA *>(pixelsRaw);
-
 		for (int y = 0; y < height; ++y)
 		{
 			for (int x = 0; x < width; ++x)
 			{
 				RwRGBA &pixel = pixels[y * width + x];
-				pixel.alpha = alpha;
+				pixel.red   = static_cast<RwUInt8>(255 - static_cast<int>((255 - pixel.red)   * factor));
+				pixel.green = static_cast<RwUInt8>(255 - static_cast<int>((255 - pixel.green) * factor));
+				pixel.blue  = static_cast<RwUInt8>(255 - static_cast<int>((255 - pixel.blue)  * factor));
+				pixel.alpha = 255;
 			}
 		}
 		RwRasterUnlock(dirtRaster);
