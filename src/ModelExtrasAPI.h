@@ -78,6 +78,8 @@ enum ME_LightID
     ME_ReverseLightRight,
     ME_BrakeLightLeft,
     ME_BrakeLightRight,
+    ME_HighBeamLeft,
+    ME_HighBeamRight,
     ME_AllDayLight,
     ME_DayLight,
     ME_NightLight,
