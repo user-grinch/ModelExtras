@@ -15,12 +15,12 @@ struct LightDamageState {
 
     static LightDamageState Get(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
         LightDamageState state;
-        state.isHeadlightLeftOk = !(Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT) || Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_LEFT));
-        state.isHeadlightRightOk = !(Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT) || Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_RIGHT));
+        state.isHeadlightLeftOk = !Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_LEFT);
+        state.isHeadlightRightOk = !Util::IsLightDamaged(pControlVeh, eLights::LIGHT_FRONT_RIGHT);
         state.isFrontLeftOk = state.isHeadlightLeftOk || pControlVeh->bSirenOrAlarm;
         state.isFrontRightOk = state.isHeadlightRightOk || pControlVeh->bSirenOrAlarm;
-        state.isRearLeftOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_LEFT));
-        state.isRearRightOk = !(Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pTowedVeh, ePanels::WING_REAR_RIGHT));
+        state.isRearLeftOk = !Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_LEFT);
+        state.isRearRightOk = !Util::IsLightDamaged(pTowedVeh, eLights::LIGHT_REAR_RIGHT);
         state.isMiddleLeftOk = !Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_LEFT);
         state.isMiddleRightOk = !Util::IsPanelDamaged(pControlVeh, ePanels::WING_FRONT_RIGHT);
         state.isFrontBumperOk = !Util::IsPanelDamaged(pControlVeh, ePanels::BUMP_FRONT);

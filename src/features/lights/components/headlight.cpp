@@ -12,11 +12,15 @@ extern bool gbProperShadersDetected;
 void HeadlightComponent::RegisterMaterials(std::unordered_map<uint32_t, eMaterialType>& matMap) {
     matMap[VEHCOL_HEADLIGHT_LEFT.ToInt()] = eMaterialType::HeadLightLeft;
     matMap[VEHCOL_HEADLIGHT_RIGHT.ToInt()] = eMaterialType::HeadLightRight;
+    matMap[VEHCOL_HIGHBEAM_LEFT.ToInt()] = eMaterialType::HighBeamLeft;
+    matMap[VEHCOL_HIGHBEAM_RIGHT.ToInt()] = eMaterialType::HighBeamRight;
 }
 
 eMaterialType HeadlightComponent::GetMatType(CRGBA matCol) {
     if (matCol == VEHCOL_HEADLIGHT_LEFT) return eMaterialType::HeadLightLeft;
     if (matCol == VEHCOL_HEADLIGHT_RIGHT) return eMaterialType::HeadLightRight;
+    if (matCol == VEHCOL_HIGHBEAM_LEFT) return eMaterialType::HighBeamLeft;
+    if (matCol == VEHCOL_HIGHBEAM_RIGHT) return eMaterialType::HighBeamRight;
     return eMaterialType::UnknownMaterial;
 }
 
@@ -73,6 +77,72 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         return true;
     }
 
+    if (name == "headlight_l" || name == "headlight_r") {
+        if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
+            return false;
+        }
+        DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
+        c.dummyPos = eDummyPos::Front;
+        c.lightType = (name == "headlight_l") ? eMaterialType::HeadLightLeft : eMaterialType::HeadLightRight;
+        c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
+        c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
+        c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
+        c.shadow.size = LightsConfig::Get().gfHeadLightShadowSize;
+        c.corona.lightingType = eLightingMode::Directional;
+        c.shadow.render = true;
+        c.mirroredX = false;
+        
+        data.dummies[c.lightType].push_back(VehicleDummy(c));
+        return true;
+    }
+
+    if (name == "highbeam_l" || name == "highbeam_r" || name == "highbeams_l" || name == "highbeams_r") {
+        if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
+            return false;
+        }
+        DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
+        c.dummyPos = eDummyPos::Front;
+        bool isLeft = (name == "highbeam_l" || name == "highbeams_l");
+        c.lightType = isLeft ? eMaterialType::HighBeamLeft : eMaterialType::HighBeamRight;
+        c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
+        c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
+        c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
+        c.shadow.size = LightsConfig::Get().gfHeadLightShadowSize;
+        c.corona.lightingType = eLightingMode::Directional;
+        c.shadow.render = false;
+        c.mirroredX = false;
+        
+        data.dummies[c.lightType].push_back(VehicleDummy(c));
+        return true;
+    }
+
+    if (name == "highbeam" || name == "highbeams") {
+        if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
+            return false;
+        }
+        DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
+        c.dummyPos = eDummyPos::Front;
+        c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
+        c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
+        c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
+        c.shadow.size = LightsConfig::Get().gfHeadLightShadowSize;
+        c.corona.lightingType = eLightingMode::Directional;
+        c.shadow.render = false;
+        
+        bool dummyIsLeft = (c.frame->modelling.pos.x < 0.0f);
+
+        c.mirroredX = !dummyIsLeft;
+        c.lightType = eMaterialType::HighBeamLeft;
+        data.dummies[eMaterialType::HighBeamLeft].push_back(VehicleDummy(c));
+        
+        if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
+            c.mirroredX = dummyIsLeft;
+            c.lightType = eMaterialType::HighBeamRight;
+            data.dummies[eMaterialType::HighBeamRight].push_back(VehicleDummy(c));
+        }
+        return true;
+    }
+
     std::string lowerName;
     lowerName.reserve(name.size());
     for (char ch : name) {
@@ -98,7 +168,7 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
     }
 
     if (pVeh->IsDriver(FindPlayerPed())) {
-        if (!isHeadlightsActive && data.fLightFactor[eMaterialType::HeadLightLeft] <= 0.001f) {
+        if (!isHeadlightsActive && data.fLightFactor[eMaterialType::HeadLightLeft] <= 0.001f && data.fLightFactor[eMaterialType::HeadLightRight] <= 0.001f) {
             data.bLongLightsOn = false;
         }
 
@@ -106,26 +176,6 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
         if (InputMgr::IsKeyJustDown(LightsConfig::Get().nLongLightKey) && isHeadlightsActive && canToggleLongLights) {
             data.bLongLightsOn = !data.bLongLightsOn;
             AudioMgr::PlaySwitchSound(pVeh);
-        }
-    } else if (pVeh->m_fHealth > 0.0f) {
-        if (CarUtil::IsLightsForcedOff(pVeh) || (Util::IsEngineOff(pVeh) && !CarUtil::IsLightsForcedOn(pVeh) && !pVeh->bLightsOn && !isAlarmActive)) {
-            return;
-        }
-
-        if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) < 300.0f || pVeh->GetIsOnScreen()) {
-            bool isLeftFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT);
-            bool isRightFrontOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT);
-
-            if (isHeadlightsActive && AreHeadlightsOpen(pVeh, data)) {
-                bool isFoggy = Util::IsFoggy();
-                std::string texName = data.bLongLightsOn ? "headlight_long" : "headlight_short";
-                bool shadow = !gbProperShadersDetected;
-                bool highlight = isFoggy || data.bLongLightsOn;
-
-                LightManager::RenderLight(pVeh, data, eMaterialType::HeadLightLeft, isLeftFrontOk, shadow ? texName : "", LightsConfig::Get().headlightSz, highlight);
-                LightManager::RenderLight(pVeh, data, eMaterialType::HeadLightRight, isRightFrontOk, shadow ? texName : "", LightsConfig::Get().headlightSz, highlight);
-                data.nHeadlightTickFrame = CTimer::m_FrameCounter;
-            }
         }
     }
 }
@@ -150,7 +200,6 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
     bool isHeadlightLeftOk = damage.isHeadlightLeftOk;
     bool isHeadlightRightOk = damage.isHeadlightRightOk;
 
-    bool bTickRegistered = (data.nHeadlightTickFrame == CTimer::m_FrameCounter);
     bool isFoggy = Util::IsFoggy();
     std::string texName = data.bLongLightsOn ? "headlight_long" : "headlight_short";
     bool shadow = !gbProperShadersDetected;
@@ -160,10 +209,16 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
         pControlVeh->m_renderLights.m_bLeftFront = isHeadlightLeftOk;
         pControlVeh->m_renderLights.m_bRightFront = isHeadlightRightOk;
         if (isHeadlightLeftOk) {
-            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::HeadLightLeft, true, shadow ? texName : "", LightsConfig::Get().headlightSz, highlight, true, bTickRegistered);
+            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::HeadLightLeft, true, shadow ? texName : "", LightsConfig::Get().headlightSz, highlight, true);
+            if (data.bLongLightsOn) {
+                LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::HighBeamLeft, true, "", LightsConfig::Get().headlightSz, isFoggy, true);
+            }
         }
         if (isHeadlightRightOk) {
-            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::HeadLightRight, true, shadow ? texName : "", LightsConfig::Get().headlightSz, highlight, true, bTickRegistered);
+            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::HeadLightRight, true, shadow ? texName : "", LightsConfig::Get().headlightSz, highlight, true);
+            if (data.bLongLightsOn) {
+                LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::HighBeamRight, true, "", LightsConfig::Get().headlightSz, isFoggy, true);
+            }
         }
     }
 }
@@ -190,6 +245,26 @@ void HeadlightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
             for (auto& e : data.dummies[type]) {
                 e->Update();
                 RenderUtil::RegisterHeadlightPointLight(&e->Get(), rangeMul);
+            }
+        }
+
+        if (data.bLongLightsOn) {
+            for (eMaterialType type : {eMaterialType::HighBeamLeft, eMaterialType::HighBeamRight}) {
+                if (!LightManager::IsDummyAvailable(data, type) || !data.bLightStates[type]) {
+                    continue;
+                }
+
+                bool isLeft = (type == eMaterialType::HighBeamLeft);
+                eLights lightEnum = isLeft ? eLights::LIGHT_FRONT_LEFT : eLights::LIGHT_FRONT_RIGHT;
+                ePanels wingEnum = isLeft ? ePanels::WING_FRONT_LEFT : ePanels::WING_FRONT_RIGHT;
+                if (Util::IsLightDamaged(pVeh, lightEnum) || Util::IsPanelDamaged(pVeh, wingEnum)) {
+                    continue;
+                }
+
+                for (auto& e : data.dummies[type]) {
+                    e->Update();
+                    RenderUtil::RegisterHeadlightPointLight(&e->Get(), rangeMul);
+                }
             }
         }
     }
