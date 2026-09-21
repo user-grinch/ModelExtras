@@ -151,6 +151,22 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
         for (int t = 0; t < eMaterialType::TotalMaterial; ++t) {
             eMaterialType type = static_cast<eMaterialType>(t);
             if (!vData.bLightRenderedThisFrame[type] && vData.fLightFactor[type] > 0.001f) {
+                bool isDamagedLight = false;
+                if (type == eMaterialType::HeadLightLeft || type == eMaterialType::HighBeamLeft) {
+                    isDamagedLight = Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT) || Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_LEFT);
+                } else if (type == eMaterialType::HeadLightRight || type == eMaterialType::HighBeamRight) {
+                    isDamagedLight = Util::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT) || Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_RIGHT);
+                } else if (type == eMaterialType::TailLightLeft || type == eMaterialType::BrakeLightLeft || type == eMaterialType::ReverseLightLeft) {
+                    isDamagedLight = Util::IsLightDamaged(pVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_LEFT);
+                } else if (type == eMaterialType::TailLightRight || type == eMaterialType::BrakeLightRight || type == eMaterialType::ReverseLightRight) {
+                    isDamagedLight = Util::IsLightDamaged(pVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_RIGHT);
+                }
+
+                if (isDamagedLight) {
+                    vData.fLightFactor[type] = 0.0f;
+                    continue;
+                }
+
                 float inertia = GetLightInertia(pVeh, vData, type);
                 if (inertia > 0.0001f) {
                     float step = (CTimer::ms_fTimeStep / 50.0f) / inertia;
@@ -170,12 +186,14 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
                         RwFrame *parent = RwFrameGetParent(dummy->Get().frame);
                         bool isBike = pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
                         bool isDamaged = Util::IsFrameDamaged(pVeh, parent) || !FrameUtil::IsOkAtomicVisible(parent);
-                        bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && isDamaged;
+                        bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && isDamaged;
                         if (atomicCheck || (c.dummyPos == eDummyPos::Rear && pVeh->m_pTrailer)) continue;
 
                         float szMul = 1.0f;
                         if (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) {
-                            szMul = 1.0f + 2.0f * vData.fHighBeamFactor;
+                            if (!LightManager::IsDummyAvailable(vData, {eMaterialType::HighBeamLeft, eMaterialType::HighBeamRight})) {
+                                szMul = 1.0f + 2.0f * vData.fHighBeamFactor;
+                            }
                         }
                         EnableDummy((int)pVeh + 42 + id++, &dummy, pVeh, szMul, factor);
 
@@ -188,7 +206,9 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
                         }
                     }
                 } else {
-                    if (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) {
+                    if ((type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) &&
+                        vData.fLightFactor[eMaterialType::HeadLightLeft] <= 0.001f &&
+                        vData.fLightFactor[eMaterialType::HeadLightRight] <= 0.001f) {
                         vData.fHighBeamFactor = 0.0f;
                         vData.bLongLightsOn = false;
                     }
@@ -204,7 +224,7 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
 }
 
 static float GetCoronaDistanceMulForLight(eMaterialType lightType) {
-    if (lightType == eMaterialType::HeadLightLeft || lightType == eMaterialType::HeadLightRight) {
+    if (lightType == eMaterialType::HeadLightLeft || lightType == eMaterialType::HeadLightRight || lightType == eMaterialType::HighBeamLeft || lightType == eMaterialType::HighBeamRight) {
         return RenderUtil::GetHeadLightCoronaDistanceMul();
     }
     if (lightType == eMaterialType::TailLightLeft || lightType == eMaterialType::TailLightRight ||
@@ -247,7 +267,7 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
     }
     bool isAvailable = IsDummyAvailable(data, type);
 
-    if (type == eMaterialType::HeadLightLeft) {
+    if (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) {
         float target = (data.bLongLightsOn && isOn) ? 1.0f : 0.0f;
         if (inertia > 0.0001f) {
             float hbStep = (CTimer::ms_fTimeStep / 50.0f) / inertia;
@@ -280,7 +300,7 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
             if (!isDamaged && parent) {
                 isDamaged = !FrameUtil::IsOkAtomicVisible(parent);
             }
-            bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && isDamaged;
+            bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && isDamaged;
 
             if (atomicCheck || (c.dummyPos == eDummyPos::Rear && pVeh->m_pTrailer) || !isDummyOk) {
                 continue;
@@ -308,7 +328,9 @@ void LightManager::RenderLight(CVehicle* pVeh, VehLightData& data, eMaterialType
 
             float szMul = 1.0f;
             if (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) {
-                szMul = 1.0f + 2.0f * data.fHighBeamFactor;
+                if (!LightManager::IsDummyAvailable(data, {eMaterialType::HighBeamLeft, eMaterialType::HighBeamRight})) {
+                    szMul = 1.0f + 2.0f * data.fHighBeamFactor;
+                }
                 if (highlight && !data.bLongLightsOn) {
                     szMul = std::max(szMul, 3.00f);
                 }
@@ -454,6 +476,8 @@ const char* LightManager::GetLightGroupKey(eMaterialType type) {
     switch (type) {
     case eMaterialType::HeadLightLeft:
     case eMaterialType::HeadLightRight:
+    case eMaterialType::HighBeamLeft:
+    case eMaterialType::HighBeamRight:
         return "headlights";
     case eMaterialType::TailLightLeft:
     case eMaterialType::TailLightRight:
@@ -513,6 +537,8 @@ const char* LightManager::GetLightSpecificKey(eMaterialType type) {
     switch (type) {
     case eMaterialType::HeadLightLeft: return "headlight_l";
     case eMaterialType::HeadLightRight: return "headlight_r";
+    case eMaterialType::HighBeamLeft: return "highbeam_l";
+    case eMaterialType::HighBeamRight: return "highbeam_r";
     case eMaterialType::TailLightLeft: return "taillight_l";
     case eMaterialType::TailLightRight: return "taillight_r";
     case eMaterialType::STTLightLeft: return "sttlight_l";
@@ -664,6 +690,9 @@ MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type)
         if (type == eMaterialType::FogLightRight) checkSec(lights, "fogl_r");
         if (type == eMaterialType::ReverseLightLeft) { checkSec(lights, "revl_l"); checkSec(lights, "rev_l"); }
         if (type == eMaterialType::ReverseLightRight) { checkSec(lights, "revl_r"); checkSec(lights, "rev_r"); }
+        if (type == eMaterialType::HighBeamLeft || type == eMaterialType::HighBeamRight) {
+            checkSec(lights, "highbeam");
+        }
         if (type == eMaterialType::SpotLight) { checkSec(lights, "spotlights"); checkSec(lights, "spot_light"); }
         if (type == eMaterialType::StrobeLight) { checkSec(lights, "strobes"); checkSec(lights, "strobe"); checkSec(lights, "strobe_light"); }
         if (grpKey) checkSec(lights, grpKey);
