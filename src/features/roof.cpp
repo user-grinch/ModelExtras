@@ -99,7 +99,8 @@ void ConvertibleRoof::Init()
         }
 
         RoofData &data = m_VehData.Get(pVeh);
-        if (data.m_bInit && !data.m_bRoofTargetExpanded && pVeh->m_pDriver && !pVeh->IsDriver(FindPlayerPed()))
+        CPed* pPlayer = FindPlayerPed();
+        if (data.m_bInit && !data.m_bRoofTargetExpanded && pVeh->m_pDriver && (!pPlayer || !pVeh->IsDriver(pPlayer)))
         {
             data.m_bRoofTargetExpanded = true;
         }

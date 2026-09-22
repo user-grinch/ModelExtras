@@ -61,14 +61,14 @@ void SoundEffects::ProcessVehicle(CVehicle *pVeh)
         return;
     }
 
-            if (bOnlyPlayerVehicle && pVeh->m_pDriver != FindPlayerPed()) {
+            if (bOnlyPlayerVehicle && pVeh->m_pDriver != pPlayer) {
                 return;
             }
 
             auto &data = m_VehData.Get(pVeh);
             float speed = Util::GetVehicleSpeed(pVeh);
             int model = pVeh->m_nModelIndex;
-            bool isPlayerDriver = (pVeh->m_pDriver == FindPlayerPed());
+            bool isPlayerDriver = (pVeh->m_pDriver == pPlayer);
 
             // Initialize previous state on first detection so newly seen running vehicles don't trigger sound
             if (!data.m_bInitialized)
