@@ -112,7 +112,8 @@ void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
         return;
     }
 
-    if (pVeh->IsDriver(FindPlayerPed()) &&
+    CPed* pPlayer = FindPlayerPed();
+    if (pPlayer && pVeh->IsDriver(pPlayer) &&
         (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_BIKE || pVeh->m_nVehicleSubClass == VEHICLE_QUAD || pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK))
     {
         if (InputMgr::IsKeyJustDown(LightsConfig::Get().nIndicatorNoneKey)) {

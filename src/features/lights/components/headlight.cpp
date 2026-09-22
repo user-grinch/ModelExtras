@@ -97,8 +97,9 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
         isHeadlightsActive = false;
     }
 
-    if (pVeh->IsDriver(FindPlayerPed())) {
-        if (!isHeadlightsActive && data.fLightFactor[eMaterialType::HeadLightLeft] <= 0.001f) {
+    CPed* pPlayer = FindPlayerPed();
+    if (pPlayer && pVeh->IsDriver(pPlayer)) {
+        if (!isHeadlightsActive && data.fLightFactor[eMaterialType::HeadLightLeft] <= 0.001f && data.fLightFactor[eMaterialType::HeadLightRight] <= 0.001f) {
             data.bLongLightsOn = false;
         }
 
