@@ -98,8 +98,7 @@ target("ModelExtras")
         "/diagnostics:caret",
         "/volatile:iso",
         "/arch:SSE2",
-        "/fp:fast",
-        "/fp:except-",
+        "/fp:precise",
         "/Oi",
         "/MP"
     )
@@ -123,14 +122,14 @@ target("ModelExtras")
         set_runtimes("MT")
         set_optimize("fastest")
         set_symbols("debug")
-        add_cxflags("/Ob3", "/Ot", "/Oy", "/GS-")
+        add_cxflags("/Ob3", "/Ot", "/Oy-")
         add_shflags("/OPT:REF", "/OPT:ICF", "/INCREMENTAL:NO", "/LTCG", "/DEBUG")
     else
         add_links("plugin")
         set_runtimes("MT")
         set_optimize("fastest")
         set_symbols("hidden")
-        add_cxflags("/Ob3", "/Ot", "/Oy", "/GS-")
+        add_cxflags("/Ob3", "/Ot", "/Oy-")
         add_shflags("/OPT:REF", "/OPT:ICF", "/INCREMENTAL:NO", "/LTCG")
     end
 
