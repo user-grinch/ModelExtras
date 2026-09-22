@@ -28,11 +28,20 @@ bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         c.shadow.size = LightsConfig::Get().gfTailLightShadowSize;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = name != "taillights2";
-        c.mirroredX = false;
-        data.dummies[c.lightType].push_back(VehicleDummy(c));
         
-        if (pVeh->m_nVehicleSubClass != VEHICLE_BIKE || std::abs(c.frame->modelling.pos.x) > 0.05f) {
-            c.mirroredX = true;
+        bool isBike = (pVeh->m_nVehicleSubClass == VEHICLE_BIKE);
+
+        if (isBike) {
+            c.mirroredX = false;
+            c.lightType = eMaterialType::TailLightRight;
+            data.dummies[c.lightType].push_back(VehicleDummy(c));
+        } else {
+            bool dummyIsLeft = (c.frame->modelling.pos.x < 0.0f);
+            c.mirroredX = dummyIsLeft;
+            c.lightType = eMaterialType::TailLightRight;
+            data.dummies[c.lightType].push_back(VehicleDummy(c));
+
+            c.mirroredX = !dummyIsLeft;
             c.lightType = eMaterialType::TailLightLeft;
             data.dummies[c.lightType].push_back(VehicleDummy(c));
         }
