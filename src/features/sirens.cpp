@@ -78,7 +78,6 @@ void Sirens::Reload(CVehicle *pVeh)
 		return;
 	}
 	int model = pVeh->m_nModelIndex;
-	modelRotators.erase(model);
 	auto itModel = modelData.find(model);
 	if (itModel != modelData.end()) {
 		delete itModel->second;
@@ -982,12 +981,12 @@ void Sirens::Init()
 		data.vehicle = vehicle;
 
 		bool sirenState = data.GetSirenState();
-		if (modelRotators.contains(model)) {
-			for (auto& dummy : modelRotators[model]) {
+		for (auto *dummy : data.ActiveRotators) {
+			if (dummy) {
 				dummy->ResetAngle();
 			}
-			modelRotators.erase(model);
 		}
+		data.ActiveRotators.clear();
 
 		uint64_t time = static_cast<uint64_t>(CTimer::m_snTimeInMilliseconds);
 		VehicleSirenState* state = modelData[model]->States[data.GetCurrentState()];
@@ -1210,7 +1209,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 
 			dummyAngle += angle;
 
-			Sirens::modelRotators[vehicle->m_nModelIndex].push_back(dummy);
+			data.ActiveRotators.push_back(dummy);
 
 			dummy->SetAngle(angle);
 			dummyAngle = Util::NormalizeAngle(dummyAngle);
