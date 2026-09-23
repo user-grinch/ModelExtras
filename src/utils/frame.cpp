@@ -47,22 +47,22 @@ void FrameUtil::DestroyNodeHierarchyRecursive(RwFrame * frame)
         return;
     }
 
-    // Read the links before the frame goes away. RwFrameDestroy frees it and unlinks
-    // it from its parent, so reaching for frame->child afterwards walks freed memory,
-    // and whether the rest of the hierarchy gets destroyed is down to whatever lands
-    // in that block next. The children have to go first anyway, RwFrameDestroy only
-    // detaches the frame it's given.
     RwFrame * child = frame->child;
-    RwFrame * next = frame->next;
-
-    DestroyNodeHierarchyRecursive(child);
-    DestroyNodeHierarchyRecursive(next);
+    while (child)
+    {
+        RwFrame * next = child->next;
+        DestroyNodeHierarchyRecursive(child);
+        child = next;
+    }
 
     RpAtomic * atomic = (RpAtomic *)GetFirstObject(frame);
     if (atomic != nullptr)
     {
         RpClump * clump = atomic->clump;
-        RpClumpRemoveAtomic(clump, atomic);
+        if (clump)
+        {
+            RpClumpRemoveAtomic(clump, atomic);
+        }
         RpAtomicDestroy(atomic);
     }
 
