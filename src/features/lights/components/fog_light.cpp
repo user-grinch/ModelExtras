@@ -34,7 +34,7 @@ void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
     CPed* pPlayer = FindPlayerPed();
     if (pPlayer && pVeh->IsDriver(pPlayer)) {
         static size_t prev = 0;
-        bool isHeadlightsActive = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pVeh);
+        bool isHeadlightsActive = CarUtil::AreLightsOn(pVeh);
         bool canToggleFogLight = !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
 
         if (InputMgr::IsKeyJustDown(LightsConfig::Get().nFogLightKey) && (LightManager::IsMaterialAvailable(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) || LightManager::IsDummyAvailable(data, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight})) && canToggleFogLight) {
@@ -45,7 +45,7 @@ void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
 }
 
 void FogLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
-    bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || Util::IsNightTime()) && !CarUtil::IsLightsForcedOff(pControlVeh);
+    bool isHeadlightsActive = CarUtil::AreLightsOn(pControlVeh);
     bool isFoggy = Util::IsFoggy();
     bool shouldRenderFog = isFoggy || !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
     bool isFogLightOn = (data.bFogLightsOn || isFoggy) && (!LightsConfig::Get().bFoglightTiedToHeadlight || !CarUtil::IsLightsForcedOff(pControlVeh));
@@ -57,7 +57,7 @@ void FogLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLi
 }
 
 void FogLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
-    bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+    bool isHeadlightsOn = CarUtil::AreLightsOn(pVeh);
     bool isFoggy = Util::IsFoggy();
     bool shouldRenderFog = isFoggy || !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsOn;
     bool isFogLightOn = (data.bFogLightsOn || isFoggy) && (!LightsConfig::Get().bFoglightTiedToHeadlight || !CarUtil::IsLightsForcedOff(pVeh));

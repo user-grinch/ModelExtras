@@ -15,8 +15,14 @@
 #include <CPools.h>
 #include <CAEVehicleAudioEntity.h>
 
+static bool g_bSirensRequireEngine = false;
+
 bool VehicleSiren::GetSirenState()
 {
+	if (g_bSirensRequireEngine && vehicle && Util::IsEngineOff(vehicle))
+	{
+		return false;
+	}
 	return (Mute == false) ? (vehicle ? vehicle->bSirenOrAlarm : false) : (true);
 }
 
@@ -69,6 +75,7 @@ void Sirens::ReloadConfig()
 	CBaseFeature::ReloadConfig();
 	m_bEnabled = m_bActive;
 	g_nSirenKey = gConfig.ReadInteger("KEYS", "SirenLightKey", VK_L);
+	g_bSirensRequireEngine = gConfig.ReadBoolean("LIGHTS", "SirensRequireEngine", gConfig.ReadBoolean("TWEAKS", "SirensRequireEngine", false));
 }
 
 void Sirens::Reload(CVehicle *pVeh)

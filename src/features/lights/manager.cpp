@@ -94,6 +94,11 @@ void LightManager::Process(CVehicle* pVeh) {
     if (!pVeh) return;
 
     VehLightData& data = m_VehData.Get(pVeh);
+    if (LightsConfig::Get().bLightsRequireEngine && Util::IsEngineOff(pVeh)) {
+        data.bLongLightsOn = false;
+        pVeh->bLightsOn = false;
+    }
+
     for (const auto& comp : m_Components) {
         comp->Process(pVeh, data);
     }
@@ -109,6 +114,18 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
     }
 
     bool isAlarmActive = pControlVeh->m_nAlarmState != 0 && pControlVeh->m_nAlarmState != 0xFFFF;
+
+    if (LightsConfig::Get().bLightsRequireEngine && Util::IsEngineOff(pControlVeh)) {
+        pControlVeh->bLightsOn = false;
+        pControlVeh->m_renderLights.m_bLeftFront = false;
+        pControlVeh->m_renderLights.m_bRightFront = false;
+        pControlVeh->m_renderLights.m_bLeftRear = false;
+        pControlVeh->m_renderLights.m_bRightRear = false;
+
+        if (!isAlarmActive && indState == eIndicatorState::Off) {
+            return;
+        }
+    }
 
     // Fix for UIF SAMP server https://github.com/user-grinch/ModelExtras/issues/112
     // Don't clear light state when lights are forced on/already on via SAMP or alarm is active
@@ -366,9 +383,18 @@ void LightManager::ProcessPointLights(CVehicle *pVeh) {
         return;
     }
 
+    VehLightData &data = m_VehData.Get(pVeh);
+
+    if (LightsConfig::Get().bLightsRequireEngine && Util::IsEngineOff(pVeh)) {
+        pVeh->bLightsOn = false;
+        bool isAlarmActive = pVeh->m_nAlarmState != 0 && pVeh->m_nAlarmState != 0xFFFF;
+        if (!isAlarmActive && data.nIndicatorState == eIndicatorState::Off) {
+            return;
+        }
+    }
+
     pVeh->UpdateRwFrame();
 
-    VehLightData &data = m_VehData.Get(pVeh);
     for (const auto& comp : m_Components) {
         comp->ProcessPointLights(pVeh, data);
     }
