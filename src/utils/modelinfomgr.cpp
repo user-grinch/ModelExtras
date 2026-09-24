@@ -2,6 +2,7 @@
 #include "pch.h"
 
 #include <CCamera.h>
+#include <CPools.h>
 #include <CTxdStore.h>
 #include <NodeName.h>
 #include <RenderWare.h>
@@ -19,6 +20,7 @@
 #include "defines.h"
 #include "utils/meevents.h"
 #include "utils/texmgr.h"
+#include "utils/mathutil.h"
 
 using namespace plugin;
 
@@ -169,6 +171,33 @@ void ModelInfoMgr::Init() {
       if (!pVeh->m_pRwClump) {
         return;
       }
+      auto &data = m_VehData.Get(pVeh);
+      if (data.nFrameCount > 10) {
+        ModelInfoMgr::OnRender(pVeh);
+      } else if (data.nFrameCount == 10) {
+        ModelInfoMgr::FindDummies(
+            pVeh, reinterpret_cast<RwFrame *>(pVeh->m_pRwClump->object.parent));
+        data.nFrameCount++;
+      } else {
+        data.nFrameCount++;
+      }
+    }
+  };
+
+  Events::drawingEvent += []() {
+    for (CVehicle *pVeh : CPools::ms_pVehiclePool) {
+      if (!pVeh || pVeh->m_nType != ENTITY_TYPE_VEHICLE || !pVeh->m_pRwClump || pVeh->GetIsOnScreen()) {
+        continue;
+      }
+
+      if (pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER) {
+        continue;
+      }
+
+      if (MathUtil::DistanceSquared(pVeh->GetPosition(), TheCamera.GetPosition()) > (120.0f * 120.0f)) {
+        continue;
+      }
+
       auto &data = m_VehData.Get(pVeh);
       if (data.nFrameCount > 10) {
         ModelInfoMgr::OnRender(pVeh);
