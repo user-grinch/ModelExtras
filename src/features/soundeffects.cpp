@@ -7,6 +7,7 @@
 using namespace plugin;
 
 std::vector<int> ValidForReverseSound;
+std::vector<int> ValidForDoorChime;
 
 #define ANIMGROUP_TRUCK 2
 #define ANIMGROUP_BUS 15
@@ -16,25 +17,65 @@ static bool bReverseSounds = false;
 static bool bEngineSounds = false;
 static bool bIndicatorSounds = false;
 static bool bAirbreakSounds = false;
+static bool bDoorChimeSounds = false;
+static bool bDoorChimeOnlySelected = false;
+static float fDoorChimeVolume = 0.7f;
 static bool bOnlyPlayerVehicle = true;
+
+static bool IsVehicleEligibleForDoorChime(int model)
+{
+    if (CModelInfo::IsBikeModel(model) || CModelInfo::IsBmxModel(model) || CModelInfo::IsQuadBikeModel(model) ||
+        CModelInfo::IsHeliModel(model) || CModelInfo::IsPlaneModel(model) || CModelInfo::IsBoatModel(model) ||
+        CModelInfo::IsTrailerModel(model))
+    {
+        return false;
+    }
+    if (!bDoorChimeOnlySelected)
+    {
+        return true;
+    }
+    return std::find(ValidForDoorChime.begin(), ValidForDoorChime.end(), model) != ValidForDoorChime.end();
+}
+
+static std::string GetDoorChimeAudioPath()
+{
+    static std::string path = MOD_DATA_PATH("audio/door_chime.mp3");
+    return path;
+}
 
 void SoundEffects::ReloadConfig()
 {
     CBaseFeature::ReloadConfig();
-    std::string line = gConfig.ReadString("TABLE", "SoundEffects_BigVehicleModels", "");
+    std::string line = gConfig.ReadString("TABLE", "BigVehicleModels", gConfig.ReadString("TABLE", "SoundEffects_BigVehicleModels", ""));
     ValidForReverseSound.clear();
     Util::GetModelsFromIni(line, ValidForReverseSound);
 
-    bReverseSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalReverseSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalReverseSound", false));
-    bEngineSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalEngineSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalEngineSound", false));
-    bIndicatorSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalIndicatorSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalIndicatorSound", false));
-    bAirbreakSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalAirbreakSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalAirbreakSound", false));
-    bOnlyPlayerVehicle = !gConfig.ReadBoolean("SOUND", "SoundEffects_NonPlayerVehicles", gConfig.ReadBoolean("FEATURES", "SoundEffects_NonPlayerVehicles", false));
+    std::string chimeLine = gConfig.ReadString("TABLE", "DoorChime_VehicleModels", "");
+    ValidForDoorChime.clear();
+    Util::GetModelsFromIni(chimeLine, ValidForDoorChime);
+
+    bReverseSounds = gConfig.ReadBoolean("SOUND", "GlobalReverseSound", gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalReverseSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalReverseSound", false)));
+    bEngineSounds = gConfig.ReadBoolean("SOUND", "GlobalEngineSound", gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalEngineSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalEngineSound", false)));
+    bIndicatorSounds = gConfig.ReadBoolean("SOUND", "GlobalIndicatorSound", gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalIndicatorSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalIndicatorSound", false)));
+    bAirbreakSounds = gConfig.ReadBoolean("SOUND", "GlobalAirbreakSound", gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalAirbreakSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalAirbreakSound", false)));
+    bOnlyPlayerVehicle = !gConfig.ReadBoolean("SOUND", "NonPlayerVehicles", gConfig.ReadBoolean("SOUND", "SoundEffects_NonPlayerVehicles", gConfig.ReadBoolean("FEATURES", "SoundEffects_NonPlayerVehicles", false)));
+
+    bDoorChimeSounds = gConfig.ReadBoolean("SOUND", "DoorChimeSound", true);
+    bDoorChimeOnlySelected = gConfig.ReadBoolean("SOUND", "DoorChimeOnlySelected", true);
+    fDoorChimeVolume = std::clamp(gConfig.ReadFloat("SOUND", "DoorChimeVolume", 0.7f), 0.0f, 1.0f);
 }
 
 void SoundEffects::Reload(CVehicle *pVeh)
 {
     ReloadConfig();
+    if (pVeh)
+    {
+        auto &data = m_VehData.Get(pVeh);
+        if (data.m_hDoorChimeStream)
+        {
+            AudioMgr::StopLoopStream(data.m_hDoorChimeStream);
+        }
+    }
 }
 
 void SoundEffects::Init()
@@ -54,21 +95,25 @@ void SoundEffects::ProcessVehicle(CVehicle *pVeh)
         return;
     }
     CPed *pPlayer = FindPlayerPed();
-    if (!pPlayer) {
-        return;
-    }
-    if (MathUtil::DistanceSquared(pVeh->GetPosition(), pPlayer->GetPosition()) > (75.0f * 75.0f)) {
+    auto &data = m_VehData.Get(pVeh);
+
+    if (!pPlayer || pVeh->m_fHealth <= 0.0f || pVeh->bEngineBroken || pVeh->bIsDrowning || MathUtil::DistanceSquared(pVeh->GetPosition(), pPlayer->GetPosition()) > (75.0f * 75.0f))
+    {
+        if (data.m_hDoorChimeStream)
+        {
+            AudioMgr::StopLoopStream(data.m_hDoorChimeStream);
+        }
         return;
     }
 
-            if (bOnlyPlayerVehicle && pVeh->m_pDriver != pPlayer) {
-                return;
-            }
+    if (bOnlyPlayerVehicle && pVeh->m_pDriver != pPlayer)
+    {
+        return;
+    }
 
-            auto &data = m_VehData.Get(pVeh);
-            float speed = Util::GetVehicleSpeed(pVeh);
-            int model = pVeh->m_nModelIndex;
-            bool isPlayerDriver = (pVeh->m_pDriver == pPlayer);
+    float speed = Util::GetVehicleSpeed(pVeh);
+    int model = pVeh->m_nModelIndex;
+    bool isPlayerDriver = (pVeh->m_pDriver == pPlayer);
 
             // Initialize previous state on first detection so newly seen running vehicles don't trigger sound
             if (!data.m_bInitialized)
@@ -175,4 +220,46 @@ void SoundEffects::ProcessVehicle(CVehicle *pVeh)
                 }
             }
 
+            if (bDoorChimeSounds && pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE)
+            {
+                CAutomobile *pAuto = static_cast<CAutomobile *>(pVeh);
+                bool isEligible = IsVehicleEligibleForDoorChime(model);
+                bool isFrontDoorOpen = false;
+
+                if (isEligible && !pVeh->bEngineBroken && !pVeh->bIsDrowning)
+                {
+                    bool leftOpen = (!pAuto->m_doors[eDoors::DOOR_FRONT_LEFT].IsClosed() &&
+                                     std::abs(pAuto->m_doors[eDoors::DOOR_FRONT_LEFT].m_fAngle) > 0.15f);
+                    bool rightOpen = (!pAuto->m_doors[eDoors::DOOR_FRONT_RIGHT].IsClosed() &&
+                                      std::abs(pAuto->m_doors[eDoors::DOOR_FRONT_RIGHT].m_fAngle) > 0.15f);
+
+                    if (leftOpen || rightOpen)
+                    {
+                        if (isPlayerDriver || pVeh->bEngineOn || (pPlayer && MathUtil::DistanceSquared(pVeh->GetPosition(), pPlayer->GetPosition()) < (12.0f * 12.0f)))
+                        {
+                            isFrontDoorOpen = true;
+                        }
+                    }
+                }
+
+                if (isFrontDoorOpen)
+                {
+                    static std::string chimePath = GetDoorChimeAudioPath();
+                    if (!data.m_hDoorChimeStream)
+                    {
+                        data.m_hDoorChimeStream = AudioMgr::PlayLoopStream(chimePath, pVeh->GetPosition(), fDoorChimeVolume, 25.0f);
+                    }
+                    else
+                    {
+                        AudioMgr::UpdateLoopStream(data.m_hDoorChimeStream, pVeh->GetPosition(), fDoorChimeVolume, 25.0f);
+                    }
+                }
+                else
+                {
+                    if (data.m_hDoorChimeStream)
+                    {
+                        AudioMgr::StopLoopStream(data.m_hDoorChimeStream);
+                    }
+                }
+            }
 }
