@@ -4,6 +4,8 @@
 #include "frame.h"
 #include "enums/lightoverride.h"
 #include "features/core/dummyconfig.h"
+#include "features/lights/data.h"
+#include "util.h"
 #include <CModelInfo.h>
 #include <CVehicleModelInfo.h>
 #include <CColModel.h>
@@ -20,6 +22,16 @@ bool CarUtil::IsLightsForcedOn(CVehicle *pVeh)
 bool CarUtil::IsLightsForcedOff(CVehicle *pVeh)
 {
     return CVehicle::ms_forceVehicleLightsOff || pVeh->m_nOverrideLights == eLightOverride::ForceLightsOff;
+}
+
+bool CarUtil::AreLightsOn(CVehicle *pVeh)
+{
+    if (!pVeh) return false;
+    if (IsLightsForcedOff(pVeh)) return false;
+    if (LightsConfig::Get().bLightsRequireEngine && IsEngineOff(pVeh)) {
+        return false;
+    }
+    return pVeh->bLightsOn || IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !IsEngineOff(pVeh));
 }
 
 bool CarUtil::AreHeadlightsPopUpOpen(CVehicle *pVeh)

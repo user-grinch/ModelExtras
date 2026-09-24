@@ -19,6 +19,7 @@ bool gbSirenPointLights = false;
 static void __fastcall Hooked_DoHeadLightBeam(CVehicle *pVeh, void *edx, int dummyId, CMatrix &matrix, bool arg2)
 {
 	if (!pVeh || !Lights::m_bEnabled) return;
+	if (LightsConfig::Get().bLightsRequireEngine && Util::IsEngineOff(pVeh)) return;
 	if (!gConfig.ReadBoolean("LIGHTS", "HeadLightBeams", gConfig.ReadBoolean("TWEAKS", "HeadLightBeams", true))) return;
 
 	auto *mi = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));

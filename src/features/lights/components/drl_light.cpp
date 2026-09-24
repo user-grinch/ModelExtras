@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "drl_light.h"
 #include "utils/util.h"
 #include "utils/render.h"
@@ -42,6 +42,7 @@ bool DRLLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
 }
 
 void DRLLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
+    if (LightsConfig::Get().bLightsRequireEngine && Util::IsEngineOff(pControlVeh)) return;
     LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::AllDayLight, true, "indicator", 1.85f);
     if (!Util::IsNightTime()) {
         LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::DayLight, true, "indicator", 1.85f);
@@ -52,6 +53,7 @@ void DRLLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLi
 }
 
 void DRLLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
+    if (LightsConfig::Get().bLightsRequireEngine && Util::IsEngineOff(pVeh)) return;
     auto renderDRLPointLight = [&](eMaterialType type) {
         if (!LightManager::IsDummyAvailable(data, type) || !data.bLightStates[type]) return;
         for (auto& dummy : data.dummies[type]) {
