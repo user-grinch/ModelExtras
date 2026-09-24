@@ -94,14 +94,14 @@ void DashboardLEDs::Init()
 		}
 
 		const auto& data = Lights::GetVehicleData(pControlVeh);
-		bool isHeadlightsActive = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pControlVeh))) && !CarUtil::IsLightsForcedOff(pControlVeh);
+		bool isHeadlightsActive = CarUtil::AreLightsOn(pControlVeh);
 		bool isFoggy = Util::IsFoggy();
 		bool shouldShowFog = isFoggy || !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
 		bool isFogLightOn = (data.bFogLightsOn || isFoggy) && (!LightsConfig::Get().bFoglightTiedToHeadlight || !CarUtil::IsLightsForcedOff(pControlVeh));
 		if (isFogLightOn && shouldShowFog) {
 			EnableLED(pControlVeh, eMaterialType::FogLightLed);
 		}
-		bool headlightsOn = (pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pControlVeh))) && !CarUtil::IsLightsForcedOff(pControlVeh);
+		bool headlightsOn = CarUtil::AreLightsOn(pControlVeh);
 		if (headlightsOn) {
 			if (data.bLongLightsOn) {
 				EnableLED(pControlVeh, eMaterialType::HighBeamLed);
