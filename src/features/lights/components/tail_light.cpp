@@ -55,7 +55,7 @@ void TailLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
         bool isRightRearOk = damage.isRearRightOk;
 
         bool indicatorOn = data.bUsingGlobalIndicators && data.nIndicatorState != eIndicatorState::Off;
-        bool tailLightFlag = (Util::IsNightTime() || pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh)) && !CarUtil::IsLightsForcedOff(pControlVeh);
+        bool tailLightFlag = CarUtil::AreLightsOn(pControlVeh);
         bool sttInstalled = LightManager::IsMaterialAvailable(pTowedVeh, {eMaterialType::STTLightLeft, eMaterialType::STTLightRight});
 
         if ((tailLightFlag || indicatorOn) && !sttInstalled) {
@@ -102,7 +102,7 @@ void TailLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
 }
 
 void TailLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
-    bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+    bool isHeadlightsOn = CarUtil::AreLightsOn(pVeh);
     bool isBraking = LightManager::IsBraking(pVeh);
     bool isBike = CModelInfo::IsBikeModel(pVeh->m_nModelIndex);
     bool hasDedicatedBrakeDummy = LightManager::IsDummyAvailable(data, {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight, eMaterialType::STTLightLeft, eMaterialType::STTLightRight, eMaterialType::NABrakeLightLeft, eMaterialType::NABrakeLightRight});

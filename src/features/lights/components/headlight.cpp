@@ -92,7 +92,7 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
     bool isAlarmActive = pVeh->m_nAlarmState != 0 && pVeh->m_nAlarmState != 0xFFFF;
     bool isAlarmLightOn = isAlarmActive && ((pVeh->m_nAlarmState & 0x100) != 0);
 
-    bool isHeadlightsActive = ((pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) || isAlarmLightOn) && !CarUtil::IsLightsForcedOff(pVeh);
+    bool isHeadlightsActive = (CarUtil::AreLightsOn(pVeh) || isAlarmLightOn);
     if (isAlarmActive && !isAlarmLightOn) {
         isHeadlightsActive = false;
     }
@@ -139,7 +139,7 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
     bool isAlarmActive = pControlVeh->m_nAlarmState != 0 && pControlVeh->m_nAlarmState != 0xFFFF;
     bool isAlarmLightOn = isAlarmActive && ((pControlVeh->m_nAlarmState & 0x100) != 0);
 
-    bool isNightOrOn = ((pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pControlVeh))) || isAlarmLightOn) && !CarUtil::IsLightsForcedOff(pControlVeh);
+    bool isNightOrOn = (CarUtil::AreLightsOn(pControlVeh) || isAlarmLightOn);
     if (isAlarmActive && !isAlarmLightOn) {
         isNightOrOn = false;
         pControlVeh->m_renderLights.m_bLeftFront = false;
@@ -171,7 +171,7 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
 
 void HeadlightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
     if (!CanVehicleHaveHeadlights(pVeh)) return;
-    bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+    bool isHeadlightsOn = CarUtil::AreLightsOn(pVeh);
 
     if (isHeadlightsOn && AreHeadlightsOpen(pVeh, data)) {
         float rangeMul = data.bLongLightsOn ? LightsConfig::Get().fHighBeamPointLightMul : 1.0f;

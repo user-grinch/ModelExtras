@@ -47,7 +47,7 @@ void STTLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLi
 
         bool brakeOn = LightManager::IsBraking(pControlVeh);
         bool indicatorOn = data.bUsingGlobalIndicators && data.nIndicatorState != eIndicatorState::Off;
-        bool tailOn = (Util::IsNightTime() || pControlVeh->bLightsOn || CarUtil::IsLightsForcedOn(pControlVeh) || indicatorOn) && !CarUtil::IsLightsForcedOff(pControlVeh);
+        bool tailOn = CarUtil::AreLightsOn(pControlVeh) || indicatorOn;
         
         if (brakeOn || tailOn) {
             if (isLeftRearOk) {

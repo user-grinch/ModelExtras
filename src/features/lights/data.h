@@ -50,6 +50,8 @@ struct LightsConfig {
     bool bAutoIndicatorsOnSteer = false;
     bool bFoglightTiedToHeadlight = false;
     bool bPlayerIdleBrakeLights = false;
+    bool bLightsRequireEngine = false;
+    bool bSirensRequireEngine = false;
     float fHighBeamPointLightMul = 2.0f;
     float fPointLightIntensity = 0.8f;
 
@@ -82,6 +84,8 @@ struct LightsConfig {
         bAutoIndicatorsOnSteer = gConfig.ReadBoolean("LIGHTS", "AutoIndicatorsOnSteer", gConfig.ReadBoolean("TWEAKS", "AutoIndicatorsOnSteer", false));
         bFoglightTiedToHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", false));
         bPlayerIdleBrakeLights = gConfig.ReadBoolean("LIGHTS", "PlayerIdleBrakeLights", gConfig.ReadBoolean("TWEAKS", "PlayerIdleBrakeLights", false));
+        bLightsRequireEngine = gConfig.ReadBoolean("LIGHTS", "LightsRequireEngine", gConfig.ReadBoolean("TWEAKS", "LightsRequireEngine", false));
+        bSirensRequireEngine = gConfig.ReadBoolean("LIGHTS", "SirensRequireEngine", gConfig.ReadBoolean("TWEAKS", "SirensRequireEngine", false));
         
         float rawMul = gConfig.ReadFloat("LIGHTS", "HighBeamPointLightMul", gConfig.ReadFloat("TWEAKS", "HighBeamPointLightMul", 2.0f));
         fHighBeamPointLightMul = (rawMul < 1.0f) ? 1.0f : ((rawMul > 4.0f) ? 4.0f : rawMul);
