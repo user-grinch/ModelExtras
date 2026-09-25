@@ -284,6 +284,14 @@ void BackFireEffect::Process(CVehicle *pVeh)
         return;
     }
 
+    if (pVeh->m_nCurrentGear == 0 || CVector::Dot(pVeh->m_vecMoveSpeed, pVeh->GetMatrix().up) < -0.01f)
+    {
+        BackfireData &data = m_VehData.Get(pVeh);
+        data.wasFullThrottled = false;
+        data.m_nleftFires = 0;
+        return;
+    }
+
     bool isValidVeh = std::find(ValidModels.begin(), ValidModels.end(), pVeh->m_nModelIndex) != ValidModels.end();
 
     // 1. Check Soundize compatibility
