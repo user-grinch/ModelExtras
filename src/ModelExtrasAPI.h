@@ -214,6 +214,9 @@ extern "C"
     // Ped Colors
     ME_WRAPPER int ME_GetPedVariationCount(int modelIndex);
 
+    // Visual & Render Configuration
+    ME_WRAPPER float ME_GetPointLightIntensity();
+
 #ifdef __cplusplus
 }
 #endif

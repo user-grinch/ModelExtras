@@ -9,6 +9,7 @@
 #include "utils/texmgr.h"
 #include "defines.h"
 #include "features/core/dummy.h"
+#include "features/lights/data.h"
 #include <CPointLights.h>
 
 inline CVector2D GetPerpRight(const CVector2D &vec)
@@ -198,8 +199,9 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
     lightDir.Normalize();
 
     CRGBA col = pConfig->corona.color;
+    float intensity = LightsConfig::Get().fPointLightIntensity;
     CPointLights::AddLight(PLTYPE_SPOTLIGHT, lightPos, lightDir, HEADLIGHT_PLIGHT_RANGE * rangeMul,
-                           col.r / 255.0f, col.g / 255.0f, col.b / 255.0f, 0, 0, 0);
+                           (col.r / 255.0f) * intensity, (col.g / 255.0f) * intensity, (col.b / 255.0f) * intensity, 0, 0, 0);
 }
 
 void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float radius, bool isSpotlight)
@@ -379,9 +381,10 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
     CVector plightPos = lightPos + lightDir * pushDist;
 
     constexpr float INV_255 = 1.0f / 255.0f;
-    float r = std::clamp(col.r * INV_255, 0.0f, 1.0f);
-    float g = std::clamp(col.g * INV_255, 0.0f, 1.0f);
-    float b = std::clamp(col.b * INV_255, 0.0f, 1.0f);
+    float intensity = LightsConfig::Get().fPointLightIntensity;
+    float r = std::clamp((col.r * INV_255) * intensity, 0.0f, 1.0f);
+    float g = std::clamp((col.g * INV_255) * intensity, 0.0f, 1.0f);
+    float b = std::clamp((col.b * INV_255) * intensity, 0.0f, 1.0f);
 
     unsigned char lightType = isSpotlight ? PLTYPE_SPOTLIGHT : PLTYPE_POINTLIGHT;
     CPointLights::AddLight(lightType, plightPos, lightDir, radius, r, g, b, 0, false, nullptr);

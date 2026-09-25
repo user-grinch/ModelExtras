@@ -427,5 +427,10 @@ int ME_GetPedVariationCount(int modelIndex) {
   return 0;
 }
 
+// Visual & Render Configuration
+float ME_GetPointLightIntensity() {
+  return LightsConfig::Get().fPointLightIntensity;
+}
+
 } // extern "C"
 
