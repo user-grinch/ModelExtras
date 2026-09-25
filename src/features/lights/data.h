@@ -128,6 +128,9 @@ struct VehLightData {
     bool bLightStates[eMaterialType::TotalMaterial];
     unsigned int nHeadlightTickFrame = 0;
     bool bHasVehFuncsPopUp = false;
+    bool bAutoNightLights = false;
+    unsigned int nHeadlightsTurnedOnTime = 0;
+    bool bPrevHeadlightsOn = false;
     std::array<float, eMaterialType::TotalMaterial> fLightFactor = {};
     std::array<bool, eMaterialType::TotalMaterial> bLightRenderedThisFrame = {};
 
@@ -154,6 +157,9 @@ struct VehLightData {
             bUsingGlobalIndicators = other.bUsingGlobalIndicators;
             bWasAutoSteerActive = other.bWasAutoSteerActive;
             bHasVehFuncsPopUp = other.bHasVehFuncsPopUp;
+            bAutoNightLights = other.bAutoNightLights;
+            nHeadlightsTurnedOnTime = other.nHeadlightsTurnedOnTime;
+            bPrevHeadlightsOn = other.bPrevHeadlightsOn;
             fLightFactor = other.fLightFactor;
             bLightRenderedThisFrame = other.bLightRenderedThisFrame;
             dummies = std::move(other.dummies);
@@ -174,6 +180,9 @@ struct VehLightData {
         fHighBeamFactor = 0.0f;
         bLightRenderedThisFrame.fill(false);
         bHasVehFuncsPopUp = false;
+        bAutoNightLights = false;
+        nHeadlightsTurnedOnTime = 0;
+        bPrevHeadlightsOn = false;
     }
     
     ~VehLightData() {

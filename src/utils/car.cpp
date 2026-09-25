@@ -31,7 +31,7 @@ bool CarUtil::AreHeadlightsPopUpOpen(CVehicle *pVeh)
         {
             return true;
         }
-        return pAuto->m_renderLights.m_bLeftFront || pAuto->m_renderLights.m_bRightFront || pAuto->m_fPropRotate >= 0.68f;
+        return pAuto->m_fPropRotate >= 0.65f;
     }
     return true;
 }

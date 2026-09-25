@@ -38,12 +38,19 @@ bool HeadlightComponent::AreHeadlightsOpen(CVehicle* pVeh, const VehLightData& d
     }
 
     CAutomobile* pAuto = static_cast<CAutomobile*>(pVeh);
-    bool hasPopUp = (pVeh->m_nModelIndex == MODEL_ZR350 && pAuto->m_aCarNodes[CAR_MISC_A] != nullptr) || data.bHasVehFuncsPopUp;
-    if (!hasPopUp) {
+    bool isZR350 = (pVeh->m_nModelIndex == MODEL_ZR350 && pAuto->m_aCarNodes[CAR_MISC_A] != nullptr);
+    if (isZR350) {
+        return pAuto->m_fPropRotate >= 0.65f;
+    }
+
+    if (data.bHasVehFuncsPopUp) {
+        if (data.nHeadlightsTurnedOnTime == 0 || (CTimer::m_snTimeInMilliseconds - data.nHeadlightsTurnedOnTime < 800)) {
+            return false;
+        }
         return true;
     }
 
-    return pAuto->m_renderLights.m_bLeftFront || pAuto->m_renderLights.m_bRightFront || pAuto->m_fPropRotate >= 0.68f;
+    return true;
 }
 
 bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
@@ -92,10 +99,38 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
     bool isAlarmActive = pVeh->m_nAlarmState != 0 && pVeh->m_nAlarmState != 0xFFFF;
     bool isAlarmLightOn = isAlarmActive && ((pVeh->m_nAlarmState & 0x100) != 0);
 
-    bool isHeadlightsActive = ((pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) || isAlarmLightOn) && !CarUtil::IsLightsForcedOff(pVeh);
+    bool isEngineOff = Util::IsEngineOff(pVeh);
+    bool isNight = Util::IsNightTime() && !isEngineOff;
+    bool isForcedOn = CarUtil::IsLightsForcedOn(pVeh);
+    bool isForcedOff = CarUtil::IsLightsForcedOff(pVeh);
+
+    if (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE) {
+        if (isForcedOff || isEngineOff) {
+            pVeh->bLightsOn = false;
+            data.bAutoNightLights = false;
+        } else if (isForcedOn) {
+            pVeh->bLightsOn = true;
+            data.bAutoNightLights = false;
+        } else if (isNight) {
+            pVeh->bLightsOn = true;
+            data.bAutoNightLights = true;
+        } else if (data.bAutoNightLights) {
+            pVeh->bLightsOn = false;
+            data.bAutoNightLights = false;
+        }
+    }
+
+    bool isHeadlightsActive = ((pVeh->bLightsOn || isForcedOn || isNight) || isAlarmLightOn) && !isForcedOff;
     if (isAlarmActive && !isAlarmLightOn) {
         isHeadlightsActive = false;
     }
+
+    if (isHeadlightsActive && !data.bPrevHeadlightsOn) {
+        data.nHeadlightsTurnedOnTime = CTimer::m_snTimeInMilliseconds;
+    } else if (!isHeadlightsActive) {
+        data.nHeadlightsTurnedOnTime = 0;
+    }
+    data.bPrevHeadlightsOn = isHeadlightsActive;
 
     CPed* pPlayer = FindPlayerPed();
     if (pPlayer && pVeh->IsDriver(pPlayer)) {
@@ -145,11 +180,16 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
         pControlVeh->m_renderLights.m_bLeftFront = false;
         pControlVeh->m_renderLights.m_bRightFront = false;
     }
-    if (!isNightOrOn || !AreHeadlightsOpen(pControlVeh, data)) return;
+    bool isOpen = AreHeadlightsOpen(pControlVeh, data);
 
     auto damage = LightDamageState::Get(pControlVeh, pTowedVeh);
-    bool isHeadlightLeftOk = damage.isHeadlightLeftOk;
-    bool isHeadlightRightOk = damage.isHeadlightRightOk;
+    bool isHeadlightLeftOk = isNightOrOn && isOpen && damage.isHeadlightLeftOk;
+    bool isHeadlightRightOk = isNightOrOn && isOpen && damage.isHeadlightRightOk;
+
+    pControlVeh->m_renderLights.m_bLeftFront = isHeadlightLeftOk;
+    pControlVeh->m_renderLights.m_bRightFront = isHeadlightRightOk;
+
+    if (!isNightOrOn || !isOpen) return;
 
     bool bTickRegistered = (data.nHeadlightTickFrame == CTimer::m_FrameCounter);
     bool isFoggy = Util::IsFoggy();
