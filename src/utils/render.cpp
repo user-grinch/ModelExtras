@@ -67,7 +67,9 @@ bool IsDummyPointingUp(CMatrix mat)
 
 static bool gbLightCoronas = false;
 static bool gbLightShadows = false;
-static float gfCoronaDistanceMul = 0.1f;
+static float gfCoronaDistanceMul = 0.07f;
+static float gfHeadLightCoronaDistanceMul = 0.07f;
+static float gfTailLightCoronaDistanceMul = 0.05f;
 static float gfCoronaNearClip = 0.45f;
 static float gfLightHeightLimit = 1.4f;
 static bool gbConfigInitialized = false;
@@ -82,7 +84,9 @@ void RenderUtil::ReloadConfig()
 {
     gbLightCoronas = gConfig.ReadBoolean("LIGHTS", "LightCoronas", gConfig.ReadBoolean("FEATURES", "LightCoronas", true));
     gbLightShadows = gConfig.ReadBoolean("LIGHTS", "LightShadows", gConfig.ReadBoolean("FEATURES", "LightShadows", true));
-    gfCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "CoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.1f));
+    gfCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "CoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.07f));
+    gfHeadLightCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "HeadLightCoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "HeadLightCoronaDistanceMul", gfCoronaDistanceMul));
+    gfTailLightCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "TailLightCoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "TailLightCoronaDistanceMul", 0.05f));
     gfCoronaNearClip = gConfig.ReadFloat("LIGHTS", "CoronaNearClip", gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 0.45f));
     gfLightHeightLimit = gConfig.ReadFloat("LIGHTS", "LightHeightLimit", gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 1.4f));
     gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 80));
@@ -101,7 +105,37 @@ static void EnsureConfigLoaded()
     }
 }
 
-void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRGBA col, float size)
+float RenderUtil::GetCoronaDistanceMul()
+{
+    EnsureConfigLoaded();
+    return gfCoronaDistanceMul;
+}
+
+float RenderUtil::GetHeadLightCoronaDistanceMul()
+{
+    EnsureConfigLoaded();
+    return gfHeadLightCoronaDistanceMul;
+}
+
+float RenderUtil::GetTailLightCoronaDistanceMul()
+{
+    EnsureConfigLoaded();
+    return gfTailLightCoronaDistanceMul;
+}
+
+float RenderUtil::GetCoronaNearClip()
+{
+    EnsureConfigLoaded();
+    return gfCoronaNearClip;
+}
+
+float RenderUtil::GetLightShadowDistance()
+{
+    EnsureConfigLoaded();
+    return gfLightShadowDistance;
+}
+
+void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRGBA col, float size, eMaterialType lightType)
 {
     EnsureConfigLoaded();
     if (!gbLightCoronas)
@@ -111,18 +145,36 @@ void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRG
 
     float coronaSz = size;
 
-    // Only during night time
-    if (Util::IsNightTime() && gfCoronaDistanceMul != 0.0f) {
-        // pEntity is null for unattached coronas, pos is already in world space then
-        CVector refPos = pEntity ? pEntity->GetPosition() : pos;
-        float distSq = MathUtil::DistanceSquared(TheCamera.GetPosition(), refPos);
-        float dist = std::sqrt(distSq);
-        coronaSz = std::max(size, size * dist * gfCoronaDistanceMul);
+    // Smooth day/night balance factor from GTA SA engine pipeline (0x8D12C0: 0.0 = day, 1.0 = night)
+    float dnBalance = *(float *)0x8D12C0;
+    if (Util::IsNightTime() && dnBalance < 0.2f) {
+        dnBalance = 0.5f;
+    }
+
+    if (dnBalance > 0.01f) {
+        float effectiveMul = gfCoronaDistanceMul;
+        if (lightType == eMaterialType::HeadLightLeft || lightType == eMaterialType::HeadLightRight) {
+            effectiveMul = gfHeadLightCoronaDistanceMul;
+        } else if (lightType == eMaterialType::TailLightLeft || lightType == eMaterialType::TailLightRight ||
+                   lightType == eMaterialType::BrakeLightLeft || lightType == eMaterialType::BrakeLightRight ||
+                   lightType == eMaterialType::ReverseLightLeft || lightType == eMaterialType::ReverseLightRight ||
+                   lightType == eMaterialType::STTLightLeft || lightType == eMaterialType::STTLightRight ||
+                   lightType == eMaterialType::NABrakeLightLeft || lightType == eMaterialType::NABrakeLightRight) {
+            effectiveMul = gfTailLightCoronaDistanceMul;
+        }
+
+        if (effectiveMul > 0.0f) {
+            // pEntity is null for unattached coronas, pos is already in world space then
+            CVector refPos = pEntity ? pEntity->GetPosition() : pos;
+            float distSq = MathUtil::DistanceSquared(TheCamera.GetPosition(), refPos);
+            float dist = std::sqrt(distSq);
+            coronaSz = std::max(size, size * dist * effectiveMul * dnBalance);
+        }
     }
 
     CCoronas::RegisterCorona(coronaID, pEntity, col.r, col.g, col.b, col.a, pos,
                              coronaSz, 350.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, true, false, 0, 0.0f, false, gfCoronaNearClip, 0, 255.0f, false, false);
-};
+}
 
 // Vanilla reach of the headlight spotlight
 static const float HEADLIGHT_PLIGHT_RANGE = 20.0f;
@@ -436,7 +488,7 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
         float angleMul = std::cos(normAngle);
         col.a = static_cast<unsigned char>(col.a * angleMul);
     }
-    RegisterCorona(pConfig->pVeh, reinterpret_cast<int32_t>(pConfig), pConfig->position, col, sz);
+    RegisterCorona(pConfig->pVeh, reinterpret_cast<int32_t>(pConfig), pConfig->position, col, sz, pConfig->lightType);
 }
 
 // Shadow opacity is resolved here so the per light type INI keys are respected. The dummy's

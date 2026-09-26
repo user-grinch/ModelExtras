@@ -429,6 +429,38 @@ int ME_GetPedVariationCount(int modelIndex) {
 }
 
 // Visual & Render Configuration
+float ME_GetMaterialAmbientMul() {
+  return ModelInfoMgr::GetMaterialAmbientMul();
+}
+
+void ME_SetMaterialAmbientMul(float mul) {
+  ModelInfoMgr::gfMaterialAmbientMul = std::max(0.0f, mul);
+}
+
+float ME_GetHeadLightCoronaDistanceMul() {
+  return RenderUtil::GetHeadLightCoronaDistanceMul();
+}
+
+float ME_GetTailLightCoronaDistanceMul() {
+  return RenderUtil::GetTailLightCoronaDistanceMul();
+}
+
+float ME_GetCoronaDistanceMul() {
+  return RenderUtil::GetCoronaDistanceMul();
+}
+
+float ME_GetCoronaNearClip() {
+  return RenderUtil::GetCoronaNearClip();
+}
+
+float ME_GetLightShadowDistance() {
+  return RenderUtil::GetLightShadowDistance();
+}
+
+float ME_GetHighBeamPointLightMul() {
+  return LightsConfig::Get().fHighBeamPointLightMul;
+}
+
 float ME_GetPointLightIntensity() {
   return LightsConfig::Get().fPointLightIntensity;
 }

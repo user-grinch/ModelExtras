@@ -215,6 +215,14 @@ extern "C"
     ME_WRAPPER int ME_GetPedVariationCount(int modelIndex);
 
     // Visual & Render Configuration
+    ME_WRAPPER float ME_GetMaterialAmbientMul();
+    ME_WRAPPER void  ME_SetMaterialAmbientMul(float mul);
+    ME_WRAPPER float ME_GetHeadLightCoronaDistanceMul();
+    ME_WRAPPER float ME_GetTailLightCoronaDistanceMul();
+    ME_WRAPPER float ME_GetCoronaDistanceMul();
+    ME_WRAPPER float ME_GetCoronaNearClip();
+    ME_WRAPPER float ME_GetLightShadowDistance();
+    ME_WRAPPER float ME_GetHighBeamPointLightMul();
     ME_WRAPPER float ME_GetPointLightIntensity();
     ME_WRAPPER float ME_GetSirenPointLightMul();
 
