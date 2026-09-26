@@ -936,6 +936,14 @@ void ME_SetMaterialAmbientMul(float mul) {
   ModelInfoMgr::gfMaterialAmbientMul = std::max(0.0f, mul);
 }
 
+float ME_GetHeadLightCoronaDistanceMul() {
+  return RenderUtil::GetHeadLightCoronaDistanceMul();
+}
+
+float ME_GetTailLightCoronaDistanceMul() {
+  return RenderUtil::GetTailLightCoronaDistanceMul();
+}
+
 float ME_GetCoronaDistanceMul() {
   return RenderUtil::GetCoronaDistanceMul();
 }

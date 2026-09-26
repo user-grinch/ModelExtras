@@ -203,15 +203,30 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
     }
 }
 
+static float GetCoronaDistanceMulForLight(eMaterialType lightType) {
+    if (lightType == eMaterialType::HeadLightLeft || lightType == eMaterialType::HeadLightRight) {
+        return RenderUtil::GetHeadLightCoronaDistanceMul();
+    }
+    if (lightType == eMaterialType::TailLightLeft || lightType == eMaterialType::TailLightRight ||
+        lightType == eMaterialType::BrakeLightLeft || lightType == eMaterialType::BrakeLightRight ||
+        lightType == eMaterialType::ReverseLightLeft || lightType == eMaterialType::ReverseLightRight ||
+        lightType == eMaterialType::STTLightLeft || lightType == eMaterialType::STTLightRight ||
+        lightType == eMaterialType::NABrakeLightLeft || lightType == eMaterialType::NABrakeLightRight) {
+        return RenderUtil::GetTailLightCoronaDistanceMul();
+    }
+    return RenderUtil::GetCoronaDistanceMul();
+}
+
 void LightManager::EnableDummy(int id, VehicleDummy *dummy, CVehicle *pVeh, float szMul, float alphaMul) {
     if (LightsConfig::Get().gbLightCoronasFeature && alphaMul > 0.01f) {
         DummyConfig &c = dummy->Get();
         CRGBA origColor = c.corona.color;
         c.corona.color.a = static_cast<unsigned char>(std::clamp(static_cast<float>(origColor.a) * alphaMul, 0.0f, 255.0f));
+        float distMul = GetCoronaDistanceMulForLight(c.lightType);
         if (c.corona.lightingType == eLightingMode::NonDirectional) {
-            RenderUtil::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, c.position, c.corona.color, c.corona.size * szMul);
+            RenderUtil::RegisterCorona(pVeh, (reinterpret_cast<unsigned int>(pVeh) * 255) + 255 + id, c.position, c.corona.color, c.corona.size * szMul, distMul);
         } else {
-            RenderUtil::RegisterCoronaDirectional(&dummy->Get(), c.rotation.angle, 180.0f, szMul, c.corona.lightingType == eLightingMode::Inversed, false);
+            RenderUtil::RegisterCoronaDirectional(&dummy->Get(), c.rotation.angle, 180.0f, szMul, c.corona.lightingType == eLightingMode::Inversed, false, distMul);
         }
         c.corona.color = origColor;
     }

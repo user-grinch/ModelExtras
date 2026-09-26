@@ -295,6 +295,8 @@ extern "C"
     // Visual & Render Configuration
     ME_WRAPPER float ME_GetMaterialAmbientMul();
     ME_WRAPPER void  ME_SetMaterialAmbientMul(float mul);
+    ME_WRAPPER float ME_GetHeadLightCoronaDistanceMul();
+    ME_WRAPPER float ME_GetTailLightCoronaDistanceMul();
     ME_WRAPPER float ME_GetCoronaDistanceMul();
     ME_WRAPPER float ME_GetCoronaNearClip();
     ME_WRAPPER float ME_GetLightShadowDistance();
