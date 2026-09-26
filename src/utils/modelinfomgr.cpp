@@ -103,6 +103,17 @@ void ModelInfoMgr::ResetEditableMaterials(RpClump *clump) {
     }
   }
   m_SurfPropsRestoreEntries.clear();
+
+  // Restore vanilla editable-material entries (e.g. glass zeroing for open windows).
+  // The original atomic callback at 0x4C83E0 writes {pointer, value} pairs to the
+  // static buffer at 0xB4DBE8, terminated by a null pointer.  Since we replaced
+  // the original ResetEditableMaterials (0x4C8460), we must drain that list ourselves.
+  auto *pStore = reinterpret_cast<uintptr_t *>(0xB4DBE8);
+  while (*pStore) {
+    *reinterpret_cast<uintptr_t *>(*pStore) = *(pStore + 1);
+    pStore += 2;
+  }
+
   pCurVeh = nullptr;
 }
 
