@@ -437,5 +437,12 @@ float ME_GetSirenPointLightMul() {
   return LightsConfig::Get().fSirenPointLightMul;
 }
 
-} // extern "C"
+bool ME_IsModLoaderDataEnabled() {
+  return DataMgr::IsModLoaderEnabled();
+}
 
+void ME_SetModLoaderDataEnabled(bool enabled) {
+  DataMgr::SetModLoaderEnabled(enabled);
+}
+
+} // extern "C"
