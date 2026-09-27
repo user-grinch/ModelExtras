@@ -319,6 +319,8 @@ extern "C"
     ME_WRAPPER bool ME_HasModelData(int modelIndex);
     ME_WRAPPER bool ME_GetModelDataPath(int modelIndex, char *outPath, int maxLen);
     ME_WRAPPER bool ME_GetModelMetadata(int modelIndex, char *outAuthor, int maxAuthorLen, char *outDesc, int maxDescLen, char *outCreationTime, int maxCreationTimeLen, int *outMinVer);
+    ME_WRAPPER bool ME_IsModLoaderDataEnabled();
+    ME_WRAPPER void ME_SetModLoaderDataEnabled(bool enabled);
 
     // Vehicle Lights JSON Config
     ME_WRAPPER bool ME_GetGlobalLightInertia(int modelIndex, float *outInertia);

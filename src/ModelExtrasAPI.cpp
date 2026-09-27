@@ -1056,6 +1056,14 @@ bool ME_GetModelMetadata(int modelIndex, char *outAuthor, int maxAuthorLen, char
   return true;
 }
 
+bool ME_IsModLoaderDataEnabled() {
+  return DataMgr::gbModLoaderData;
+}
+
+void ME_SetModLoaderDataEnabled(bool enabled) {
+  DataMgr::gbModLoaderData = enabled;
+}
+
 // Vehicle Lights JSON Config
 bool ME_GetGlobalLightInertia(int modelIndex, float *outInertia) {
   if (!outInertia) return false;
