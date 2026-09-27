@@ -46,6 +46,9 @@ public:
     void Reload(CVehicle *pVeh) override;
 
     static bool IsRoofOpen(CVehicle *pVeh) {
-        return m_VehData.Get(pVeh).m_bRoofTargetExpanded;
+        if (!pVeh) return false;
+        RoofData &data = m_VehData.Get(pVeh);
+        if (!data.m_bInit) return false;
+        return !data.m_bRoofTargetExpanded;
     }
 };

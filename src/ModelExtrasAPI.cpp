@@ -380,7 +380,8 @@ bool ME_IsRoofOpen(CVehicle *pVeh) {
 void ME_SetRoofOpen(CVehicle *pVeh, bool open) {
   if (!pVeh) return;
   auto &data = ConvertibleRoof::m_VehData.Get(pVeh);
-  data.m_bRoofTargetExpanded = open;
+  if (!data.m_bInit) return;
+  data.m_bRoofTargetExpanded = !open;
 }
 
 float ME_GetSpoilerAngle(CVehicle *pVeh, int spoilerIndex) {
