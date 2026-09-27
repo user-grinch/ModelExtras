@@ -160,6 +160,10 @@ void ModelInfoMgr::Init() {
       return;
     }
 
+    if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE) {
+      pVeh->UpdateRwFrame();
+    }
+
     auto &data = m_VehData.Get(pVeh);
     if (data.nFrameCount > 10) {
       ModelInfoMgr::OnRender(pVeh);
@@ -207,6 +211,10 @@ void ModelInfoMgr::Init() {
 
       if (MathUtil::DistanceSquared(pVeh->GetPosition(), TheCamera.GetPosition()) > (120.0f * 120.0f)) {
         continue;
+      }
+
+      if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE) {
+        pVeh->UpdateRwFrame();
       }
 
       auto &data = m_VehData.Get(pVeh);
