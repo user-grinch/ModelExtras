@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "defines.h"
+#include "fileconverter.h"
 #include <sstream>
 
 #define DEFAULT_SIREN_SHADOW "round"
@@ -12,10 +13,10 @@ int Helper_ImVehFtReadColor(std::string input)
     }
 
     std::istringstream stream(input);
-    int color;
+    int color = 0;
     stream >> std::hex >> color;
     return color;
-};
+}
 
 bool Helper_MoveToBackup(const std::string &src)
 {
@@ -76,7 +77,7 @@ void Helper_LoadPrepJson(const std::string &path, nlohmann::json &jsonData, cons
         {
             try
             {
-                jsonData = nlohmann::json::parse(temp, NULL, true, true);
+                jsonData = nlohmann::json::parse(temp, nullptr, true, true);
             }
             catch (const std::exception &e)
             {
@@ -95,12 +96,53 @@ void Helper_LoadPrepJson(const std::string &path, nlohmann::json &jsonData, cons
     }
 }
 
-int Convert_EmlToJsonc(const std::string &emlPath)
-{
-    std::ifstream infile;
-    if (!Helper_OpenFile(emlPath, infile, "EML2JSONC"))
-        return -1;
+const char* GetShadowTypeName(int index) {
+    static const char* shadowTypeNames[] = {
+        "round", "pointlight", "arealight", "bollard", "comet",
+        "cylindernarrow", "defined", "defineddiffuse", "defineddiffusespot", "definedspot",
+        "narrow", "jellyfish", "mediumscatter", "overhead", "parallelbeam",
+        "pear", "round", "scatterlight", "softarrow", "softdisplay",
+        "star", "starfocused", "threelobeumbrella", "threelobevee", "tightfocused",
+        "toppost", "trapezoid", "umbrella", "vee", "veeup",
+        "xarrow", "xarrowdiffuse", "xarrowsoft"
+    };
 
+    constexpr int count = sizeof(shadowTypeNames) / sizeof(shadowTypeNames[0]);
+
+    if (index < 0 || index >= count) {
+        return DEFAULT_SIREN_SHADOW;
+    }
+
+    return shadowTypeNames[index];
+}
+
+void Helper_UpdateAVSRecursive(nlohmann::json& j) {
+    if (j.is_object()) {
+        for (auto& [key, value] : j.items()) {
+            if (key == "shadow" && value.is_object()) {
+                if (value.contains("type") && value["type"].is_number()) {
+                    std::string name = GetShadowTypeName(value["type"].get<int>());
+                    value["type"] = name;
+                    if (name != DEFAULT_SIREN_SHADOW)
+                    {
+                        if (value.contains("size") && value["size"].is_number())
+                        {
+                            value["size"] = value["size"].get<float>() * 2.0f / 3.0f;
+                        }
+                    }
+                }
+            }
+            Helper_UpdateAVSRecursive(value);
+        }
+    } else if (j.is_array()) {
+        for (auto& item : j) {
+            Helper_UpdateAVSRecursive(item);
+        }
+    }
+}
+
+bool Parse_EmlToMemory(std::istream &infile, nlohmann::json &jsonData, int &outModel)
+{
     std::string line;
     int model = -1;
 
@@ -111,25 +153,21 @@ int Convert_EmlToJsonc(const std::string &emlPath)
         std::istringstream iss(line);
         if (!(iss >> model))
         {
-            LOG(WARNING) << std::format("EML2JSONC: Failed to parse model ID from {}", emlPath);
-            return -1;
+            return false;
         }
         break;
     }
 
-    std::string jsonPath = MOD_DATA_PATH("data\\") + std::to_string(model) + ".jsonc";
-    nlohmann::json jsonData;
-    Helper_LoadPrepJson(jsonPath, jsonData, "EML2JSONC", "sirens");
+    if (model <= 0)
+        return false;
+
+    outModel = model;
 
     jsonData["metadata"]["author"] = "Unknown";
     jsonData["metadata"]["desc"] = "Converted from ImVehFt";
-    jsonData["metadata"]["minver"] = 20000; // First ME Version with support
+    jsonData["metadata"]["minver"] = 20000;
     jsonData["sirens"]["imvehft"] = true;
     auto &extras = jsonData["sirens"]["states"]["1. modelextras"];
-
-    std::ofstream outfile;
-    if (!Helper_CreateFile(jsonPath, outfile, "EML2JSONC"))
-        return -1;
 
     while (std::getline(infile, line))
     {
@@ -137,9 +175,9 @@ int Convert_EmlToJsonc(const std::string &emlPath)
             continue;
 
         std::istringstream iss(line);
-        int id, parent, type, switches, starting;
-        int red, green, blue, alpha;
-        float size, flash, shadow;
+        int id = 0, parent = 0, type = 0, switches = 0, starting = 0;
+        int red = 255, green = 255, blue = 255, alpha = 255;
+        float size = 0.5f, flash = 0.0f, shadow = 0.0f;
         std::string tempColor;
 
         if (!(iss >> id >> parent))
@@ -168,11 +206,16 @@ int Convert_EmlToJsonc(const std::string &emlPath)
             std::string t;
             if (!(iss >> t))
                 continue;
-            uint64_t ms = std::stoi(t) - count;
-            count += ms;
-            if (ms == 0)
-                continue;
-            pattern.push_back(ms);
+            try
+            {
+                uint64_t val = std::stoull(t);
+                uint64_t ms = (val >= count) ? (val - count) : 0;
+                count = val;
+                if (ms == 0)
+                    continue;
+                pattern.push_back(ms);
+            }
+            catch (...) {}
         }
 
         if (count == 0 || count > 64553)
@@ -189,109 +232,33 @@ int Convert_EmlToJsonc(const std::string &emlPath)
         state["shadow"]["angleoffset"] = type == 1 ? 180.0f : 0.0f;
         state["shadow"]["size"] = shadow / 1.5f;
         state["inertia"] = flash / 100.0f;
-        state["shadow"]["type"] = type == 2 ? "pointlight" :  "round";
+        state["shadow"]["type"] = type == 2 ? "pointlight" : "round";
         state["type"] = type == 0 ? "directional" : (type == 1 ? "inversed-directional" : "non-directional");
     }
 
-    infile.close();
-    outfile << jsonData.dump(4);
-    outfile.close();
-
-    if (!Helper_MoveToBackup(emlPath))
-        return -1;
-    LOG(INFO) << std::format("Successfully converted {} to {}", emlPath, jsonPath);
-    return model;
+    return true;
 }
 
-const char* GetShadowTypeName(int index) {
-    static const char* shadowTypeNames[] = {
-        "round", "pointlight", "arealight", "bollard", "comet",
-        "cylindernarrow", "defined", "defineddiffuse", "defineddiffusespot", "definedspot",
-        "narrow", "jellyfish", "mediumscatter", "overhead", "parallelbeam",
-        "pear", "round", "scatterlight", "softarrow", "softdisplay",
-        "star", "starfocused", "threelobeumbrella", "threelobevee", "tightfocused",
-        "toppost", "trapezoid", "umbrella", "vee", "veeup",
-        "xarrow", "xarrowdiffuse", "xarrowsoft"
-    };
-
-    constexpr int count = sizeof(shadowTypeNames) / sizeof(shadowTypeNames[0]);
-
-    if (index < 0 || index >= count) {
-        return (char*)DEFAULT_SIREN_SHADOW;
-    }
-
-    return shadowTypeNames[index];
-}
-
-void Helper_UpdateAVSRecursive(nlohmann::json& j) {
-    if (j.is_object()) {
-        for (auto& [key, value] : j.items()) {
-            if (key == "shadow" && value.is_object()) {
-                if (value.contains("type") && value["type"].is_number()) {
-                    std::string name = GetShadowTypeName(value["type"].get<int>());
-                    value["type"] = name;
-                    if (strcmp(name.c_str(), DEFAULT_SIREN_SHADOW) != 0)
-					{
-						if (value.contains("size") && value["size"].is_number())
-						{
-							value["size"] = value["size"].get<float>() * 2.0f / 3.0f;
-						}
-					}
-                }
-            }
-            Helper_UpdateAVSRecursive(value);
-        }
-    } else if (j.is_array()) {
-        for (auto& item : j) {
-            Helper_UpdateAVSRecursive(item);
-        }
-    }
-}
-
-void Convert_JsonToJsonc(const std::string &inPath)
+bool Parse_AvsJsonToMemory(std::istream &infile, nlohmann::json &jsonData)
 {
-    std::string outPath = inPath + "c";
-    std::ifstream infile;
-    if (!Helper_OpenFile(inPath, infile, "JSON2JSONC"))
-        return;
-
-    nlohmann::json jsonData;
-    Helper_LoadPrepJson(outPath, jsonData, "JSON2JSONC", "sirens");
-
-    std::ofstream outfile;
-    if (!Helper_CreateFile(outPath, outfile, "JSON2JSONC"))
-        return;
-
     jsonData["metadata"]["author"] = "Unknown";
     jsonData["metadata"]["desc"] = "Converted from AVS";
-    jsonData["metadata"]["minver"] = 20000; // First ME Version with support
+    jsonData["metadata"]["minver"] = 20000;
     try
     {
         jsonData["sirens"] = nlohmann::json::parse(infile);
         Helper_UpdateAVSRecursive(jsonData);
+        return true;
     }
     catch (const std::exception &e)
     {
-        LOG(ERROR) << std::format("JSON2JSONC: Failed to parse AVS JSON {}: {}", inPath, e.what());
-        infile.close();
-        outfile.close();
-        return;
+        LOG(ERROR) << std::format("Failed to parse AVS JSON: {}", e.what());
+        return false;
     }
-    infile.close();
-    outfile << jsonData.dump(4);
-    outfile.close();
-
-    if (!Helper_MoveToBackup(inPath))
-        return;
-    LOG(INFO) << std::format("Successfully converted {} to {}", inPath, outPath);
 }
 
-int Convert_IvfcToJsonc(const std::string &inPath)
+bool Parse_IvfcToMemory(std::istream &infile, nlohmann::json &jsonData, int &outModel)
 {
-    std::ifstream infile;
-    if (!Helper_OpenFile(inPath, infile, "IVFC2JSONC"))
-        return -1;
-
     std::string line;
     int model = -1;
     while (std::getline(infile, line))
@@ -307,20 +274,15 @@ int Convert_IvfcToJsonc(const std::string &inPath)
         }
     }
 
-    if (model == -1)
+    if (model <= 0)
     {
-        LOG(WARNING) << std::format("IVFC2JSONC: Failed to parse model ID from {}", inPath);
-        infile.close();
-        return -1;
+        return false;
     }
+    outModel = model;
 
-    std::string outPath = MOD_DATA_PATH("data\\") + std::to_string(model) + ".jsonc";
-    nlohmann::json jsonData;
-    Helper_LoadPrepJson(outPath, jsonData, "IVFC2JSONC", "carcols");
-
-    std::ofstream outfile;
-    if (!Helper_CreateFile(outPath, outfile, "IVFC2JSONC"))
-        return -1;
+    jsonData["metadata"]["author"] = "Unknown";
+    jsonData["metadata"]["desc"] = "Converted from IVF";
+    jsonData["metadata"]["minver"] = 20000;
 
     bool parsingColors = false, parsingVariations = false;
     while (std::getline(infile, line))
@@ -332,29 +294,120 @@ int Convert_IvfcToJsonc(const std::string &inPath)
             parsingColors = true, parsingVariations = false;
         else if (line.starts_with("num_variations"))
             parsingColors = false, parsingVariations = true;
-        else if (model != -1)
+        else
         {
             std::istringstream iss(line);
             if (parsingColors)
             {
-                int r, g, b;
+                int r = 0, g = 0, b = 0;
                 if (iss >> r >> g >> b)
                     jsonData["carcols"]["colors"].push_back({{"red", r}, {"green", g}, {"blue", b}});
             }
             else if (parsingVariations)
             {
-                int a, b, c, d;
+                int a = 0, b = 0, c = 0, d = 0;
                 if (iss >> a >> b >> c >> d)
                     jsonData["carcols"]["variations"].push_back({{"primary", a}, {"secondary", b}, {"tertiary", c}, {"quaternary", d}});
             }
         }
     }
+    return true;
+}
 
-    jsonData["metadata"]["author"] = "Unknown";
-    jsonData["metadata"]["desc"] = "Converted from IVF";
-    jsonData["metadata"]["minver"] = 20000; // First ME Version with support
+int Convert_EmlToJsonc(const std::string &emlPath)
+{
+    std::ifstream infile;
+    if (!Helper_OpenFile(emlPath, infile, "EML2JSONC"))
+        return -1;
+
+    nlohmann::json jsonData;
+    int model = -1;
+    if (!Parse_EmlToMemory(infile, jsonData, model) || model <= 0)
+    {
+        LOG(WARNING) << std::format("EML2JSONC: Failed to parse model ID from {}", emlPath);
+        infile.close();
+        return -1;
+    }
     infile.close();
-    outfile << jsonData.dump(4);
+
+    std::string jsonPath = MOD_DATA_PATH("data\\") + std::to_string(model) + ".jsonc";
+    nlohmann::json baseJson;
+    Helper_LoadPrepJson(jsonPath, baseJson, "EML2JSONC", "sirens");
+    baseJson["metadata"] = jsonData["metadata"];
+    baseJson["sirens"] = jsonData["sirens"];
+
+    std::ofstream outfile;
+    if (!Helper_CreateFile(jsonPath, outfile, "EML2JSONC"))
+        return -1;
+
+    outfile << baseJson.dump(4);
+    outfile.close();
+
+    if (!Helper_MoveToBackup(emlPath))
+        return -1;
+    LOG(INFO) << std::format("Successfully converted {} to {}", emlPath, jsonPath);
+    return model;
+}
+
+void Convert_JsonToJsonc(const std::string &inPath)
+{
+    std::string outPath = inPath + "c";
+    std::ifstream infile;
+    if (!Helper_OpenFile(inPath, infile, "JSON2JSONC"))
+        return;
+
+    nlohmann::json parsedSirens;
+    if (!Parse_AvsJsonToMemory(infile, parsedSirens))
+    {
+        infile.close();
+        return;
+    }
+    infile.close();
+
+    nlohmann::json baseJson;
+    Helper_LoadPrepJson(outPath, baseJson, "JSON2JSONC", "sirens");
+    baseJson["metadata"] = parsedSirens["metadata"];
+    baseJson["sirens"] = parsedSirens["sirens"];
+
+    std::ofstream outfile;
+    if (!Helper_CreateFile(outPath, outfile, "JSON2JSONC"))
+        return;
+
+    outfile << baseJson.dump(4);
+    outfile.close();
+
+    if (!Helper_MoveToBackup(inPath))
+        return;
+    LOG(INFO) << std::format("Successfully converted {} to {}", inPath, outPath);
+}
+
+int Convert_IvfcToJsonc(const std::string &inPath)
+{
+    std::ifstream infile;
+    if (!Helper_OpenFile(inPath, infile, "IVFC2JSONC"))
+        return -1;
+
+    nlohmann::json parsedCarcols;
+    int model = -1;
+    if (!Parse_IvfcToMemory(infile, parsedCarcols, model) || model <= 0)
+    {
+        LOG(WARNING) << std::format("IVFC2JSONC: Failed to parse model ID from {}", inPath);
+        infile.close();
+        return -1;
+    }
+    infile.close();
+
+    std::string outPath = MOD_DATA_PATH("data\\") + std::to_string(model) + ".jsonc";
+    nlohmann::json baseJson;
+    Helper_LoadPrepJson(outPath, baseJson, "IVFC2JSONC", "carcols");
+    baseJson["metadata"] = parsedCarcols["metadata"];
+    baseJson["carcols"] = parsedCarcols["carcols"];
+
+    std::ofstream outfile;
+    if (!Helper_CreateFile(outPath, outfile, "IVFC2JSONC"))
+        return -1;
+
+    outfile << baseJson.dump(4);
     outfile.close();
 
     if (!Helper_MoveToBackup(inPath))

@@ -16,6 +16,9 @@ private:
     static inline std::unordered_map<int, std::string> modelPath;
     static inline std::vector<std::pair<std::string, ModelDataListener_t>> listeners;
 
+    static void LoadBaseData();
+    static void LoadModLoaderData();
+
 public:
     static void Init();
     static void Convert();
