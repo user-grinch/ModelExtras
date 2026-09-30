@@ -320,9 +320,14 @@ std::string AudioMgr::GetSirenAudioPath(int modeIndex)
     return "";
 }
 
-StreamHandle AudioMgr::PlaySirenStream(const std::string &path, const CVector &worldPos, float baseVolume, float maxDistance)
+StreamHandle AudioMgr::PlayLoopStream(const std::string &path, const CVector &worldPos, float baseVolume, float maxDistance)
 {
     if (path.empty() || !BassAPI::bReady || !BassAPI::fnStreamCreate || !BassAPI::fnChannelPlay)
+    {
+        return 0;
+    }
+
+    if (!ShouldPlaySound())
     {
         return 0;
     }
@@ -376,7 +381,7 @@ StreamHandle AudioMgr::PlaySirenStream(const std::string &path, const CVector &w
     return 0;
 }
 
-void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, float baseVolume, float maxDistance)
+void AudioMgr::UpdateLoopStream(StreamHandle stream, const CVector &worldPos, float baseVolume, float maxDistance)
 {
     if (!stream || !BassAPI::bReady || !BassAPI::fnChannelSetAttr || !BassAPI::fnChannelIsActive)
     {
@@ -385,6 +390,12 @@ void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, f
 
     if (BassAPI::fnChannelIsActive(stream) != 1 /* BASS_ACTIVE_PLAYING */)
     {
+        return;
+    }
+
+    if (!ShouldPlaySound())
+    {
+        BassAPI::fnChannelSetAttr(stream, 2 /* BASS_ATTRIB_VOL */, 0.0f);
         return;
     }
 
@@ -415,7 +426,7 @@ void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, f
     BassAPI::fnChannelSetAttr(stream, 3 /* BASS_ATTRIB_PAN */, pan);
 }
 
-void AudioMgr::StopSirenStream(StreamHandle &stream)
+void AudioMgr::StopLoopStream(StreamHandle &stream)
 {
     if (!stream)
     {
@@ -439,4 +450,19 @@ void AudioMgr::StopSirenStream(StreamHandle &stream)
         needToFree.erase(it);
     }
     stream = 0;
+}
+
+StreamHandle AudioMgr::PlaySirenStream(const std::string &path, const CVector &worldPos, float baseVolume, float maxDistance)
+{
+    return PlayLoopStream(path, worldPos, baseVolume, maxDistance);
+}
+
+void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, float baseVolume, float maxDistance)
+{
+    UpdateLoopStream(stream, worldPos, baseVolume, maxDistance);
+}
+
+void AudioMgr::StopSirenStream(StreamHandle &stream)
+{
+    StopLoopStream(stream);
 }
