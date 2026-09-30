@@ -213,9 +213,7 @@ void ModelInfoMgr::Init() {
         continue;
       }
 
-      if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE) {
-        pVeh->UpdateRwFrame();
-      }
+      pVeh->UpdateRwFrame();
 
       auto &data = m_VehData.Get(pVeh);
       if (data.nFrameCount > 10) {

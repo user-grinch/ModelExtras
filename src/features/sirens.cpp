@@ -972,9 +972,13 @@ void Sirens::Init()
 
 	ModelInfoMgr::RegisterRender([](CVehicle *vehicle)
 	{
+		if (!vehicle || vehicle->m_fHealth <= 0.0f) {
+			return;
+		}
+
 		int model = vehicle->m_nModelIndex;
 
-		if (!vehicle->GetIsOnScreen() || !modelData.contains(model)) {
+		if (!modelData.contains(model)) {
 			return;
 		}
 
