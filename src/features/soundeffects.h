@@ -13,6 +13,8 @@ struct SoundEffectsData
     unsigned int m_nLastReverseSoundTime = 0;
     float m_fBrakePressure = 0.0f;
     float m_fMaxPedal = 0.0f;
+    unsigned int m_nLastDoorChimeTime = 0;
+    bool m_bDoorChimeActive = false;
     SoundEffectsData(CVehicle *pVeh) {}
     ~SoundEffectsData() {}
 };

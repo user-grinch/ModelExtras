@@ -900,6 +900,14 @@ bool ME_PlaySound(CVehicle *pVeh, const char *soundPath, float volume) {
 void ME_StopVehicleSounds(CVehicle *pVeh) {
   if (!pVeh) return;
   auto &sData = SoundEffects::m_VehData.Get(pVeh);
+  sData.m_bDoorChimeActive = false;
+  sData.m_nLastDoorChimeTime = 0;
+}
+
+bool ME_IsDoorChimePlaying(CVehicle *pVeh) {
+  if (!pVeh) return false;
+  auto &sData = SoundEffects::m_VehData.Get(pVeh);
+  return sData.m_bDoorChimeActive;
 }
 
 

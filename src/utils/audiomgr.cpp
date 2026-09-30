@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "utils/audiomgr.h"
 #include "defines.h"
+#include "utils/util.h"
 #include <CAudioEngine.h>
 #include <CCamera.h>
 #include <algorithm>
@@ -20,6 +21,8 @@ namespace BassAPI
     using tBASS_ChannelSetAttribute = BOOL(WINAPI *)(DWORD, DWORD, float);
     using tBASS_ChannelIsActive = DWORD(WINAPI *)(DWORD);
     using tBASS_StreamFree = BOOL(WINAPI *)(HSTREAM);
+    using tBASS_Pause = BOOL(WINAPI *)();
+    using tBASS_Start = BOOL(WINAPI *)();
 
     static tBASS_Init fnInit = nullptr;
     static tBASS_StreamCreateFile fnStreamCreate = nullptr;
@@ -28,6 +31,8 @@ namespace BassAPI
     static tBASS_ChannelSetAttribute fnChannelSetAttr = nullptr;
     static tBASS_ChannelIsActive fnChannelIsActive = nullptr;
     static tBASS_StreamFree fnStreamFree = nullptr;
+    static tBASS_Pause fnPause = nullptr;
+    static tBASS_Start fnStart = nullptr;
 
     static bool bReady = false;
 
@@ -53,6 +58,8 @@ namespace BassAPI
             fnChannelSetAttr = (tBASS_ChannelSetAttribute)GetProcAddress(hBass, "BASS_ChannelSetAttribute");
             fnChannelIsActive = (tBASS_ChannelIsActive)GetProcAddress(hBass, "BASS_ChannelIsActive");
             fnStreamFree = (tBASS_StreamFree)GetProcAddress(hBass, "BASS_StreamFree");
+            fnPause = (tBASS_Pause)GetProcAddress(hBass, "BASS_Pause");
+            fnStart = (tBASS_Start)GetProcAddress(hBass, "BASS_Start");
 
             if (fnInit && fnStreamCreate && fnChannelPlay && fnChannelPause && fnChannelSetAttr && fnChannelIsActive && fnStreamFree)
             {
@@ -70,8 +77,8 @@ static float gfSoundMult = 1.0f;
 
 void AudioMgr::ReloadConfig()
 {
-    gbSoundEffectsEnabled = gConfig.ReadBoolean("SOUND", "SoundEffects", gConfig.ReadBoolean("FEATURES", "SoundEffects", false));
-    gfSoundMult = gConfig.ReadFloat("SOUND", "SoundMult", gConfig.ReadFloat("TWEAKS", "SoundMult", 0.6f));
+    gbSoundEffectsEnabled = gConfig.ReadBoolean("SOUND", "SoundEffects", false);
+    gfSoundMult = gConfig.ReadFloat("SOUND", "SoundMult", 0.6f);
 }
 
 void AudioMgr::Init()
@@ -92,6 +99,22 @@ void AudioMgr::Init()
             }
         }
         needToFree.clear();
+    };
+
+    Events::onPauseAllSounds += []
+    {
+        if (BassAPI::bReady && BassAPI::fnPause)
+        {
+            BassAPI::fnPause();
+        }
+    };
+
+    Events::onResumeAllSounds += []
+    {
+        if (BassAPI::bReady && BassAPI::fnStart)
+        {
+            BassAPI::fnStart();
+        }
     };
 
     Events::processScriptsEvent += []
@@ -169,7 +192,11 @@ void AudioMgr::PlaySwitchSound(CEntity *pEntity)
 
 bool AudioMgr::ShouldPlaySound()
 {
-    return gbSoundEffectsEnabled;
+    if (!gbSoundEffectsEnabled || !Util::IsWindowFocused() || CTimer::m_UserPause || CTimer::m_CodePause)
+    {
+        return false;
+    }
+    return true;
 }
 
 void AudioMgr::Play3DSound(const std::string &path, const CVector &worldPos, CEntity *pEntity, float baseVolume, float maxDistance)
