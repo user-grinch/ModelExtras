@@ -289,6 +289,7 @@ extern "C"
     ME_WRAPPER bool  ME_PlaySound(CVehicle *pVeh, const char *soundPath, float volume);
     ME_WRAPPER void  ME_StopVehicleSounds(CVehicle *pVeh);
     ME_WRAPPER bool  ME_IsDoorChimePlaying(CVehicle *pVeh);
+    ME_WRAPPER bool  ME_IsBrakePadSqueakPlaying(CVehicle *pVeh);
     ME_WRAPPER float ME_GetBrakePressure(CVehicle *pVeh);
     ME_WRAPPER bool  ME_PlayFileSound(const char *soundPath, float volume);
     ME_WRAPPER void  ME_PlaySwitchSound(CVehicle *pVeh);

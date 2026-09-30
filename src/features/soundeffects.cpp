@@ -9,6 +9,7 @@ using namespace plugin;
 
 std::vector<int> ValidForReverseSound;
 static std::vector<int> ValidForDoorChime;
+static std::vector<int> ValidForBrakePad;
 
 #define ANIMGROUP_TRUCK 2
 #define ANIMGROUP_BUS 15
@@ -22,6 +23,9 @@ static bool bOnlyPlayerVehicle = true;
 static bool bDoorChimeSounds = true;
 static bool bDoorChimeOnlySelected = true;
 static float fDoorChimeVolume = 0.7f;
+static bool bBrakePadSounds = false;
+static bool bBrakePadOnlySelected = true;
+static float fBrakePadVolume = 0.7f;
 
 static std::string GetAudioPath(const char *name)
 {
@@ -67,6 +71,10 @@ void SoundEffects::ReloadConfig()
     ValidForDoorChime.clear();
     Util::GetModelsFromIni(doorChimeModelsLine, ValidForDoorChime);
 
+    std::string brakePadModelsLine = gConfig.ReadString("TABLE", "BrakePad_VehicleModels", "401, 404, 410, 412, 413, 418, 419, 420, 421, 422, 423, 426, 434, 436, 438, 439, 440, 442, 458, 459, 466, 467, 474, 475, 478, 479, 482, 483, 489, 491, 492, 496, 500, 504, 505, 507, 508, 516, 517, 518, 526, 527, 529, 534, 535, 536, 540, 542, 543, 545, 546, 547, 549, 550, 551, 554, 555, 565, 566, 567, 575, 576, 580, 582, 585, 589, 600, 604, 605");
+    ValidForBrakePad.clear();
+    Util::GetModelsFromIni(brakePadModelsLine, ValidForBrakePad);
+
     bReverseSounds = gConfig.ReadBoolean("SOUND", "GlobalReverseSound", false);
     bEngineSounds = gConfig.ReadBoolean("SOUND", "GlobalEngineSound", false);
     bIndicatorSounds = gConfig.ReadBoolean("SOUND", "GlobalIndicatorSound", false);
@@ -75,12 +83,17 @@ void SoundEffects::ReloadConfig()
     bDoorChimeSounds = gConfig.ReadBoolean("SOUND", "DoorChimeSound", true);
     bDoorChimeOnlySelected = gConfig.ReadBoolean("SOUND", "DoorChimeOnlySelected", true);
     fDoorChimeVolume = std::clamp(gConfig.ReadFloat("SOUND", "DoorChimeVolume", 0.7f), 0.0f, 1.0f);
+    bBrakePadSounds = gConfig.ReadBoolean("SOUND", "BrakePadSound", false);
+    bBrakePadOnlySelected = gConfig.ReadBoolean("SOUND", "BrakePadOnlySelected", true);
+    fBrakePadVolume = std::clamp(gConfig.ReadFloat("SOUND", "BrakePadVolume", 0.7f), 0.0f, 1.0f);
     if (CPools::ms_pVehiclePool) for (auto *vehicle : CPools::ms_pVehiclePool) if (vehicle) {
         auto &data = m_VehData.Get(vehicle);
         auto *player = FindPlayerPed();
         bool permitted = m_bActive && (!bOnlyPlayerVehicle || (player && vehicle->IsDriver(player)));
         if (!permitted || !bDoorChimeSounds || !IsVehicleEligible(vehicle->m_nModelIndex, "door_chime", bDoorChimeOnlySelected, ValidForDoorChime))
             AudioMgr::StopLoopStream(data.m_hDoorChimeStream);
+        if (!permitted || !bBrakePadSounds || !IsVehicleEligible(vehicle->m_nModelIndex, "brake_pad", bBrakePadOnlySelected, ValidForBrakePad))
+            AudioMgr::StopLoopStream(data.m_hBrakePadStream);
     }
 }
 
@@ -94,6 +107,11 @@ void SoundEffects::Reload(CVehicle *pVeh)
         {
             AudioMgr::StopLoopStream(data.m_hDoorChimeStream);
         }
+        if (data.m_hBrakePadStream)
+        {
+            AudioMgr::StopLoopStream(data.m_hBrakePadStream);
+        }
+        data.m_fBrakePadVol = 0.0f;
     }
 }
 
@@ -122,6 +140,11 @@ void SoundEffects::ProcessVehicle(CVehicle *pVeh)
         {
             AudioMgr::StopLoopStream(data.m_hDoorChimeStream);
         }
+        if (data.m_hBrakePadStream)
+        {
+            AudioMgr::StopLoopStream(data.m_hBrakePadStream);
+            data.m_fBrakePadVol = 0.0f;
+        }
         return;
     }
 
@@ -133,6 +156,11 @@ void SoundEffects::ProcessVehicle(CVehicle *pVeh)
         if (data.m_hDoorChimeStream)
         {
             AudioMgr::StopLoopStream(data.m_hDoorChimeStream);
+        }
+        if (data.m_hBrakePadStream)
+        {
+            AudioMgr::StopLoopStream(data.m_hBrakePadStream);
+            data.m_fBrakePadVol = 0.0f;
         }
         return;
     }
@@ -281,6 +309,53 @@ void SoundEffects::ProcessVehicle(CVehicle *pVeh)
         else if (data.m_hDoorChimeStream)
         {
             AudioMgr::StopLoopStream(data.m_hDoorChimeStream);
+        }
+    }
+
+    if (bBrakePadSounds && pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE && (!bOnlyPlayerVehicle || isPlayerDriver))
+    {
+        CAutomobile *pAuto = static_cast<CAutomobile *>(pVeh);
+        bool isEligible = IsVehicleEligible(model, "brake_pad", bBrakePadOnlySelected, ValidForBrakePad);
+        float targetVol = 0.0f;
+
+        bool bOnGround = (pAuto->m_nWheelsOnGround > 0);
+        bool bWheelLocked = (speed > 5.0f && std::abs(pAuto->m_fWheelSpeed[0]) < 0.01f && std::abs(pAuto->m_fWheelSpeed[1]) < 0.01f);
+
+        if (isEligible && bOnGround && !bWheelLocked && !pVeh->bEngineBroken && !pVeh->bIsDrowning && !isBigVeh && !pVeh->bIsBig && !pVeh->bIsBus)
+        {
+            float brakeInput = pVeh->m_fBreakPedal;
+            if (brakeInput > 0.05f && speed > 0.2f)
+            {
+                float speedFactor = std::clamp((speed - 0.2f) / 4.0f, 0.0f, 1.0f);
+                targetVol = fBrakePadVolume * std::clamp(brakeInput, 0.35f, 1.0f) * speedFactor;
+            }
+        }
+
+        if (targetVol > data.m_fBrakePadVol)
+        {
+            data.m_fBrakePadVol = std::min(targetVol, data.m_fBrakePadVol + 0.1f);
+        }
+        else if (targetVol < data.m_fBrakePadVol)
+        {
+            data.m_fBrakePadVol = std::max(targetVol, data.m_fBrakePadVol - 0.06f);
+        }
+
+        if (data.m_fBrakePadVol > 0.01f)
+        {
+            static std::string brakePadPath = GetAudioPath("brake_pad");
+            if (!data.m_hBrakePadStream)
+            {
+                data.m_hBrakePadStream = AudioMgr::PlayLoopStream(brakePadPath, pVeh->GetPosition(), data.m_fBrakePadVol, 25.0f);
+            }
+            else
+            {
+                AudioMgr::UpdateLoopStream(data.m_hBrakePadStream, pVeh->GetPosition(), data.m_fBrakePadVol, 25.0f);
+            }
+        }
+        else if (data.m_hBrakePadStream)
+        {
+            AudioMgr::StopLoopStream(data.m_hBrakePadStream);
+            data.m_fBrakePadVol = 0.0f;
         }
     }
 }

@@ -904,6 +904,10 @@ void ME_StopVehicleSounds(CVehicle *pVeh) {
     AudioMgr::StopLoopStream(sData.m_hDoorChimeStream);
     sData.m_hDoorChimeStream = 0;
   }
+  if (sData.m_hBrakePadStream) {
+    AudioMgr::StopLoopStream(sData.m_hBrakePadStream);
+    sData.m_hBrakePadStream = 0;
+  }
 }
 
 bool ME_IsDoorChimePlaying(CVehicle *pVeh) {
@@ -912,6 +916,11 @@ bool ME_IsDoorChimePlaying(CVehicle *pVeh) {
   return sData.m_hDoorChimeStream != 0;
 }
 
+bool ME_IsBrakePadSqueakPlaying(CVehicle *pVeh) {
+  if (!pVeh) return false;
+  auto &sData = SoundEffects::m_VehData.Get(pVeh);
+  return sData.m_hBrakePadStream != 0;
+}
 
 float ME_GetBrakePressure(CVehicle *pVeh) {
   if (!pVeh) return 0.0f;

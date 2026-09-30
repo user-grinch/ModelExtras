@@ -2,8 +2,6 @@
 #include "utils/audiomgr.h"
 #include "core/base.h"
 
-
-
 struct SoundEffectsData
 {
     bool m_bEngineState = false;
@@ -13,13 +11,19 @@ struct SoundEffectsData
     unsigned int m_nLastReverseSoundTime = 0;
     float m_fBrakePressure = 0.0f;
     float m_fMaxPedal = 0.0f;
+    float m_fBrakePadVol = 0.0f;
     StreamHandle m_hDoorChimeStream = 0;
+    StreamHandle m_hBrakePadStream = 0;
     SoundEffectsData(CVehicle *pVeh) {}
     ~SoundEffectsData()
     {
         if (m_hDoorChimeStream)
         {
             AudioMgr::StopLoopStream(m_hDoorChimeStream);
+        }
+        if (m_hBrakePadStream)
+        {
+            AudioMgr::StopLoopStream(m_hBrakePadStream);
         }
     }
 };
