@@ -900,6 +900,16 @@ bool ME_PlaySound(CVehicle *pVeh, const char *soundPath, float volume) {
 void ME_StopVehicleSounds(CVehicle *pVeh) {
   if (!pVeh) return;
   auto &sData = SoundEffects::m_VehData.Get(pVeh);
+  if (sData.m_hDoorChimeStream) {
+    AudioMgr::StopLoopStream(sData.m_hDoorChimeStream);
+    sData.m_hDoorChimeStream = 0;
+  }
+}
+
+bool ME_IsDoorChimePlaying(CVehicle *pVeh) {
+  if (!pVeh) return false;
+  auto &sData = SoundEffects::m_VehData.Get(pVeh);
+  return sData.m_hDoorChimeStream != 0;
 }
 
 
