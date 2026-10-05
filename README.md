@@ -38,15 +38,15 @@
 - **Grinch_**
 - **Caner Karaca**
 - **Ameer**
+- **KaiQ**
 
 ### 🌟 Credits
 - **CLEO Devs**
 - **Damix**
 - **DKPac22**
 - **D4dj**
-- **Junior-Djjr**
-- **KaiQ**
+- **gta-reversed Devs**
+- **Junior_Djjr**
 - **Nora**
 - **PluginSDK Devs**
-- **reSA Devs**
 - **SanVive Team**
