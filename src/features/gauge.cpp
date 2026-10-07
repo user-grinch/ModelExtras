@@ -297,8 +297,8 @@ void FixedGauge::Init()
         if (nodeName.starts_with("x_gauge_fixed") || nodeName == "x_gasmeter" || nodeName == "x_gm" || nodeName == "petrolok") {
             auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
 
-            float minAngle = 20.0f;
-            float maxAngle = 70.0f;
+            float minAngle = 30.0f;
+            float maxAngle = 120.0f;
             std::string name(nodeName);
             if (jsonData.contains("gauges") && jsonData["gauges"].contains(name)) {
                 minAngle = jsonData["gauges"][name].value("minangle", minAngle);
