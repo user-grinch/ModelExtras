@@ -506,12 +506,13 @@ float LightManager::GetLightInertia(CVehicle* pVeh, VehLightData& data, eMateria
     return lights.value("inertia", 0.0f);
 }
 
-static std::optional<CRGBA> GetJsonCoronaColor(const nlohmann::json& lights, const char* key) {
+static std::optional<CRGBA> GetJsonMaterialOnColor(const nlohmann::json& lights, const char* key) {
     if (!key || !lights.contains(key)) return std::nullopt;
     const auto& sec = lights[key];
-    const auto* pCol = sec.contains("corona") && sec["corona"].contains("color") ? &sec["corona"]["color"]
+    const auto* pCol = sec.contains("material") && sec["material"].contains("color") ? &sec["material"]["color"]
+                     : sec.contains("material") && sec["material"].contains("color_on") ? &sec["material"]["color_on"]
+                     : sec.contains("color_on") ? &sec["color_on"]
                      : sec.contains("color") ? &sec["color"]
-                     : sec.contains("material") && sec["material"].contains("color") ? &sec["material"]["color"]
                      : nullptr;
     if (pCol) {
         return CRGBA(pCol->value("red", 255), pCol->value("green", 255), pCol->value("blue", 255), 255);
@@ -535,17 +536,9 @@ MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type)
     if (type < 0 || type >= eMaterialType::TotalMaterial || !pVeh) {
         return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
     }
-    VehLightData& data = m_VehData.Get(pVeh);
 
     std::optional<CRGBA> onCol;
     std::optional<CRGBA> offCol;
-
-    if (IsDummyAvailable(data, type)) {
-        const DummyConfig& c = data.dummies[type][0].GetRef();
-        if (c.hasCustomColor) {
-            onCol = c.corona.color;
-        }
-    }
 
     auto& json = DataMgr::Get(pVeh->m_nModelIndex);
     if (json.contains("lights")) {
@@ -555,7 +548,7 @@ MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type)
 
         auto checkKey = [&](const char* k) {
             if (!k || !lights.contains(k)) return;
-            if (!onCol) onCol = GetJsonCoronaColor(lights, k);
+            if (!onCol) onCol = GetJsonMaterialOnColor(lights, k);
             if (!offCol) offCol = GetJsonOffColor(lights, k);
         };
 
