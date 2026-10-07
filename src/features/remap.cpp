@@ -18,9 +18,13 @@ void Remap::Init()
     ReloadConfig();
 }
 
-void Remap::LoadRemaps(CVehicle* vehicle)
+void Remap::EnsureRemapsLoaded(int modelIndex)
 {
-    CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(vehicle->m_nModelIndex);
+    if (modelIndex < 0 || modelIndex >= 20000) return;
+    auto itModel = xRemaps.find(modelIndex);
+    if (itModel != xRemaps.end() && itModel->second.bRemapsLoaded) return;
+
+    CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(modelIndex);
     if (!pModelInfo) return;
 
     CTxdStore::PushCurrentTxd();
@@ -45,8 +49,8 @@ void Remap::LoadRemaps(CVehicle* vehicle)
         return;
     }
 
-    int model = vehicle->m_nModelIndex;
-    RemapData &data = xRemaps[model];
+    RemapData &data = xRemaps[modelIndex];
+    data.bRemapsLoaded = true;
 
     // Collect all textures in the TXD by lowercase name
     std::unordered_map<std::string, RwTexture*> allTextures;
@@ -89,6 +93,57 @@ void Remap::LoadRemaps(CVehicle* vehicle)
     CTxdStore::PopCurrentTxd();
 }
 
+void Remap::LoadRemaps(CVehicle* vehicle)
+{
+    if (!vehicle) return;
+    EnsureRemapsLoaded(vehicle->m_nModelIndex);
+}
+
+bool Remap::HasRemaps(int modelIndex)
+{
+    if (modelIndex < 0 || modelIndex >= 20000) return false;
+    EnsureRemapsLoaded(modelIndex);
+    auto it = xRemaps.find(modelIndex);
+    return it != xRemaps.end() && !it->second.pTextures.empty();
+}
+
+int Remap::GetRemapCount(int modelIndex)
+{
+    if (modelIndex < 0 || modelIndex >= 20000) return 0;
+    EnsureRemapsLoaded(modelIndex);
+    auto it = xRemaps.find(modelIndex);
+    if (it == xRemaps.end() || it->second.pTextures.empty()) return 0;
+    return static_cast<int>(it->second.pTextures.begin()->second.size());
+}
+
+int Remap::GetRemapIndex(CVehicle *pVeh)
+{
+    if (!pVeh) return -1;
+    if (HasRemaps(pVeh->m_nModelIndex))
+    {
+        int count = GetRemapCount(pVeh->m_nModelIndex);
+        if (count <= 0) return -1;
+        RemapVehData &vehData = m_VehData.Get(pVeh);
+        if (vehData.randomId == -1)
+        {
+            vehData.randomId = RandomNumberInRange(0, count - 1);
+        }
+        return ((vehData.randomId % count) + count) % count;
+    }
+    return pVeh->GetRemapIndex();
+}
+
+void Remap::SetRemapIndex(CVehicle *pVeh, int remapIndex)
+{
+    if (!pVeh) return;
+    if (HasRemaps(pVeh->m_nModelIndex))
+    {
+        RemapVehData &vehData = m_VehData.Get(pVeh);
+        vehData.randomId = remapIndex;
+    }
+    pVeh->SetRemap(remapIndex);
+}
+
 void Remap::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat)
 {
     if (!m_bEnabled || !pVeh || !pMat || !pMat->texture || !pMat->texture->name)
@@ -97,15 +152,9 @@ void Remap::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat)
     }
 
     int model = pVeh->m_nModelIndex;
-    auto itModel = xRemaps.find(model);
-    if (itModel == xRemaps.end() || !itModel->second.bRemapsLoaded)
-    {
-        RemapData &newData = xRemaps[model];
-        LoadRemaps(pVeh);
-        newData.bRemapsLoaded = true;
-        itModel = xRemaps.find(model);
-    }
+    EnsureRemapsLoaded(model);
 
+    auto itModel = xRemaps.find(model);
     if (itModel == xRemaps.end() || itModel->second.pTextures.empty())
     {
         return;
@@ -138,7 +187,7 @@ void Remap::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat)
         vehData.randomId = RandomNumberInRange(0, sz - 1);
     }
 
-    int chosen = vehData.randomId % sz;
+    int chosen = ((vehData.randomId % sz) + sz) % sz;
     if (pMat->texture != it->second[chosen])
     {
         ModelInfoMgr::RegisterRestore(&pMat->texture, pMat->texture);
