@@ -673,15 +673,15 @@ void ME_SetDirtLevel(CVehicle *pVeh, float dirtLevel) {
 
 // Remap API
 int ME_GetRemapIndex(CVehicle *pVeh) {
-  return pVeh ? pVeh->GetRemapIndex() : -1;
+  return pVeh ? Remap::GetRemapIndex(pVeh) : -1;
 }
 
 void ME_SetRemapIndex(CVehicle *pVeh, int remapIndex) {
-  if (pVeh) pVeh->SetRemap(remapIndex);
+  if (pVeh) Remap::SetRemapIndex(pVeh, remapIndex);
 }
 
 bool ME_HasRemaps(int modelIndex) {
-  if (modelIndex < 0 || modelIndex >= 20000) return false;
+  if (modelIndex < 0) return false;
   return Remap::HasRemaps(modelIndex);
 }
 
@@ -691,7 +691,7 @@ int ME_GetRemapCount(CVehicle *pVeh) {
 }
 
 int ME_GetRemapCountByModel(int modelIndex) {
-  if (modelIndex < 0 || modelIndex >= 20000) return 0;
+  if (modelIndex < 0) return 0;
   return Remap::GetRemapCount(modelIndex);
 }
 
