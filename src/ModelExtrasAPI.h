@@ -326,6 +326,7 @@ extern "C"
     ME_WRAPPER bool ME_GetGlobalLightInertia(int modelIndex, float *outInertia);
     ME_WRAPPER bool ME_GetLightDummyConfig(int modelIndex, const char *dummyName, ME_Color *outCoronaColor, float *outCoronaSize, int *outLightingType, ME_Color *outShadowColor, float *outShadowSize, char *outShadowTexture, int maxTextureLen, bool *outRotationChecks, float *outInertia, int *outStrobeDelay);
     ME_WRAPPER bool ME_GetLightGroupConfig(int modelIndex, ME_LightID lightId, ME_Color *outCoronaColor, float *outCoronaSize, int *outLightingType, ME_Color *outShadowColor, float *outShadowSize, char *outShadowTexture, int maxTextureLen, float *outInertia);
+    ME_WRAPPER bool ME_GetLightShadowOffset(int modelIndex, const char *dummyName, float *outOffsetX, float *outOffsetY);
 
     // Sirens JSON Config
     ME_WRAPPER bool ME_IsSirenImVehFt(int modelIndex);

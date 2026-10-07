@@ -1164,6 +1164,35 @@ bool ME_GetLightGroupConfig(int modelIndex, ME_LightID lightId, ME_Color *outCor
   return true;
 }
 
+bool ME_GetLightShadowOffset(int modelIndex, const char *dummyName, float *outOffsetX, float *outOffsetY) {
+  if (!dummyName) return false;
+  const auto *pJson = DataMgr::Find(modelIndex);
+  if (!pJson || !pJson->contains("lights")) return false;
+  const auto &lights = (*pJson)["lights"];
+  if (!lights.contains(dummyName)) return false;
+  const auto &dSec = lights[dummyName];
+  if (!dSec.contains("shadow")) return false;
+  const auto &sSec = dSec["shadow"];
+  if (!sSec.contains("offset")) return false;
+  const auto &off = sSec["offset"];
+  if (off.is_number()) {
+    if (outOffsetX) *outOffsetX = 0.0f;
+    if (outOffsetY) *outOffsetY = off.get<float>();
+    return true;
+  }
+  if (off.is_object()) {
+    if (outOffsetX) *outOffsetX = off.value("x", 0.0f);
+    if (outOffsetY) *outOffsetY = off.value("y", 0.0f);
+    return true;
+  }
+  if (off.is_array() && off.size() >= 1) {
+    if (outOffsetX) *outOffsetX = off[0].get<float>();
+    if (outOffsetY) *outOffsetY = (off.size() >= 2) ? off[1].get<float>() : 0.0f;
+    return true;
+  }
+  return false;
+}
+
 // Sirens JSON Config
 bool ME_IsSirenImVehFt(int modelIndex) {
   const auto *pJson = DataMgr::Find(modelIndex);

@@ -78,18 +78,21 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
     if (jsonData.contains("lights"))
     {
         std::string newName(name.substr(0, name.find("_prm")));
+        const char* specKey = LightManager::GetLightSpecificKey(data.lightType);
+        const char* fallbackKey = LightManager::GetLightGroupKey(data.lightType);
         const nlohmann::json* pLightsSec = nullptr;
+
         if (jsonData["lights"].contains(newName))
         {
             pLightsSec = &jsonData["lights"][newName];
         }
-        else
+        else if (specKey && jsonData["lights"].contains(specKey))
         {
-            const char* fallbackKey = LightManager::GetLightGroupKey(data.lightType);
-            if (fallbackKey && jsonData["lights"].contains(fallbackKey))
-            {
-                pLightsSec = &jsonData["lights"][fallbackKey];
-            }
+            pLightsSec = &jsonData["lights"][specKey];
+        }
+        else if (fallbackKey && jsonData["lights"].contains(fallbackKey))
+        {
+            pLightsSec = &jsonData["lights"][fallbackKey];
         }
 
         if (pLightsSec)
@@ -124,6 +127,28 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
                 data.shadow.size = shadow.value("size", 1.0f);
                 data.shadow.texture = shadow.value("texture", "");
                 data.shadow.rotationChecks = shadow.value("rotationchecks", true);
+
+                if (shadow.contains("offset"))
+                {
+                    const auto &off = shadow["offset"];
+                    if (off.is_number())
+                    {
+                        data.shadow.offset.y = off.get<float>();
+                    }
+                    else if (off.is_object())
+                    {
+                        data.shadow.offset.x = off.value("x", data.shadow.offset.x);
+                        data.shadow.offset.y = off.value("y", data.shadow.offset.y);
+                    }
+                    else if (off.is_array() && off.size() >= 1)
+                    {
+                        data.shadow.offset.x = off[0].get<float>();
+                        if (off.size() >= 2)
+                        {
+                            data.shadow.offset.y = off[1].get<float>();
+                        }
+                    }
+                }
 
                 // shadows will be force enabled if there is JSON data for it.
                 data.shadow.render = true;
