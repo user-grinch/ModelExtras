@@ -5,10 +5,10 @@
 
 struct RoofConfig {
       RwFrame* pFrame = nullptr;
-      float speed = 1.0f;
+      float speed = 1.5f;
       float currentRot = 0.0f;
       float prevRot = 0.0f;
-      float targetRot = 30.0f;
+      float targetRot = 60.0f;
     };
 
 enum class AnimPhase {

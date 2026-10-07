@@ -345,7 +345,7 @@ void ExhaustFx::RenderSmokeFx(CVehicle *pVeh, const ExhaustData &info)
 
     FxPrtMult_c fxPrt(info.Color.r / 255.0f, info.Color.g / 255.0f, info.Color.b / 255.0f, alpha, 0.2f * info.fSizeMul, 1.0f, life);
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 1; i++)
     {
         FxSystem_c *fxSystem = isExhaustSubmerged ? g_fx.m_pPrtBubble : g_fx.m_pPrtSmokeII3expand;
 

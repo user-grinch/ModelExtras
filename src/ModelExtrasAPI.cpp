@@ -1288,7 +1288,7 @@ bool ME_GetSpeedometerConfig(int modelIndex, const char *nodeName, float *outMax
   if (!(*pJson)["gauges"].contains(name)) return false;
   const auto &g = (*pJson)["gauges"][name];
   if (outMaxSpeed) *outMaxSpeed = g.value("maxspeed", 240.0f);
-  if (outMaxRotation) *outMaxRotation = g.value("maxrotation", 240.0f);
+  if (outMaxRotation) *outMaxRotation = g.value("maxrotation", 260.0f);
   if (outIsKph) *outIsKph = g.value("kph", true);
   return true;
 }
@@ -1300,7 +1300,7 @@ bool ME_GetRPMConfig(int modelIndex, const char *nodeName, float *outMaxRPM, flo
   if (!(*pJson)["gauges"].contains(name)) return false;
   const auto &g = (*pJson)["gauges"][name];
   if (outMaxRPM) *outMaxRPM = g.value("maxrpm", 8000.0f);
-  if (outMaxRotation) *outMaxRotation = g.value("maxrotation", 240.0f);
+  if (outMaxRotation) *outMaxRotation = g.value("maxrotation", 260.0f);
   return true;
 }
 
@@ -1321,8 +1321,8 @@ bool ME_GetFixedGaugeConfig(int modelIndex, const char *nodeName, float *outMinA
   std::string name = nodeName ? nodeName : "x_gauge_fixed";
   if (!(*pJson)["gauges"].contains(name)) return false;
   const auto &g = (*pJson)["gauges"][name];
-  if (outMinAngle) *outMinAngle = g.value("minangle", 20.0f);
-  if (outMaxAngle) *outMaxAngle = g.value("maxangle", 70.0f);
+  if (outMinAngle) *outMinAngle = g.value("minangle", 30.0f);
+  if (outMaxAngle) *outMaxAngle = g.value("maxangle", 120.0f);
   return true;
 }
 
@@ -1388,7 +1388,7 @@ bool ME_GetRoofConfig(int modelIndex, const char *nodeName, float *outRotation, 
   if (!(*pJson)["roofs"].contains(nodeName)) return false;
   const auto &r = (*pJson)["roofs"][nodeName];
   if (outRotation) *outRotation = r.value("rotation", 60.0f);
-  if (outSpeed) *outSpeed = r.value("speed", 2.0f);
+  if (outSpeed) *outSpeed = r.value("speed", 1.5f);
   return true;
 }
 
@@ -1418,9 +1418,9 @@ bool ME_GetExhaustConfig(int modelIndex, const char *nodeName, float *outLifetim
   if (!pJson || !pJson->contains("exhausts") || !nodeName) return false;
   if (!(*pJson)["exhausts"].contains(nodeName)) return false;
   const auto &ex = (*pJson)["exhausts"][nodeName];
-  if (outLifetime) *outLifetime = ex.value("lifetime", 0.4f);
+  if (outLifetime) *outLifetime = ex.value("lifetime", 0.25f);
   if (outSpeed) *outSpeed = ex.value("speed", 1.0f);
-  if (outSize) *outSize = ex.value("size", 1.0f);
+  if (outSize) *outSize = ex.value("size", 0.85f);
   if (outNitroEffect) *outNitroEffect = ex.value("nitro_effect", true);
   if (outColor && ex.contains("color")) {
     ParseJsonColor(ex["color"], *outColor, pJson);
