@@ -617,12 +617,13 @@ static std::optional<CRGBA> Helper_ParseLightColor(const nlohmann::json& val, co
     return std::nullopt;
 }
 
-static std::optional<CRGBA> GetJsonCoronaColor(const nlohmann::json& lights, const char* key, const nlohmann::json* pRoot = nullptr) {
+static std::optional<CRGBA> GetJsonMaterialOnColor(const nlohmann::json& lights, const char* key, const nlohmann::json* pRoot = nullptr) {
     if (!key || !lights.contains(key)) return std::nullopt;
     const auto& sec = lights[key];
-    const auto* pCol = sec.contains("corona") && sec["corona"].contains("color") ? &sec["corona"]["color"]
+    const auto* pCol = sec.contains("material") && sec["material"].contains("color") ? &sec["material"]["color"]
+                     : sec.contains("material") && sec["material"].contains("color_on") ? &sec["material"]["color_on"]
+                     : sec.contains("color_on") ? &sec["color_on"]
                      : sec.contains("color") ? &sec["color"]
-                     : sec.contains("material") && sec["material"].contains("color") ? &sec["material"]["color"]
                      : nullptr;
     if (pCol) {
         return Helper_ParseLightColor(*pCol, pRoot);
@@ -646,17 +647,9 @@ MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type)
     if (type < 0 || type >= eMaterialType::TotalMaterial || !pVeh) {
         return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
     }
-    VehLightData& data = m_VehData.Get(pVeh);
 
     std::optional<CRGBA> onCol;
     std::optional<CRGBA> offCol;
-
-    if (IsDummyAvailable(data, type)) {
-        const DummyConfig& c = data.dummies[type][0].GetRef();
-        if (c.hasCustomColor) {
-            onCol = c.corona.color;
-        }
-    }
 
     auto& json = DataMgr::Get(pVeh->m_nModelIndex);
     const char* specKey = GetLightSpecificKey(type);
@@ -664,7 +657,7 @@ MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type)
 
     auto checkSec = [&](const nlohmann::json& container, const char* k) {
         if (!k || !container.contains(k)) return;
-        if (!onCol) onCol = GetJsonCoronaColor(container, k, &json);
+        if (!onCol) onCol = GetJsonMaterialOnColor(container, k, &json);
         if (!offCol) offCol = GetJsonOffColor(container, k, &json);
     };
 
