@@ -3,6 +3,7 @@
 #include "utils/util.h"
 #include "utils/car.h"
 #include "utils/render.h"
+#include "utils/samp.h"
 #include "../damage.h"
 #include <CPathFind.h>
 #include "defines.h"
@@ -67,25 +68,19 @@ bool IndicatorComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
     return false;
 }
 
-struct CarPathLinkAddress {
-    unsigned short m_nCarPathLinkId : 10;
-    unsigned short m_nAreaId : 6;
+static bool GetCarPathLinkPosition(CCarPathLinkAddress &address, CVector2D &outPos) {
+    uint16_t raw = *reinterpret_cast<uint16_t*>(&address);
+    if (raw == 0xFFFF || raw == 0) return false;
 
-    constexpr static auto* Cast(CCarPathLinkAddress* oldFormat) {
-        return (CarPathLinkAddress*)(oldFormat);
-    }
-    constexpr static const auto* Cast(const CCarPathLinkAddress* oldFormat) {
-        return (const CarPathLinkAddress*)(oldFormat);
-    }
-};
+    uint16_t linkId = raw & 0x3FF;
+    uint16_t areaId = (raw >> 10) & 0x3F;
 
-static CVector2D GetCarPathLinkPosition(CCarPathLinkAddress &address) {
-    auto* addr = CarPathLinkAddress::Cast(&address);
-    if (ThePaths.m_pNaviNodes && addr->m_nAreaId < 64 && ThePaths.m_pNaviNodes[addr->m_nAreaId]) {
-        return CVector2D(static_cast<float>(ThePaths.m_pNaviNodes[addr->m_nAreaId][addr->m_nCarPathLinkId].m_vecPosn.x) / 8.0f,
-                         static_cast<float>(ThePaths.m_pNaviNodes[addr->m_nAreaId][addr->m_nCarPathLinkId].m_vecPosn.y) / 8.0f);
+    if (areaId < NUM_PATH_MAP_AREAS && ThePaths.m_pNaviNodes[areaId] && linkId < ThePaths.m_dwNumCarPathLinks[areaId]) {
+        outPos.x = static_cast<float>(ThePaths.m_pNaviNodes[areaId][linkId].m_vecPosn.x) / 8.0f;
+        outPos.y = static_cast<float>(ThePaths.m_pNaviNodes[areaId][linkId].m_vecPosn.y) / 8.0f;
+        return true;
     }
-    return CVector2D(0.0f, 0.0f);
+    return false;
 }
 
 static inline float GetZAngleForPoint(CVector2D const &point) {
@@ -96,16 +91,20 @@ static inline float GetZAngleForPoint(CVector2D const &point) {
 }
 
 void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
-    static bool bSAMP = GetModuleHandle("samp.dll") != nullptr;
+    static bool bSAMP = SAMP::IsPresent();
 
-    bool hasIndicators = data.bUsingGlobalIndicators ||
-                         LightManager::IsMaterialAvailable(pVeh, INDICATOR_LIGHTS_TYPE) ||
-                         LightManager::IsDummyAvailable(data, INDICATOR_LIGHTS_TYPE) ||
-                         LightManager::IsMaterialAvailable(pVeh, {eMaterialType::STTLightLeft, eMaterialType::STTLightRight}) ||
-                         (LightsConfig::Get().gbGlobalIndicatorLights &&
-                          (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK) &&
-                          !CModelInfo::IsBikeModel(pVeh->m_nModelIndex) &&
-                          pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE);
+    bool hasIndicatorMats = LightManager::IsMaterialAvailable(pVeh, INDICATOR_LIGHTS_TYPE) ||
+                            LightManager::IsMaterialAvailable(pVeh, {eMaterialType::STTLightLeft, eMaterialType::STTLightRight});
+    bool hasIndicatorDummies = LightManager::IsDummyAvailable(data, INDICATOR_LIGHTS_TYPE);
+
+    data.bUsingGlobalIndicators = LightsConfig::Get().gbGlobalIndicatorLights &&
+                                  !hasIndicatorMats && !hasIndicatorDummies &&
+                                  (pVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pVeh->m_nVehicleSubClass == VEHICLE_MTRUCK) &&
+                                  !CModelInfo::IsBikeModel(pVeh->m_nModelIndex) &&
+                                  pVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE &&
+                                  pVeh->bEngineOn && pVeh->m_fHealth > 0 && !pVeh->bIsDrowning && !pVeh->m_pAttachedTo;
+
+    bool hasIndicators = hasIndicatorMats || hasIndicatorDummies || data.bUsingGlobalIndicators;
 
     if (!hasIndicators) {
         data.nIndicatorState = eIndicatorState::Off;
@@ -144,17 +143,25 @@ void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
         }
     } else if (pVeh->m_pDriver && !bSAMP) {
         data.nIndicatorState = eIndicatorState::Off;
-        CVector2D prevPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nPreviousPathNodeInfo);
-        CVector2D currPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nCurrentPathNodeInfo);
-        CVector2D nextPoint = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nNextPathNodeInfo);
+        CVector2D currPoint, nextPoint, prevPoint;
+        bool hasCurr = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nCurrentPathNodeInfo, currPoint);
+        bool hasNext = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nNextPathNodeInfo, nextPoint);
+        bool hasPrev = GetCarPathLinkPosition(pVeh->m_autoPilot.m_nPreviousPathNodeInfo, prevPoint);
 
-        float angle = GetZAngleForPoint(nextPoint - currPoint) - GetZAngleForPoint(currPoint - prevPoint);
-        angle = Util::NormalizeAngle(angle);
+        if (hasCurr && hasNext) {
+            CVector2D nextVec = nextPoint - currPoint;
+            CVector2D currVec = hasPrev ? (currPoint - prevPoint) : CVector2D(pVeh->GetForward().x, pVeh->GetForward().y);
 
-        if (angle >= 30.0f && angle < 180.0f) {
-            data.nIndicatorState = eIndicatorState::LeftOn;
-        } else if (angle <= 330.0f && angle > 180.0f) {
-            data.nIndicatorState = eIndicatorState::RightOn;
+            if ((nextVec.x != 0.0f || nextVec.y != 0.0f) && (currVec.x != 0.0f || currVec.y != 0.0f)) {
+                float angle = GetZAngleForPoint(nextVec) - GetZAngleForPoint(currVec);
+                angle = Util::NormalizeAngle(angle);
+
+                if (angle >= 30.0f && angle < 180.0f) {
+                    data.nIndicatorState = eIndicatorState::LeftOn;
+                } else if (angle <= 330.0f && angle > 180.0f) {
+                    data.nIndicatorState = eIndicatorState::RightOn;
+                }
+            }
         }
 
         if (data.nIndicatorState == eIndicatorState::Off) {
@@ -168,7 +175,7 @@ void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
 }
 
 void IndicatorComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
-    if (!LightsConfig::Get().gbGlobalIndicatorLights && !LightManager::IsMaterialAvailable(pControlVeh, INDICATOR_LIGHTS_TYPE)) {
+    if (!data.bUsingGlobalIndicators && !LightManager::IsMaterialAvailable(pControlVeh, INDICATOR_LIGHTS_TYPE) && !LightManager::IsDummyAvailable(data, INDICATOR_LIGHTS_TYPE)) {
         return;
     }
 
@@ -182,15 +189,7 @@ void IndicatorComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
     bool isLeftMiddleOk = damage.isMiddleLeftOk;
     bool isRightMiddleOk = damage.isMiddleRightOk;
 
-    // Global turn lights activation check
-    if (LightsConfig::Get().gbGlobalIndicatorLights && !LightManager::IsMaterialAvailable(pControlVeh, INDICATOR_LIGHTS_TYPE) && !LightManager::IsMaterialAvailable(pControlVeh, {eMaterialType::STTLightLeft, eMaterialType::STTLightRight})) {
-        if ((pControlVeh->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || pControlVeh->m_nVehicleSubClass == VEHICLE_MTRUCK) &&
-            !CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex) &&
-            (pControlVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE) &&
-            pControlVeh->bEngineOn && pControlVeh->m_fHealth > 0 && !pControlVeh->bIsDrowning && !pControlVeh->m_pAttachedTo) {
-            data.bUsingGlobalIndicators = true;
-        }
-    } else {
+    if (!data.bUsingGlobalIndicators) {
         bool isBike = CModelInfo::IsBikeModel(pControlVeh->m_nModelIndex);
         std::string shdwName = (isBike ? "taillight_bike" : "taillight");
         float shdwSz = 2.0f;
