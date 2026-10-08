@@ -551,21 +551,41 @@ VehicleSirenData::VehicleSirenData(const nlohmann::json &json)
 		}
 	}
 
-	for (nlohmann::json::const_iterator stateObject = states.begin(); stateObject != states.end(); ++stateObject)
+	if (states.is_object())
 	{
-		VehicleSirenState *state = new VehicleSirenState(stateObject.key(), stateObject.value());
-
-		if (!state->Validate)
+		for (nlohmann::json::const_iterator stateObject = states.begin(); stateObject != states.end(); ++stateObject)
 		{
-			LOG_VERBOSE("Failed to set up state {}, could not configure object from manifest!", stateObject.key());
+			VehicleSirenState *state = new VehicleSirenState(stateObject.key(), stateObject.value());
 
-			continue;
+			if (!state->Validate)
+			{
+				LOG_VERBOSE("Failed to set up state {}, could not configure object from manifest!", stateObject.key());
+				delete state;
+				continue;
+			}
+
+			States.push_back(state);
 		}
+	}
+	else if (states.is_array())
+	{
+		int idx = 0;
+		for (nlohmann::json::const_iterator stateObject = states.begin(); stateObject != states.end(); ++stateObject, ++idx)
+		{
+			VehicleSirenState *state = new VehicleSirenState(std::to_string(idx), stateObject.value());
 
-		States.push_back(state);
+			if (!state->Validate)
+			{
+				LOG_VERBOSE("Failed to set up state {}, could not configure object from manifest!", idx);
+				delete state;
+				continue;
+			}
+
+			States.push_back(state);
+		}
 	}
 
-	Validate = true;
+	Validate = !States.empty();
 };
 
 void Sirens::Parse(const nlohmann::json &data, int model)
