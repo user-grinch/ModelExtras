@@ -171,7 +171,13 @@ void HeadlightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
 
 void HeadlightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
     if (!CanVehicleHaveHeadlights(pVeh)) return;
-    bool isHeadlightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+    bool isAlarmActive = pVeh->m_nAlarmState != 0 && pVeh->m_nAlarmState != 0xFFFF;
+    bool isAlarmLightOn = isAlarmActive && ((pVeh->m_nAlarmState & 0x100) != 0);
+
+    bool isHeadlightsOn = (CarUtil::AreLightsOn(pVeh) || isAlarmLightOn);
+    if (isAlarmActive && !isAlarmLightOn) {
+        isHeadlightsOn = false;
+    }
 
     if (isHeadlightsOn && AreHeadlightsOpen(pVeh, data)) {
         float rangeMul = data.bLongLightsOn ? LightsConfig::Get().fHighBeamPointLightMul : 1.0f;
