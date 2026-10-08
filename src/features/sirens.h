@@ -219,7 +219,10 @@ public:
             }
         }
         Dummies.clear();
+        ActiveRotators.clear();
     }
+
+    std::vector<VehicleDummy *> ActiveRotators;
 
     bool GetSirenState();
 
@@ -265,7 +268,6 @@ public:
 private:
     static inline bool m_bEnabled = false;
     static inline std::map<int, VehicleSirenData *> modelData;
-    static inline std::map<int, std::vector<VehicleDummy *>> modelRotators;
 
     using hkUsesSirenFunc = bool(CVehicle*);
     using hkRegisterCoronaFunc = void(unsigned int&, CEntity *&, unsigned char&, unsigned char&, unsigned char&, unsigned char&, const CVector&, float&, float&, eCoronaType&, eCoronaFlareType&, bool&, bool&, int&, float&, bool&, float&, unsigned char&, float&, bool&, bool&);
