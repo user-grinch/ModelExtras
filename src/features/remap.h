@@ -32,4 +32,9 @@ protected:
 public:
   Remap() : CVehFeature<RemapVehData>("TextureRemapper", "FEATURES", eFeatureMatrix::TextureRemapper) {}
   static void ProcessTextures(CVehicle *pVeh, RpMaterial *pMat);
+  static void EnsureRemapsLoaded(int modelIndex);
+  static bool HasRemaps(int modelIndex);
+  static int GetRemapCount(int modelIndex);
+  static int GetRemapIndex(CVehicle *pVeh);
+  static void SetRemapIndex(CVehicle *pVeh, int remapIndex);
 };

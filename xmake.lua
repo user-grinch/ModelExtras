@@ -5,7 +5,9 @@ set_defaultmode("release")
 
 local PLUGIN_SDK_DIR = os.getenv("PLUGIN_SDK_DIR")
 if not PLUGIN_SDK_DIR or not os.isdir(PLUGIN_SDK_DIR) then
-    if os.isdir("D:/Dev/plugin-sdk") then
+    if os.isdir("plugin-sdk") then
+        PLUGIN_SDK_DIR = "plugin-sdk"
+    elseif os.isdir("D:/Dev/plugin-sdk") then
         PLUGIN_SDK_DIR = "D:/Dev/plugin-sdk"
     end
 end
