@@ -616,8 +616,14 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
     upDir.Normalize();
     rightDir.Normalize();
 
-    CVector up = RotateVector2D(upDir * shdwSz.y);
-    CVector right = RotateVector2D(rightDir * shdwSz.x);
+    CVector dir = RotateVector2D(upDir);
+    CVector rightVec = RotateVector2D(rightDir);
+
+    float halfLen = shdwSz.y * 0.5f;
+    float halfWidth = shdwSz.x * 0.5f;
+
+    CVector up = dir * halfLen;
+    CVector right = rightVec * halfWidth;
 
     CVector nSize = {0.0f, 0.0f, 0.0f};
     switch (dummyPos)
@@ -638,12 +644,9 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
         break;
     }
 
-    CVector nOffset = {
-        shdwOffset.x * cos(angleRad) - shdwOffset.y * sin(angleRad),
-        shdwOffset.x * sin(angleRad) + shdwOffset.y * cos(angleRad),
-        0.0f};
+    CVector worldBase = pEntity->TransformFromObjectSpace(position + nSize);
+    CVector shdwPos = worldBase + dir * (halfLen + shdwOffset.y) + rightVec * shdwOffset.x;
 
-    CVector shdwPos = pEntity->TransformFromObjectSpace(position + nOffset + nSize);
     if (pEntity->m_nType == ENTITY_TYPE_VEHICLE && static_cast<CVehicle *>(pEntity)->m_nVehicleSubClass == VEHICLE_BIKE)
     {
         CBike *pBike = static_cast<CBike *>(pEntity);
@@ -652,7 +655,7 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
         {
             pBike->CalculateLeanMatrix();
         }
-        shdwPos = pBike->m_mLeanMatrix * (position + nOffset + nSize);
+        shdwPos = pBike->m_mLeanMatrix * (position + nSize) + dir * (halfLen + shdwOffset.y) + rightVec * shdwOffset.x;
         pBike->m_bLeanMatrixCalculated = wasCalculated;
     }
     shdwPos.z = CWorld::FindGroundZFor3DCoord(shdwPos.x, shdwPos.y, shdwPos.z + 100.0f, NULL, &pEntity) + 2.0f;
