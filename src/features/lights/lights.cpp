@@ -6,8 +6,6 @@
 #include "utils/datamgr.h"
 #include "ModelExtrasAPI.h"
 #include "utils/samp.h"
-#include <CCamera.h>
-#include <eModelID.h>
 
 
 float gfGlobalCoronaSize = 0.3f;
@@ -16,85 +14,31 @@ int gGlobalShadowIntensity = 80;
 bool gbLightPointLights = true;
 bool gbSirenPointLights = false;
 
-static void __fastcall Hooked_DoHeadLightBeam(CVehicle *pVeh, void *edx, int dummyId, CMatrix &matrix, bool arg2)
+// Keep GTA's beam geometry, vertex initialization and rendering intact.
+static CRGBA g_HeadLightBeamColor{255, 255, 255, 255};
+
+static void *TransformHeadLightBeam(RwIm3DVertex *vertices, RwUInt32 count, RwMatrix *matrix, RwUInt32 flags)
+{
+	if (vertices && count == 5) {
+		for (RwUInt32 i = 0; i < count; ++i) {
+			const RwUInt32 alpha = (vertices[i].color >> 24) * g_HeadLightBeamColor.a / 255;
+			RwIm3DVertexSetRGBA(&vertices[i], g_HeadLightBeamColor.r, g_HeadLightBeamColor.g, g_HeadLightBeamColor.b, alpha);
+		}
+	}
+	return RwIm3DTransform(vertices, count, matrix, flags);
+}
+
+static void __fastcall Hooked_DoHeadLightBeam(CVehicle *pVeh, void *, int dummyId, CMatrix &matrix, unsigned char isRight)
 {
 	if (!pVeh || !Lights::m_bEnabled) return;
 	if (!gConfig.ReadBoolean("LIGHTS", "HeadLightBeams", gConfig.ReadBoolean("TWEAKS", "HeadLightBeams", true))) return;
+	auto *mi = CModelInfo::GetModelInfo(pVeh->m_nModelIndex);
+	if (!mi || !reinterpret_cast<CVehicleModelInfo *>(mi)->m_pVehicleStruct || dummyId < 0 || dummyId >= 8) return;
 
-	auto *mi = reinterpret_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));
-	if (!mi || !mi->m_pVehicleStruct) return;
-
-	int dummyIndex = 2 * dummyId;
-	if (dummyIndex < 0 || dummyIndex >= 15) return;
-
-	CVector pointModelSpace = mi->m_pVehicleStruct->m_avDummyPos[dummyIndex];
-	if (dummyId == 1 && pointModelSpace.Magnitude() < 0.0001f) return;
-
-	CVector point = matrix * pointModelSpace;
-	if (!arg2) {
-		point -= matrix.GetRight() * (2.0f * pointModelSpace.x);
-	}
-
-	CVector pointToCamDir = TheCamera.GetPosition() - point;
-	pointToCamDir.Normalize();
-	float dot = pointToCamDir.x * matrix.GetForward().x + pointToCamDir.y * matrix.GetForward().y + pointToCamDir.z * matrix.GetForward().z;
-	unsigned char alpha = static_cast<unsigned char>((1.0f - std::fabs(dot)) * 32.0f);
-	if (alpha == 0) return;
-
-	float angleMult = (pVeh->m_nModelIndex == MODEL_FORKLIFT) ? 0.5f : 0.15f;
-	CVector lightNormal = matrix.GetForward() - matrix.GetUp() * angleMult;
-	lightNormal.Normalize();
-	CVector lightRight;
-	RwV3dCrossProduct(&lightRight, &lightNormal, &pointToCamDir);
-	lightRight.Normalize();
-	CVector lightPos = point - matrix.GetForward() * 0.1f;
-
-	CVector posn[5] = {
-		lightPos - lightRight * 0.05f,
-		lightPos + lightRight * 0.05f,
-		lightPos + lightNormal * 3.0f - lightRight * 0.5f,
-		lightPos + lightNormal * 3.0f + lightRight * 0.5f,
-		lightPos + lightNormal * 0.2f
-	};
-	unsigned char alphas[5] = { alpha, alpha, 0, 0, alpha };
-
-	eMaterialType matType = arg2 ? eMaterialType::HeadLightLeft : eMaterialType::HeadLightRight;
-	CRGBA lightCol = LightManager::GetMaterialColor(pVeh, matType).on;
-
-	RwIm3DVertex vertices[5];
-	for (int i = 0; i < 5; ++i) {
-		unsigned char r = lightCol.r;
-		unsigned char g = lightCol.g;
-		unsigned char b = lightCol.b;
-		unsigned char a = static_cast<unsigned char>((alphas[i] * lightCol.a) / 255);
-		RwIm3DVertexSetRGBA(&vertices[i], r, g, b, a);
-		RwIm3DVertexSetPos(&vertices[i], posn[i].x, posn[i].y, posn[i].z);
-	}
-
-	RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, reinterpret_cast<void *>(FALSE));
-	RwRenderStateSet(rwRENDERSTATEZTESTENABLE, reinterpret_cast<void *>(TRUE));
-	RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, reinterpret_cast<void *>(TRUE));
-	RwRenderStateSet(rwRENDERSTATESRCBLEND, reinterpret_cast<void *>(rwBLENDSRCALPHA));
-	RwRenderStateSet(rwRENDERSTATEDESTBLEND, reinterpret_cast<void *>(rwBLENDONE));
-	RwRenderStateSet(rwRENDERSTATESHADEMODE, reinterpret_cast<void *>(rwSHADEMODEGOURAUD));
-	RwRenderStateSet(rwRENDERSTATETEXTURERASTER, nullptr);
-	RwRenderStateSet(rwRENDERSTATECULLMODE, reinterpret_cast<void *>(rwCULLMODECULLNONE));
-	RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTION, reinterpret_cast<void *>(rwALPHATESTFUNCTIONGREATER));
-	RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, reinterpret_cast<void *>(FALSE));
-
-	if (RwIm3DTransform(vertices, 5, nullptr, rwIM3D_VERTEXRGBA | rwIM3D_VERTEXXYZ)) {
-		static RxVertexIndex indices[12] = { 0, 1, 4, 1, 3, 4, 2, 3, 4, 0, 2, 4 };
-		RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, indices, 12);
-		RwIm3DEnd();
-	}
-
-	RwRenderStateSet(rwRENDERSTATETEXTURERASTER, nullptr);
-	RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, reinterpret_cast<void *>(TRUE));
-	RwRenderStateSet(rwRENDERSTATEZTESTENABLE, reinterpret_cast<void *>(TRUE));
-	RwRenderStateSet(rwRENDERSTATESRCBLEND, reinterpret_cast<void *>(rwBLENDSRCALPHA));
-	RwRenderStateSet(rwRENDERSTATEDESTBLEND, reinterpret_cast<void *>(rwBLENDINVSRCALPHA));
-	RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, reinterpret_cast<void *>(FALSE));
-	RwRenderStateSet(rwRENDERSTATECULLMODE, reinterpret_cast<void *>(rwCULLMODECULLBACK));
+	const CRGBA previousColor = g_HeadLightBeamColor;
+	g_HeadLightBeamColor = LightManager::GetMaterialColor(pVeh, isRight ? eMaterialType::HeadLightRight : eMaterialType::HeadLightLeft).on;
+	pVeh->DoHeadLightBeam(dummyId, matrix, isRight);
+	g_HeadLightBeamColor = previousColor;
 }
 
 void Lights::Init() {
@@ -124,8 +68,11 @@ void Lights::Init() {
 
 	SAMP::PatchVehicleLights();
 
-	// Dynamic CVehicle::DoHeadLightBeam
-	patch::ReplaceFunction(0x6E0E20, (void *)Hooked_DoHeadLightBeam);
+	// Redirect native automobile/bike beam calls; keep DoHeadLightBeam intact (SA 1.0 US).
+	patch::ReplaceFunctionCall(0x6A2EDA, reinterpret_cast<void *>(Hooked_DoHeadLightBeam));
+	patch::ReplaceFunctionCall(0x6A2EF2, reinterpret_cast<void *>(Hooked_DoHeadLightBeam));
+	patch::ReplaceFunctionCall(0x6BDE80, reinterpret_cast<void *>(Hooked_DoHeadLightBeam));
+	patch::ReplaceFunctionCall(0x6E13AE, reinterpret_cast<void *>(TransformHeadLightBeam));
 
 	Events::initGameEvent += []()
 	{
