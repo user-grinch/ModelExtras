@@ -217,6 +217,7 @@ extern "C"
     // Visual & Render Configuration
     ME_WRAPPER float ME_GetPointLightIntensity();
     ME_WRAPPER float ME_GetSirenPointLightMul();
+    ME_WRAPPER bool  ME_GetLightShadowOffset(int modelIndex, const char *dummyName, float *outOffsetX, float *outOffsetY);
 
 #ifdef __cplusplus
 }

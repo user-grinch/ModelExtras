@@ -437,5 +437,22 @@ float ME_GetSirenPointLightMul() {
   return LightsConfig::Get().fSirenPointLightMul;
 }
 
-} // extern "C"
+bool ME_GetLightShadowOffset(int modelIndex, const char *dummyName, float *outOffsetX, float *outOffsetY) {
+  const auto *pJson = DataMgr::Find(modelIndex);
+  if (!pJson || !pJson->contains("lights") || !dummyName) return false;
+  const auto &l = (*pJson)["lights"];
+  if (!l.contains(dummyName)) return false;
+  const auto &d = l[dummyName];
+  if (!d.contains("shadow")) return false;
+  const auto &sh = d["shadow"];
+  if (!sh.contains("offset") && !sh.contains("shadow_offset")) return false;
+  const auto &off = sh.contains("offset") ? sh["offset"] : sh["shadow_offset"];
+  if (off.is_array() && off.size() >= 2) {
+    if (outOffsetX) *outOffsetX = off[0].get<float>();
+    if (outOffsetY) *outOffsetY = off[1].get<float>();
+    return true;
+  }
+  return false;
+}
 
+} // extern "C"

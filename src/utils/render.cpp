@@ -535,8 +535,11 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     // Scale shadow size/thickness with inertia factor so it expands/contracts naturally
     float currentShdwSz = shdwSz * (0.35f + 0.65f * std::clamp(alphaMul, 0.0f, 1.0f));
 
-    // Push shadow forward along light direction
-    CVector shdwCenter = worldPos + lightDir * (currentShdwSz * SHDW_SZ_MUL + 0.2f);
+    // Push shadow forward along light direction (with optional JSON shadow.offset: offset.y along lightDir, offset.x along rightDir)
+    float forwardPush = currentShdwSz * SHDW_SZ_MUL + 0.2f + pConfig->shadow.offset.y;
+    float sidePush = pConfig->shadow.offset.x;
+
+    CVector shdwCenter = worldPos + lightDir * forwardPush + rightDir * sidePush;
 
     CVector2D shdwFront(lightDir.x * (currentShdwSz * SHDW_SZ_MUL), lightDir.y * (currentShdwSz * SHDW_SZ_MUL));
     CVector2D shdwSide(rightDir.x * currentShdwSz, rightDir.y * currentShdwSz);
