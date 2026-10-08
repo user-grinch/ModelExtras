@@ -1169,6 +1169,48 @@ void Sirens::hkRegisterCorona(unsigned int id, CEntity *attachTo, unsigned char 
 	CCoronas::RegisterCorona(id, attachTo, red, green, blue, alpha, posn, radius, farClip, coronaType, flaretype, enableReflection, checkObstacles, _param_not_used, angle, longDistance, nearClip, fadeState, fadeSpeed, onlyFromBelow, reflectionDelay);
 }
 
+static float CalculateRotatorAngle(const VehicleSirenMaterial *material, uint64_t time)
+{
+	if (!material || !material->Rotator)
+	{
+		return 0.0f;
+	}
+
+	uint64_t elapsed = time - material->Rotator->TimeElapse;
+	float progress = 0.0f;
+	if (material->Rotator->Time > 0)
+	{
+		if (material->Rotator->Type == 1) // ease
+		{
+			float normTime = std::clamp(static_cast<float>(elapsed) / static_cast<float>(material->Rotator->Time), 0.0f, 1.0f);
+			progress = (1.0f - std::cos(normTime * 3.14159265358979323846f)) * 0.5f;
+		}
+		else // linear
+		{
+			progress = static_cast<float>(elapsed) / static_cast<float>(material->Rotator->Time);
+		}
+	}
+
+	float rotAngle = progress * material->Rotator->Radius;
+	float angle = rotAngle;
+
+	if (material->Rotator->Direction == 0) // clockwise
+	{
+		angle = 360.0f - angle;
+	}
+	else if (material->Rotator->Direction == 2) // switch (forward sweep)
+	{
+		angle += material->Rotator->Offset;
+		angle = 360.0f - angle;
+	}
+	else if (material->Rotator->Direction == 3) // switch (reverse sweep)
+	{
+		angle += material->Rotator->Offset;
+	}
+
+	return Util::NormalizeAngle(angle);
+}
+
 void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time)
 {
 	auto &data = m_VehData.Get(vehicle);
@@ -1189,31 +1231,13 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 
 	if (material->Type != eLightingMode::NonDirectional)
 	{
-		if (material->Type == eLightingMode::Rotator)
+		if (material->Type == eLightingMode::Rotator && material->Rotator)
 		{
-			uint64_t elapsed = time - material->Rotator->TimeElapse;
-
-			float angle = ((elapsed / ((float)material->Rotator->Time)) * material->Rotator->Radius);
-
-			if (material->Rotator->Direction == 0)
-				angle = 360.0f - angle;
-			else if (material->Rotator->Direction == 2)
-			{
-				angle += material->Rotator->Offset;
-
-				angle = 360.0f - angle;
-			}
-			else if (material->Rotator->Direction == 3)
-			{
-				angle += material->Rotator->Offset;
-			}
-
-			dummyAngle += angle;
-
-			Sirens::modelRotators[vehicle->m_nModelIndex].push_back(dummy);
+			float angle = CalculateRotatorAngle(material, time);
+			dummyAngle = Util::NormalizeAngle(dummyAngle + angle);
 
 			dummy->SetAngle(angle);
-			dummyAngle = Util::NormalizeAngle(dummyAngle);
+			Sirens::modelRotators[vehicle->m_nModelIndex].push_back(dummy);
 		}
 		RenderUtil::RegisterCoronaDirectional(pDummyConfig, dummyAngle, material->Radius, 1.0f, material->Type == eLightingMode::Inversed);
 	}
@@ -1228,7 +1252,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 	}
 	else
 	{
-		RenderUtil::RegisterShadow(vehicle, pDummyConfig->position, activeColor, dummyAngle + pDummyConfig->rotation.currentAngle, pDummyConfig->dummyPos, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
+		RenderUtil::RegisterShadow(vehicle, pDummyConfig->position, activeColor, dummyAngle, pDummyConfig->dummyPos, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
 	}
 };
 
@@ -1317,31 +1341,19 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 
 				if (mat.second->Type == eLightingMode::Rotator && mat.second->Rotator)
 				{
-					uint64_t elapsed = time - mat.second->Rotator->TimeElapse;
-					float rotAngle = ((elapsed / ((float)mat.second->Rotator->Time)) * mat.second->Rotator->Radius);
-					if (mat.second->Rotator->Direction == 0)
-						rotAngle = 360.0f - rotAngle;
-					else if (mat.second->Rotator->Direction == 2)
-					{
-						rotAngle += mat.second->Rotator->Offset;
-						rotAngle = 360.0f - rotAngle;
-					}
-					else if (mat.second->Rotator->Direction == 3)
-					{
-						rotAngle += mat.second->Rotator->Offset;
-					}
-					dummyAngle = Util::NormalizeAngle(dummyAngle + rotAngle);
+					float angle = CalculateRotatorAngle(mat.second, time);
+					dummyAngle = Util::NormalizeAngle(dummyAngle + angle);
 					float rad = static_cast<float>(Util::DegToRad(dummyAngle));
-					localDir = CVector(sin(rad), cos(rad), -0.25f);
+					localDir = CVector(-sin(rad), cos(rad), -0.25f);
 				}
 				else if (mat.second->Type == eLightingMode::Directional || mat.second->Type == eLightingMode::Inversed)
 				{
-					float rad = static_cast<float>(Util::DegToRad(dummyAngle));
 					if (mat.second->Type == eLightingMode::Inversed)
 					{
-						rad += 3.14159265f;
+						dummyAngle += 180.0f;
 					}
-					localDir = CVector(sin(rad), cos(rad), -0.25f);
+					float rad = static_cast<float>(Util::DegToRad(dummyAngle));
+					localDir = CVector(-sin(rad), cos(rad), -0.25f);
 				}
 				else
 				{
