@@ -3,9 +3,8 @@
 #include "core/base.h"
 #include "CTxdStore.h"
 #include "CClothesBuilder.h"
-#include <vector>
-#include <map>
 #include <unordered_map>
+#include <array>
 
 using namespace plugin;
 
@@ -19,23 +18,29 @@ private:
 	static inline RwTexture *ms_aDirtTextures_2[16] = {};
 	static inline RwTexture *ms_aDirtTextures_3[16] = {};
 	static inline RwTexture *ms_aDirtTextures_4[16] = {};
-	static inline RwTexture *ms_aDirtTextures_5[16] = {};
-	static inline RwTexture *ms_aDirtTextures_6[16] = {};
-	static inline std::unordered_map<std::string, std::vector<RwTexture *>> m_DirtTextures;
+
+	struct DirtStages
+	{
+		std::array<RwTexture *, 16> textures{};
+		bool initialized = false;
+	};
+	static inline std::unordered_map<RwTexture *, DirtStages> m_DirtTextures;
+	static inline bool m_bCustomReady = false;
 
 	void Shutdown() override;
 	static void ShutdownHook();
 	static void InitialiseDirtTextures();
 	static void InitialiseBlendTextureSingle(const char *CleanName, const char *DirtName, RwTexture **TextureArray);
-	static void InitialiseBlendTextureSingleEx(RwTexture *src, RwTexture *dest);
+	static void InitialiseBlendTextureSingleEx(RwTexture *src, RwTexture *dest, bool overlay);
+	static void RegisterVehicleTextures(int model);
 	static void InitialiseDirtTextureSingle(const char *name, RwTexture **Array);
 
 protected:
     void Init() override;
     void ReloadConfig() override;
-    void Reload(CVehicle *pVeh) override { ReloadConfig(); }
+    void Reload(CVehicle *pVeh) override;
 
 public:
     DirtFx() : CBaseFeature("DirtFX", "FEATURES", eFeatureMatrix::DirtFX) {}
-	static void ProcessTextures(CVehicle *pVeh, RpMaterial *pMat);
+	static void ProcessTextures(CVehicle *pVeh, RpMaterial *pMat, RwTexture *baseTexture = nullptr);
 };
