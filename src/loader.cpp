@@ -31,6 +31,7 @@
 #include "features/roof.h"
 #include "features/leds.h"
 #include "features/wheel.h"
+#include "features/neon.h"
 #include "features/rollbackbed.h"
 #include "utils/frameextension.h"
 #include "utils/meevents.h"
@@ -125,6 +126,7 @@ void ModelExtras::Init()
         RegisterFeature<Carcols>();
     }
     RegisterFeature<RollbackBed>();
+    RegisterFeature<Neon>();
     RegisterFeature<WheelHub>();
     RegisterFeature<Lights>();
     RegisterFeature<Sirens>();

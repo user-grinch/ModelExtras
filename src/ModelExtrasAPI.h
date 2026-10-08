@@ -75,6 +75,7 @@ enum ME_FeatureID
     ME_RollbackBed,
     ME_Clock,
     ME_ExtraWheels,
+    ME_Neon,
     ME_FeatureCount
 };
 
@@ -373,6 +374,10 @@ extern "C"
     ME_WRAPPER int  ME_GetPedColColorCount(int modelIndex);
     ME_WRAPPER bool ME_GetPedColColor(int modelIndex, int colorIndex, ME_Color *outColor);
     ME_WRAPPER bool ME_GetPedColVariationData(int modelIndex, int varIndex, int *outPrimary, int *outSecondary, int *outTertiary, int *outQuaternary);
+
+    // Neon API
+    ME_WRAPPER bool ME_HasNeonData(int modelIndex);
+    ME_WRAPPER bool ME_IsVehicleNeonActive(CVehicle *pVeh);
 
 #ifdef __cplusplus
 }

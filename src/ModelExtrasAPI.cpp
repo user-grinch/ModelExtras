@@ -27,6 +27,7 @@
 #include "features/slidedoor.h"
 #include "features/rotatedoor.h"
 #include "features/wheel.h"
+#include "features/neon.h"
 #include "features/wheelhub.h"
 #include "features/chain.h"
 #include "features/clock.h"
@@ -1541,6 +1542,19 @@ bool ME_GetPedColVariationData(int modelIndex, int varIndex, int *outPrimary, in
   if (outTertiary) *outTertiary = v.value("tertiary", 0);
   if (outQuaternary) *outQuaternary = v.value("quaternary", 0);
   return true;
+}
+
+// Neon API
+bool ME_HasNeonData(int modelIndex) {
+  const auto *pJson = DataMgr::Find(modelIndex);
+  return pJson && pJson->contains("neon");
+}
+
+bool ME_IsVehicleNeonActive(CVehicle *pVeh) {
+  if (!CBaseFeature::IsEnabled(eFeatureMatrix::Neon) || !pVeh) return false;
+  if (pVeh->m_fHealth <= 0.0f || pVeh->IsUpsideDown() || pVeh->bSubmergedInWater) return false;
+  if (!CarUtil::AreLightsOn(pVeh)) return false;
+  return ME_HasNeonData(pVeh->m_nModelIndex);
 }
 
 } // extern "C"
