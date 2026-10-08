@@ -173,7 +173,7 @@ void LicensePlate::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat)
 
             if (onCol || offCol)
             {
-                bool lightsOn = (pVeh->bLightsOn || CarUtil::IsLightsForcedOn(pVeh) || (Util::IsNightTime() && !CarUtil::IsEngineOff(pVeh))) && !CarUtil::IsLightsForcedOff(pVeh);
+                bool lightsOn = CarUtil::AreLightsOn(pVeh);
 
                 CRGBA targetCol;
                 if (lightsOn)
@@ -278,7 +278,7 @@ RpMaterial *__cdecl LicensePlate::CCustomCarPlateMgr_SetupMaterialPlatebackTextu
         }
     }
 
-    bool lightsOn = (pCurrentVeh->bLightsOn || CarUtil::IsLightsForcedOn(pCurrentVeh) || (Util::IsNightTime() && !Util::IsEngineOff(pCurrentVeh))) && !CarUtil::IsLightsForcedOff(pCurrentVeh);
+    bool lightsOn = CarUtil::AreLightsOn(pCurrentVeh);
     if (pCurrentVeh->m_fHealth > 0.0f && lightsOn)
     {
         ModelInfoMgr::RegisterRestoreSurfProps(material);
