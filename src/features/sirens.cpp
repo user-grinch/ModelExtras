@@ -668,6 +668,8 @@ void __fastcall Sirens::hkServiceHornOrSiren(CAEVehicleAudioEntity* pThis, void*
 	reinterpret_cast<void(__thiscall*)(CAEVehicleAudioEntity*, bool, bool, bool, cVehicleParams*)>(0x4F99D0)(pThis, bHorn, bSiren, bAlarm, pParams);
 }
 
+static float CalculateRotatorAngle(const VehicleSirenMaterial *material, uint64_t time);
+
 void Sirens::Init()
 {
 	DataMgr::RegisterListener("sirens", [](int model, const nlohmann::json &data) {
@@ -689,13 +691,11 @@ void Sirens::Init()
 		}
 		CRGBA col = *reinterpret_cast<CRGBA *>(RpMaterialGetColor(pMat));
 
-		if (pMat && pMat->texture && pMat->texture->name && modelData.contains(pVeh->m_nModelIndex)) {
-			std::string_view texName(pMat->texture->name);
-			bool isSirenTex = (texName.find("siren") != 0 || texName.find("vehiclelights128") != 0);
+		if (pMat && modelData.contains(pVeh->m_nModelIndex)) {
 			bool isIVFSiren = modelData[pVeh->m_nModelIndex]->isImVehFtSiren;
 
 			if (isIVFSiren) {
-				if (isSirenTex && (col.r >= 240 && col.g == 0 && col.b == 0)) {
+				if (col.r >= 240 && col.g == 0 && col.b == 0) {
 					return eMaterialType::SirenLight;
 				}
 			} else {
@@ -1117,7 +1117,37 @@ void Sirens::Init()
 				EnableDummy((mat.first * 16) + id, e, vehicle, mat.second, type, time);
 			}
 
-			ModelInfoMgr::EnableSirenMaterial(vehicle, mat.first, mat.second->InertiaMultiplier);
+			float sirenMatFactor = mat.second->InertiaMultiplier;
+			if (mat.second->Type == eLightingMode::Rotator && mat.second->Rotator) {
+				float vehicleAngle = Util::NormalizeAngle(static_cast<float>(Util::RadToDeg(vehicle->GetHeading())));
+				float cameraAngle = Util::NormalizeAngle(static_cast<float>(Util::RadToDeg(TheCamera.GetHeading())));
+				float rotAngle = CalculateRotatorAngle(mat.second, time);
+				float cutoff = (mat.second->Radius / 2.0f);
+				float maxAngleMul = 0.0f;
+
+				auto calcAngleMul = [&](float baseAngle) {
+					float dummyAngle = Util::NormalizeAngle(baseAngle + mat.second->Shadow.AngleOffset + rotAngle);
+					float diffAngle = Util::NormalizeAngle(cameraAngle - (vehicleAngle + dummyAngle));
+					float angleFromCenter = std::fabs(diffAngle - 180.0f);
+					if (angleFromCenter < cutoff) {
+						float normAngle = (angleFromCenter / cutoff) * 1.57079632679f;
+						maxAngleMul = std::max(maxAngleMul, std::cos(normAngle));
+					}
+				};
+
+				if (!data.Dummies[mat.first].empty()) {
+					for (auto& dummy : data.Dummies[mat.first]) {
+						if (dummy) calcAngleMul(dummy->Get().rotation.angle);
+					}
+				} else {
+					calcAngleMul(0.0f);
+				}
+				sirenMatFactor *= maxAngleMul;
+			}
+
+			if (sirenMatFactor > 0.001f) {
+				ModelInfoMgr::EnableSirenMaterial(vehicle, mat.first, sirenMatFactor);
+			}
 		}
 	});
 
