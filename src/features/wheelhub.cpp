@@ -34,21 +34,32 @@ void WheelHub::Init()
         WheelHubData& data = m_VehData.Get(pVeh);
         bool modified = false;
         
-        // Thanks to Ameer & SanVive team for their rotation fix
+        // Thanks to Ameer & SanVive team for their rotation fix (re-fixed to eliminate accumulated rotational drift)
         auto updateRotation = [&](RwFrame* ori, RwFrame* tar, bool isLeft) 
         {
-            if (tar == nullptr) return;
-            if (ori == nullptr) return;
+            if (tar == nullptr || ori == nullptr) return;
 
             RwV3d rightVec = ori->modelling.right;
             if (isLeft) RwV3dNegate(&rightVec, &rightVec);
+            RwV3dNormalize(&rightVec, &rightVec);
 
-            MatrixUtil::ForceRightVector(&tar->modelling, rightVec);
-            RwV3dNegate(&tar->modelling.up, &tar->modelling.up);
+            const RwV3d refZ = {0.0f, 0.0f, 1.0f};
 
+            RwV3d fwd;
+            RwV3dCrossProduct(&fwd, &refZ, &rightVec);
+            RwV3dNormalize(&fwd, &fwd);
+
+            RwV3d up;
+            RwV3dCrossProduct(&up, &rightVec, &fwd);
+            RwV3dNormalize(&up, &up);
+
+            tar->modelling.right = rightVec;
+            tar->modelling.up = fwd;
+            tar->modelling.at = up;
             tar->modelling.pos.z = ori->modelling.pos.z;
 
-            pVeh->UpdateRwFrame();
+            RwMatrixUpdate(&tar->modelling);
+            modified = true;
         };
 
         updateRotation(data.m_pWRF, data.m_pHRF, false);
