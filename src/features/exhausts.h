@@ -20,10 +20,10 @@ struct ExhaustData
 {
     std::string sName;
     RwFrame *pFrame = nullptr;
-    CRGBA Color = {150, 150, 150, 200}; // Dark grey default
-    float fLifeTime = 0.4f;             // Default smoke lifetime (shortened to prevent excessive rising)
+    CRGBA Color = {190, 190, 190, 75}; // Soft light grey vanilla-friendly smoke
+    float fLifeTime = 0.25f;            // Vanilla-friendly smoke lifetime
     float fSpeedMul = 1.0f;             // Speed multiplier
-    float fSizeMul = 1.0f;
+    float fSizeMul = 0.85f;             // Vanilla-friendly size multiplier
     bool bNitroEffect = true;
     FxSystem_c *pFxSysem = nullptr;
 };
