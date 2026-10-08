@@ -16,7 +16,11 @@ private:
     static inline std::unordered_map<int, std::string> modelPath;
     static inline std::vector<std::pair<std::string, ModelDataListener_t>> listeners;
 
+    static void LoadBaseData();
+    static void LoadModLoaderData();
+
 public:
+    static inline bool gbModLoaderData = true;
     static void Init();
     static void Convert();
     static void LoadFile(const std::filesystem::directory_entry &entry);

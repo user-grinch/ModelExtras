@@ -179,6 +179,7 @@ void ModelExtras::Reload()
     gVerboseLogging = gConfig.ReadBoolean("CONFIG", "VerboseLogging", false);
     AudioMgr::ReloadConfig();
     RenderUtil::ReloadConfig();
+    DataMgr::Init();
     for (const auto &pFeature : m_Features) {
         if (pFeature) {
             pFeature->ReloadConfig();
