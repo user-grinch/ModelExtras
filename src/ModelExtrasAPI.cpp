@@ -21,6 +21,7 @@
 #include "features/exhausts.h"
 #include "features/backfire.h"
 #include "features/pedcols.h"
+#include "features/neon.h"
 #include <algorithm>
 #include <cstring>
 
@@ -437,5 +438,17 @@ float ME_GetSirenPointLightMul() {
   return LightsConfig::Get().fSirenPointLightMul;
 }
 
-} // extern "C"
+// Neon API
+bool ME_HasNeonData(int modelIndex) {
+  const auto *pJson = DataMgr::Find(modelIndex);
+  return pJson && pJson->contains("neon");
+}
 
+bool ME_IsVehicleNeonActive(CVehicle *pVeh) {
+  if (!CBaseFeature::IsEnabled(eFeatureMatrix::Neon) || !pVeh) return false;
+  if (pVeh->m_fHealth <= 0.0f || pVeh->IsUpsideDown() || pVeh->bSubmergedInWater) return false;
+  if (!CarUtil::AreLightsOn(pVeh)) return false;
+  return ME_HasNeonData(pVeh->m_nModelIndex);
+}
+
+} // extern "C"

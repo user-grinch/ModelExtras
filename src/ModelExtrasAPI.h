@@ -65,6 +65,7 @@ enum ME_FeatureID
     ME_RollbackBed,
     ME_Clock,
     ME_ExtraWheels,
+    ME_Neon,
     ME_FeatureCount
 };
 
@@ -217,6 +218,10 @@ extern "C"
     // Visual & Render Configuration
     ME_WRAPPER float ME_GetPointLightIntensity();
     ME_WRAPPER float ME_GetSirenPointLightMul();
+
+    // Neon API
+    ME_WRAPPER bool ME_HasNeonData(int modelIndex);
+    ME_WRAPPER bool ME_IsVehicleNeonActive(CVehicle *pVeh);
 
 #ifdef __cplusplus
 }
