@@ -640,7 +640,7 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
 }
 
 void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, float angle,
-                                eDummyPos dummyPos, const std::string &shadwTexName,
+                                const std::string &shadwTexName,
                                 CVector2D shdwSz, CVector2D shdwOffset, RwTexture *pTexture)
 {
     EnsureConfigLoaded();
@@ -683,27 +683,8 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
     CVector up = dir * halfLen;
     CVector right = rightVec * halfWidth;
 
-    CVector nSize = {0.0f, 0.0f, 0.0f};
-    switch (dummyPos)
-    {
-    case eDummyPos::Right:
-        nSize = {shdwSz.y, 0.0f, 0.0f};
-        break;
-    case eDummyPos::Left:
-        nSize = {-shdwSz.y, 0.0f, 0.0f};
-        break;
-    case eDummyPos::Front:
-        nSize = {0.0f, shdwSz.y, 0.0f};
-        break;
-    case eDummyPos::Rear:
-        nSize = {0.0f, -shdwSz.y, 0.0f};
-        break;
-    default:
-        break;
-    }
-
-    CVector worldBase = pEntity->TransformFromObjectSpace(position + nSize);
-    CVector shdwPos = worldBase + dir * (halfLen + shdwOffset.y) + rightVec * shdwOffset.x;
+    CVector worldBase = pEntity->TransformFromObjectSpace(position);
+    CVector shdwPos = worldBase + dir * shdwOffset.y + rightVec * shdwOffset.x;
 
     if (pEntity->m_nType == ENTITY_TYPE_VEHICLE && static_cast<CVehicle *>(pEntity)->m_nVehicleSubClass == VEHICLE_BIKE)
     {
@@ -713,7 +694,7 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
         {
             pBike->CalculateLeanMatrix();
         }
-        shdwPos = pBike->m_mLeanMatrix * (position + nSize) + dir * (halfLen + shdwOffset.y) + rightVec * shdwOffset.x;
+        shdwPos = pBike->m_mLeanMatrix * position + dir * shdwOffset.y + rightVec * shdwOffset.x;
         pBike->m_bLeanMatrixCalculated = wasCalculated;
     }
     shdwPos.z = CWorld::FindGroundZFor3DCoord(shdwPos.x, shdwPos.y, shdwPos.z + 100.0f, NULL, &pEntity) + 2.0f;
