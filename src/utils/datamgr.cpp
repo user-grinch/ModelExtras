@@ -212,7 +212,15 @@ void DataMgr::LoadModLoaderData()
         return;
     }
 
-    std::filesystem::path modloaderPath = std::filesystem::path("modloader");
+    char gamePath[MAX_PATH] = {0};
+    const DWORD gamePathLength = GetModuleFileNameA(nullptr, gamePath, MAX_PATH);
+    if (gamePathLength == 0 || gamePathLength >= MAX_PATH)
+    {
+        LOG(WARNING) << "Unable to locate the game directory; skipping ModLoader data scan";
+        return;
+    }
+
+    std::filesystem::path modloaderPath = std::filesystem::path(gamePath).parent_path() / "modloader";
     std::error_code ec;
     if (!std::filesystem::exists(modloaderPath, ec) || !std::filesystem::is_directory(modloaderPath, ec))
     {
@@ -414,7 +422,8 @@ void DataMgr::LoadModLoaderData()
                 }
             }
 
-            if (model > 0 && model < 20000)
+            auto *modelInfo = model > 0 && model < 20000 ? CModelInfo::GetModelInfo(model) : nullptr;
+            if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_VEHICLE)
             {
                 ModCandidate cand;
                 cand.model = model;
