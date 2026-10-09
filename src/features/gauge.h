@@ -84,7 +84,7 @@ public:
 struct SpeedGaugeData {
   RwFrame *pFrame = nullptr;
   int iMaxSpeed = 240;
-  float fMul = 160.9f;
+  float fMul = 1.0f;
   float fCurRotation = 0.0f;
   float fMaxRotation = 260.0f;
 };

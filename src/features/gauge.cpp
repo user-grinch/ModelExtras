@@ -192,7 +192,7 @@ void SpeedGauge::Init()
             {
                 if (jsonData["gauges"][name].contains("kph"))
                 {
-                    data.vecGaugeData[name].fMul = jsonData["gauges"][name]["kph"].get<bool>() ? 160.9f : 1;
+                    data.vecGaugeData[name].fMul = jsonData["gauges"][name]["kph"].get<bool>() ? 1.0f : (1.0f / 1.609f);
                 }
                 if (jsonData["gauges"][name].contains("maxspeed"))
                 {
@@ -219,7 +219,7 @@ void SpeedGauge::Init()
             float delta = CTimer::ms_fTimeStep;
 
             for (auto& e : data.vecGaugeData) {
-                float targetRotation = (speed / (float)e.second.iMaxSpeed) * e.second.fMaxRotation;
+                float targetRotation = (speed * e.second.fMul / (float)e.second.iMaxSpeed) * e.second.fMaxRotation;
                 // Stop reverse gear from moving to opposite direction
                 if (pVeh->m_nCurrentGear == 0) {
                     targetRotation = -targetRotation;

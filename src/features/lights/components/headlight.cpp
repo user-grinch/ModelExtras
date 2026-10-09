@@ -88,6 +88,26 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         return true;
     }
 
+    if (name == "headlights_l" || name == "headlights_r") {
+        if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
+            return false;
+        }
+        DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
+        c.dummyPos = eDummyPos::Front;
+        bool isLeft = (name == "headlights_l");
+        c.lightType = isLeft ? eMaterialType::HeadLightLeft : eMaterialType::HeadLightRight;
+        c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
+        c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
+        c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
+        c.shadow.size = LightsConfig::Get().gfHeadLightShadowSize;
+        c.corona.lightingType = eLightingMode::Directional;
+        c.shadow.render = true;
+        c.mirroredX = false;
+        
+        data.dummies[c.lightType].push_back(VehicleDummy(c));
+        return true;
+    }
+
     std::string lowerName;
     lowerName.reserve(name.size());
     for (char ch : name) {

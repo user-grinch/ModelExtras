@@ -28,6 +28,8 @@ bool DRLLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
         type = eMaterialType::DayLight;
     } else if (name.starts_with("light_n")) {
         type = eMaterialType::NightLight;
+    } else if (name.starts_with("light_") && !name.starts_with("light_em")) {
+        type = eMaterialType::AllDayLight;
     } else {
         return false;
     }
