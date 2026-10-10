@@ -159,7 +159,7 @@ void ModelExtras::Init()
 
         for (CVehicle *pVeh : CPools::ms_pVehiclePool)
         {
-            if (!pVeh || pVeh->m_fHealth <= 0.0f) continue;
+            if (!pVeh) continue;
 
             for (auto *pFeature : s_ActiveVehicleFeatures)
             {

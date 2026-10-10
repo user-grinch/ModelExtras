@@ -13,8 +13,15 @@ struct SoundEffectsData
     unsigned int m_nLastReverseSoundTime = 0;
     float m_fBrakePressure = 0.0f;
     float m_fMaxPedal = 0.0f;
+    StreamHandle m_hDoorChimeStream = 0;
     SoundEffectsData(CVehicle *pVeh) {}
-    ~SoundEffectsData() {}
+    ~SoundEffectsData()
+    {
+        if (m_hDoorChimeStream)
+        {
+            AudioMgr::StopLoopStream(m_hDoorChimeStream);
+        }
+    }
 };
 
 class SoundEffects : public CVehFeature<SoundEffectsData>
