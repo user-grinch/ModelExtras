@@ -19,6 +19,7 @@ static bool g_bSirensRequireEngine = false;
 
 bool VehicleSiren::GetSirenState()
 {
+	if (!CBaseFeature::IsEnabled(eFeatureMatrix::SirenLights)) return false;
 	if (g_bSirensRequireEngine && vehicle && Util::IsEngineOff(vehicle))
 	{
 		return false;
@@ -49,6 +50,7 @@ bool IsValidSirenVehicle(RwFrame *pFrame)
 bool Sirens::hkUsesSiren(std::function<hkUsesSirenFunc> originalCall, CVehicle* ptr)
 {
 	if (!ptr) return false;
+	if (!m_bEnabled) return originalCall(ptr);
 	auto &data = m_VehData.Get(ptr);
 	if (!data.bUsesSirenChecked)
 	{
@@ -509,7 +511,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, ImVehFt property is not a boolean or number!", Sirens::CurrentModel, state, material);
 	}
 
-	Validate = true;
+	Validate = Type != eLightingMode::Rotator || Rotator != nullptr;
 };
 
 VehicleSirenState::VehicleSirenState(std::string_view state, const nlohmann::json &json)
@@ -554,6 +556,7 @@ VehicleSirenState::VehicleSirenState(std::string_view state, const nlohmann::jso
 
 		if (!Materials[materialIndex]->Validate)
 		{
+			delete Materials[materialIndex];
 			Materials.erase(materialIndex);
 
 			LOG_VERBOSE("Failed to set up state {}'s material {}, could not configure object from manifest!", state, material.key());
@@ -641,6 +644,14 @@ VehicleSirenData::VehicleSirenData(const nlohmann::json &json)
 
 void Sirens::Parse(const nlohmann::json &data, int model)
 {
+	if (!data.contains("sirens")) {
+		auto it = modelData.find(model);
+		if (it != modelData.end()) {
+			delete it->second;
+			modelData.erase(it);
+		}
+		return;
+	}
 	if (data.contains("sirens"))
 	{
 		CurrentModel = model;
@@ -743,6 +754,7 @@ static float CalculateRotatorAngle(const VehicleSirenMaterial *material, uint64_
 
 void Sirens::Init()
 {
+    if (!m_bActive) return;
 	DataMgr::RegisterListener("sirens", [](int model, const nlohmann::json &data) {
 		Sirens::Parse(data, model);
 	});
@@ -849,6 +861,7 @@ void Sirens::Init()
 
 	Events::processScriptsEvent += []()
 	{
+		if (!m_bEnabled) return;
 		CVehicle *vehicle = FindPlayerVehicle(-1, false);
 		if (vehicle)
 		{
@@ -1045,7 +1058,7 @@ void Sirens::Init()
 
 	ModelInfoMgr::RegisterRender([](CVehicle *vehicle)
 	{
-		if (!vehicle || vehicle->m_fHealth <= 0.0f) {
+		if (!m_bEnabled || !vehicle || vehicle->m_fHealth <= 0.0f) {
 			return;
 		}
 
