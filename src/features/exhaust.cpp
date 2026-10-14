@@ -51,6 +51,8 @@ void __fastcall ExhaustFx::hkAddExhaustParticles2(CVehicle *pVeh)
 
 char __fastcall ExhaustFx::hkDoNitroEffect1(CAutomobile* pVeh, float power)
 {
+    if (!pVeh) return 0;
+    if (!CBaseFeature::IsEnabled(eFeatureMatrix::ExhaustFx)) return ogNitro1 ? ogNitro1(pVeh, power) : 0;
     auto& data = m_VehData.Get(pVeh);
     if (pVeh->m_fGasPedal > 0.05f && pVeh->m_fNitroValue < 0.0f) {
         data.lastNitroFrame = CTimer::m_FrameCounter;
@@ -64,6 +66,8 @@ char __fastcall ExhaustFx::hkDoNitroEffect1(CAutomobile* pVeh, float power)
 
 char __fastcall ExhaustFx::hkDoNitroEffect2(CAutomobile* pVeh, float power)
 {
+    if (!pVeh) return 0;
+    if (!CBaseFeature::IsEnabled(eFeatureMatrix::ExhaustFx)) return ogNitro2 ? ogNitro2(pVeh, power) : 0;
     auto& data = m_VehData.Get(pVeh);
     if (pVeh->m_fGasPedal > 0.05f && pVeh->m_fNitroValue < 0.0f) {
         data.lastNitroFrame = CTimer::m_FrameCounter;
@@ -77,6 +81,8 @@ char __fastcall ExhaustFx::hkDoNitroEffect2(CAutomobile* pVeh, float power)
 
 char __fastcall ExhaustFx::hkDoNitroEffect3(CAutomobile* pVeh, float power)
 {
+    if (!pVeh) return 0;
+    if (!CBaseFeature::IsEnabled(eFeatureMatrix::ExhaustFx)) return ogNitro3 ? ogNitro3(pVeh, power) : 0;
     auto& data = m_VehData.Get(pVeh);
     if (data.isUsed) {
         return 1;
