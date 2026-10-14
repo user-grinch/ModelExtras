@@ -40,6 +40,7 @@ void RotateDoor::Init()
     ModelInfoMgr::RegisterDummy([](CVehicle* pVeh, RwFrame* pFrame, const std::string_view name)
     {
         if (!name.starts_with("x_rd_")) return;
+        if (!pVeh || !pFrame) return;
 
         auto& jsonData = DataMgr::Get(pVeh->m_nModelIndex);
         RotateDoorData& data = m_VehData.Get(pVeh);
