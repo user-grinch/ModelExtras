@@ -179,24 +179,26 @@ void Neon::Init()
         if (!pVeh || pVeh->m_nType != ENTITY_TYPE_VEHICLE || !pVeh->m_pRwClump) return;
         if (pVeh->m_fHealth <= 0.0f || pVeh->IsUpsideDown() || pVeh->bSubmergedInWater) return;
 
-        bool isLightsActive = CarUtil::AreLightsOn(pVeh);
-        if (!isLightsActive)
-        {
-            auto &lData = LightManager::m_VehData.Get(pVeh);
-            if (lData.bLongLightsOn || lData.bFogLightsOn)
-            {
-                isLightsActive = true;
-            }
-        }
-        if (!isLightsActive) return;
-
         const auto *pJson = DataMgr::Find(pVeh->m_nModelIndex);
         if (!pJson || !pJson->contains("neon")) return;
         const auto &sec = (*pJson)["neon"];
+        const bool requiresLights = !sec.is_object() || !sec.contains("requires_lights")
+            || !sec["requires_lights"].is_boolean() || sec["requires_lights"].get<bool>();
+        if (requiresLights)
+        {
+            bool isLightsActive = CarUtil::AreLightsOn(pVeh);
+            if (!isLightsActive)
+            {
+                auto &lData = LightManager::m_VehData.Get(pVeh);
+                isLightsActive = lData.bLongLightsOn || lData.bFogLightsOn;
+            }
+            if (!isLightsActive) return;
+        }
 
         NeonMode mode = NeonMode::Static;
         CRGBA col(255, 255, 255, 255);
         CVector2D size(1.0f, 1.0f);
+        CVector2D offset(0.0f, 0.0f);
         bool smooth = true;
         float speed = 1.0f;
 
@@ -240,6 +242,11 @@ void Neon::Init()
                     size.x = sec["size"].value("x", 1.0f);
                     size.y = sec["size"].value("y", 1.0f);
                 }
+            }
+            if (sec.contains("offset") && sec["offset"].is_object())
+            {
+                offset.x = sec["offset"].value("x", 0.0f);
+                offset.y = sec["offset"].value("y", 0.0f);
             }
         }
         else
@@ -336,7 +343,8 @@ void Neon::Init()
         CVector up = upDir * ((maxB.y - minB.y) * 0.5f * size.y);
         CVector right = rightDir * ((maxB.x - minB.x) * 0.5f * size.x);
 
-        CVector center = pVeh->TransformFromObjectSpace(CVector((minB.x + maxB.x) * 0.5f, (minB.y + maxB.y) * 0.5f, 0.0f));
+        CVector center = pVeh->TransformFromObjectSpace(CVector((minB.x + maxB.x) * 0.5f + offset.x,
+                                                                (minB.y + maxB.y) * 0.5f + offset.y, 0.0f));
         CVector shdwPos(center.x, center.y, pVeh->GetPosition().z + 1.5f);
 
         RwTexture *pTex = TextureMgr::Get("neon");
