@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 struct GearIndicatorData {
-  uint iCurrent = 0;
+  uint iCurrent = UINT_MAX;
   RwFrame *pRoot = nullptr;
   std::vector<RwFrame *> vecFrameList;
 };

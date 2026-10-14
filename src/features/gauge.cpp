@@ -36,9 +36,9 @@ void GearIndicator::Init()
         for (auto&e : data.vecIndicatorData) {
             if (!e.vecFrameList.empty() &&  pVeh->m_nCurrentGear != e.iCurrent) {
                 FrameUtil::HideAllChilds(e.pRoot);
-                if (e.iCurrent >= 0 && static_cast<size_t>(e.iCurrent) < e.vecFrameList.size())
+                if (static_cast<size_t>(pVeh->m_nCurrentGear) < e.vecFrameList.size())
                 {
-                    FrameUtil::ShowAllAtomics(e.vecFrameList[e.iCurrent]);
+                    FrameUtil::ShowAllAtomics(e.vecFrameList[pVeh->m_nCurrentGear]);
                 }
                 e.iCurrent = pVeh->m_nCurrentGear;
             }
@@ -294,6 +294,7 @@ void FixedGauge::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
     {
+        if (!pVeh || !pFrame) return;
         if (nodeName.starts_with("x_gauge_fixed") || nodeName == "x_gasmeter" || nodeName == "x_gm" || nodeName == "petrolok") {
             auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
 
