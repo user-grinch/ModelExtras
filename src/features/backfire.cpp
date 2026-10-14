@@ -177,6 +177,7 @@ void BackFireEffect::EnsureSystemsCreated(CVehicle *pVeh, BackfireData &data)
 
 void BackFireEffect::BackFireSingle(CVehicle *pVeh, bool bPlaySound)
 {
+    if (!pVeh || !pVeh->m_pRwClump || !CBaseFeature::IsEnabled(eFeatureMatrix::BackfireEffect)) return;
     BackfireData &data = m_VehData.Get(pVeh);
     EnsureSystemsCreated(pVeh, data);
 
@@ -225,6 +226,7 @@ void BackFireEffect::BackFireSingle(CVehicle *pVeh, bool bPlaySound)
 
 void BackFireEffect::BackFireMulti(CVehicle *pVeh, bool bPlaySound)
 {
+    if (!pVeh || !pVeh->m_pRwClump || !CBaseFeature::IsEnabled(eFeatureMatrix::BackfireEffect)) return;
     int num = RandomNumberInRange(0, 3) - 1;
 
     BackFireSingle(pVeh, bPlaySound);
@@ -244,11 +246,20 @@ bool onlySelected = false;
 
 void BackFireEffect::ReloadConfig()
 {
+    bool previous = m_bActive, previousFilter = onlySelected;
+    auto previousModels = ValidModels;
     CBaseFeature::ReloadConfig();
     std::string line = gConfig.ReadString("TABLE", "BackFireEffect_VehicleModels", "");
     onlySelected = gConfig.ReadBoolean("FEATURES", "BackfireEffect_OnlySelectedModels", true);
     ValidModels.clear();
     Util::GetModelsFromIni(line, ValidModels);
+    if (CPools::ms_pVehiclePool && (previous != m_bActive || previousFilter != onlySelected || previousModels != ValidModels))
+        for (auto *vehicle : CPools::ms_pVehiclePool) if (vehicle) {
+            auto &data = m_VehData.Get(vehicle);
+            data.CleanUpSystems();
+            data.wasFullThrottled = false; data.m_nleftFires = 0;
+            data.lastSoundizeGear = 0; data.prevTimer = CTimer::m_snTimeInMilliseconds;
+        }
 }
 
 void BackFireEffect::Init()
@@ -269,6 +280,7 @@ void BackFireEffect::Init()
 // Inspired by Junior's https://www.mixmods.com.br/2016/06/backfire-als-v2-5-mod-estalar-escapamento/
 void BackFireEffect::Process(CVehicle *pVeh)
 {
+    if (!pVeh || !pVeh->m_pRwClump || !CBaseFeature::IsEnabled(eFeatureMatrix::BackfireEffect)) return;
     if (!CBaseFeature::IsEnabled(eFeatureMatrix::BackfireEffect))
     {
         return;
