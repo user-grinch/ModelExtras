@@ -40,9 +40,16 @@
 constexpr uint32_t TEST_CHEAT = 0x0ADC;
 
 bool gbProperShadersDetected = false;
+static bool liveReload = true, modelVersionCheck = true;
+void ModelExtras::ReloadConfig() {
+    liveReload = gConfig.ReadBoolean("CONFIG", "EnableLiveReload", true);
+    modelVersionCheck = gConfig.ReadBoolean("CONFIG", "ModelVersionCheck", true);
+    gVerboseLogging = gConfig.ReadBoolean("CONFIG", "VerboseLogging", false);
+}
 
 void ModelExtras::Init()
 {
+    ReloadConfig();
     AudioMgr::Init();
     ModelInfoMgr::Init();
     RwFrameExtension::Init();
@@ -68,11 +75,10 @@ void ModelExtras::Init()
         }
     };
 
-    if (gConfig.ReadBoolean("CONFIG", "EnableLiveReload", true))
     {
         Events::processScriptsEvent += []()
         {
-            if (plugin::Command<TEST_CHEAT>("MERELOAD"))
+            if (liveReload && plugin::Command<TEST_CHEAT>("MERELOAD"))
             {
                 Reload();
             }
@@ -80,10 +86,10 @@ void ModelExtras::Init()
     };
 
 
-    if (gConfig.ReadBoolean("CONFIG", "ModelVersionCheck", true))
     {
         Events::vehicleSetModelEvent.after += [](CVehicle *pVeh, int model)
         {
+            if (!modelVersionCheck || !pVeh) return;
             auto &jsonData = DataMgr::Get(model);
             const nlohmann::json *pMeta = nullptr;
             if (jsonData.contains("metadata")) pMeta = &jsonData["metadata"];
@@ -178,9 +184,11 @@ void ModelExtras::Reload()
 {
     gConfig.data.clear();
     gConfig.SetIniPath();
-    gVerboseLogging = gConfig.ReadBoolean("CONFIG", "VerboseLogging", false);
+    ReloadConfig();
     AudioMgr::ReloadConfig();
     RenderUtil::ReloadConfig();
+    LightsConfig::Get().InitConfig();
+    ModelInfoMgr::ReloadConfig();
     DataMgr::Init();
     for (const auto &pFeature : m_Features) {
         if (pFeature) {
