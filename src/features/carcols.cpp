@@ -113,6 +113,7 @@ bool Carcols::GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA &col)
 
 void Carcols::Parse(const nlohmann::json &data, int model)
 {
+    variations.erase(model);
     if (data.contains("carcols"))
     {
         auto &cols = data["carcols"]["colors"];
