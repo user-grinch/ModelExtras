@@ -11,12 +11,22 @@ using namespace plugin;
 #define RwRGBAGetRGB(a) (*(DWORD *)&(a) & 0xFFFFFF)
 
 void PedColors::SetEditableMaterials(RpClump *pClump) {
+	if (!pClump || !m_pCurrentPed) return;
 	RpClumpForAllAtomics(pClump, [](RpAtomic * pAtomic, void *data) {
-		if (rwObjectGetFlags(pAtomic) & rpATOMICRENDER) {
+        if (!pAtomic || !pAtomic->geometry) return pAtomic;
+        auto &state = PedColors::m_PedData.Get(PedColors::m_pCurrentPed);
+        if (state.m_Colors.size() < 4) return pAtomic;
+        if (rwObjectGetFlags(pAtomic) & rpATOMICRENDER) {
+            auto end = state.m_OriginalFlags.end();
+            if (std::find_if(state.m_OriginalFlags.begin(), end, [=](const auto &e) { return e.first == pAtomic->geometry; }) == end) {
+                if (state.m_OriginalFlags.size() == state.m_OriginalFlags.capacity()) return pAtomic;
+                state.m_OriginalFlags.emplace_back(pAtomic->geometry, (pAtomic->geometry->flags & rpGEOMETRYMODULATEMATERIALCOLOR) != 0);
+            }
 			RpGeometryForAllMaterials(pAtomic->geometry, [](RpMaterial *pMaterial, void* data) {
-				if (PedColors::m_pCurrentPed) {
+				if (pMaterial && PedColors::m_pCurrentPed) {
 					int idx = 0;
 					auto &data = PedColors::m_PedData.Get(PedColors::m_pCurrentPed);
+                    if (std::any_of(data.m_OriginalColors.begin(), data.m_OriginalColors.end(), [=](const auto &e) { return e.first == &pMaterial->color; })) return pMaterial;
 					switch (RwRGBAGetRGB(pMaterial->color))
 					{
 					case 0x00FF3C:
@@ -34,7 +44,8 @@ void PedColors::SetEditableMaterials(RpClump *pClump) {
 					default:
 						return pMaterial;
 					}
-					data.m_OriginalColors.push_back(std::make_pair(&pMaterial->color, pMaterial->color));
+					if (data.m_OriginalColors.size() == data.m_OriginalColors.capacity()) return pMaterial;
+					data.m_OriginalColors.emplace_back(&pMaterial->color, pMaterial->color);
 					pMaterial->color.red = data.m_Colors[idx].r;
 					pMaterial->color.green = data.m_Colors[idx].g;
 					pMaterial->color.blue = data.m_Colors[idx].b;
@@ -49,9 +60,22 @@ void PedColors::SetEditableMaterials(RpClump *pClump) {
 	}, nullptr);
 }
 
-PedData::PedData(CPed *pPed) {
+void PedData::Init(CPed *pPed) {
+    m_bUsingPedCols = false;
+    m_Colors.clear();
+    if (!pPed || !pPed->m_pRwClump) return;
+    struct Counts { size_t materials = 0, atomics = 0; } counts;
+    RpClumpForAllAtomics(pPed->m_pRwClump, [](RpAtomic *atomic, void *context) {
+        if (atomic && atomic->geometry) {
+            auto &counts = *static_cast<Counts *>(context);
+            ++counts.atomics; counts.materials += RpGeometryGetNumMaterials(atomic->geometry);
+        }
+        return atomic;
+    }, &counts);
+    m_OriginalColors.reserve(counts.materials);
+    m_OriginalFlags.reserve(counts.atomics);
 	uint32_t model = pPed->m_nModelIndex;
-	auto jsonData = DataMgr::Get(model);
+	const auto &jsonData = DataMgr::Get(model);
 
 	if (jsonData.contains("pedcols")) {
 		const auto& pedCols = jsonData["pedcols"];
@@ -90,14 +114,14 @@ PedData::PedData(CPed *pPed) {
 
 void PedColors::Init() {
 	Events::pedSetModelEvent.after += [](CPed *pPed, int model) {
+		if (!pPed) return;
 		auto &data = PedColors::m_PedData.Get(pPed);
-		if (!data.m_bInitialized) {
-			data.m_bInitialized = true;
-		}
+        data.Init(pPed);
+        data.m_bInitialized = true;
 	};
 
 	Events::pedRenderEvent.before += [](CPed *pPed) {
-		if (!CBaseFeature::IsEnabled(eFeatureMatrix::PedCols)) return;
+		if (!pPed || !pPed->m_pRwClump || !CBaseFeature::IsEnabled(eFeatureMatrix::PedCols)) return;
 		auto &data = PedColors::m_PedData.Get(pPed);
 		if (data.m_bUsingPedCols) {
 			PedColors::m_pCurrentPed = pPed;
@@ -106,10 +130,12 @@ void PedColors::Init() {
 	};
 
 	Events::pedRenderEvent.after += [](CPed *pPed) {
+        if (!pPed) return;
 		auto &data = PedColors::m_PedData.Get(pPed);
-		for (auto &e : data.m_OriginalColors) {
-			*e.first = e.second;
-		}
-		data.m_OriginalColors.clear();
+        for (auto &e : data.m_OriginalColors) if (e.first) *e.first = e.second;
+        for (auto &[geometry, enabled] : data.m_OriginalFlags)
+            if (geometry) geometry->flags = enabled ? geometry->flags | rpGEOMETRYMODULATEMATERIALCOLOR : geometry->flags & ~rpGEOMETRYMODULATEMATERIALCOLOR;
+        data.m_OriginalColors.clear(); data.m_OriginalFlags.clear();
+        PedColors::m_pCurrentPed = nullptr;
 	};
 }

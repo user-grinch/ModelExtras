@@ -15,11 +15,13 @@ public:
     std::vector<RpMaterial*> materials;
     std::vector<CRGBA> m_Colors;
     std::vector<std::pair<RwRGBA*, RwRGBA>> m_OriginalColors;
+    std::vector<std::pair<RpGeometry*, bool>> m_OriginalFlags;
     bool m_bUsingPedCols = false;
     bool m_bInitialized = false;
     int randId = -1;
 
-    PedData(CPed *pPed);
+    PedData(CPed *) {}
+    void Init(CPed *pPed);
     ~PedData() {}
 };
 
