@@ -5,6 +5,7 @@
 
 struct SpotlightData
 {
+    FeatureFrameState frameState;
 	RwFrame *pFrame = nullptr;
 	RwV3d origPos{0.0f, 0.0f, 0.0f};
 	bool bHasOrigPos = false;
@@ -17,6 +18,7 @@ struct SpotlightData
 class SpotLights : public CVehFeature<SpotlightData>
 {
 protected:
+    void OnToggle(CVehicle *vehicle, bool enabled) override;
     void Init() override;
 
 public:

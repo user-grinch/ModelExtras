@@ -242,6 +242,7 @@ public:
     Sirens() : CVehFeature<VehicleSiren>("SirenLights", "FEATURES", eFeatureMatrix::SirenLights) {}
     static inline int CurrentModel = -1;
 
+    static void EnsureDummies(CVehicle *vehicle);
     static void Parse(const nlohmann::json &data, int model);
     void ReloadConfig() override;
     void Reload(CVehicle* pVeh) override;
@@ -280,6 +281,7 @@ private:
     static void __fastcall hkUsesSirenAudio(CAEVehicleAudioEntity* pThis, void* edx, bool* pbSiren, bool* pbAlarm, class cVehicleParams* pParams);
     static void __fastcall hkServiceHornOrSiren(CAEVehicleAudioEntity* pThis, void* edx, bool bHorn, bool bSiren, bool bAlarm, class cVehicleParams* pParams);
 
+    static void RegisterDummy(CVehicle *vehicle, RwFrame *frame, std::string_view nodeName);
     static void RegisterMaterial(CVehicle *vehicle, RpMaterial *material);
     static void EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, VehicleSirenMaterial *material, eCoronaFlareType type, uint64_t time);
     static void ProcessPointLights(CVehicle *pVeh);

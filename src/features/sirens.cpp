@@ -676,6 +676,36 @@ void Sirens::Parse(const nlohmann::json &data, int model)
 	}
 }
 
+void Sirens::RegisterDummy(CVehicle *vehicle, RwFrame *frame, const std::string_view nodeName)
+{
+    if (!vehicle || !frame || !rwLinkListEmpty(&frame->objectList) || !modelData.contains(vehicle->m_nModelIndex)) return;
+    auto &data = m_VehData.Get(vehicle);
+    data.vehicle = vehicle;
+    int id = Util::GetDigitsAfter(nodeName, "siren_").value_or(-1);
+    id = Util::GetDigitsAfter(nodeName, "siren").value_or(id);
+    id = Util::GetDigitsAfter(nodeName, "light_em").value_or(id);
+    if (id != -1) {
+        DummyConfig config;
+        config.pVeh = vehicle;
+        config.frame = frame;
+        data.Dummies[id].push_back(new VehicleDummy(config));
+    }
+}
+
+void Sirens::EnsureDummies(CVehicle *vehicle)
+{
+    if (!vehicle || !vehicle->m_pRwClump || !modelData.contains(vehicle->m_nModelIndex)) return;
+    auto &data = m_VehData.Get(vehicle);
+    if (!data.Dummies.empty()) return;
+    const auto visit = [&](auto &&self, RwFrame *frame) -> void {
+        for (; frame; frame = frame->next) {
+            RegisterDummy(vehicle, frame, GetSafeFrameNodeName(frame));
+            self(self, frame->child);
+        }
+    };
+    visit(visit, RpClumpGetFrame(vehicle->m_pRwClump));
+}
+
 void Sirens::EventCtor(CVehicle *pVeh)
 {
 	if (Sirens::modelData.contains(pVeh->m_nModelIndex))
@@ -830,29 +860,7 @@ void Sirens::Init()
 		return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
 	});
 
-	ModelInfoMgr::RegisterDummy([](CVehicle *vehicle, RwFrame *frame, const std::string_view nodeName)
-	{
-		if (frame && !rwLinkListEmpty(&frame->objectList)) {
-			return;
-		}
-		if (!modelData.contains(vehicle->m_nModelIndex)) {
-			return;
-		}
-
-		auto &data = m_VehData.Get(vehicle);
-		data.vehicle = vehicle;
-
-		int id = Util::GetDigitsAfter(nodeName, "siren_").value_or(-1);
-		id = Util::GetDigitsAfter(nodeName, "siren").value_or(id);
-		id = Util::GetDigitsAfter(nodeName, "light_em").value_or(id);
-
-		if (id != -1) {
-			DummyConfig config;
-			config.pVeh = vehicle;
-			config.frame = frame;
-			data.Dummies[id].push_back(new VehicleDummy(config));
-		}
-	});
+	ModelInfoMgr::RegisterDummy(RegisterDummy);
 
 	Events::vehicleCtorEvent += [](CVehicle *pVeh)
 	{

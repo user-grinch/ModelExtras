@@ -11,6 +11,7 @@ class VehicleDummy
 {
 private:
     DummyConfig data;
+    DummyConfig defaults;
 
 public:
     VehicleDummy() = default;
@@ -60,4 +61,5 @@ public:
     }
 
     void Update();
+    void RefreshConfig();
 };

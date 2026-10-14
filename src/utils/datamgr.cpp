@@ -670,3 +670,21 @@ void DataMgr::RegisterListener(std::string_view name, ModelDataListener_t listen
         listener(model, jsonData);
     }
 }
+
+void DataMgr::SetPreview(int model, const nlohmann::json &value)
+{
+    if (model > 0 && model < 20000 && value.is_object()) data[model] = value;
+}
+
+void DataMgr::RemovePreview(int model)
+{
+    data.erase(model);
+}
+
+void DataMgr::NotifyChanged(int model, std::string_view feature)
+{
+    const auto *value = Find(model);
+    static const auto empty = nlohmann::json::object();
+    for (const auto &[name, listener] : listeners)
+        if (listener && name == feature) listener(model, value ? *value : empty);
+}

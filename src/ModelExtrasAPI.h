@@ -1,5 +1,5 @@
 /*
- * API provided for ModelExtras v3.0 Release
+ * API provided for ModelExtras v3.1 Release
  */
 
 #pragma once
