@@ -621,9 +621,6 @@ static std::optional<CRGBA> GetJsonMaterialOnColor(const nlohmann::json& lights,
     if (!key || !lights.contains(key)) return std::nullopt;
     const auto& sec = lights[key];
     const auto* pCol = sec.contains("material") && sec["material"].contains("color") ? &sec["material"]["color"]
-                     : sec.contains("material") && sec["material"].contains("color_on") ? &sec["material"]["color_on"]
-                     : sec.contains("color_on") ? &sec["color_on"]
-                     : sec.contains("color") ? &sec["color"]
                      : nullptr;
     if (pCol) {
         return Helper_ParseLightColor(*pCol, pRoot);
@@ -635,7 +632,6 @@ static std::optional<CRGBA> GetJsonOffColor(const nlohmann::json& lights, const 
     if (!key || !lights.contains(key)) return std::nullopt;
     const auto& sec = lights[key];
     const auto* pSec = sec.contains("material") && sec["material"].contains("color_off") ? &sec["material"]["color_off"]
-                     : sec.contains("color_off") ? &sec["color_off"]
                      : nullptr;
     if (pSec) {
         return Helper_ParseLightColor(*pSec, pRoot);
@@ -671,17 +667,6 @@ MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type)
         if (type == eMaterialType::SpotLight) { checkSec(lights, "spotlights"); checkSec(lights, "spot_light"); }
         if (type == eMaterialType::StrobeLight) { checkSec(lights, "strobes"); checkSec(lights, "strobe"); checkSec(lights, "strobe_light"); }
         if (grpKey) checkSec(lights, grpKey);
-    }
-
-    if (type == eMaterialType::SpotLight) {
-        if (json.contains("spotlights")) {
-            if (!onCol) onCol = Helper_ParseLightColor(json["spotlights"].contains("color") ? json["spotlights"]["color"] : json["spotlights"], &json);
-            if (!offCol && json["spotlights"].contains("color_off")) offCol = Helper_ParseLightColor(json["spotlights"]["color_off"], &json);
-        }
-        if (json.contains("spotlight")) {
-            if (!onCol) onCol = Helper_ParseLightColor(json["spotlight"].contains("color") ? json["spotlight"]["color"] : json["spotlight"], &json);
-            if (!offCol && json["spotlight"].contains("color_off")) offCol = Helper_ParseLightColor(json["spotlight"]["color_off"], &json);
-        }
     }
 
     if (json.contains("leds") && specKey) {

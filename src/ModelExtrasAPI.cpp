@@ -384,8 +384,7 @@ bool ME_GetPlateColors(CVehicle *pVeh, ME_Color *onColor, ME_Color *offColor) {
   auto parseCol = [](const nlohmann::json &sec, const char *key, ME_Color *outCol) -> bool {
     if (!outCol) return false;
     const nlohmann::json *val = nullptr;
-    if (sec.contains(key)) val = &sec[key];
-    else if (sec.contains("material") && sec["material"].contains(key)) val = &sec["material"][key];
+    if (sec.contains("material") && sec["material"].contains(key)) val = &sec["material"][key];
     if (!val) return false;
     if (val->is_array() && val->size() >= 3) {
       outCol->r = (*val)[0].get<uint8_t>();
@@ -1474,12 +1473,10 @@ bool ME_GetPlateConfig(int modelIndex, ME_Color *outOnColor, ME_Color *outOffCol
   bool foundOn = false;
   bool foundOff = false;
   if (outOnColor) {
-    if (pSec->contains("color")) foundOn = ParseJsonColor((*pSec)["color"], *outOnColor, pJson);
-    else if (pSec->contains("material") && (*pSec)["material"].contains("color")) foundOn = ParseJsonColor((*pSec)["material"]["color"], *outOnColor, pJson);
+    if (pSec->contains("material") && (*pSec)["material"].contains("color")) foundOn = ParseJsonColor((*pSec)["material"]["color"], *outOnColor, pJson);
   }
   if (outOffColor) {
-    if (pSec->contains("color_off")) foundOff = ParseJsonColor((*pSec)["color_off"], *outOffColor, pJson);
-    else if (pSec->contains("material") && (*pSec)["material"].contains("color_off")) foundOff = ParseJsonColor((*pSec)["material"]["color_off"], *outOffColor, pJson);
+    if (pSec->contains("material") && (*pSec)["material"].contains("color_off")) foundOff = ParseJsonColor((*pSec)["material"]["color_off"], *outOffColor, pJson);
   }
   return foundOn || foundOff;
 }

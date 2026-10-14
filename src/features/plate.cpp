@@ -37,11 +37,7 @@ static const nlohmann::json *FindPlateJson(int modelIndex)
 static std::optional<CRGBA> ParsePlateColor(const nlohmann::json &sec, const char *key)
 {
     const nlohmann::json *val = nullptr;
-    if (sec.contains(key))
-    {
-        val = &sec[key];
-    }
-    else if (sec.contains("material") && sec["material"].contains(key))
+    if (sec.contains("material") && sec["material"].contains(key))
     {
         val = &sec["material"][key];
     }
