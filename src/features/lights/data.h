@@ -138,7 +138,6 @@ struct VehLightData {
     std::array<std::vector<VehicleDummy>, eMaterialType::TotalMaterial> dummies;
     
     bool bLightStates[eMaterialType::TotalMaterial];
-    unsigned int nHeadlightTickFrame = 0;
     bool bHasVehFuncsPopUp = false;
     bool bAutoNightLights = false;
     unsigned int nHeadlightsTurnedOnTime = 0;
@@ -179,7 +178,6 @@ struct VehLightData {
                 vec.clear();
             }
             std::copy(std::begin(other.bLightStates), std::end(other.bLightStates), std::begin(bLightStates));
-            nHeadlightTickFrame = other.nHeadlightTickFrame;
         }
         return *this;
     }

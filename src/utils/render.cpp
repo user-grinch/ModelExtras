@@ -196,7 +196,7 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
         }
     }
 
-    bool isLeft = (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->position.x < 0.0f);
+    bool isLeft = (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HighBeamLeft || pConfig->position.x < 0.0f);
     eLights lightEnum = isLeft ? eLights::LIGHT_FRONT_LEFT : eLights::LIGHT_FRONT_RIGHT;
     ePanels wingEnum = isLeft ? ePanels::WING_FRONT_LEFT : ePanels::WING_FRONT_RIGHT;
     if (Util::IsLightDamaged(pConfig->pVeh, lightEnum) || Util::IsPanelDamaged(pConfig->pVeh, wingEnum))
@@ -281,7 +281,7 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
     bool isSirenFlashing = pConfig->pVeh->bSirenOrAlarm;
 
     // Front Left
-    if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::FogLightLeft)
+    if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HighBeamLeft || pConfig->lightType == eMaterialType::FogLightLeft)
     {
         if (Util::IsLightDamaged(pConfig->pVeh, eLights::LIGHT_FRONT_LEFT) || Util::IsPanelDamaged(pConfig->pVeh, ePanels::WING_FRONT_LEFT))
             return;
@@ -292,7 +292,7 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
             return;
     }
     // Front Right
-    else if (pConfig->lightType == eMaterialType::HeadLightRight || pConfig->lightType == eMaterialType::FogLightRight)
+    else if (pConfig->lightType == eMaterialType::HeadLightRight || pConfig->lightType == eMaterialType::HighBeamRight || pConfig->lightType == eMaterialType::FogLightRight)
     {
         if (Util::IsLightDamaged(pConfig->pVeh, eLights::LIGHT_FRONT_RIGHT) || Util::IsPanelDamaged(pConfig->pVeh, ePanels::WING_FRONT_RIGHT))
             return;
@@ -442,6 +442,7 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
     {
         float targetAngle = angle;
         if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight
+            || pConfig->lightType == eMaterialType::HighBeamLeft || pConfig->lightType == eMaterialType::HighBeamRight
             || pConfig->lightType == eMaterialType::IndicatorLightLeftFront || pConfig->lightType == eMaterialType::IndicatorLightRightFront)
             targetAngle = 0.0f;
         else if (pConfig->lightType == eMaterialType::TailLightLeft || pConfig->lightType == eMaterialType::TailLightRight
@@ -481,7 +482,7 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
 
     float distMul = coronaDistMul;
     if (distMul < 0.0f && pConfig) {
-        if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight) {
+        if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight || pConfig->lightType == eMaterialType::HighBeamLeft || pConfig->lightType == eMaterialType::HighBeamRight) {
             distMul = gfHeadLightCoronaDistanceMul;
         } else if (pConfig->lightType == eMaterialType::TailLightLeft || pConfig->lightType == eMaterialType::TailLightRight ||
                    pConfig->lightType == eMaterialType::BrakeLightLeft || pConfig->lightType == eMaterialType::BrakeLightRight ||
@@ -503,6 +504,8 @@ static int GetShadowIntensity(eMaterialType lightType)
     {
     case eMaterialType::HeadLightLeft:
     case eMaterialType::HeadLightRight:
+    case eMaterialType::HighBeamLeft:
+    case eMaterialType::HighBeamRight:
         intensity = gnHeadLightShadowIntensity;
         break;
     case eMaterialType::TailLightLeft:
@@ -541,7 +544,7 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
 
     extern bool gbProperShadersDetected;
     extern bool gbLightPointLights;
-    if (gbProperShadersDetected && (gbLightPointLights || pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight))
+    if (gbProperShadersDetected && (gbLightPointLights || pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight || pConfig->lightType == eMaterialType::HighBeamLeft || pConfig->lightType == eMaterialType::HighBeamRight))
     {
         return;
     }
