@@ -523,7 +523,6 @@ static std::optional<CRGBA> GetJsonOffColor(const nlohmann::json& lights, const 
     if (!key || !lights.contains(key)) return std::nullopt;
     const auto& sec = lights[key];
     const auto* pSec = sec.contains("material") && sec["material"].contains("color_off") ? &sec["material"]["color_off"]
-                     : sec.contains("color_off") ? &sec["color_off"]
                      : nullptr;
     if (pSec) {
         return CRGBA(pSec->value("red", 255), pSec->value("green", 255), pSec->value("blue", 255), 255);
