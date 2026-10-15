@@ -69,7 +69,8 @@ void Remap::EnsureRemapsLoaded(int modelIndex)
     // Group textures into base -> [base, remap1, remap2, ...]
     for (const auto &[name, pTex] : allTextures)
     {
-        if (name.starts_with("#") || name.starts_with("remap"))
+        if (name.starts_with("#") || name.starts_with("remap") ||
+            name.ends_with("_dt") || name.ends_with("_dirt") || name.ends_with("_d"))
             continue;
 
         std::size_t remapPos = name.find("_remap");
