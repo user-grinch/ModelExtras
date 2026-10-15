@@ -20,6 +20,8 @@ namespace BassAPI
     using tBASS_ChannelSetAttribute = BOOL(WINAPI *)(DWORD, DWORD, float);
     using tBASS_ChannelIsActive = DWORD(WINAPI *)(DWORD);
     using tBASS_StreamFree = BOOL(WINAPI *)(HSTREAM);
+    using tBASS_Pause = BOOL(WINAPI *)();
+    using tBASS_Start = BOOL(WINAPI *)();
 
     static tBASS_Init fnInit = nullptr;
     static tBASS_StreamCreateFile fnStreamCreate = nullptr;
@@ -28,6 +30,8 @@ namespace BassAPI
     static tBASS_ChannelSetAttribute fnChannelSetAttr = nullptr;
     static tBASS_ChannelIsActive fnChannelIsActive = nullptr;
     static tBASS_StreamFree fnStreamFree = nullptr;
+    static tBASS_Pause fnPause = nullptr;
+    static tBASS_Start fnStart = nullptr;
 
     static bool bReady = false;
 
@@ -53,6 +57,8 @@ namespace BassAPI
             fnChannelSetAttr = (tBASS_ChannelSetAttribute)GetProcAddress(hBass, "BASS_ChannelSetAttribute");
             fnChannelIsActive = (tBASS_ChannelIsActive)GetProcAddress(hBass, "BASS_ChannelIsActive");
             fnStreamFree = (tBASS_StreamFree)GetProcAddress(hBass, "BASS_StreamFree");
+            fnPause = (tBASS_Pause)GetProcAddress(hBass, "BASS_Pause");
+            fnStart = (tBASS_Start)GetProcAddress(hBass, "BASS_Start");
 
             if (fnInit && fnStreamCreate && fnChannelPlay && fnChannelPause && fnChannelSetAttr && fnChannelIsActive && fnStreamFree)
             {
@@ -70,8 +76,8 @@ static float gfSoundMult = 1.0f;
 
 void AudioMgr::ReloadConfig()
 {
-    gbSoundEffectsEnabled = gConfig.ReadBoolean("SOUND", "SoundEffects", gConfig.ReadBoolean("FEATURES", "SoundEffects", false));
-    gfSoundMult = gConfig.ReadFloat("SOUND", "SoundMult", gConfig.ReadFloat("TWEAKS", "SoundMult", 0.6f));
+    gbSoundEffectsEnabled = gConfig.ReadBoolean("SOUND", "SoundEffects", false);
+    gfSoundMult = gConfig.ReadFloat("SOUND", "SoundMult", 0.6f);
 }
 
 void AudioMgr::Init()
@@ -94,39 +100,36 @@ void AudioMgr::Init()
         needToFree.clear();
     };
 
-    Events::processScriptsEvent += []
+    Events::drawingEvent += []
     {
         static bool bWasPaused = false;
-        bool bIsPaused = CTimer::m_UserPause || CTimer::m_CodePause;
+        bool bIsPaused = !Util::IsWindowFocused() || *(bool *)0xBA67A4 || CTimer::m_UserPause || CTimer::m_CodePause;
 
         if (bIsPaused != bWasPaused)
         {
             bWasPaused = bIsPaused;
-            if (BassAPI::bReady && BassAPI::fnChannelPause && BassAPI::fnChannelPlay && BassAPI::fnChannelIsActive)
+            if (BassAPI::bReady)
             {
-                for (auto stream : needToFree)
+                if (bIsPaused)
                 {
-                    if (stream)
+                    if (BassAPI::fnPause)
                     {
-                        if (bIsPaused)
-                        {
-                            if (BassAPI::fnChannelIsActive(stream) == 1 /* BASS_ACTIVE_PLAYING */)
-                            {
-                                BassAPI::fnChannelPause(stream);
-                            }
-                        }
-                        else
-                        {
-                            if (BassAPI::fnChannelIsActive(stream) == 3 /* BASS_ACTIVE_PAUSED */)
-                            {
-                                BassAPI::fnChannelPlay(stream, FALSE);
-                            }
-                        }
+                        BassAPI::fnPause();
+                    }
+                }
+                else
+                {
+                    if (BassAPI::fnStart)
+                    {
+                        BassAPI::fnStart();
                     }
                 }
             }
         }
+    };
 
+    Events::processScriptsEvent += []
+    {
         static size_t prev = 0;
         size_t cur = CTimer::m_snTimeInMilliseconds;
 
@@ -169,7 +172,15 @@ void AudioMgr::PlaySwitchSound(CEntity *pEntity)
 
 bool AudioMgr::ShouldPlaySound()
 {
-    return gbSoundEffectsEnabled;
+    if (!gbSoundEffectsEnabled)
+    {
+        return false;
+    }
+    if (!Util::IsWindowFocused() || *(bool *)0xBA67A4 || CTimer::m_UserPause || CTimer::m_CodePause)
+    {
+        return false;
+    }
+    return true;
 }
 
 void AudioMgr::Play3DSound(const std::string &path, const CVector &worldPos, CEntity *pEntity, float baseVolume, float maxDistance)
@@ -203,7 +214,7 @@ void AudioMgr::Play3DSound(const std::string &path, const CVector &worldPos, CEn
         CVector toSound = worldPos - TheCamera.GetPosition();
         CVector camRight = TheCamera.m_mCameraMatrix.right;
         float rightDot = (toSound.x * camRight.x + toSound.y * camRight.y + toSound.z * camRight.z) / dist;
-        pan = std::clamp(rightDot, -1.0f, 1.0f);
+        pan = std::clamp(-rightDot, -1.0f, 1.0f);
     }
 
     // Calibrated volume scaling with in-game SFX master volume (0xBA6797)
@@ -293,7 +304,7 @@ std::string AudioMgr::GetSirenAudioPath(int modeIndex)
     return "";
 }
 
-StreamHandle AudioMgr::PlaySirenStream(const std::string &path, const CVector &worldPos, float baseVolume, float maxDistance)
+StreamHandle AudioMgr::PlayLoopStream(const std::string &path, const CVector &worldPos, float baseVolume, float maxDistance)
 {
     if (path.empty() || !BassAPI::bReady || !BassAPI::fnStreamCreate || !BassAPI::fnChannelPlay)
     {
@@ -321,7 +332,7 @@ StreamHandle AudioMgr::PlaySirenStream(const std::string &path, const CVector &w
         CVector toSound = worldPos - TheCamera.GetPosition();
         CVector camRight = TheCamera.m_mCameraMatrix.right;
         float rightDot = (toSound.x * camRight.x + toSound.y * camRight.y + toSound.z * camRight.z) / dist;
-        pan = std::clamp(rightDot, -1.0f, 1.0f);
+        pan = std::clamp(-rightDot, -1.0f, 1.0f);
     }
 
     constexpr float INV_64 = 1.0f / 64.0f;
@@ -349,7 +360,7 @@ StreamHandle AudioMgr::PlaySirenStream(const std::string &path, const CVector &w
     return 0;
 }
 
-void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, float baseVolume, float maxDistance)
+void AudioMgr::UpdateLoopStream(StreamHandle stream, const CVector &worldPos, float baseVolume, float maxDistance)
 {
     if (!stream || !BassAPI::bReady || !BassAPI::fnChannelSetAttr || !BassAPI::fnChannelIsActive)
     {
@@ -358,6 +369,12 @@ void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, f
 
     if (BassAPI::fnChannelIsActive(stream) != 1 /* BASS_ACTIVE_PLAYING */)
     {
+        return;
+    }
+
+    if (!ShouldPlaySound())
+    {
+        BassAPI::fnChannelSetAttr(stream, 2 /* BASS_ATTRIB_VOL */, 0.0f);
         return;
     }
 
@@ -377,7 +394,7 @@ void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, f
         CVector toSound = worldPos - TheCamera.GetPosition();
         CVector camRight = TheCamera.m_mCameraMatrix.right;
         float rightDot = (toSound.x * camRight.x + toSound.y * camRight.y + toSound.z * camRight.z) / dist;
-        pan = std::clamp(rightDot, -1.0f, 1.0f);
+        pan = std::clamp(-rightDot, -1.0f, 1.0f);
     }
 
     constexpr float INV_64 = 1.0f / 64.0f;
@@ -388,7 +405,7 @@ void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, f
     BassAPI::fnChannelSetAttr(stream, 3 /* BASS_ATTRIB_PAN */, pan);
 }
 
-void AudioMgr::StopSirenStream(StreamHandle &stream)
+void AudioMgr::StopLoopStream(StreamHandle &stream)
 {
     if (!stream)
     {
@@ -412,4 +429,19 @@ void AudioMgr::StopSirenStream(StreamHandle &stream)
         needToFree.erase(it);
     }
     stream = 0;
+}
+
+StreamHandle AudioMgr::PlaySirenStream(const std::string &path, const CVector &worldPos, float baseVolume, float maxDistance)
+{
+    return PlayLoopStream(path, worldPos, baseVolume, maxDistance);
+}
+
+void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, float baseVolume, float maxDistance)
+{
+    UpdateLoopStream(stream, worldPos, baseVolume, maxDistance);
+}
+
+void AudioMgr::StopSirenStream(StreamHandle &stream)
+{
+    StopLoopStream(stream);
 }
