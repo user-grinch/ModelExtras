@@ -31,7 +31,9 @@ target("ModelExtras")
         "NOMINMAX",
         "WIN32_LEAN_AND_MEAN",
         "_USE_MATH_DEFINES",
-        "_CRT_SECURE_NO_WARNINGS"
+        "_CRT_SECURE_NO_WARNINGS",
+        "IMGUI_DISABLE_DEBUG_TOOLS",
+        "IMGUI_DISABLE_DEFAULT_FONT_BITMAP"
     )
 
     if PLUGIN_SDK_DIR then
@@ -56,6 +58,7 @@ target("ModelExtras")
     add_includedirs(
         ".",
         "include", 
+        "include/imgui",
         "src", 
         "src/features"
     )
@@ -65,7 +68,7 @@ target("ModelExtras")
     )
 
     add_syslinks(
-        "user32"
+        "user32", "d3d9", "dwmapi"
     )
 
     set_warnings("all")
@@ -172,3 +175,42 @@ task("dev")
         os.execv("xmake", {"project", "-k", "compile_commands"})
     end)
 
+if os.isfile("tests/studio.cpp") then
+target("StudioTests")
+    set_kind("binary")
+    set_default(false)
+    set_plat("windows")
+    set_arch("x86")
+    set_languages("c++latest")
+    add_defines("NOMINMAX", "WIN32_LEAN_AND_MEAN")
+    add_includedirs("include", "src")
+    add_files("tests/studio.cpp")
+    set_runtimes("MT")
+end
+
+if os.isfile("tests/studio_dx9.cpp") then
+target("StudioDx9Tests")
+    set_kind("binary")
+    set_default(false)
+    set_plat("windows")
+    set_arch("x86")
+    set_languages("c++latest")
+    add_defines("NOMINMAX", "WIN32_LEAN_AND_MEAN", "IMGUI_DISABLE_DEFAULT_FONT_BITMAP")
+    add_includedirs("include/imgui", "include")
+    add_files("tests/studio_dx9.cpp", "include/imgui/imgui*.cpp",
+              "include/imgui/backends/imgui_impl_dx9.cpp", "include/imgui/backends/imgui_impl_win32.cpp", "include/imgui/misc/cpp/imgui_stdlib.cpp")
+    add_syslinks("user32", "d3d9", "dwmapi", "gdi32", "imm32")
+    set_runtimes("MT")
+end
+
+if os.isfile("tests/frame_state.cpp") and os.isfile("tests/frame_state_stubs/RenderWare.h") then
+target("FeatureStateTests")
+    set_kind("binary")
+    set_default(false)
+    set_plat("windows")
+    set_arch("x86")
+    set_languages("c++latest")
+    add_includedirs("tests/frame_state_stubs", "src")
+    add_files("tests/frame_state.cpp", "src/features/core/frame_state.cpp")
+    set_runtimes("MT")
+end

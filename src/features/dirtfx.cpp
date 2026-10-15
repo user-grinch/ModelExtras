@@ -16,6 +16,7 @@ void DirtFx::ReloadConfig()
 void DirtFx::Init()
 {
 	ReloadConfig();
+    if (!m_bEnabled) return;
 	
 	if (injector::GetBranchDestination(0x6D0E7E).as_int() != 0x5D5DB0) LOG(ERROR) << "Address conflict on 0x6D0E7E";
 	patch::Nop(0x6D0E7E, 5);

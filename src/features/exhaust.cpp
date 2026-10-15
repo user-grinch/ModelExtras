@@ -495,6 +495,23 @@ void ExhaustFx::Reload(CVehicle* pVeh)
     nReloadCount++;
 }
 
+void ExhaustFx::RefreshConfig(CVehicle *pVeh)
+{
+    if (!pVeh || !pVeh->m_pRwClump) return;
+    auto &data = m_VehData.Get(pVeh);
+    for (auto &[name, info] : data.m_pDummies) {
+        if (!info.pFrame) continue;
+        auto next = LoadData(pVeh, info.pFrame);
+        next.pFxSysem = info.pFxSysem;
+        if (!next.bNitroEffect && next.pFxSysem) {
+            next.pFxSysem->Kill();
+            next.pFxSysem = nullptr;
+        }
+        info = std::move(next);
+    }
+    data.reloadCount = nReloadCount;
+}
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -559,3 +576,9 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
+
+void ExhaustFx::OnToggle(CVehicle *vehicle, bool enabled) {
+    if (enabled) return;
+    for (auto &[name, e] : m_VehData.Get(vehicle).m_pDummies)
+        if (e.pFxSysem) { e.pFxSysem->Kill(); e.pFxSysem = nullptr; }
+}
