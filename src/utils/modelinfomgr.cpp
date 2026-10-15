@@ -348,6 +348,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
     return material;
   }
 
+  RwTexture *baseTexture = material->texture;
   if (material->texture) {
     const char *texName = material->texture->name;
     bool isRemapTex = (texName && texName[0] == '#');
@@ -358,7 +359,6 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
       }
     } else if (pCurVeh) {
       Remap::ProcessTextures(pCurVeh, material);
-      DirtFx::ProcessTextures(pCurVeh, material);
       LicensePlate::ProcessTextures(pCurVeh, material);
     }
   }
@@ -448,6 +448,9 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
     }
   }
 
+  // Resolve light textures using their original TXD before substituting a
+  // generated dirt texture, which deliberately has no dictionary.
+  DirtFx::ProcessTextures(pCurVeh, material, baseTexture);
   return material;
 }
 
