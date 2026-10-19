@@ -235,7 +235,7 @@ void IndicatorComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
 
     if (!BlinkerState::Get().bIndicatorsDelay || data.nIndicatorState == eIndicatorState::Off) return;
 
-    auto damage = LightDamageState::Get(pControlVeh, pTowedVeh);
+    auto damage = LightDamageState::Get(pControlVeh);
     bool isLeftFrontOk = damage.isFrontLeftOk;
     bool isRightFrontOk = damage.isFrontRightOk;
     bool isLeftRearOk = damage.isRearLeftOk;
@@ -249,34 +249,26 @@ void IndicatorComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehL
         float shdwSz = 2.0f;
 
         if (data.nIndicatorState == eIndicatorState::BothOn || data.nIndicatorState == eIndicatorState::LeftOn) {
-            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::IndicatorLightLeftFront, true, "indicator", 1.0f, false, isLeftFrontOk);
+            LightManager::RenderLight(pControlVeh, data, eMaterialType::IndicatorLightLeftFront, true, "indicator", 1.0f, false, isLeftFrontOk);
             LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::IndicatorLightLeftMiddle, true, "indicator", 1.0f, false, isLeftMiddleOk);
             LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::IndicatorLightLeftRear, true, "indicator", 1.0f, false, isLeftRearOk);
-            if (isLeftRearOk) {
-                LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::STTLightLeft, true, shdwName, shdwSz, true, isLeftRearOk);
-            }
+            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::STTLightLeft, true, shdwName, shdwSz, true, isLeftRearOk);
         }
 
         if (data.nIndicatorState == eIndicatorState::BothOn || data.nIndicatorState == eIndicatorState::RightOn) {
-            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::IndicatorLightRightFront, true, "indicator", 1.0f, false, isRightFrontOk);
+            LightManager::RenderLight(pControlVeh, data, eMaterialType::IndicatorLightRightFront, true, "indicator", 1.0f, false, isRightFrontOk);
             LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::IndicatorLightRightMiddle, true, "indicator", 1.0f, false, isRightMiddleOk);
             LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::IndicatorLightRightRear, true, "indicator", 1.0f, false, isRightRearOk);
-            if (isRightRearOk) {
-                LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::STTLightRight, true, shdwName, shdwSz, true, isRightRearOk);
-            }
+            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::STTLightRight, true, shdwName, shdwSz, true, isRightRearOk);
         }
     }
 
     if (data.nIndicatorState == eIndicatorState::BothOn || data.nIndicatorState == eIndicatorState::LeftOn) {
-        if (isLeftRearOk) {
-            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::NABrakeLightLeft, true, "indicator", 1.0f, false, isLeftRearOk);
-        }
+        LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::NABrakeLightLeft, true, "indicator", 1.0f, false, isLeftRearOk);
     }
 
     if (data.nIndicatorState == eIndicatorState::BothOn || data.nIndicatorState == eIndicatorState::RightOn) {
-        if (isRightRearOk) {
-            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::NABrakeLightRight, true, "indicator", 1.0f, false, isRightRearOk);
-        }
+        LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::NABrakeLightRight, true, "indicator", 1.0f, false, isRightRearOk);
     }
 }
 

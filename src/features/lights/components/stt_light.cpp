@@ -41,7 +41,7 @@ void STTLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLi
         || pControlVeh->m_nVehicleSubClass == VEHICLE_QUAD || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE
         || pControlVeh->m_nVehicleSubClass == VEHICLE_TRAILER) 
     {
-        auto damage = LightDamageState::Get(pControlVeh, pTowedVeh);
+        auto damage = LightDamageState::Get(pControlVeh);
         bool isLeftRearOk = damage.isRearLeftOk;
         bool isRightRearOk = damage.isRearRightOk;
 
@@ -58,12 +58,8 @@ void STTLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLi
         bool tailOn = tailLightFlag || indicatorOn;
         
         if (brakeOn || tailOn) {
-            if (isLeftRearOk) {
-                LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::STTLightLeft, true, shdwName, shdwSz, false, isLeftRearOk);
-            }
-            if (isRightRearOk) {
-                LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::STTLightRight, true, shdwName, shdwSz, false, isRightRearOk);
-            }
+            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::STTLightLeft, true, shdwName, shdwSz, false, isLeftRearOk);
+            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::STTLightRight, true, shdwName, shdwSz, false, isRightRearOk);
         }
     }
 }

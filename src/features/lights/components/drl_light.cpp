@@ -45,12 +45,12 @@ bool DRLLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
 
 void DRLLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
     if (LightsConfig::Get().bLightsRequireEngine && Util::IsEngineOff(pControlVeh)) return;
-    LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::AllDayLight, true, "indicator", 1.85f);
+    LightManager::RenderLight(pControlVeh, data, eMaterialType::AllDayLight, true, "indicator", 1.85f);
     if (!Util::IsNightTime()) {
-        LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::DayLight, true, "indicator", 1.85f);
+        LightManager::RenderLight(pControlVeh, data, eMaterialType::DayLight, true, "indicator", 1.85f);
     }
     if (Util::IsNightTime()) {
-        LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::NightLight, true, "indicator", 1.85f);
+        LightManager::RenderLight(pControlVeh, data, eMaterialType::NightLight, true, "indicator", 1.85f);
     }
 }
 

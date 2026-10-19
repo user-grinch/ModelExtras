@@ -3,6 +3,7 @@
 #include "utils/audiomgr.h"
 #include "utils/render.h"
 #include "defines.h"
+#include "../damage.h"
 
 void FogLightComponent::RegisterMaterials(std::unordered_map<uint32_t, eMaterialType>& matMap) {
     matMap[VEHCOL_FOGLIGHT_LEFT.ToInt()] = eMaterialType::FogLightLeft;
@@ -53,9 +54,9 @@ void FogLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLi
     bool isFogLightOn = (data.bFogLightsOn || isFoggy) && (!LightsConfig::Get().bFoglightTiedToHeadlight || !CarUtil::IsLightsForcedOff(pControlVeh));
 
     if (!isFogLightOn || !shouldRenderFog) return;
-    bool isFogOk = !Util::IsPanelDamaged(pControlVeh, ePanels::BUMP_FRONT);
-    LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::FogLightLeft, true, "foglight", 3.0f, false, isFogOk);
-    LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::FogLightRight, true, "foglight", 3.0f, false, isFogOk);
+    auto damage = LightDamageState::Get(pControlVeh);
+    LightManager::RenderLight(pControlVeh, data, eMaterialType::FogLightLeft, true, "foglight", 3.0f, false, damage.isHeadlightLeftOk);
+    LightManager::RenderLight(pControlVeh, data, eMaterialType::FogLightRight, true, "foglight", 3.0f, false, damage.isHeadlightRightOk);
 }
 
 void FogLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
@@ -71,7 +72,7 @@ void FogLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {
             bool isLeft = (type == eMaterialType::FogLightLeft);
             eLights lightEnum = isLeft ? eLights::LIGHT_FRONT_LEFT : eLights::LIGHT_FRONT_RIGHT;
             ePanels wingEnum = isLeft ? ePanels::WING_FRONT_LEFT : ePanels::WING_FRONT_RIGHT;
-            if (Util::IsLightDamaged(pVeh, lightEnum) || Util::IsPanelDamaged(pVeh, wingEnum) || Util::IsPanelDamaged(pVeh, ePanels::BUMP_FRONT)) {
+            if (Util::IsLightDamaged(pVeh, lightEnum) || Util::IsPanelDamaged(pVeh, wingEnum)) {
                 continue;
             }
 

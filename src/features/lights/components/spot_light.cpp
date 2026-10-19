@@ -26,6 +26,6 @@ void SpotLightComponent::Process(CVehicle* pVeh, VehLightData& data) {}
 
 void SpotLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
     if (SpotLights::IsEnabled(pControlVeh)) {
-        LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::SpotLight, false, "", 1.0f, false, true, true);
+        LightManager::RenderLight(pControlVeh, data, eMaterialType::SpotLight, false, "", 1.0f, false, true, true);
     }
 }
