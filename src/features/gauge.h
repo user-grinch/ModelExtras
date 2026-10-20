@@ -12,6 +12,7 @@ struct GearIndicatorData {
 
 struct VehGearData
 {
+    FeatureFrameState frameState;
   bool bInitialized = false;
   std::vector<GearIndicatorData> vecIndicatorData;
 
@@ -22,6 +23,7 @@ struct VehGearData
 class GearIndicator : public CVehFeature<VehGearData>
 {
 protected:
+    void OnToggle(CVehicle *vehicle, bool enabled) override;
   void Init() override;
 
 public:
@@ -39,6 +41,7 @@ struct MileageIndicatorData {
 
 struct VehMileageData
 {
+    FeatureFrameState frameState;
   bool bInitialized = false;
   std::unordered_map<std::string, MileageIndicatorData> vecIndicatorData;
 
@@ -49,6 +52,7 @@ struct VehMileageData
 class MileageIndicator : public CVehFeature<VehMileageData>
 {
 protected:
+    void OnToggle(CVehicle *vehicle, bool enabled) override;
   void Init() override;
 
 public:
@@ -65,6 +69,7 @@ struct RPMGaugeData {
 
 struct VehRPMData
 {
+    FeatureFrameState frameState;
   bool bInitialized = false;
   std::unordered_map<std::string, RPMGaugeData> vecGaugeData;
 
@@ -75,6 +80,7 @@ struct VehRPMData
 class RPMGauge : public CVehFeature<VehRPMData>
 {
 protected:
+    void OnToggle(CVehicle *vehicle, bool enabled) override;
   void Init() override;
 
 public:
@@ -91,6 +97,7 @@ struct SpeedGaugeData {
 
 struct VehSpeedData
 {
+    FeatureFrameState frameState;
   bool bInitialized = false;
   std::unordered_map<std::string, SpeedGaugeData> vecGaugeData;
 
@@ -101,6 +108,7 @@ struct VehSpeedData
 class SpeedGauge : public CVehFeature<VehSpeedData>
 {
 protected:
+    void OnToggle(CVehicle *vehicle, bool enabled) override;
   void Init() override;
 
 public:
@@ -117,6 +125,7 @@ struct TurboGaugeData {
 
 struct VehTurboData
 {
+    FeatureFrameState frameState;
   bool bInitialized = false;
   std::unordered_map<std::string, TurboGaugeData> vecGaugeData;
 
@@ -127,17 +136,30 @@ struct VehTurboData
 class TurboGauge : public CVehFeature<VehTurboData>
 {
 protected:
+    void OnToggle(CVehicle *vehicle, bool enabled) override;
   void Init() override;
 
 public:
   TurboGauge() : CVehFeature<VehTurboData>("AnimatedTurboMeter", "FEATURES", eFeatureMatrix::AnimatedTurboMeter) {}
 };
 
-class FixedGauge : public CBaseFeature
+struct FixedGaugeData {
+  RwFrame *frame = nullptr;
+  float fraction = 0.0f;
+  float angle = 0.0f;
+};
+struct VehFixedGaugeData {
+    FeatureFrameState frameState;
+  std::vector<FixedGaugeData> gauges;
+  VehFixedGaugeData(CVehicle *) {}
+};
+
+class FixedGauge : public CVehFeature<VehFixedGaugeData>
 {
 protected:
+  void OnToggle(CVehicle *vehicle, bool enabled) override;
   void Init() override;
 
 public:
-  FixedGauge() : CBaseFeature("AnimatedGasMeter", "FEATURES", eFeatureMatrix::AnimatedGasMeter) {}
+  FixedGauge() : CVehFeature<VehFixedGaugeData>("AnimatedGasMeter", "FEATURES", eFeatureMatrix::AnimatedGasMeter) {}
 };

@@ -53,6 +53,7 @@ void ExtraWheel::Init()
         std::string_view prefix = name.substr(0, 10);
         auto itExtra = extraMap.find(prefix);
         if (itExtra != extraMap.end()) {
+            CaptureState(pVeh, pFrame);
             data.pExtras[(int)itExtra->second].push_back(pFrame);
         }
     });

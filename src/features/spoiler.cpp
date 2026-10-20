@@ -38,6 +38,7 @@ void Spoiler::Init()
             spoilerData.m_nTime = 3000.0f;
         }
 
+        CaptureState(pVeh, pFrame);
         spoilerData.m_pFrame = pFrame;
 
         auto &jsonData = DataMgr::Get(pVeh->m_nModelIndex);
@@ -89,4 +90,8 @@ void Spoiler::Init()
            MatrixUtil::SetRotationXAbsolute(&e.m_pFrame->modelling, e.m_fCurrentRotation);
            RwMatrixUpdate(&e.m_pFrame->modelling);
         } });
+}
+void Spoiler::OnToggle(CVehicle *vehicle, bool enabled) {
+    if (enabled) return;
+    for (auto &e : m_VehData.Get(vehicle).m_Spoilers) e.m_fCurrentRotation = 0.0f;
 }

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "core/base.h"
 #include "loader.h"
+#include "gui/studio_policy.h"
 #include "ini/ini.hpp"
 #include <format>
 
@@ -34,6 +35,7 @@ bool CBaseFeature::IsEnabled(eFeatureMatrix featureId) {
 }
 
 void CBaseFeature::ReloadConfig() {
+    if (StudioPolicy::RestartReason(m_configSection, m_name)) return;
     m_bActive = IsActive();
     if (m_featureId <= eFeatureMatrix::FeatureCount) {
         ModelExtras::m_bEnabledFeatures.set(static_cast<int>(m_featureId), m_bActive);

@@ -76,7 +76,7 @@ static uint32_t g_nRollbackBedToggleKey = 'K';
 
 void RollbackBed::ReloadConfig()
 {
-    CBaseFeature::ReloadConfig();
+    CVehFeature::ReloadConfig();
     g_nRollbackBedToggleKey = gConfig.ReadInteger("KEYS", "RollbackBedToggleKey", 'K');
 }
 
@@ -95,6 +95,7 @@ void RollbackBed::Init()
             return;
         }
         
+        CaptureState(pVeh, pFrame);
         RollbackBedData &data = m_VehData.Get(pVeh);
 
         if (nodeName == "x_rb_bed")
@@ -194,4 +195,10 @@ void RollbackBed::Init()
             }
         }
     };
+}
+void RollbackBed::OnToggle(CVehicle *vehicle, bool enabled) {
+    if (enabled) return;
+    auto &data = m_VehData.Get(vehicle);
+    data.bExpanded = false; data.fBedCurRot = data.fHyCurRot = 0.0f;
+    for (auto &e : data.m_Pistons) e.fCurMove = e.fLastMove = 0.0f;
 }

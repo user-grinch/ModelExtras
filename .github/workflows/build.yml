@@ -3,9 +3,9 @@ name: Build ModelExtras
 
 on:
   push:
-    branches: [main]
+    branches: [main, test, imgui-workshop]
   pull_request:
-    branches: [main]
+    branches: [main, test, imgui-workshop]
   workflow_dispatch:
     inputs:
       build_type:
