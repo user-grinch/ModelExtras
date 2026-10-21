@@ -152,6 +152,18 @@ void ME_SetFogLights(CVehicle *pVeh, bool on) {
   }
 }
 
+bool ME_GetHighBeam(CVehicle *pVeh) {
+  if (!pVeh) return false;
+  auto &data = LightManager::m_VehData.Get(pVeh);
+  return data.bLongLightsOn;
+}
+
+void ME_SetHighBeam(CVehicle *pVeh, bool on) {
+  if (!pVeh) return;
+  auto &data = LightManager::m_VehData.Get(pVeh);
+  data.bLongLightsOn = on;
+  data.fHighBeamFactor = on ? 1.0f : 0.0f;
+}
 
 float ME_GetLightInertia(CVehicle *pVeh, ME_LightID lightId) {
   if (!pVeh) return 0.0f;
@@ -211,10 +223,10 @@ bool ME_IsLightDamaged(CVehicle *pVeh, ME_LightID lightId, int dummyIndex) {
   if (dummyIndex >= 0 && dummyIndex < static_cast<int>(data.dummies[matType].size())) {
     return CarUtil::IsDummyDamaged(pVeh, data.dummies[matType][dummyIndex]->GetRef());
   }
-  if (matType == eMaterialType::HeadLightLeft) return CarUtil::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT);
-  if (matType == eMaterialType::HeadLightRight) return CarUtil::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT);
-  if (matType == eMaterialType::TailLightLeft || matType == eMaterialType::BrakeLightLeft) return CarUtil::IsLightDamaged(pVeh, eLights::LIGHT_REAR_LEFT);
-  if (matType == eMaterialType::TailLightRight || matType == eMaterialType::BrakeLightRight) return CarUtil::IsLightDamaged(pVeh, eLights::LIGHT_REAR_RIGHT);
+  if (matType == eMaterialType::HeadLightLeft || matType == eMaterialType::HighBeamLeft) return CarUtil::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_LEFT) || CarUtil::IsPanelDamaged(pVeh, ePanels::WING_FRONT_LEFT);
+  if (matType == eMaterialType::HeadLightRight || matType == eMaterialType::HighBeamRight) return CarUtil::IsLightDamaged(pVeh, eLights::LIGHT_FRONT_RIGHT) || CarUtil::IsPanelDamaged(pVeh, ePanels::WING_FRONT_RIGHT);
+  if (matType == eMaterialType::TailLightLeft || matType == eMaterialType::BrakeLightLeft || matType == eMaterialType::ReverseLightLeft) return CarUtil::IsLightDamaged(pVeh, eLights::LIGHT_REAR_LEFT) || CarUtil::IsPanelDamaged(pVeh, ePanels::WING_REAR_LEFT);
+  if (matType == eMaterialType::TailLightRight || matType == eMaterialType::BrakeLightRight || matType == eMaterialType::ReverseLightRight) return CarUtil::IsLightDamaged(pVeh, eLights::LIGHT_REAR_RIGHT) || CarUtil::IsPanelDamaged(pVeh, ePanels::WING_REAR_RIGHT);
   return false;
 }
 
@@ -956,6 +968,9 @@ float ME_GetLightShadowDistance() {
   return RenderUtil::GetLightShadowDistance();
 }
 
+float ME_GetHighBeamPointLightMul() {
+  return LightsConfig::Get().fHighBeamPointLightMul;
+}
 
 float ME_GetSirenPointLightMul() {
   return LightsConfig::Get().fSirenPointLightMul;
