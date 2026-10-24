@@ -134,6 +134,8 @@ struct VehLightData {
     eIndicatorState nIndicatorState = eIndicatorState::Off;
     bool bUsingGlobalIndicators = false;
     bool bWasAutoSteerActive = false;
+    uint32_t nAutoSteerStartTime = 0;
+    eIndicatorState nAutoSteerPendingDir = eIndicatorState::Off;
     
     std::array<std::vector<VehicleDummy>, eMaterialType::TotalMaterial> dummies;
     
@@ -168,6 +170,8 @@ struct VehLightData {
             nIndicatorState = other.nIndicatorState;
             bUsingGlobalIndicators = other.bUsingGlobalIndicators;
             bWasAutoSteerActive = other.bWasAutoSteerActive;
+            nAutoSteerStartTime = other.nAutoSteerStartTime;
+            nAutoSteerPendingDir = other.nAutoSteerPendingDir;
             bHasVehFuncsPopUp = other.bHasVehFuncsPopUp;
             bAutoNightLights = other.bAutoNightLights;
             nHeadlightsTurnedOnTime = other.nHeadlightsTurnedOnTime;
@@ -195,6 +199,9 @@ struct VehLightData {
         bAutoNightLights = false;
         nHeadlightsTurnedOnTime = 0;
         bPrevHeadlightsOn = false;
+        bWasAutoSteerActive = false;
+        nAutoSteerStartTime = 0;
+        nAutoSteerPendingDir = eIndicatorState::Off;
     }
     
     ~VehLightData() {

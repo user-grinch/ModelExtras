@@ -118,27 +118,55 @@ void IndicatorComponent::Process(CVehicle* pVeh, VehLightData& data) {
         if (InputMgr::IsKeyJustDown(LightsConfig::Get().nIndicatorNoneKey)) {
             data.nIndicatorState = eIndicatorState::Off;
             BlinkerState::Get().Reset();
+            data.bWasAutoSteerActive = false;
+            data.nAutoSteerPendingDir = eIndicatorState::Off;
+            data.nAutoSteerStartTime = 0;
         } else if (InputMgr::IsKeyJustDown(LightsConfig::Get().nIndicatorLeftKey)) {
             data.nIndicatorState = eIndicatorState::LeftOn;
+            data.bWasAutoSteerActive = false;
+            data.nAutoSteerPendingDir = eIndicatorState::Off;
+            data.nAutoSteerStartTime = 0;
         } else if (InputMgr::IsKeyJustDown(LightsConfig::Get().nIndicatorRightKey)) {
             data.nIndicatorState = eIndicatorState::RightOn;
+            data.bWasAutoSteerActive = false;
+            data.nAutoSteerPendingDir = eIndicatorState::Off;
+            data.nAutoSteerStartTime = 0;
         } else if (InputMgr::IsKeyJustDown(LightsConfig::Get().nIndicatorBothKey)) {
             data.nIndicatorState = eIndicatorState::BothOn;
+            data.bWasAutoSteerActive = false;
+            data.nAutoSteerPendingDir = eIndicatorState::Off;
+            data.nAutoSteerStartTime = 0;
         }
 
         if (LightsConfig::Get().bAutoIndicatorsOnSteer && data.nIndicatorState != eIndicatorState::BothOn) {
             bool bSteerLeft = (pVeh->m_fSteerAngle > 0.08f) || Util::IsKeyPressed('A') || Util::IsKeyPressed(VK_LEFT);
             bool bSteerRight = (pVeh->m_fSteerAngle < -0.08f) || Util::IsKeyPressed('D') || Util::IsKeyPressed(VK_RIGHT);
 
-            if (bSteerLeft && !bSteerRight) {
-                data.nIndicatorState = eIndicatorState::LeftOn;
-                data.bWasAutoSteerActive = true;
-            } else if (bSteerRight && !bSteerLeft) {
-                data.nIndicatorState = eIndicatorState::RightOn;
-                data.bWasAutoSteerActive = true;
-            } else if (data.bWasAutoSteerActive) {
-                data.nIndicatorState = eIndicatorState::Off;
-                data.bWasAutoSteerActive = false;
+            eIndicatorState targetDir = eIndicatorState::Off;
+            if (bSteerLeft && !bSteerRight) targetDir = eIndicatorState::LeftOn;
+            else if (bSteerRight && !bSteerLeft) targetDir = eIndicatorState::RightOn;
+
+            constexpr uint32_t AUTO_STEER_DELAY_MS = 450;
+
+            if (targetDir != eIndicatorState::Off) {
+                if (data.nAutoSteerPendingDir != targetDir) {
+                    data.nAutoSteerPendingDir = targetDir;
+                    data.nAutoSteerStartTime = CTimer::m_snTimeInMilliseconds;
+                    if (data.bWasAutoSteerActive) {
+                        data.nIndicatorState = eIndicatorState::Off;
+                        data.bWasAutoSteerActive = false;
+                    }
+                } else if (CTimer::m_snTimeInMilliseconds - data.nAutoSteerStartTime >= AUTO_STEER_DELAY_MS) {
+                    data.nIndicatorState = targetDir;
+                    data.bWasAutoSteerActive = true;
+                }
+            } else {
+                data.nAutoSteerPendingDir = eIndicatorState::Off;
+                data.nAutoSteerStartTime = 0;
+                if (data.bWasAutoSteerActive) {
+                    data.nIndicatorState = eIndicatorState::Off;
+                    data.bWasAutoSteerActive = false;
+                }
             }
         }
     } else if (pVeh->m_pDriver && !bSAMP) {
