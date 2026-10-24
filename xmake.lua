@@ -1,25 +1,26 @@
 set_project("ModelExtras")
 
-add_rules("mode.debug", "mode.releasedbg", "mode.release")
+add_rules("mode.debug", "mode.release")
 set_defaultmode("release")
 
 local PLUGIN_SDK_DIR = os.getenv("PLUGIN_SDK_DIR")
-if not PLUGIN_SDK_DIR or not os.isdir(PLUGIN_SDK_DIR) then
-    if os.isdir("plugin-sdk") then
-        PLUGIN_SDK_DIR = "plugin-sdk"
-    elseif os.isdir("D:/Dev/plugin-sdk") then
-        PLUGIN_SDK_DIR = "D:/Dev/plugin-sdk"
+if not (PLUGIN_SDK_DIR and os.isdir(PLUGIN_SDK_DIR)) then
+    for _, dir in ipairs({"plugin-sdk", "../plugin-sdk", "../../plugin-sdk"}) do
+        if os.isdir(dir) then
+            PLUGIN_SDK_DIR = path.absolute(dir)
+            break
+        end
     end
 end
+
 local GAME_DIR = os.getenv("GTASA_DIR") or "D:/Games/GTA San Andreas"
 
 target("ModelExtras")
     set_kind("shared")
-    set_extension(".asi")
+    set_filename("ModelExtras.asi")
     set_languages("c++latest")
     set_arch("x86")
     set_plat("windows")
-    set_filename("ModelExtras.asi")
 
     set_pcxxheader("src/pch.h")
 
@@ -30,34 +31,24 @@ target("ModelExtras")
         "RW",
         "NOMINMAX",
         "WIN32_LEAN_AND_MEAN",
-        "_USE_MATH_DEFINES",
-        "_CRT_SECURE_NO_WARNINGS"
+        "_USE_MATH_DEFINES"
     )
 
-    if PLUGIN_SDK_DIR then
-        add_includedirs(
-            PLUGIN_SDK_DIR,
-            path.join(PLUGIN_SDK_DIR, "plugin_sa"),
-            path.join(PLUGIN_SDK_DIR, "plugin_sa", "game_sa"),
-            path.join(PLUGIN_SDK_DIR, "plugin_sa", "game_sa", "enums"),
-            path.join(PLUGIN_SDK_DIR, "plugin_sa", "game_sa", "meta"),
-            path.join(PLUGIN_SDK_DIR, "plugin_sa", "game_sa", "rw"),
-            path.join(PLUGIN_SDK_DIR, "shared"),
-            path.join(PLUGIN_SDK_DIR, "shared", "game"),
-            path.join(PLUGIN_SDK_DIR, "injector"),
-            path.join(PLUGIN_SDK_DIR, "safetyhook")
-        )
-
-        add_linkdirs(
-            path.join(PLUGIN_SDK_DIR, "output", "lib")
-        )
-    end
-
     add_includedirs(
-        ".",
+        PLUGIN_SDK_DIR,
+        path.join(PLUGIN_SDK_DIR, "plugin_sa"),
+        path.join(PLUGIN_SDK_DIR, "plugin_sa", "game_sa"),
+        path.join(PLUGIN_SDK_DIR, "plugin_sa", "game_sa", "enums"),
+        path.join(PLUGIN_SDK_DIR, "plugin_sa", "game_sa", "rw"),
+        path.join(PLUGIN_SDK_DIR, "shared"),
+        path.join(PLUGIN_SDK_DIR, "shared", "game"),
         "include", 
         "src", 
         "src/features"
+    )
+
+    add_linkdirs(
+        path.join(PLUGIN_SDK_DIR, "output", "lib")
     )
 
     add_files(
@@ -71,43 +62,27 @@ target("ModelExtras")
     set_warnings("all")
 
     add_cxflags(
-        "/permissive-",
+        "/options:strict",
         "/Zc:__cplusplus",
         "/Zc:preprocessor",
         "/utf-8",
         "/EHsc",
         "/Gw",
-        "/Gy",
-        "/GF",
-        "/guard:cf-",
-        "/Qspectre-",
         "/Zc:threadSafeInit-",
         "/Zc:inline",
         "/Zc:throwingNew",
-        "/Zc:lambda",
-        "/Zc:enumTypes",
         "/Zc:templateScope",
-        "/Zc:ternary",
-        "/Zc:rvalueCast",
-        "/Zc:nrvo",
-        "/Zc:sizedDealloc",
-        "/Zc:checkGwOdr",
-        "/Zc:alignedNew",
-        "/Zc:hiddenFriend",
-        "/Zc:strictStrings",
-        "/Zc:implicitNoexcept",
-        "/Zc:referenceBinding",
-        "/diagnostics:caret",
         "/volatile:iso",
-        "/arch:SSE2",
-        "/fp:precise",
-        "/Oi",
-        "/MP"
+        "/Qfast_transcendentals",
+        "/fp:contract",
+        "/fpcvt:IA",
+        "/Zc:enumTypes",
+        "/Zc:enumEncoding",
+        "/Zc:checkGwOdr"
     )
 
     add_shflags(
         "/SAFESEH:NO",
-        "/FORCE:MULTIPLE",
         "/LARGEADDRESSAWARE",
         "/DYNAMICBASE:NO",
         "/NXCOMPAT:NO",
@@ -117,38 +92,27 @@ target("ModelExtras")
     if is_mode("debug") then
         add_links("plugin_d")
         set_runtimes("MTd")
-        set_optimize("none")
-        set_symbols("debug")
-    elseif is_mode("releasedbg") then
-        add_links("plugin")
-        set_runtimes("MT")
-        set_optimize("fastest")
-        set_symbols("debug")
-        add_cxflags("/Ob3", "/Ot", "/Oy-")
-        add_shflags("/OPT:REF", "/OPT:ICF", "/INCREMENTAL:NO", "/LTCG", "/DEBUG")
     else
         add_links("plugin")
         set_runtimes("MT")
         set_optimize("fastest")
         set_symbols("hidden")
-        add_cxflags("/Ob3", "/Ot", "/Oy-")
-        add_shflags("/OPT:REF", "/OPT:ICF", "/INCREMENTAL:NO", "/LTCG")
+        add_defines("_ITERATOR_DEBUG_LEVEL=0")
+        add_cxflags("/GL", "/Zo", "/Ob3", "/Oy-")
+        add_shflags("/INCREMENTAL:NO", "/LTCG", "/OPT:REF,ICF", "/RELEASE")
     end
 
     after_build(function (target)
         if GAME_DIR and os.isdir(GAME_DIR) then
-            -- Copy target (.asi)
             os.cp(target:targetfile(), GAME_DIR)
             print(">> Deployed .asi to " .. GAME_DIR)
 
-            -- Copy debug symbols (.pdb) if available
             local symbolfile = target:symbolfile()
             if symbolfile and os.isfile(symbolfile) then
                 os.cp(symbolfile, GAME_DIR)
                 print(">> Deployed .pdb to " .. GAME_DIR)
             end
 
-            -- Copy resources (ModelExtras folder, ModelExtras.ini)
             if os.isdir("resource/dist") then
                 os.cp("resource/dist/*", GAME_DIR)
                 print(">> Deployed resources to " .. GAME_DIR)
@@ -161,7 +125,7 @@ task("dev")
         usage = "xmake dev [options]",
         description = "Configure and build ModelExtras",
         options = {
-            {'m', "mode", "kv", "debug", "Set build mode: debug, release, releasedbg"}
+            {'m', "mode", "kv", "debug", "Set build mode: debug, release"}
         }
     }
     on_run(function ()
@@ -171,4 +135,3 @@ task("dev")
         os.execv("xmake", {})
         os.execv("xmake", {"project", "-k", "compile_commands"})
     end)
-

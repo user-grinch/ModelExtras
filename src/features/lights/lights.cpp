@@ -146,25 +146,6 @@ void Lights::SetLightState(CVehicle* pVeh, eMaterialType lightId, bool state) {
     LightManager::SetLightState(pVeh, lightId, state);
 }
 
-extern "C"
-{
-	ME_WRAPPER bool ME_GetVehicleLightState(CVehicle *pVeh, ME_LightID lightId)
-	{
-		return LightManager::GetLightState(pVeh, static_cast<eMaterialType>(lightId));
-	}
-
-	ME_WRAPPER void ME_SetVehicleLightState(CVehicle *pVeh, ME_LightID lightId, bool state)
-	{
-		LightManager::SetLightState(pVeh, static_cast<eMaterialType>(lightId), state);
-	}
-
-	// Dummy function to show on crash logs
-	int __declspec(dllexport) ignore4(int i)
-	{
-		return 1;
-	}
-}
-
 void Lights::ProcessTick() {
     if (!m_bEnabled) return;
     BlinkerState::Get().Update();
