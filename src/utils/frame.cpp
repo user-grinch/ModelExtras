@@ -106,6 +106,7 @@ void FrameUtil::StoreChilds(RwFrame *parent, std::vector<RwFrame *> &store)
 
 void FrameUtil::ShowAllAtomics(RwFrame *frame)
 {
+    if (!frame) return;
     if (!rwLinkListEmpty(&frame->objectList))
     {
         RwObjectHasFrame *atomic;
@@ -125,6 +126,7 @@ void FrameUtil::ShowAllAtomics(RwFrame *frame)
 
 void FrameUtil::HideAllAtomics(RwFrame *frame)
 {
+    if (!frame) return;
     if (!rwLinkListEmpty(&frame->objectList))
     {
         RwObjectHasFrame *atomic;
@@ -172,6 +174,7 @@ void FrameUtil::ShowChildWithName(RwFrame *parent_frame, const char *name)
 
 void FrameUtil::HideAllChilds(RwFrame *parent_frame)
 {
+    if (!parent_frame) return;
     RwFrame *child = parent_frame->child;
     while (child)
     {
@@ -183,6 +186,7 @@ void FrameUtil::HideAllChilds(RwFrame *parent_frame)
 
 void FrameUtil::ShowAllChilds(RwFrame *parent_frame)
 {
+    if (!parent_frame) return;
     RwFrame *child = parent_frame->child;
     while (child)
     {
