@@ -15,6 +15,8 @@ enum eMaterialType
     ReverseLightRight,
     BrakeLightLeft,
     BrakeLightRight,
+    HighBeamLeft,
+    HighBeamRight,
     AllDayLight,
     DayLight,
     NightLight,
