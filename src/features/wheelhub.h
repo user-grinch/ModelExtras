@@ -4,6 +4,7 @@
 
 
 struct WheelHubData {
+    FeatureFrameState frameState;
     RwFrame *m_pWRF = nullptr, *m_pHRF = nullptr;
     RwFrame *m_pWRM = nullptr, *m_pHRM = nullptr;
     RwFrame *m_pWRR = nullptr, *m_pHRR = nullptr;
