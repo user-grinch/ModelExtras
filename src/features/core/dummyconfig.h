@@ -55,6 +55,13 @@ struct DummyConfig {
         size_t delay = 1000;
     } strobe;
 
+    struct {
+        bool enabled = true;
+        float intensity = 1.0f;
+        float size = 1.0f;
+        float distance = 0.0f;
+    } pointlight;
+
 
     static inline int gId = 0;
     int id = 0;

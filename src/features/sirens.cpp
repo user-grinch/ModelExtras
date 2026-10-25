@@ -433,6 +433,33 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, type property is not a string!", Sirens::CurrentModel, state, material);
 	}
 
+	if (json.contains("pointlight"))
+	{
+		if (json["pointlight"].is_boolean())
+		{
+			PointLight.Enabled = json["pointlight"].get<bool>();
+		}
+		else if (json["pointlight"].is_object())
+		{
+			if (json["pointlight"].contains("enabled") && json["pointlight"]["enabled"].is_boolean())
+			{
+				PointLight.Enabled = json["pointlight"]["enabled"].get<bool>();
+			}
+			if (json["pointlight"].contains("intensity") && json["pointlight"]["intensity"].is_number())
+			{
+				PointLight.Intensity = json["pointlight"]["intensity"].get<float>();
+			}
+			if (json["pointlight"].contains("size") && json["pointlight"]["size"].is_number())
+			{
+				PointLight.Size = json["pointlight"]["size"].get<float>();
+			}
+			if (json["pointlight"].contains("distance") && json["pointlight"]["distance"].is_number())
+			{
+				PointLight.Distance = json["pointlight"]["distance"].get<float>();
+			}
+		}
+	}
+
 	if (json.contains("shadow"))
 	{
 		if (json["shadow"].is_object())
@@ -1430,15 +1457,20 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 				continue;
 			}
 
+			if (!mat.second->PointLight.Enabled)
+			{
+				continue;
+			}
+
 			float sirenRadius = 8.5f;
 			if (mat.second->Shadow.Size > 0.0f) {
 				sirenRadius = mat.second->Shadow.Size * 2.5f;
 			} else if (mat.second->Size > 0.0f) {
 				sirenRadius = mat.second->Size * 3.0f;
 			}
-			sirenRadius = std::clamp(sirenRadius, 5.0f, 15.0f) * LightsConfig::Get().fSirenPointLightMul;
+			sirenRadius = std::clamp(sirenRadius, 5.0f, 15.0f) * LightsConfig::Get().fSirenPointLightSize * mat.second->PointLight.Size;
 
-			float intensity = LightsConfig::Get().fPointLightIntensity;
+			float intensity = LightsConfig::Get().fSirenPointLightIntensity * mat.second->PointLight.Intensity;
 			float r = std::clamp((activeColor.r / 255.0f) * intensity, 0.0f, 1.0f);
 			float g = std::clamp((activeColor.g / 255.0f) * intensity, 0.0f, 1.0f);
 			float b = std::clamp((activeColor.b / 255.0f) * intensity, 0.0f, 1.0f);
@@ -1490,7 +1522,8 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 				CVector worldDir = vehMat.right * localDir.x + vehMat.up * localDir.y + vehMat.at * localDir.z;
 				worldDir.Normalize();
 
-				CVector plightPos = pVeh->TransformFromObjectSpace(cfg.shadow.position + localDir * 0.45f);
+				float pushDist = ((gbProperShadersDetected ? 0.05f : 0.45f) * LightsConfig::Get().fSirenPointLightDistance) + mat.second->PointLight.Distance;
+				CVector plightPos = pVeh->TransformFromObjectSpace(cfg.shadow.position + localDir * pushDist);
 				CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, worldDir, sirenRadius, r, g, b, 0, false, nullptr);
 			}
 		}
@@ -1502,11 +1535,12 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 		{
 			uint32_t step = (CTimer::m_snTimeInMilliseconds / 120) % 4;
 			CMatrix vehMat = pVeh->GetMatrix();
-			float intensity = LightsConfig::Get().fPointLightIntensity;
-			float bikeSirenRadius = 8.5f * LightsConfig::Get().fSirenPointLightMul;
+			float intensity = LightsConfig::Get().fSirenPointLightIntensity;
+			float bikeSirenRadius = 8.5f * LightsConfig::Get().fSirenPointLightSize;
+			float bikeDist = (gbProperShadersDetected ? 0.05f : 0.45f) * LightsConfig::Get().fSirenPointLightDistance;
 			if (step == 0 || step == 1)
 			{
-				CVector localLeft(-0.35f, 0.70f, 0.45f);
+				CVector localLeft(-0.35f, 0.70f + (bikeDist - 0.45f), 0.45f);
 				CVector plightPos = pVeh->TransformFromObjectSpace(localLeft);
 				CVector worldDir = vehMat.up - vehMat.at * 0.25f;
 				worldDir.Normalize();
@@ -1514,7 +1548,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 			}
 			else if (step == 2 || step == 3)
 			{
-				CVector localRight(0.35f, 0.70f, 0.45f);
+				CVector localRight(0.35f, 0.70f + (bikeDist - 0.45f), 0.45f);
 				CVector plightPos = pVeh->TransformFromObjectSpace(localRight);
 				CVector worldDir = vehMat.up - vehMat.at * 0.25f;
 				worldDir.Normalize();

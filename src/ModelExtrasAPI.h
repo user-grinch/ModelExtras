@@ -301,8 +301,12 @@ extern "C"
     ME_WRAPPER float ME_GetCoronaDistanceMul();
     ME_WRAPPER float ME_GetCoronaNearClip();
     ME_WRAPPER float ME_GetLightShadowDistance();
-    ME_WRAPPER float ME_GetSirenPointLightMul();
     ME_WRAPPER float ME_GetPointLightIntensity();
+    ME_WRAPPER float ME_GetPointLightSize();
+    ME_WRAPPER float ME_GetPointLightDistance();
+    ME_WRAPPER float ME_GetSirenPointLightIntensity();
+    ME_WRAPPER float ME_GetSirenPointLightSize();
+    ME_WRAPPER float ME_GetSirenPointLightDistance();
     ME_WRAPPER bool  ME_IsAutoIndicatorsOnSteerEnabled();
     ME_WRAPPER bool  ME_IsFoglightTiedToHeadlight();
     ME_WRAPPER bool  ME_IsPlayerIdleBrakeLightsEnabled();

@@ -957,12 +957,28 @@ float ME_GetLightShadowDistance() {
 }
 
 
-float ME_GetSirenPointLightMul() {
-  return LightsConfig::Get().fSirenPointLightMul;
-}
-
 float ME_GetPointLightIntensity() {
   return LightsConfig::Get().fPointLightIntensity;
+}
+
+float ME_GetPointLightSize() {
+  return LightsConfig::Get().fPointLightSize;
+}
+
+float ME_GetPointLightDistance() {
+  return LightsConfig::Get().fPointLightDistance;
+}
+
+float ME_GetSirenPointLightIntensity() {
+  return LightsConfig::Get().fSirenPointLightIntensity;
+}
+
+float ME_GetSirenPointLightSize() {
+  return LightsConfig::Get().fSirenPointLightSize;
+}
+
+float ME_GetSirenPointLightDistance() {
+  return LightsConfig::Get().fSirenPointLightDistance;
 }
 
 bool ME_IsAutoIndicatorsOnSteerEnabled() {

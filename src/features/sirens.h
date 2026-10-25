@@ -28,6 +28,14 @@ struct VehicleSirenShadow
     float AngleOffset = 0.0f;
 };
 
+struct VehicleSirenPointLight
+{
+    bool Enabled = true;
+    float Intensity = 1.0f;
+    float Size = 1.0f;
+    float Distance = 0.0f;
+};
+
 struct VehicleSirenDiffuse
 {
     bool Color = false;
@@ -105,6 +113,7 @@ public:
     eLightingMode Type = eLightingMode::Directional;
     bool ImVehFt = false;
     VehicleSirenShadow Shadow;
+    VehicleSirenPointLight PointLight;
     VehicleSirenRotator *Rotator = nullptr;
 
     VehicleSirenMaterial(std::string_view state, int material, const nlohmann::json &json);

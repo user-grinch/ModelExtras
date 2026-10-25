@@ -172,6 +172,22 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
             {
                 data.strobe.delay = lights.value("strobedelay", 1000);
             }
+
+            if (lights.contains("pointlight"))
+            {
+                auto &pl = lights["pointlight"];
+                if (pl.is_boolean())
+                {
+                    data.pointlight.enabled = pl.get<bool>();
+                }
+                else if (pl.is_object())
+                {
+                    data.pointlight.enabled = pl.value("enabled", true);
+                    data.pointlight.intensity = pl.value("intensity", 1.0f);
+                    data.pointlight.size = pl.value("size", 1.0f);
+                    data.pointlight.distance = pl.value("distance", 0.0f);
+                }
+            }
         }
     }
     else

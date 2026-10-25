@@ -54,7 +54,11 @@ struct LightsConfig {
     bool bSirensRequireEngine = false;
     float fHighBeamPointLightMul = 2.0f;
     float fPointLightIntensity = 0.8f;
-    float fSirenPointLightMul = 1.0f;
+    float fPointLightSize = 1.0f;
+    float fPointLightDistance = 1.0f;
+    float fSirenPointLightIntensity = 0.8f;
+    float fSirenPointLightSize = 1.0f;
+    float fSirenPointLightDistance = 1.0f;
 
     void InitConfig() {
         gbGlobalIndicatorLights = gConfig.ReadBoolean("LIGHTS", "StandardLights_GlobalIndicatorLights", gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false));
@@ -94,8 +98,20 @@ struct LightsConfig {
         float rawIntensity = gConfig.ReadFloat("LIGHTS", "PointLightIntensity", gConfig.ReadFloat("TWEAKS", "PointLightIntensity", 0.8f));
         fPointLightIntensity = std::clamp(rawIntensity, 0.0f, 1.0f);
 
-        float rawSirenMul = gConfig.ReadFloat("LIGHTS", "SirenPointLightMul", gConfig.ReadFloat("TWEAKS", "SirenPointLightMul", 1.0f));
-        fSirenPointLightMul = (rawSirenMul < 0.1f) ? 0.1f : ((rawSirenMul > 4.0f) ? 4.0f : rawSirenMul);
+        float rawSize = gConfig.ReadFloat("LIGHTS", "PointLightSize", gConfig.ReadFloat("TWEAKS", "PointLightSize", 1.0f));
+        fPointLightSize = std::clamp(rawSize, 0.1f, 5.0f);
+
+        float rawDist = gConfig.ReadFloat("LIGHTS", "PointLightDistance", gConfig.ReadFloat("TWEAKS", "PointLightDistance", 1.0f));
+        fPointLightDistance = std::clamp(rawDist, 0.0f, 5.0f);
+
+        float rawSirenIntensity = gConfig.ReadFloat("LIGHTS", "SirenPointLightIntensity", fPointLightIntensity);
+        fSirenPointLightIntensity = std::clamp(rawSirenIntensity, 0.0f, 1.0f);
+
+        float rawSirenSize = gConfig.ReadFloat("LIGHTS", "SirenPointLightSize", gConfig.ReadFloat("TWEAKS", "SirenPointLightSize", 1.0f));
+        fSirenPointLightSize = std::clamp(rawSirenSize, 0.1f, 4.0f);
+
+        float rawSirenDist = gConfig.ReadFloat("LIGHTS", "SirenPointLightDistance", gConfig.ReadFloat("TWEAKS", "SirenPointLightDistance", 1.0f));
+        fSirenPointLightDistance = std::clamp(rawSirenDist, 0.0f, 5.0f);
     }
 
 private:

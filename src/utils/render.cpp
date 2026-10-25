@@ -240,16 +240,23 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
     CVector lightDir = vehMat.right * localDir.x + vehMat.up * localDir.y + vehMat.at * localDir.z;
     lightDir.Normalize();
 
+    if (!pConfig->pointlight.enabled)
+    {
+        return;
+    }
+
     CRGBA col = pConfig->corona.color;
-    float intensity = LightsConfig::Get().fPointLightIntensity;
-    CPointLights::AddLight(PLTYPE_SPOTLIGHT, lightPos, lightDir, HEADLIGHT_PLIGHT_RANGE * rangeMul,
+    float intensity = LightsConfig::Get().fPointLightIntensity * pConfig->pointlight.intensity;
+    CVector plightPos = lightPos + lightDir * (pConfig->pointlight.distance * LightsConfig::Get().fPointLightDistance);
+    float effectiveRange = HEADLIGHT_PLIGHT_RANGE * rangeMul * LightsConfig::Get().fPointLightSize * pConfig->pointlight.size;
+    CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, lightDir, effectiveRange,
                            (col.r / 255.0f) * intensity, (col.g / 255.0f) * intensity, (col.b / 255.0f) * intensity, 0, 0, 0);
 }
 
 void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float radius, bool isSpotlight)
 {
     extern bool gbLightPointLights;
-    if (!gbLightPointLights || !pConfig || !pConfig->frame || !pConfig->pVeh || radius <= 0.0f)
+    if (!gbLightPointLights || !pConfig || !pConfig->frame || !pConfig->pVeh || radius <= 0.0f || !pConfig->pointlight.enabled)
     {
         return;
     }
@@ -394,42 +401,52 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
     CVector lightDir = vehMat.right * localDir.x + vehMat.up * localDir.y + vehMat.at * localDir.z;
     lightDir.Normalize();
 
-    float pushDist = 0.5f;
-    if (pConfig->lightType == eMaterialType::FogLightLeft || pConfig->lightType == eMaterialType::FogLightRight)
+    float pushDist = gbProperShadersDetected ? 0.05f : 0.5f;
+    if (!gbProperShadersDetected)
     {
-        pushDist = 0.65f;
-    }
-    else if (pConfig->lightType == eMaterialType::ReverseLightLeft || pConfig->lightType == eMaterialType::ReverseLightRight)
-    {
-        pushDist = 0.55f;
-    }
-    else if (pConfig->lightType == eMaterialType::BrakeLightLeft || pConfig->lightType == eMaterialType::BrakeLightRight ||
-             pConfig->lightType == eMaterialType::NABrakeLightLeft || pConfig->lightType == eMaterialType::NABrakeLightRight)
-    {
-        pushDist = 0.5f;
-    }
-    else if (pConfig->lightType == eMaterialType::IndicatorLightLeftFront || pConfig->lightType == eMaterialType::IndicatorLightRightFront ||
-             pConfig->lightType == eMaterialType::IndicatorLightLeftRear || pConfig->lightType == eMaterialType::IndicatorLightRightRear ||
-             pConfig->lightType == eMaterialType::IndicatorLightLeftMiddle || pConfig->lightType == eMaterialType::IndicatorLightRightMiddle)
-    {
-        pushDist = 0.4f;
-    }
-    else if (pConfig->lightType == eMaterialType::SideLightLeft || pConfig->lightType == eMaterialType::SideLightRight ||
-             pConfig->lightType == eMaterialType::AllDayLight || pConfig->lightType == eMaterialType::DayLight || pConfig->lightType == eMaterialType::NightLight)
-    {
-        pushDist = 0.25f;
+        if (pConfig->lightType == eMaterialType::FogLightLeft || pConfig->lightType == eMaterialType::FogLightRight)
+        {
+            pushDist = 0.65f;
+        }
+        else if (pConfig->lightType == eMaterialType::ReverseLightLeft || pConfig->lightType == eMaterialType::ReverseLightRight)
+        {
+            pushDist = 0.55f;
+        }
+        else if (pConfig->lightType == eMaterialType::BrakeLightLeft || pConfig->lightType == eMaterialType::BrakeLightRight ||
+                 pConfig->lightType == eMaterialType::NABrakeLightLeft || pConfig->lightType == eMaterialType::NABrakeLightRight)
+        {
+            pushDist = 0.5f;
+        }
+        else if (pConfig->lightType == eMaterialType::IndicatorLightLeftFront || pConfig->lightType == eMaterialType::IndicatorLightRightFront ||
+                 pConfig->lightType == eMaterialType::IndicatorLightLeftRear || pConfig->lightType == eMaterialType::IndicatorLightRightRear ||
+                 pConfig->lightType == eMaterialType::IndicatorLightLeftMiddle || pConfig->lightType == eMaterialType::IndicatorLightRightMiddle)
+        {
+            pushDist = 0.4f;
+        }
+        else if (pConfig->lightType == eMaterialType::SideLightLeft || pConfig->lightType == eMaterialType::SideLightRight ||
+                 pConfig->lightType == eMaterialType::AllDayLight || pConfig->lightType == eMaterialType::DayLight || pConfig->lightType == eMaterialType::NightLight)
+        {
+            pushDist = 0.25f;
+        }
     }
 
-    CVector plightPos = lightPos + lightDir * pushDist;
+    float effectivePushDist = (pushDist * LightsConfig::Get().fPointLightDistance) + pConfig->pointlight.distance;
+    CVector plightPos = lightPos + lightDir * effectivePushDist;
 
     constexpr float INV_255 = 1.0f / 255.0f;
-    float intensity = LightsConfig::Get().fPointLightIntensity;
+    float intensity = LightsConfig::Get().fPointLightIntensity * pConfig->pointlight.intensity;
     float r = std::clamp((col.r * INV_255) * intensity, 0.0f, 1.0f);
     float g = std::clamp((col.g * INV_255) * intensity, 0.0f, 1.0f);
     float b = std::clamp((col.b * INV_255) * intensity, 0.0f, 1.0f);
 
+    float effectiveRadius = radius * LightsConfig::Get().fPointLightSize * pConfig->pointlight.size;
+    if (effectiveRadius <= 0.0f)
+    {
+        return;
+    }
+
     unsigned char lightType = isSpotlight ? PLTYPE_SPOTLIGHT : PLTYPE_POINTLIGHT;
-    CPointLights::AddLight(lightType, plightPos, lightDir, radius, r, g, b, 0, false, nullptr);
+    CPointLights::AddLight(lightType, plightPos, lightDir, effectiveRadius, r, g, b, 0, false, nullptr);
 }
 
 void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float angle, float radius, float szMul, bool inversed, bool skipCheck, float coronaDistMul)
