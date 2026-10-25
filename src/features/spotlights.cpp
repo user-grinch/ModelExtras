@@ -32,6 +32,7 @@ void SpotLights::Init()
 		SpotlightData &data = m_VehData.Get(pVeh);
 		if (nodeName == "spotlight_dummy")
 		{
+			CaptureState(pVeh, pFrame);
 			data.pFrame = pFrame;
 			data.origPos = pFrame->modelling.pos;
 			data.bHasOrigPos = true;
@@ -81,7 +82,7 @@ static uint32_t g_nSpotLightKey = VK_B;
 
 void SpotLights::ReloadConfig()
 {
-	CBaseFeature::ReloadConfig();
+	CVehFeature::ReloadConfig();
 	g_nSpotLightKey = gConfig.ReadInteger("KEYS", "SpotLightKey", VK_B);
 }
 
@@ -283,4 +284,8 @@ void SpotLights::ProcessPointLights(CVehicle *pVeh)
 			}
 		}
 	}
+}
+void SpotLights::OnToggle(CVehicle *vehicle, bool enabled) {
+    if (enabled) return;
+    auto &data = m_VehData.Get(vehicle); data.bEnabled = false; data.nLastFrame = 0;
 }

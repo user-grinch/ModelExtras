@@ -24,6 +24,7 @@ int ReadHex(char a, char b)
 
 VehicleDummy::VehicleDummy(const DummyConfig& config)
 {
+    defaults = config;
     data = config;
     float angleVal = 0.0f;
 
@@ -253,6 +254,30 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
             }
         }
     }
+}
+
+void VehicleDummy::RefreshConfig()
+{
+    if (!data.frame || !data.pVeh) return;
+    // Reapply parameters without clearing the vectors, fades or animation state.
+    auto base = defaults;
+    const auto &lights = LightsConfig::Get();
+    const auto type = base.lightType;
+    bool front = type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight;
+    bool rear = type == eMaterialType::TailLightLeft || type == eMaterialType::TailLightRight
+        || type == eMaterialType::BrakeLightLeft || type == eMaterialType::BrakeLightRight
+        || type == eMaterialType::STTLightLeft || type == eMaterialType::STTLightRight
+        || type == eMaterialType::NABrakeLightLeft || type == eMaterialType::NABrakeLightRight;
+    base.corona.size = front ? lights.gfHeadLightCoronaSize : rear ? lights.gfTailLightCoronaSize : lights.gfGlobalCoronaSize;
+    base.corona.color.a = static_cast<unsigned char>(front ? lights.gHeadLightCoronaIntensity : rear ? lights.gTailLightCoronaIntensity : lights.gGlobalCoronaIntensity);
+    base.shadow.color.a = static_cast<unsigned char>(front ? lights.gHeadLightShadowIntensity : rear ? lights.gTailLightShadowIntensity : lights.gGlobalShadowIntensity);
+    if (front || rear) base.shadow.size = front ? lights.gfHeadLightShadowSize : lights.gfTailLightShadowSize;
+    VehicleDummy refreshed(base);
+    refreshed.data.id = data.id;
+    refreshed.data.rotation = data.rotation;
+    refreshed.data.strobe.timer = data.strobe.timer;
+    refreshed.data.strobe.enabled = data.strobe.enabled;
+    data = std::move(refreshed.data);
 }
 
 void VehicleDummy::Update() {

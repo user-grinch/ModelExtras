@@ -13,6 +13,7 @@ struct HydraulicPiston
 
 struct RollbackBedData
 {
+    FeatureFrameState frameState;
     bool bInit = false;
     bool bExpanded = false;
 
@@ -36,6 +37,7 @@ struct RollbackBedData
 class RollbackBed : public CVehFeature<RollbackBedData>
 {
 protected:
+    void OnToggle(CVehicle *vehicle, bool enabled) override;
     void Init() override;
     // Struct to hold state for EACH piston individually
     
