@@ -150,6 +150,7 @@ void ModelInfoMgr::Init() {
     if (pCurVeh == vehicle) {
       pCurVeh = nullptr;
     }
+    ModelInfoMgr::ResetVehicle(vehicle);
   };
 
   MEEvents::vehRenderEvent.before += [](CVehicle *pVeh) {
@@ -157,14 +158,19 @@ void ModelInfoMgr::Init() {
       return;
     }
 
+    auto &data = m_VehData.Get(pVeh);
+    if (data.pLastClump && data.pLastClump != pVeh->m_pRwClump) {
+      ModelInfoMgr::ResetVehicle(pVeh);
+    }
+
     if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE) {
       pVeh->UpdateRwFrame();
     }
 
-    auto &data = m_VehData.Get(pVeh);
     if (data.nFrameCount > 10) {
       ModelInfoMgr::OnRender(pVeh);
     } else if (data.nFrameCount == 10) {
+      data.pLastClump = pVeh->m_pRwClump;
       ModelInfoMgr::FindDummies(
           pVeh, reinterpret_cast<RwFrame *>(pVeh->m_pRwClump->object.parent));
       data.nFrameCount++;
@@ -184,9 +190,13 @@ void ModelInfoMgr::Init() {
         return;
       }
       auto &data = m_VehData.Get(pVeh);
+      if (data.pLastClump && data.pLastClump != pVeh->m_pRwClump) {
+        ModelInfoMgr::ResetVehicle(pVeh);
+      }
       if (data.nFrameCount > 10) {
         ModelInfoMgr::OnRender(pVeh);
       } else if (data.nFrameCount == 10) {
+        data.pLastClump = pVeh->m_pRwClump;
         ModelInfoMgr::FindDummies(
             pVeh, reinterpret_cast<RwFrame *>(pVeh->m_pRwClump->object.parent));
         data.nFrameCount++;
@@ -198,7 +208,23 @@ void ModelInfoMgr::Init() {
 
   Events::drawingEvent += []() {
     for (CVehicle *pVeh : CPools::ms_pVehiclePool) {
-      if (!pVeh || pVeh->m_nType != ENTITY_TYPE_VEHICLE || !pVeh->m_pRwClump || pVeh->GetIsOnScreen()) {
+      if (!pVeh || pVeh->m_nType != ENTITY_TYPE_VEHICLE) {
+        continue;
+      }
+
+      auto &data = m_VehData.Get(pVeh);
+      if (!pVeh->m_pRwClump) {
+        if (data.pLastClump) {
+          ModelInfoMgr::ResetVehicle(pVeh);
+        }
+        continue;
+      }
+
+      if (data.pLastClump && data.pLastClump != pVeh->m_pRwClump) {
+        ModelInfoMgr::ResetVehicle(pVeh);
+      }
+
+      if (pVeh->GetIsOnScreen()) {
         continue;
       }
 
@@ -212,10 +238,10 @@ void ModelInfoMgr::Init() {
 
       pVeh->UpdateRwFrame();
 
-      auto &data = m_VehData.Get(pVeh);
       if (data.nFrameCount > 10) {
         ModelInfoMgr::OnRender(pVeh);
       } else if (data.nFrameCount == 10) {
+        data.pLastClump = pVeh->m_pRwClump;
         ModelInfoMgr::FindDummies(
             pVeh, reinterpret_cast<RwFrame *>(pVeh->m_pRwClump->object.parent));
         data.nFrameCount++;
@@ -224,6 +250,40 @@ void ModelInfoMgr::Init() {
       }
     }
   };
+}
+
+static std::vector<ModelInfoMgr::ResetCallback_t> resets;
+
+void ModelInfoMgr::RegisterReset(const ResetCallback_t &function) {
+  resets.push_back(function);
+}
+
+void ModelInfoMgr::ResetVehicle(CVehicle *pVeh) {
+  if (!pVeh || pVeh->m_nType != ENTITY_TYPE_VEHICLE) return;
+  auto &data = m_VehData.Get(pVeh);
+  data.nFrameCount = 0;
+  data.pLastClump = nullptr;
+  data.m_MatStatus.fill(false);
+  data.m_SirenStatus.fill(false);
+  data.m_SirenFactor.fill(0.0f);
+  data.m_StrobeStatus.fill(false);
+  for (const auto &cb : resets) {
+    cb(pVeh);
+  }
+}
+
+bool ModelInfoMgr::IsReady(CVehicle *pVeh) {
+  if (!pVeh || pVeh->m_nType != ENTITY_TYPE_VEHICLE || !pVeh->m_pRwClump) {
+    return false;
+  }
+  auto &data = m_VehData.Get(pVeh);
+  if (data.pLastClump != pVeh->m_pRwClump) {
+    if (data.pLastClump != nullptr) {
+      ResetVehicle(pVeh);
+    }
+    return false;
+  }
+  return data.nFrameCount > 10;
 }
 
 void ModelInfoMgr::RegisterRender(const RenderCallback_t &render) {
@@ -280,8 +340,12 @@ void ModelInfoMgr::FindDummies(CVehicle *vehicle, RwFrame *frame) {
 void ModelInfoMgr::Reload(CVehicle *pVeh) {
   ReloadConfig();
   if (pVeh && pVeh->m_pRwClump) {
+    ResetVehicle(pVeh);
     RwFrame *frame =
         reinterpret_cast<RwFrame *>(pVeh->m_pRwClump->object.parent);
+    auto &data = m_VehData.Get(pVeh);
+    data.pLastClump = pVeh->m_pRwClump;
+    data.nFrameCount = 11;
     FindDummies(pVeh, frame);
   }
 }

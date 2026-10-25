@@ -9,6 +9,7 @@
 #include <CBike.h>
 #include <CAutomobile.h>
 #include <CModelInfo.h>
+#include "utils/modelinfomgr.h"
 
 extern float gfGlobalCoronaSize;
 extern int gGlobalCoronaIntensity;
@@ -260,7 +261,9 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
 }
 
 void VehicleDummy::Update() {
-    if (!data.frame || !data.pVeh) return;
+    if (!data.frame || !data.pVeh || !data.pVeh->m_pRwClump) return;
+    if (!ModelInfoMgr::IsReady(data.pVeh)) return;
+    if (data.frame->root && data.pVeh->m_pRwClump->object.parent && data.frame->root != data.pVeh->m_pRwClump->object.parent) return;
     RwFrameGetLTM(data.frame);
 
     // The corona is expanded again through the entity matrix, so the offset has to be

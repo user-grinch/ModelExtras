@@ -392,7 +392,7 @@ bool LightManager::IsIndicatorOn(CVehicle* pVeh) {
 }
 
 void LightManager::ProcessPointLights(CVehicle *pVeh) {
-    if (!LightsConfig::Get().gbLightPointLights || !pVeh || pVeh->m_fHealth <= 0.0f || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER) {
+    if (!LightsConfig::Get().gbLightPointLights || !ModelInfoMgr::IsReady(pVeh) || pVeh->m_fHealth <= 0.0f || pVeh->m_nVehicleSubClass == VEHICLE_BMX || pVeh->m_nVehicleSubClass == VEHICLE_BOAT || pVeh->m_nVehicleSubClass == VEHICLE_TRAILER) {
         return;
     }
 

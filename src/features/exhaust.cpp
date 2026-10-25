@@ -144,6 +144,20 @@ void ExhaustFx::Init()
                 }
             }
         } });
+
+    ModelInfoMgr::RegisterReset([](CVehicle *pVeh) {
+        auto &data = m_VehData.Get(pVeh);
+        for (auto &e : data.m_pDummies) {
+            if (e.second.pFxSysem) {
+                e.second.pFxSysem->Kill();
+                e.second.pFxSysem = nullptr;
+            }
+        }
+        data.m_pDummies.clear();
+        data.isUsed = false;
+        data.bNodesSearched = false;
+    });
+
     MEEvents::vehPreRenderEvent.before += [](CVehicle *pVeh)
     {
         ExhaustFx::ProcessPointLights(pVeh);
@@ -170,7 +184,7 @@ void ExhaustFx::Init()
 void ExhaustFx::ProcessPointLights(CVehicle *pVeh)
 {
     extern bool gbLightPointLights;
-    if (!gbLightPointLights || !pVeh || !pVeh->GetIsOnScreen() || !pVeh->bEngineOn || pVeh->bEngineBroken)
+    if (!gbLightPointLights || !ModelInfoMgr::IsReady(pVeh) || !pVeh->GetIsOnScreen() || !pVeh->bEngineOn || pVeh->bEngineBroken)
     {
         return;
     }

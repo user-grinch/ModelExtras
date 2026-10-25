@@ -38,6 +38,13 @@ void SpotLights::Init()
 		}
 	});
 
+	ModelInfoMgr::RegisterReset([](CVehicle *pVeh)
+	{
+		SpotlightData &data = m_VehData.Get(pVeh);
+		data.pFrame = nullptr;
+		data.bHasOrigPos = false;
+	});
+
 	Events::vehicleRenderEvent += [](CVehicle *pVeh)
 	{
 		if (!CBaseFeature::IsEnabled(eFeatureMatrix::SpotLights)) return;
@@ -192,7 +199,7 @@ void SpotLights::OnVehicleRender(CVehicle *pVeh)
 void SpotLights::ProcessPointLights(CVehicle *pVeh)
 {
 	extern bool gbLightPointLights;
-	if (!gbLightPointLights || !pVeh || pVeh->m_fHealth <= 0.0f)
+	if (!gbLightPointLights || !ModelInfoMgr::IsReady(pVeh) || pVeh->m_fHealth <= 0.0f)
 	{
 		return;
 	}
