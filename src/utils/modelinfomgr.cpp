@@ -118,10 +118,9 @@ void ModelInfoMgr::ResetEditableMaterials(RpClump *clump) {
 }
 
 void ModelInfoMgr::ReloadConfig() {
-  gfMaterialAmbientMul = std::max(0.0f, gConfig.ReadFloat("LIGHTS", "MaterialAmbientMul", 1.0f));
-  RwSurfaceProperties baseProps = *reinterpret_cast<RwSurfaceProperties *>(0x8A645C);
-  baseProps.ambient = std::max(0.0f, baseProps.ambient * gfMaterialAmbientMul);
-  ms_LightSurfaceProps = baseProps;
+  float rawMul = gConfig.ReadFloat("LIGHTS", "MaterialAmbientMul", gConfig.ReadFloat("TWEAKS", "MaterialAmbientMul", 1.0f));
+  gfMaterialAmbientMul = std::clamp(rawMul, 0.0f, 1.0f);
+  ms_LightSurfaceProps = *reinterpret_cast<RwSurfaceProperties *>(0x8A645C);
 }
 
 void ModelInfoMgr::Init() {
@@ -406,9 +405,14 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
     m_RestoreEntries.push_back({pColor, *reinterpret_cast<void **>(pColor)});
 
     if (lightOn) {
-      pColor->red   = static_cast<RwUInt8>(std::clamp(matCol.off.r + (matCol.on.r - matCol.off.r) * factor, 0.0f, 255.0f));
-      pColor->green = static_cast<RwUInt8>(std::clamp(matCol.off.g + (matCol.on.g - matCol.off.g) * factor, 0.0f, 255.0f));
-      pColor->blue  = static_cast<RwUInt8>(std::clamp(matCol.off.b + (matCol.on.b - matCol.off.b) * factor, 0.0f, 255.0f));
+      const bool defaultOff = (matCol.off == DEFAULT_MAT_COL);
+      float offR = defaultOff ? 0.0f : static_cast<float>(matCol.off.r);
+      float offG = defaultOff ? 0.0f : static_cast<float>(matCol.off.g);
+      float offB = defaultOff ? 0.0f : static_cast<float>(matCol.off.b);
+
+      pColor->red   = static_cast<RwUInt8>(std::clamp((offR + (matCol.on.r - offR) * factor) * gfMaterialAmbientMul, 0.0f, 255.0f));
+      pColor->green = static_cast<RwUInt8>(std::clamp((offG + (matCol.on.g - offG) * factor) * gfMaterialAmbientMul, 0.0f, 255.0f));
+      pColor->blue  = static_cast<RwUInt8>(std::clamp((offB + (matCol.on.b - offB) * factor) * gfMaterialAmbientMul, 0.0f, 255.0f));
       m_RestoreEntries.push_back({&material->texture, material->texture});
 
       if (material->texture) {

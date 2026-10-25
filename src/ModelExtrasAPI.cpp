@@ -933,7 +933,8 @@ float ME_GetMaterialAmbientMul() {
 }
 
 void ME_SetMaterialAmbientMul(float mul) {
-  ModelInfoMgr::gfMaterialAmbientMul = std::max(0.0f, mul);
+  ModelInfoMgr::gfMaterialAmbientMul = std::clamp(mul, 0.0f, 1.0f);
+  ModelInfoMgr::ms_LightSurfaceProps = *reinterpret_cast<RwSurfaceProperties *>(0x8A645C);
 }
 
 float ME_GetHeadLightCoronaDistanceMul() {
