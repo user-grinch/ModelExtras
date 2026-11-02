@@ -24,7 +24,7 @@ void Remap::EnsureRemapsLoaded(int modelIndex)
     auto itModel = xRemaps.find(modelIndex);
     if (itModel != xRemaps.end() && itModel->second.bRemapsLoaded) return;
 
-    CBaseModelInfo *pModelInfo = CModelInfo::GetModelInfo(modelIndex);
+    CBaseModelInfo *pModelInfo = GetSafeModelInfo(modelIndex);
     if (!pModelInfo) return;
 
     CTxdStore::PushCurrentTxd();

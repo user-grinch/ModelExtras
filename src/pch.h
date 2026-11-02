@@ -37,4 +37,20 @@ inline std::string_view GetSafeFrameNodeName(RwFrame *pFrame)
     return name ? std::string_view(name) : std::string_view{};
 }
 
-static inline CBaseModelInfo **CModelInfo__ms_modelInfoPtrs = reinterpret_cast<CBaseModelInfo **>(patch::GetPointer(0x403DA7));
+// Dynamic model limit support for Fastman92 Limit Adjuster, Open Limit Adjuster, etc.
+// In vanilla GTA SA, the engine limit is 20000. With limit adjusters, model IDs span dynamically.
+inline int GetMaxModelCount()
+{
+    int count = CModelInfo::ms_modelInfoCount;
+    return count > 20000 ? count : 20000;
+}
+
+inline bool IsValidModelIndex(int model)
+{
+    return model > 0 && model < GetMaxModelCount();
+}
+
+inline CBaseModelInfo *GetSafeModelInfo(int model)
+{
+    return (IsValidModelIndex(model) && CModelInfo::ms_modelInfoPtrs) ? CModelInfo::GetModelInfo(model) : nullptr;
+}

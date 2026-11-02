@@ -84,7 +84,7 @@ void MileageIndicator::Init()
         float diff = curWheelRot - indicator.fLastWheelRot;
         if (abs(diff) > 5.0f) diff = 0.0f;
 
-        CVehicleModelInfo *pModelInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));
+        CVehicleModelInfo *pModelInfo = static_cast<CVehicleModelInfo *>(GetSafeModelInfo(pVeh->m_nModelIndex));
         float wheelRadius = (pModelInfo && pModelInfo->m_fWheelSizeRear > 0.0f) ? pModelInfo->m_fWheelSizeRear : 0.35f;
         float wheelDivisor = (wheelRadius * 8.17f) * indicator.fMul;
         indicator.dCurrentDistance += (abs(diff) / (wheelDivisor > 0.0f ? wheelDivisor : 2.86f));

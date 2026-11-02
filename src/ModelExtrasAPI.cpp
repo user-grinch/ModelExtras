@@ -253,7 +253,7 @@ int ME_GetSirenStateCount(CVehicle *pVeh) {
 }
 
 int ME_GetSirenStateCountByModel(int modelIndex) {
-  if (modelIndex < 0 || modelIndex >= 20000) return 0;
+  if (!IsValidModelIndex(modelIndex)) return 0;
   auto *pModelData = Sirens::GetModelData(modelIndex);
   if (!pModelData) return 0;
   return static_cast<int>(pModelData->States.size());
@@ -449,7 +449,7 @@ bool ME_SetVehicleColors(CVehicle *pVeh, ME_Color col1, ME_Color col2, ME_Color 
 }
 
 int ME_GetCarcolVariationCount(int modelIndex) {
-  if (modelIndex < 0 || modelIndex >= 20000) return 0;
+  if (!IsValidModelIndex(modelIndex)) return 0;
   auto jsonData = DataMgr::Get(modelIndex);
   if (jsonData.contains("carcols") && jsonData["carcols"].is_array()) {
     return static_cast<int>(jsonData["carcols"].size());
@@ -857,7 +857,7 @@ bool ME_HasSpotlight(CVehicle *pVeh) {
 
 // Ped Colors API
 int ME_GetPedVariationCount(int modelIndex) {
-  if (modelIndex < 0 || modelIndex >= 20000) return 0;
+  if (!IsValidModelIndex(modelIndex)) return 0;
   auto jsonData = DataMgr::Get(modelIndex);
   if (jsonData.contains("pedcols") && jsonData["pedcols"].contains("variations") && jsonData["pedcols"]["variations"].is_array()) {
     return static_cast<int>(jsonData["pedcols"]["variations"].size());
@@ -1038,12 +1038,12 @@ static bool ParseJsonColor(const nlohmann::json &val, ME_Color &outCol, const nl
 
 // Model Data & Metadata
 bool ME_HasModelData(int modelIndex) {
-  if (modelIndex < 0 || modelIndex >= 20000) return false;
+  if (!IsValidModelIndex(modelIndex)) return false;
   return DataMgr::Has(modelIndex);
 }
 
 bool ME_GetModelDataPath(int modelIndex, char *outPath, int maxLen) {
-  if (modelIndex < 0 || modelIndex >= 20000 || !outPath || maxLen <= 0) return false;
+  if (!IsValidModelIndex(modelIndex) || !outPath || maxLen <= 0) return false;
   if (!DataMgr::Has(modelIndex)) return false;
   const auto &path = DataMgr::GetPath(modelIndex);
   SafeStrCopy(outPath, maxLen, path);

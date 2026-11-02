@@ -295,7 +295,7 @@ void VehicleDummy::Update() {
 
     // Protection against buggy DFF models where child dummies are exported with root-space coordinates
     // (causing RenderWare hierarchy translation to double-offset the position far beyond the vehicle body)
-    CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(data.pVeh->m_nModelIndex));
+    CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(GetSafeModelInfo(data.pVeh->m_nModelIndex));
     if (pInfo && pInfo->m_pColModel)
     {
         const auto &box = pInfo->m_pColModel->m_boundBox;

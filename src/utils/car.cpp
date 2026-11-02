@@ -60,7 +60,8 @@ float CarUtil::GetVehicleSpeed(CVehicle *pVeh)
 float CarUtil::GetVehicleSpeedRealistic(CVehicle *vehicle)
 {
     float wheelSpeed = 0.0;
-    CVehicleModelInfo *vehicleModelInfo = (CVehicleModelInfo *)CModelInfo::GetModelInfo(vehicle->m_nModelIndex);
+    CVehicleModelInfo *vehicleModelInfo = (CVehicleModelInfo *)GetSafeModelInfo(vehicle->m_nModelIndex);
+    if (!vehicleModelInfo) return vehicle->m_vecMoveSpeed.Magnitude() * 50.0f;
     if (vehicle->m_nVehicleSubClass == VEHICLE_BIKE || vehicle->m_nVehicleSubClass == VEHICLE_BMX)
     {
         CBike *bike = (CBike *)vehicle;
@@ -212,7 +213,8 @@ static float mx1, my1, mz1;
 static float mx2, my2, mz2;
 
 CVector CarUtil::UpdateRelativeToBoundingBox(CVehicle *pVeh, eDummyPos dummyPos, CVector shdwPos, CVector up, CVector right) {
-    CVehicleModelInfo* pInfo = (CVehicleModelInfo*)CModelInfo::GetModelInfo(pVeh->m_nModelIndex);
+    CVehicleModelInfo* pInfo = (CVehicleModelInfo*)GetSafeModelInfo(pVeh->m_nModelIndex);
+    if (!pInfo || !pInfo->m_pColModel) return shdwPos;
     CVector min = pInfo->m_pColModel->m_boundBox.m_vecMin + CVector(mx1, my1, mz1);
     CVector max = pInfo->m_pColModel->m_boundBox.m_vecMax + CVector(mx2, my2, mz2);
 

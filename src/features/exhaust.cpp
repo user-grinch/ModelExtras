@@ -221,7 +221,7 @@ void ExhaustFx::ProcessPointLights(CVehicle *pVeh)
     }
     else
     {
-        CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));
+        CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(GetSafeModelInfo(pVeh->m_nModelIndex));
         if (pInfo && pInfo->m_pVehicleStruct)
         {
             CVector pos = pInfo->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::EXHAUST];
@@ -410,8 +410,7 @@ void ExhaustFx::RenderNitroFx(CVehicle *pVeh, float power)
             return;
         }
     }
-    const auto &mi = CModelInfo::GetModelInfo(pVeh->m_nModelIndex);
-
+    
     auto &data = m_VehData.Get(pVeh);
 
     if (!data.isUsed || !pVeh->bEngineOn || pVeh->bEngineBroken)

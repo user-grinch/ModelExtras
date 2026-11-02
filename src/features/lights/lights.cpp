@@ -33,7 +33,7 @@ static void __fastcall Hooked_DoHeadLightBeam(CVehicle *pVeh, void *, int dummyI
 	if (!pVeh || !Lights::m_bEnabled) return;
 	if (LightsConfig::Get().bLightsRequireEngine && Util::IsEngineOff(pVeh)) return;
 	if (!gConfig.ReadBoolean("LIGHTS", "HeadLightBeams", gConfig.ReadBoolean("TWEAKS", "HeadLightBeams", true))) return;
-	auto *mi = CModelInfo::GetModelInfo(pVeh->m_nModelIndex);
+	auto *mi = GetSafeModelInfo(pVeh->m_nModelIndex);
 	if (!mi || !reinterpret_cast<CVehicleModelInfo *>(mi)->m_pVehicleStruct || dummyId < 0 || dummyId >= 8) return;
 
 	const CRGBA previousColor = g_HeadLightBeamColor;

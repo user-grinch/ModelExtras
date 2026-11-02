@@ -105,7 +105,7 @@ bool Carcols::GetColor(CVehicle *pVeh, RpMaterial *pMat, CRGBA &col)
         {
             return false;
         }
-        col = colorTable[idx];
+        col = colorTable ? colorTable[idx] : CRGBA(255, 255, 255, 255);
     }
 
     return true;

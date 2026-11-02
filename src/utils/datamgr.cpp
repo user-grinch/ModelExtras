@@ -422,8 +422,8 @@ void DataMgr::LoadModLoaderData()
                 }
             }
 
-            auto *modelInfo = model > 0 && model < 20000 ? CModelInfo::GetModelInfo(model) : nullptr;
-            if (modelInfo && modelInfo->GetModelType() == MODEL_INFO_VEHICLE)
+            auto *modelInfo = GetSafeModelInfo(model);
+            if (modelInfo && (modelInfo->GetModelType() == MODEL_INFO_VEHICLE || modelInfo->GetModelType() == MODEL_INFO_PED))
             {
                 ModCandidate cand;
                 cand.model = model;
@@ -593,7 +593,7 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
             }
         }
 
-        if (model <= 0 || model >= 20000)
+        if (!IsValidModelIndex(model))
         {
             return;
         }

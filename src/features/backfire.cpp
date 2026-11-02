@@ -134,7 +134,7 @@ void BackFireEffect::EnsureSystemsCreated(CVehicle *pVeh, BackfireData &data)
     size_t count = ME_GetExhaustCount(pVeh);
     if (count <= 0)
     {
-        CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));
+        CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(GetSafeModelInfo(pVeh->m_nModelIndex));
         if (!pInfo || !pInfo->m_pVehicleStruct || !pVeh->m_pHandlingData)
         {
             return;
@@ -216,7 +216,7 @@ void BackFireEffect::BackFireSingle(CVehicle *pVeh, bool bPlaySound)
 
     if (bPlaySound)
     {
-        CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));
+        CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(GetSafeModelInfo(pVeh->m_nModelIndex));
         CVector pos = (pInfo && pInfo->m_pVehicleStruct) ? pInfo->m_pVehicleStruct->m_avDummyPos[eVehicleDummies::EXHAUST] : CVector(0.0f, -2.0f, 0.0f);
         CVector exhaustWorldPos = pVeh->TransformFromObjectSpace(pos);
         static std::string audioPath = MOD_DATA_PATH("audio/backfire.wav");

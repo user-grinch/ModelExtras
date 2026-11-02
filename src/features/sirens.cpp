@@ -1372,7 +1372,9 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 	auto &data = m_VehData.Get(vehicle);
 	data.nLastTickFrame = CTimer::m_FrameCounter;
 	dummy->Update();
-	CVector position = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[vehicle->m_nModelIndex])->m_pVehicleStruct->m_avDummyPos[0];
+	CVehicleModelInfo *pModelInfo = static_cast<CVehicleModelInfo *>(GetSafeModelInfo(vehicle->m_nModelIndex));
+	if (!pModelInfo || !pModelInfo->m_pVehicleStruct) return;
+	CVector position = pModelInfo->m_pVehicleStruct->m_avDummyPos[0];
 	CRGBA activeColor = material->Color;
 
 	if (material->Inertia > 0.0001f)
@@ -1574,7 +1576,7 @@ VehicleSiren::VehicleSiren(CVehicle *_vehicle)
 	if (!vehicle) return;
 
 	int model = vehicle->m_nModelIndex;
-	CVehicleModelInfo *modelInfo = reinterpret_cast<CVehicleModelInfo *>(CModelInfo__ms_modelInfoPtrs[model]);
+	CVehicleModelInfo *modelInfo = static_cast<CVehicleModelInfo *>(GetSafeModelInfo(model));
 	if (modelInfo)
 	{
 		if (modelInfo->m_nVehicleType == eVehicleType::VEHICLE_HELI || modelInfo->m_nVehicleType == eVehicleType::VEHICLE_PLANE)

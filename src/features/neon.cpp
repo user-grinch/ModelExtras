@@ -62,7 +62,7 @@ static CRGBA GetVehicleSlotColor(CVehicle *pVeh, int slot)
     else if (slot == 2) idx = pVeh->m_nTertiaryColor;
     else if (slot == 3) idx = pVeh->m_nQuaternaryColor;
 
-    CRGBA col = (colorTable && idx < 256) ? colorTable[idx] : CRGBA(255, 255, 255, 255);
+    CRGBA col = colorTable ? colorTable[idx] : CRGBA(255, 255, 255, 255);
     col.a = 255;
 
     auto &cData = Carcols::m_VehData.Get(pVeh);
@@ -317,7 +317,7 @@ void Neon::Init()
         float dist = std::sqrt(distSq);
         if (dist > maxDist * 0.7f) distAlpha = (maxDist - dist) / (maxDist * 0.3f);
 
-        auto *pInfo = static_cast<CVehicleModelInfo *>(CModelInfo::GetModelInfo(pVeh->m_nModelIndex));
+        auto *pInfo = static_cast<CVehicleModelInfo *>(GetSafeModelInfo(pVeh->m_nModelIndex));
         if (!pInfo || !pInfo->m_pColModel) return;
 
         const auto &minB = pInfo->m_pColModel->m_boundBox.m_vecMin;
