@@ -1,12 +1,10 @@
 #pragma once
 #include <string>
 #include <cstdint>
+#include "defines.h"
 
 struct RwFrame;
 class CVehicle;
-
-constexpr std::string_view PLUGIN_ID_STR = "MEX";
-constexpr uint32_t PLUGIN_ID_NUM = 0x42945628;
 
 class RwFrameExtension {
 public:

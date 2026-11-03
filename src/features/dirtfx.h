@@ -1,41 +1,41 @@
 #pragma once
 #include "plugin.h"
 #include "core/base.h"
-#include "CTxdStore.h"
-#include "CClothesBuilder.h"
-#include <vector>
-#include <map>
 #include <unordered_map>
+#include <d3d9.h>
 
 using namespace plugin;
 
-// Thanks to GTA BTLC (D4DJ)
 class DirtFx : public CBaseFeature
 {
 private:
-	// Dirttextures
 	static inline bool m_bEnabled = false;
-	static inline RwTexture **ms_aDirtTextures = (RwTexture **)0xC02BD0;
-	static inline RwTexture *ms_aDirtTextures_2[16] = {};
-	static inline RwTexture *ms_aDirtTextures_3[16] = {};
-	static inline RwTexture *ms_aDirtTextures_4[16] = {};
-	static inline RwTexture *ms_aDirtTextures_5[16] = {};
-	static inline RwTexture *ms_aDirtTextures_6[16] = {};
-	static inline std::unordered_map<std::string, std::vector<RwTexture *>> m_DirtTextures;
+	static inline RwTexture **ms_aDirtTextures = reinterpret_cast<RwTexture **>(0xC02BD0);
+
+	struct DirtTarget
+	{
+		RwTexture *pCleanTexture = nullptr;
+		RwTexture *pDirtTexture = nullptr;
+		RwTexture *pTargetTexture = nullptr;
+		int lastDirtLevel = -1;
+		bool failed = false;
+	};
+
+	static inline std::unordered_map<RwTexture *, DirtTarget> m_DirtTextures;
+	static inline IDirect3DPixelShader9 *m_pPixelShader = nullptr;
 
 	void Shutdown() override;
-	static void ShutdownHook();
-	static void InitialiseDirtTextures();
-	static void InitialiseBlendTextureSingle(const char *CleanName, const char *DirtName, RwTexture **TextureArray);
-	static void InitialiseBlendTextureSingleEx(RwTexture *src, RwTexture *dest);
-	static void InitialiseDirtTextureSingle(const char *name, RwTexture **Array);
+
+	static bool EnsureGpuResources();
+	static RwTexture *FindDirtTexture(RwTexture *clean);
+	static RwTexture *CreateTargetTexture(RwTexture *clean, RwTexture *dirt);
+	static bool RenderDirtBlendTexture(RwTexture *pTargetTex, RwTexture *pCleanTex, RwTexture *pDirtTex, float dirtFactor);
 
 protected:
-    void Init() override;
-    void ReloadConfig() override;
-    void Reload(CVehicle *pVeh) override { ReloadConfig(); }
+	void Init() override;
+	void ReloadConfig() override;
 
 public:
-    DirtFx() : CBaseFeature("DirtFX", "FEATURES", eFeatureMatrix::DirtFX) {}
-	static void ProcessTextures(CVehicle *pVeh, RpMaterial *pMat);
+	DirtFx() : CBaseFeature("DirtFX", "FEATURES", eFeatureMatrix::DirtFX) {}
+	static void ProcessTextures(CVehicle *pVeh, RpMaterial *pMat, RwTexture *baseTexture = nullptr);
 };

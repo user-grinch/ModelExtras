@@ -16,3 +16,6 @@
 extern bool gbProperShadersDetected;
 
 #define STR_FOUND(x, y) ((x).find(y) != std::string::npos)
+
+constexpr std::string_view PLUGIN_ID_STR = "MEX";
+constexpr uint32_t PLUGIN_ID_NUM = 0x42945628;
