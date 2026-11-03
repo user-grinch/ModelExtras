@@ -128,12 +128,12 @@ void TailLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
         isHeadlightsOn = false;
     }
     bool isBraking = LightManager::IsBraking(pVeh);
-    bool isBike = CModelInfo::IsBikeModel(pVeh->m_nModelIndex);
+    bool isBike = (pVeh->m_nVehicleSubClass == VEHICLE_BIKE || CModelInfo::IsBikeModel(pVeh->m_nModelIndex));
     bool hasDedicatedBrakeDummy = LightManager::IsDummyAvailable(data, {eMaterialType::BrakeLightLeft, eMaterialType::BrakeLightRight, eMaterialType::STTLightLeft, eMaterialType::STTLightRight, eMaterialType::NABrakeLightLeft, eMaterialType::NABrakeLightRight});
 
     // 1. Taillights
     if (isHeadlightsOn || (isBraking && !hasDedicatedBrakeDummy)) {
-        float tailRadius = 3.5f;
+        float tailRadius = isBike ? 1.5f : 3.5f;
         constexpr float tailPointLightMul = 0.40f;
 
         for (eMaterialType t : {eMaterialType::TailLightLeft, eMaterialType::TailLightRight}) {
@@ -187,7 +187,7 @@ void TailLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
 
             for (auto& e : data.dummies[t]) {
                 e->Update();
-                RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, 3.5f, true);
+                RenderUtil::RegisterPointLight(&e->Get(), e->Get().corona.color, isBike ? 1.5f : 3.5f, true);
             }
         }
     }
