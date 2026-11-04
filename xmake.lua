@@ -62,30 +62,18 @@ target("ModelExtras")
     set_warnings("all")
 
     add_cxflags(
-        "/options:strict",
         "/Zc:__cplusplus",
         "/Zc:preprocessor",
-        "/utf-8",
         "/EHsc",
         "/Gw",
         "/Zc:threadSafeInit-",
-        "/Zc:inline",
         "/Zc:throwingNew",
-        "/Zc:templateScope",
-        "/volatile:iso",
-        "/Qfast_transcendentals",
-        "/fp:contract",
-        "/fpcvt:IA",
-        "/Zc:enumTypes",
-        "/Zc:enumEncoding",
         "/Zc:checkGwOdr"
     )
 
     add_shflags(
-        "/SAFESEH:NO",
         "/LARGEADDRESSAWARE",
         "/DYNAMICBASE:NO",
-        "/NXCOMPAT:NO",
         "/MANIFEST:NO"
     )
 
@@ -97,9 +85,8 @@ target("ModelExtras")
         set_runtimes("MT")
         set_optimize("fastest")
         set_symbols("hidden")
-        add_defines("_ITERATOR_DEBUG_LEVEL=0")
-        add_cxflags("/GL", "/Zo", "/Ob3", "/Oy-")
-        add_shflags("/INCREMENTAL:NO", "/LTCG", "/OPT:REF,ICF", "/RELEASE")
+        add_cxflags("/GL", "/Zo", "/Ob3")
+        add_shflags("/LTCG", "/RELEASE")
     end
 
     after_build(function (target)
