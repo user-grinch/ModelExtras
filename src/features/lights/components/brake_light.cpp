@@ -17,10 +17,20 @@ eMaterialType BrakeLightComponent::GetMatType(CRGBA matCol) {
 }
 
 bool BrakeLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
-    if (name.starts_with("breakl") && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r"))) {
+    if ((name.starts_with("breakl") || name.starts_with("brakel") || name.starts_with("brake_") || name.starts_with("break_")) &&
+        !STR_FOUND(name, "disc") && !STR_FOUND(name, "caliper")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Rear;
-        c.lightType = STR_FOUND(name, "_l") ? eMaterialType::BrakeLightLeft : eMaterialType::BrakeLightRight;
+        bool hasLeft = name.ends_with("_l") || STR_FOUND(name, "_l_") || STR_FOUND(name, "left");
+        bool hasRight = name.ends_with("_r") || STR_FOUND(name, "_r_") || STR_FOUND(name, "right");
+        if (hasLeft && !hasRight) {
+            c.lightType = eMaterialType::BrakeLightLeft;
+        } else if (hasRight && !hasLeft) {
+            c.lightType = eMaterialType::BrakeLightRight;
+        } else {
+            // Side-agnostic or center brake light (e.g. breakl, breakl_m, breaklight, breaklight_m)
+            c.lightType = (c.position.x < -0.05f) ? eMaterialType::BrakeLightLeft : eMaterialType::BrakeLightRight;
+        }
         c.corona.size = LightsConfig::Get().gfTailLightCoronaSize;
         c.corona.color = {240, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
         c.shadow.color = {240, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};

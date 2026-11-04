@@ -16,10 +16,12 @@ eMaterialType FogLightComponent::GetMatType(CRGBA matCol) {
 }
 
 bool FogLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
-    if (name.starts_with("fogl") && (STR_FOUND(name, "_l") || STR_FOUND(name, "_r"))) {
+    if (name.starts_with("fogl") || name.starts_with("fog_")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Front;
-        bool isLeft = STR_FOUND(name, "_l") || !STR_FOUND(name, "_r");
+        bool hasLeft = name.ends_with("_l") || STR_FOUND(name, "_l_") || STR_FOUND(name, "left");
+        bool hasRight = name.ends_with("_r") || STR_FOUND(name, "_r_") || STR_FOUND(name, "right");
+        bool isLeft = hasLeft ? true : hasRight ? false : (c.position.x < 0.0f);
         c.lightType = isLeft ? eMaterialType::FogLightLeft : eMaterialType::FogLightRight;
         c.shadow.render = false;
         c.corona.color = c.shadow.color = {255, 255, 255, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};

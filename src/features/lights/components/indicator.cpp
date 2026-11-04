@@ -28,44 +28,70 @@ eMaterialType IndicatorComponent::GetMatType(CRGBA matCol) {
 }
 
 bool IndicatorComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
-    if (name.starts_with("turnl_") || name.starts_with("indicator_")) {
-        auto d = Util::GetCharsAfterPrefix(name, "turnl_", 2);
-        if (!d) d = Util::GetCharsAfterPrefix(name, "indicator_", 2);
-        if (!d) d = Util::GetCharsAfterPrefix(name, "turnl_", 1);
-        if (!d) d = Util::GetCharsAfterPrefix(name, "indicator_", 1);
-        if (d) {
-            DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
-            bool isLeft = (d.value()[0] == 'L' || d.value()[0] == 'l');
-            c.corona.color = c.shadow.color = {255, 128, 0, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
-            c.corona.lightingType = eLightingMode::Directional;
+    if (!name.starts_with("turnl") && !name.starts_with("indicator")) {
+        return false;
+    }
 
-            char posChar = (d.value().length() >= 2) ? d.value()[1] : (c.position.y >= 0.0f ? 'F' : 'R');
-            switch (posChar) {
-                case 'F':
-                case 'f':
-                    c.lightType = isLeft ? eMaterialType::IndicatorLightLeftFront : eMaterialType::IndicatorLightRightFront;
-                    c.dummyPos = eDummyPos::Front;
-                    break;
-                case 'R':
-                case 'r':
-                    c.lightType = isLeft ? eMaterialType::IndicatorLightLeftRear : eMaterialType::IndicatorLightRightRear;
-                    c.dummyPos = eDummyPos::Rear;
-                    break;
-                case 'M':
-                case 'm':
-                    c.lightType = isLeft ? eMaterialType::IndicatorLightLeftMiddle : eMaterialType::IndicatorLightRightMiddle;
-                    c.dummyPos = isLeft ? eDummyPos::Right : eDummyPos::Left;
-                    break;
-                default:
-                    c.lightType = isLeft ? eMaterialType::IndicatorLightLeftFront : eMaterialType::IndicatorLightRightFront;
-                    c.dummyPos = eDummyPos::Front;
-                    break;
-            }
-            data.dummies[c.lightType].push_back(VehicleDummy(c));
-            return true;
+    DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
+    c.corona.color = c.shadow.color = {255, 128, 0, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
+    c.corona.lightingType = eLightingMode::Directional;
+
+    bool isLeft = false;
+    char pos = 'F';
+
+    if (STR_FOUND(name, "_lf") || STR_FOUND(name, "_fl")) {
+        isLeft = true; pos = 'F';
+    } else if (STR_FOUND(name, "_rf") || STR_FOUND(name, "_fr")) {
+        isLeft = false; pos = 'F';
+    } else if (STR_FOUND(name, "_lr") || STR_FOUND(name, "_rl")) {
+        isLeft = true; pos = 'R';
+    } else if (STR_FOUND(name, "_rr")) {
+        isLeft = false; pos = 'R';
+    } else if (STR_FOUND(name, "_lm") || STR_FOUND(name, "_ml")) {
+        isLeft = true; pos = 'M';
+    } else if (STR_FOUND(name, "_rm") || STR_FOUND(name, "_mr")) {
+        isLeft = false; pos = 'M';
+    } else {
+        bool hasLeft = name.ends_with("_l") || STR_FOUND(name, "_l_") || STR_FOUND(name, "left");
+        bool hasRight = name.ends_with("_r") || STR_FOUND(name, "_r_") || STR_FOUND(name, "right");
+
+        if (hasLeft && !hasRight) {
+            isLeft = true;
+        } else if (hasRight && !hasLeft) {
+            isLeft = false;
+        } else {
+            isLeft = (c.position.x < -0.05f);
+        }
+
+        if (STR_FOUND(name, "_m") || STR_FOUND(name, "side") || STR_FOUND(name, "mid")) {
+            pos = 'M';
+        } else if (STR_FOUND(name, "rear") || STR_FOUND(name, "back")) {
+            pos = 'R';
+        } else if (STR_FOUND(name, "front") || STR_FOUND(name, "_f") || STR_FOUND(name, "_frnt")) {
+            pos = 'F';
+        } else {
+            pos = (c.position.y >= 0.0f ? 'F' : 'R');
         }
     }
-    return false;
+
+    switch (pos) {
+        case 'M':
+            c.lightType = isLeft ? eMaterialType::IndicatorLightLeftMiddle : eMaterialType::IndicatorLightRightMiddle;
+            c.dummyPos = isLeft ? eDummyPos::Left : eDummyPos::Right;
+            break;
+        case 'R':
+            c.lightType = isLeft ? eMaterialType::IndicatorLightLeftRear : eMaterialType::IndicatorLightRightRear;
+            c.dummyPos = eDummyPos::Rear;
+            break;
+        case 'F':
+        default:
+            c.lightType = isLeft ? eMaterialType::IndicatorLightLeftFront : eMaterialType::IndicatorLightRightFront;
+            c.dummyPos = eDummyPos::Front;
+            break;
+    }
+
+    data.dummies[c.lightType].push_back(VehicleDummy(c));
+    return true;
 }
 
 static bool GetCarPathLinkPosition(CCarPathLinkAddress &address, CVector2D &outPos) {

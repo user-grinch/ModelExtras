@@ -55,7 +55,7 @@ bool HeadlightComponent::AreHeadlightsOpen(CVehicle* pVeh, const VehLightData& d
 
 bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
     if (!CanVehicleHaveHeadlights(pVeh)) return false;
-    if (name == "headlights" || name == "headlights2") {
+    if (name == "headlights" || name == "headlights2" || name == "headlight") {
         if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
             return false;
         }
@@ -88,13 +88,13 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         return true;
     }
 
-    if (name == "headlights_l" || name == "headlights_r") {
+    if (name == "headlight_l" || name == "headlight_r" || name == "headlights_l" || name == "headlights_r") {
         if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
             return false;
         }
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Front;
-        bool isLeft = (name == "headlights_l");
+        bool isLeft = (name == "headlight_l" || name == "headlights_l");
         c.lightType = isLeft ? eMaterialType::HeadLightLeft : eMaterialType::HeadLightRight;
         c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
         c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};

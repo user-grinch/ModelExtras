@@ -18,7 +18,10 @@ eMaterialType TailLightComponent::GetMatType(CRGBA matCol) {
 }
 
 bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
-    if (name == "taillights" || name == "taillights2") {
+    if (name == "taillights" || name == "taillights2" || name == "taillight") {
+        if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
+            return false;
+        }
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Rear;
         c.corona.size = LightsConfig::Get().gfTailLightCoronaSize;
@@ -46,6 +49,26 @@ bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         }
         return true;
     }
+
+    if (name == "taillight_l" || name == "taillight_r" || name == "taillights_l" || name == "taillights_r") {
+        if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
+            return false;
+        }
+        DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
+        c.dummyPos = eDummyPos::Rear;
+        bool isLeft = (name == "taillight_l" || name == "taillights_l");
+        c.lightType = isLeft ? eMaterialType::TailLightLeft : eMaterialType::TailLightRight;
+        c.corona.size = LightsConfig::Get().gfTailLightCoronaSize;
+        c.corona.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
+        c.shadow.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
+        c.shadow.size = LightsConfig::Get().gfTailLightShadowSize;
+        c.corona.lightingType = eLightingMode::Directional;
+        c.shadow.render = true;
+        c.mirroredX = false;
+        data.dummies[c.lightType].push_back(VehicleDummy(c));
+        return true;
+    }
+
     return false;
 }
 

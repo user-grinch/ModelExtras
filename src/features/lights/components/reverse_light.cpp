@@ -18,12 +18,11 @@ eMaterialType ReverseLightComponent::GetMatType(CRGBA matCol) {
 }
 
 bool ReverseLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
-    if (name.starts_with("revl") || name.starts_with("reversingl")) {
+    if (name.starts_with("revers") || name.starts_with("revl")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
-        bool isLeft = STR_FOUND(name, "_l");
-        if (!isLeft && !STR_FOUND(name, "_r")) {
-            isLeft = (c.position.x < 0.0f);
-        }
+        bool hasLeft = name.ends_with("_l") || STR_FOUND(name, "_l_") || STR_FOUND(name, "left");
+        bool hasRight = name.ends_with("_r") || STR_FOUND(name, "_r_") || STR_FOUND(name, "right");
+        bool isLeft = hasLeft ? true : hasRight ? false : (c.position.x < 0.0f);
         c.dummyPos = eDummyPos::Rear;
         c.lightType = isLeft ? eMaterialType::ReverseLightLeft : eMaterialType::ReverseLightRight;
         c.corona.color = c.shadow.color = {255, 255, 255, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
