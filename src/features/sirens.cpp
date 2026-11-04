@@ -416,6 +416,15 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, pattern property is not an array!", Sirens::CurrentModel, state, material);
 	}
 
+	if (json.contains("texture") && json["texture"].is_string())
+	{
+		CoronaType = RenderUtil::ParseCoronaType(json["texture"].get<std::string>());
+	}
+	else if (json.contains("corona") && json["corona"].is_object() && json["corona"].contains("texture") && json["corona"]["texture"].is_string())
+	{
+		CoronaType = RenderUtil::ParseCoronaType(json["corona"]["texture"].get<std::string>());
+	}
+
 	if (json.contains("type"))
 	{
 		if (json["type"].is_string())
@@ -1374,6 +1383,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 	DummyConfig *pDummyConfig = &dummy->Get();
 	pDummyConfig->shadow.color = pDummyConfig->corona.color = activeColor;
 	pDummyConfig->corona.size = material->Size;
+	pDummyConfig->corona.textureType = material->CoronaType;
 	float dummyAngle = Util::NormalizeAngle(pDummyConfig->rotation.angle + material->Shadow.AngleOffset);
 
 	if (material->Type != eLightingMode::NonDirectional)
@@ -1390,7 +1400,7 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 	}
 	else
 	{
-		RenderUtil::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, pDummyConfig->position, activeColor, material->Size);
+		RenderUtil::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, pDummyConfig->position, activeColor, material->Size, -1.0f, material->CoronaType);
 	}
 
 	if (material->Type == eLightingMode::Directional)

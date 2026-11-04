@@ -112,6 +112,10 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
                 }
                 data.corona.size = coronaSec.value("size", gfGlobalCoronaSize);
                 data.corona.lightingType = GetLightingMode(coronaSec.value("type", "directional"));
+                if (coronaSec.contains("texture") && coronaSec["texture"].is_string())
+                {
+                    data.corona.textureType = RenderUtil::ParseCoronaType(coronaSec["texture"].get<std::string>());
+                }
             }
 
             if (lights.contains("shadow"))

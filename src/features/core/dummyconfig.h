@@ -8,6 +8,7 @@
 #include "enums/dummypos.h"
 #include "enums/lightingmode.h"
 #include "enums/materialtype.h"
+#include <CRegisteredCorona.h>
 
 class CVehicle;
 struct RwFrame;
@@ -37,6 +38,7 @@ struct DummyConfig {
         CRGBA color = {255, 255, 255, 100};
         float size = 0.35f;
         eLightingMode lightingType = eLightingMode::NonDirectional;
+        eCoronaType textureType = CORONATYPE_SHINYSTAR;
     } corona;
 
     struct {

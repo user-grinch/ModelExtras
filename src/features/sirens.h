@@ -111,6 +111,7 @@ public:
     uint64_t PatternTime = 0;
     uint64_t Delay = 0;
     eLightingMode Type = eLightingMode::Directional;
+    eCoronaType CoronaType = CORONATYPE_SHINYSTAR;
     bool ImVehFt = false;
     VehicleSirenShadow Shadow;
     VehicleSirenPointLight PointLight;

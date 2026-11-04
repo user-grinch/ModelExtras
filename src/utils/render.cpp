@@ -135,7 +135,7 @@ float RenderUtil::GetLightShadowDistance()
     return gfLightShadowDistance;
 }
 
-void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRGBA col, float size, float coronaDistMul)
+void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRGBA col, float size, float coronaDistMul, eCoronaType coronaType)
 {
     EnsureConfigLoaded();
     if (!gbLightCoronas)
@@ -163,7 +163,7 @@ void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRG
     }
 
     CCoronas::RegisterCorona(coronaID, pEntity, col.r, col.g, col.b, col.a, pos,
-                             coronaSz, 350.0f, CORONATYPE_SHINYSTAR, FLARETYPE_NONE, true, false, 0, 0.0f, false, gfCoronaNearClip, 0, 255.0f, false, false);
+                             coronaSz, 350.0f, coronaType, FLARETYPE_NONE, true, false, 0, 0.0f, false, gfCoronaNearClip, 0, 255.0f, false, false);
 }
 
 // Vanilla reach of the headlight spotlight
@@ -508,7 +508,7 @@ void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float ang
             distMul = gfTailLightCoronaDistanceMul;
         }
     }
-    RegisterCorona(pConfig->pVeh, reinterpret_cast<int32_t>(pConfig), pConfig->position, col, sz, distMul);
+    RegisterCorona(pConfig->pVeh, reinterpret_cast<int32_t>(pConfig), pConfig->position, col, sz, distMul, pConfig->corona.textureType);
 }
 
 // Shadow opacity is resolved here so the per light type INI keys are respected. The dummy's
@@ -741,5 +741,27 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
                                           right.x, right.y,
                                           255, r, g, b,
                                           6.0f, false, 1.0f, 0, true);
+    }
+}
+
+eCoronaType RenderUtil::ParseCoronaType(std::string_view name)
+{
+    if (name.empty()) return CORONATYPE_SHINYSTAR;
+    if (name == "torus" || name == "coronaringb" || name == "ring") return CORONATYPE_TORUS;
+    if (name == "headlightline" || name == "line") return CORONATYPE_HEADLIGHTLINE;
+    if (name == "none") return CORONATYPE_NONE;
+    return CORONATYPE_SHINYSTAR;
+}
+
+std::string_view RenderUtil::GetCoronaTypeName(eCoronaType type)
+{
+    switch (type)
+    {
+    case CORONATYPE_TORUS: return "torus";
+    case CORONATYPE_HEADLIGHTLINE: return "headlightline";
+    case CORONATYPE_NONE: return "none";
+    case CORONATYPE_SHINYSTAR:
+    default:
+        return "shinystar";
     }
 }

@@ -3,6 +3,8 @@
 #include <string>
 #include <CVector.h>
 #include <CVector2D.h>
+#include <CRegisteredCorona.h>
+#include <string_view>
 class CEntity;
 class CRGBA;
 struct DummyConfig;
@@ -10,7 +12,9 @@ struct DummyConfig;
 class RenderUtil
 {
 public:
-    static void RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRGBA col, float size, float coronaDistMul = -1.0f);
+    static void RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRGBA col, float size, float coronaDistMul = -1.0f, eCoronaType coronaType = CORONATYPE_SHINYSTAR);
+    static eCoronaType ParseCoronaType(std::string_view name);
+    static std::string_view GetCoronaTypeName(eCoronaType type);
     // Headlight spotlight, the thing that lights up peds, cars and the road ahead.
     // rangeMul scales how far it reaches, 1.0 is the vanilla 20.0 units.
     static void RegisterHeadlightPointLight(const DummyConfig *pConfig, float rangeMul);
