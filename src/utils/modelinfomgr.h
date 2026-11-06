@@ -35,6 +35,7 @@ struct VehModelData {
   std::array<float, MAX_LIGHTS> m_SirenFactor{};
   std::array<bool, MAX_LIGHTS> m_StrobeStatus{};
   uint32_t nFrameCount = 0;
+  RpClump *pLastClump = nullptr;
 
   VehModelData() = default;
   explicit VehModelData(CVehicle *) {}
@@ -87,6 +88,12 @@ public:
   static void EnableSirenMaterial(CVehicle *pVeh, int idx, float factor = 1.0f);
   static void EnableStrobeMaterial(CVehicle *pVeh, int idx);
   static bool IsMaterialAvailable(CVehicle *pVeh, eMaterialType type);
+
+  using ResetCallback_t = std::function<void(CVehicle *)>;
+  static void RegisterReset(const ResetCallback_t &function);
+  static void ResetVehicle(CVehicle *pVeh);
+  static bool IsReady(CVehicle *pVeh);
+  static const VehModelData &GetVehicleData(CVehicle *pVeh) { return m_VehData.Get(pVeh); }
 
   static void Init();
   static void RegisterDummy(const DummyCallback_t &function);

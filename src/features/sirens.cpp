@@ -890,6 +890,10 @@ void Sirens::Init()
 		}
 	});
 
+	ModelInfoMgr::RegisterReset([](CVehicle *pVeh) {
+		m_VehData.Get(pVeh).ClearDummies();
+	});
+
 	Events::vehicleCtorEvent += [](CVehicle *pVeh)
 	{
 		EventCtor(pVeh);
@@ -1428,7 +1432,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 {
 	extern bool gbLightPointLights;
 	extern bool gbSirenPointLights;
-	if (!gbLightPointLights || !gbSirenPointLights || !pVeh || pVeh->m_fHealth <= 0.0f)
+	if (!gbLightPointLights || !gbSirenPointLights || !ModelInfoMgr::IsReady(pVeh) || pVeh->m_fHealth <= 0.0f)
 	{
 		return;
 	}

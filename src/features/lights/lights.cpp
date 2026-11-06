@@ -89,6 +89,10 @@ void Lights::Init() {
         LightManager::RegisterDummy(pVeh, pFrame, nodeName);
     });
 
+	ModelInfoMgr::RegisterReset([](CVehicle *pVeh) {
+        LightManager::m_VehData.Get(pVeh).ClearDummies();
+    });
+
     ModelInfoMgr::RegisterMaterialColProvider([](CVehicle *pVeh, RpMaterial *pMat, eMaterialType type) -> MatStateColor {
         if (!m_bEnabled) return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
         return LightManager::GetMaterialColor(pVeh, type);
