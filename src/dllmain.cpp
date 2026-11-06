@@ -15,7 +15,7 @@ void InitLog()
     AixLog::Log::init({sink_cout, sink_file});
 
     std::string header = "Starting " + std::string(MOD_TITLE) + " (" + __DATE__ + ")\n"
-                         "Authors: Grinch_, Caner Karaca, Ameer\n"
+                         "Authors: Grinch_, Caner Karaca, Ameer, KaiQ\n"
                          "Discord: " + DISCORD_INVITE + "\n"
                          "More Info: " + GITHUB_LINK + "\n";
     

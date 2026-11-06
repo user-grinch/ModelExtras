@@ -5,6 +5,7 @@
 
 struct ChainData
 {
+    FeatureFrameState frameState;
   RwFrame *m_pRootFrame = nullptr;
   std::vector<RwFrame *> m_FrameList;
   short m_nCurChain = 0;
@@ -17,6 +18,7 @@ struct ChainData
 class ChainFeature : public CVehFeature<ChainData>
 {
 protected:
+    void OnToggle(CVehicle *vehicle, bool enabled) override;
     void Init() override;
   
 

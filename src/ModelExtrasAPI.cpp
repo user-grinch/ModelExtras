@@ -72,14 +72,7 @@ void ME_Reload() {
 }
 
 void ME_ReloadVehicle(CVehicle *pVeh) {
-  if (pVeh) {
-    for (const auto &pFeature : ModelExtras::m_Features) {
-      if (pFeature) {
-        pFeature->Reload(pVeh);
-      }
-    }
-    ModelInfoMgr::Reload(pVeh);
-  }
+  if (pVeh) ModelExtras::ReloadModels();
 }
 
 // Dummy function to show on crash logs

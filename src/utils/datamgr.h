@@ -30,4 +30,8 @@ public:
     static nlohmann::json &Get(int model);
     static const std::string &GetPath(int model);
     static void RegisterListener(std::string_view name, ModelDataListener_t listener);
+    // Studio previews never reload files or mutate the shared missing-model sentinel.
+    static void SetPreview(int model, const nlohmann::json &value);
+    static void RemovePreview(int model);
+    static void NotifyChanged(int model, std::string_view feature);
 };

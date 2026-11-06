@@ -195,7 +195,7 @@ void LightManager::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh) {
                         RwFrame *parent = RwFrameGetParent(dummy->Get().frame);
                         bool isBike = pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
                         bool isDamaged = Util::IsFrameDamaged(pVeh, parent) || !FrameUtil::IsOkAtomicVisible(parent);
-                        bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && type != eMaterialType::HeadLightLeft && type != eMaterialType::HeadLightRight && isDamaged;
+                        bool atomicCheck = !isBike && pVeh->GetIsOnScreen() && isDamaged;
                         if (atomicCheck) continue;
 
                         float szMul = 1.0f;
@@ -661,9 +661,31 @@ float LightManager::GetLightInertia(CVehicle* pVeh, VehLightData& data, eMateria
         return lights[grpKey].value("inertia", 0.0f);
     }
 
+    if ((type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) && lights.contains("headlight") && lights["headlight"].contains("inertia")) {
+        return lights["headlight"].value("inertia", 0.0f);
+    }
+    if ((type == eMaterialType::TailLightLeft || type == eMaterialType::TailLightRight) && lights.contains("taillight") && lights["taillight"].contains("inertia")) {
+        return lights["taillight"].value("inertia", 0.0f);
+    }
+    if (type == eMaterialType::BrakeLightLeft || type == eMaterialType::BrakeLightRight ||
+        type == eMaterialType::NABrakeLightLeft || type == eMaterialType::NABrakeLightRight) {
+        for (const char* k : {"brakelight", "breaklight", "breakl", "brakel"}) {
+            if (lights.contains(k) && lights[k].contains("inertia")) return lights[k].value("inertia", 0.0f);
+        }
+    }
+    if (type == eMaterialType::FogLightLeft || type == eMaterialType::FogLightRight) {
+        for (const char* k : {"foglight", "fogl"}) {
+            if (lights.contains(k) && lights[k].contains("inertia")) return lights[k].value("inertia", 0.0f);
+        }
+    }
+    if (type == eMaterialType::ReverseLightLeft || type == eMaterialType::ReverseLightRight) {
+        for (const char* k : {"reverselight", "reverse", "revl"}) {
+            if (lights.contains(k) && lights[k].contains("inertia")) return lights[k].value("inertia", 0.0f);
+        }
+    }
+
     return lights.value("inertia", 0.0f);
 }
-
 static std::optional<CRGBA> Helper_ParseLightColor(const nlohmann::json& val, const nlohmann::json* pRoot = nullptr) {
     if (val.is_string()) {
         std::string str = val.get<std::string>();
@@ -746,12 +768,28 @@ MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type)
     if (json.contains("lights")) {
         const auto& lights = json["lights"];
         if (specKey) checkSec(lights, specKey);
-        if (type == eMaterialType::FogLightLeft) checkSec(lights, "fogl_l");
-        if (type == eMaterialType::FogLightRight) checkSec(lights, "fogl_r");
-        if (type == eMaterialType::ReverseLightLeft) { checkSec(lights, "revl_l"); checkSec(lights, "rev_l"); }
-        if (type == eMaterialType::ReverseLightRight) { checkSec(lights, "revl_r"); checkSec(lights, "rev_r"); }
+        if (type == eMaterialType::FogLightLeft) { checkSec(lights, "fogl_l"); checkSec(lights, "foglight_l"); }
+        if (type == eMaterialType::FogLightRight) { checkSec(lights, "fogl_r"); checkSec(lights, "foglight_r"); }
+        if (type == eMaterialType::FogLightLeft || type == eMaterialType::FogLightRight) {
+            checkSec(lights, "foglight"); checkSec(lights, "fogl");
+        }
+        if (type == eMaterialType::ReverseLightLeft) { checkSec(lights, "revl_l"); checkSec(lights, "rev_l"); checkSec(lights, "reverselight_l"); }
+        if (type == eMaterialType::ReverseLightRight) { checkSec(lights, "revl_r"); checkSec(lights, "rev_r"); checkSec(lights, "reverselight_r"); }
+        if (type == eMaterialType::ReverseLightLeft || type == eMaterialType::ReverseLightRight) {
+            checkSec(lights, "reverselight"); checkSec(lights, "reverse"); checkSec(lights, "revl");
+        }
+        if (type == eMaterialType::BrakeLightLeft || type == eMaterialType::BrakeLightRight ||
+            type == eMaterialType::NABrakeLightLeft || type == eMaterialType::NABrakeLightRight) {
+            for (const char* k : {"brakelight", "breaklight", "breakl", "brakel", "breakl_l", "breakl_r", "brakel_l", "brakel_r"}) checkSec(lights, k);
+        }
         if (type == eMaterialType::HighBeamLeft || type == eMaterialType::HighBeamRight) {
             checkSec(lights, "highbeam");
+        }
+        if (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight) {
+            checkSec(lights, "headlight");
+        }
+        if (type == eMaterialType::TailLightLeft || type == eMaterialType::TailLightRight) {
+            checkSec(lights, "taillight");
         }
         if (type == eMaterialType::SpotLight) { checkSec(lights, "spotlights"); checkSec(lights, "spot_light"); }
         if (type == eMaterialType::StrobeLight) { checkSec(lights, "strobes"); checkSec(lights, "strobe"); checkSec(lights, "strobe_light"); }

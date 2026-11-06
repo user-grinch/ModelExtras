@@ -10,6 +10,7 @@ struct SlideDoorConfig {
     };
 
 struct SlideDoorData {
+    FeatureFrameState frameState;
     std::vector<SlideDoorConfig> leftFront;
     std::vector<SlideDoorConfig> rightFront;
     std::vector<SlideDoorConfig> leftRear;

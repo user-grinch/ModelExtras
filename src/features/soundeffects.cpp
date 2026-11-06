@@ -55,18 +55,20 @@ void SoundEffects::ReloadConfig()
     ValidForDoorChime.clear();
     Util::GetModelsFromIni(doorChimeModelsLine, ValidForDoorChime);
 
+    std::string brakePadModelsLine = gConfig.ReadString("TABLE", "BrakePad_VehicleModels", "");
+    ValidForBrakePad.clear();
+    Util::GetModelsFromIni(brakePadModelsLine, ValidForBrakePad);
+
     bReverseSounds = gConfig.ReadBoolean("SOUND", "ReverseSound", false);
     bEngineSounds = gConfig.ReadBoolean("SOUND", "EngineSound", false);
     bIndicatorSounds = gConfig.ReadBoolean("SOUND", "IndicatorSound", false);
     bAirbreakSounds = gConfig.ReadBoolean("SOUND", "AirbreakSound", false);
     bDoorChimeSounds = gConfig.ReadBoolean("SOUND", "DoorChimeSound", true);
     bDoorChimeOnlySelected = gConfig.ReadBoolean("SOUND", "DoorChimeOnlySelected", true);
-    std::string brakePadModelsLine = gConfig.ReadString("TABLE", "BrakePad_VehicleModels", "");
-    ValidForBrakePad.clear();
-    Util::GetModelsFromIni(brakePadModelsLine, ValidForBrakePad);
-
+    fDoorChimeVolume = std::clamp(gConfig.ReadFloat("SOUND", "DoorChimeVolume", 0.7f), 0.0f, 1.0f);
     bBrakePadSounds = gConfig.ReadBoolean("SOUND", "BrakePadSound", false);
     bBrakePadOnlySelected = gConfig.ReadBoolean("SOUND", "BrakePadOnlySelected", true);
+    fBrakePadVolume = std::clamp(gConfig.ReadFloat("SOUND", "BrakePadVolume", 0.7f), 0.0f, 1.0f);
     bOnlyPlayerVehicle = !gConfig.ReadBoolean("SOUND", "NonPlayerVehicles", false);
 }
 

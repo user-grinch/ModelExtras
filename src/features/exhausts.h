@@ -73,9 +73,11 @@ private:
     static void ProcessPointLights(CVehicle *pVeh);
 
 protected:
+    void OnToggle(CVehicle *vehicle, bool enabled) override;
     void Init() override;
 
 public:
     ExhaustFx() : CVehFeature<ExhaustVehData>("ExhaustFx", "FEATURES", eFeatureMatrix::ExhaustFx) {}
     void Reload(CVehicle* pVeh) override;
+    static void RefreshConfig(CVehicle *pVeh);
 };

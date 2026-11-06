@@ -11,8 +11,6 @@ struct LightDamageState {
     bool isRearRightOk;
     bool isMiddleLeftOk;
     bool isMiddleRightOk;
-    bool isFrontBumperOk;
-
     static LightDamageState Get(CVehicle* pVeh) {
         LightDamageState state{};
         if (!pVeh) return state;
@@ -24,13 +22,6 @@ struct LightDamageState {
         state.isRearRightOk = !Util::IsLightDamaged(pVeh, eLights::LIGHT_REAR_RIGHT) && !Util::IsPanelDamaged(pVeh, ePanels::WING_REAR_RIGHT);
         state.isMiddleLeftOk = !Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_LEFT);
         state.isMiddleRightOk = !Util::IsPanelDamaged(pVeh, ePanels::WING_FRONT_RIGHT);
-        state.isFrontBumperOk = !Util::IsPanelDamaged(pVeh, ePanels::BUMP_FRONT);
-        return state;
-    }
-
-    static LightDamageState Get(CVehicle* pControlVeh, CVehicle* /*pTowedVeh*/) {
-        return Get(pControlVeh);
-    }
         return state;
     }
 

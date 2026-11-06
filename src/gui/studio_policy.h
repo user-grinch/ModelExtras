@@ -1,0 +1,55 @@
+#pragma once
+#include <string_view>
+#include <initializer_list>
+
+// Only audited reversible settings are live. Unknown future settings defer to restart.
+namespace StudioPolicy {
+template <typename Ini, typename Settings> void Restore(Ini &ini, const Settings &boot) {
+    for (const auto &[key, value] : boot) ini.set(key.first, key.second, value);
+}
+inline const char *RestartReason(std::string_view section, std::string_view key) {
+    if (key == "HDLicensePlate") return "Plate textures and permanent game hooks are installed at startup.";
+    if (key == "Lights") return "Vanilla lighting patches and light components cannot be undone by reloading.";
+    if (key == "DigitalClock") return "Clock setup clones digits and destroys the original node hierarchy.";
+    if (key == "SirenLights") return "Siren hooks change vehicle audio capabilities without restoring them on disable.";
+    if (section == "FEATURES") {
+        for (auto live : {"AnimatedGasMeter", "Carcols", "DashboardLED", "DirtFX", "ExhaustFx", "Neon", "TextureRemapper", "PedCols", "BackfireEffect", "BackfireEffect_OnlySelectedModels"})
+            if (key == live) return nullptr;
+        for (auto animated : {"AnimatedChain", "AnimatedDoors", "AnimatedGearMeter", "AnimatedOdoMeter", "AnimatedRpmMeter",
+            "AnimatedSpeedMeter", "AnimatedSpoiler", "AnimatedTurboMeter", "ConvertibleRoof", "RollbackBed", "ExtraWheels", "RotatingWheelHubs"})
+            if (key == animated) return nullptr;
+    }
+    if (section == "CONFIG") {
+        if (key == "VerboseLogging" || key == "EnableLiveReload" || key == "ModelVersionCheck") return nullptr;
+        if (key == "ModLoaderData") return "Changing config source priority requires reinitializing model and ped configuration ownership.";
+        if (key == "EnableLogging") return "The log file and logging sinks are created during startup.";
+    }
+    if (section == "LIGHTS") {
+        if (key == "SpotLights") return nullptr;
+        for (auto live : {"LightCoronas", "LightShadows", "LightPointLights", "HeadLightBeams", "SirenPointLights", "AutoIndicatorsOnSteer",
+            "GlobalIndicatorLights", "PlayerIdleBrakeLights",
+            "HeadLightCoronaDistanceMul", "TailLightCoronaDistanceMul", "LightCoronaDistanceMul", "LightShadowDistance",
+            "LightPointLightSizeMul", "LightPointLightOffsetMul",
+            "SirenCoronas", "SirenCoronaDistanceMul", "SirenShadows",
+            "SirenPointLightSizeMul", "SirenPointLightOffsetMul", "LightCoronaSize",
+            "LightCoronaIntensity", "LightShadowSizeMul", "LightShadowIntensity", "HeadLightCoronaSize", "HeadLightCoronaIntensity", "HeadLightShadowSizeMul",
+            "HeadLightShadowIntensity", "TailLightCoronaSize", "TailLightCoronaIntensity", "TailLightShadowSizeMul", "TailLightShadowIntensity"})
+            if (key == live) return nullptr;
+    }
+    if (section == "SOUND") {
+        for (auto live : {"SoundEffects", "SoundMult", "AirbreakSound", "EngineSound", "IndicatorSound", "ReverseSound",
+            "BrakePadSound", "BrakePadOnlySelected", "DoorChimeSound", "DoorChimeOnlySelected", "NonPlayerVehicles"})
+            if (key == live) return nullptr;
+    }
+    if (section == "KEYS") {
+        for (auto live : {"FogLightKey", "IndicatorLightBothKey", "IndicatorLightLeftKey", "IndicatorLightRightKey", "IndicatorLightNoneKey",
+            "LongLightKey", "RollbackBedToggleKey", "RoofToggleKey", "SirenLightKey", "SpotLightKey", "ImGuiKey", "ImGuiKeyCombination"})
+            if (key == live) return nullptr;
+    }
+    if (section == "TABLE") {
+        for (auto live : {"BigVehicleModels", "BackFireEffect_VehicleModels"})
+            if (key == live) return nullptr;
+    }
+    return "This setting has no audited reversible live update path.";
+}
+}

@@ -6,6 +6,7 @@ class InputMgr {
 private:
     static inline std::bitset<256> m_CurrentKeys{};
     static inline std::bitset<256> m_PreviousKeys{};
+    static inline std::bitset<256> m_BlockedKeys{};
     static inline uint32_t m_LastKeyTimes[256]{};
 
 public:

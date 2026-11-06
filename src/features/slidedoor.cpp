@@ -37,6 +37,8 @@ void SlideDoor::Init()
         bool isRR = nodeName.starts_with("x_sd_rr");
 
         if (!isLF && !isRF && !isLR && !isRR) return;
+        if (!pVeh || !pFrame) return;
+        CaptureState(pVeh, pFrame);
 
         auto& jsonData = DataMgr::Get(pVeh->m_nModelIndex);
         SlideDoorData& data = m_VehData.Get(pVeh);

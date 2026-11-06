@@ -25,12 +25,6 @@ static const nlohmann::json *FindPlateJson(int modelIndex)
     const auto &json = DataMgr::Get(modelIndex);
     if (json.contains("plate")) return &json["plate"];
     if (json.contains("license_plate")) return &json["license_plate"];
-    if (json.contains("lights"))
-    {
-        const auto &lights = json["lights"];
-        if (lights.contains("plate")) return &lights["plate"];
-        if (lights.contains("license_plate")) return &lights["license_plate"];
-    }
     return nullptr;
 }
 
