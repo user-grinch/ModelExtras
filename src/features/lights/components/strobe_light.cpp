@@ -32,7 +32,7 @@ bool StrobeLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, con
 void StrobeLightComponent::Process(CVehicle* pVeh, VehLightData& data) {}
 
 void StrobeLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, VehLightData& data) {
-    LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::StrobeLight, true);
+    LightManager::RenderLight(pControlVeh, data, eMaterialType::StrobeLight, true);
 }
 
 void StrobeLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) {

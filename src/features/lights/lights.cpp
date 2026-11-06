@@ -106,12 +106,12 @@ void Lights::Init() {
 		if (!m_bEnabled) return;
 		int model = pControlVeh->m_nModelIndex;
 
-		if (CModelInfo::IsTrailerModel(model)) {
+		if (CModelInfo::IsTrailerModel(model) || pControlVeh->m_nVehicleSubClass == VEHICLE_TRAILER) {
 			return;
 		}
 
 		CVehicle *pTowedVeh = pControlVeh;
-		if (pControlVeh->m_pTrailer) {
+		if (pControlVeh->m_pTrailer && (pControlVeh->m_pTrailer->m_nVehicleSubClass == VEHICLE_TRAILER || CModelInfo::IsTrailerModel(pControlVeh->m_pTrailer->m_nModelIndex))) {
 			pTowedVeh = pControlVeh->m_pTrailer;
 		}
 

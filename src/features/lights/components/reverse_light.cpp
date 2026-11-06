@@ -42,20 +42,11 @@ void ReverseLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, V
         || pControlVeh->m_nVehicleSubClass == VEHICLE_QUAD || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE
         || pControlVeh->m_nVehicleSubClass == VEHICLE_TRAILER) 
     {
-        bool isRevlightSupportedByModel = LightManager::IsMaterialAvailable(pTowedVeh, {eMaterialType::ReverseLightLeft, eMaterialType::ReverseLightRight});
-
-        bool reverseLightsOn = !isBike && isRevlightSupportedByModel && pControlVeh->m_nCurrentGear == 0 && (Util::GetVehicleSpeed(pControlVeh) >= 0.001f) && pControlVeh->m_pDriver;
+        bool reverseLightsOn = !isBike && pControlVeh->m_nCurrentGear == 0 && (Util::GetVehicleSpeed(pControlVeh) >= 0.001f) && pControlVeh->m_pDriver;
         if (reverseLightsOn) {
-            auto damage = LightDamageState::Get(pControlVeh, pTowedVeh);
-            bool isLeftRearOk = damage.isRearLeftOk;
-            bool isRightRearOk = damage.isRearRightOk;
-
-            if (isLeftRearOk) {
-                LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::ReverseLightLeft, true, shdwName, shdwSz, false, isLeftRearOk);
-            }
-            if (isRightRearOk) {
-                LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::ReverseLightRight, true, shdwName, shdwSz, false, isRightRearOk);
-            }
+            auto damage = LightDamageState::Get(pControlVeh);
+            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::ReverseLightLeft, true, shdwName, shdwSz, false, damage.isRearLeftOk);
+            LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::ReverseLightRight, true, shdwName, shdwSz, false, damage.isRearRightOk);
         }
     }
 }

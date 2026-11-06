@@ -41,17 +41,14 @@ void NABrakeLightComponent::Render(CVehicle* pControlVeh, CVehicle* pTowedVeh, V
         || pControlVeh->m_nVehicleSubClass == VEHICLE_QUAD || pControlVeh->m_nVehicleSubClass == VEHICLE_BIKE
         || pControlVeh->m_nVehicleSubClass == VEHICLE_TRAILER) 
     {
-        auto damage = LightDamageState::Get(pControlVeh, pTowedVeh);
-        bool isLeftRearOk = damage.isRearLeftOk;
-        bool isRightRearOk = damage.isRearRightOk;
-
         bool brakeOn = LightManager::IsBraking(pControlVeh);
         if (brakeOn && data.nIndicatorState != eIndicatorState::BothOn) {
-            if (data.nIndicatorState != eIndicatorState::LeftOn && isLeftRearOk) {
-                LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::NABrakeLightLeft, true, shdwName, shdwSz, false, isLeftRearOk);
+            auto damage = LightDamageState::Get(pControlVeh);
+            if (data.nIndicatorState != eIndicatorState::LeftOn) {
+                LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::NABrakeLightLeft, true, shdwName, shdwSz, false, damage.isRearLeftOk);
             }
-            if (data.nIndicatorState != eIndicatorState::RightOn && isRightRearOk) {
-                LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::NABrakeLightRight, true, shdwName, shdwSz, false, isRightRearOk);
+            if (data.nIndicatorState != eIndicatorState::RightOn) {
+                LightManager::RenderLights(pControlVeh, pTowedVeh, data, eMaterialType::NABrakeLightRight, true, shdwName, shdwSz, false, damage.isRearRightOk);
             }
         }
     }
