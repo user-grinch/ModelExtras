@@ -26,6 +26,5 @@ public:
     static float GetCoronaDistanceMul();
     static float GetHeadLightCoronaDistanceMul();
     static float GetTailLightCoronaDistanceMul();
-    static float GetCoronaNearClip();
     static float GetLightShadowDistance();
 };

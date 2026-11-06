@@ -24,7 +24,7 @@ bool STTLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
         c.corona.size = LightsConfig::Get().gfTailLightCoronaSize;
         c.corona.color = {240, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
         c.shadow.color = {240, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
-        c.shadow.size = LightsConfig::Get().gfTailLightShadowSize;
+        c.shadow.size = LightsConfig::Get().gfTailLightShadowSizeMul;
         c.corona.lightingType = eLightingMode::Directional;
         data.dummies[c.lightType].push_back(VehicleDummy(c));
         return true;

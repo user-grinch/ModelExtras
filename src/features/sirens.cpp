@@ -77,7 +77,7 @@ void Sirens::ReloadConfig()
 	CBaseFeature::ReloadConfig();
 	m_bEnabled = m_bActive;
 	g_nSirenKey = gConfig.ReadInteger("KEYS", "SirenLightKey", VK_L);
-	g_bSirensRequireEngine = gConfig.ReadBoolean("LIGHTS", "SirensRequireEngine", gConfig.ReadBoolean("TWEAKS", "SirensRequireEngine", false));
+	g_bSirensRequireEngine = gConfig.ReadBoolean("LIGHTS", "SirensRequireEngine", false);
 }
 
 void Sirens::Reload(CVehicle *pVeh)
@@ -1398,20 +1398,29 @@ void Sirens::EnableDummy(int id, VehicleDummy *dummy, CVehicle *vehicle, Vehicle
 			dummy->SetAngle(angle);
 			data.ActiveRotators.push_back(dummy);
 		}
-		RenderUtil::RegisterCoronaDirectional(pDummyConfig, dummyAngle, material->Radius, 1.0f, material->Type == eLightingMode::Inversed);
+		if (LightsConfig::Get().bSirenCoronas)
+		{
+			RenderUtil::RegisterCoronaDirectional(pDummyConfig, dummyAngle, material->Radius, 1.0f, material->Type == eLightingMode::Inversed, false, LightsConfig::Get().fSirenCoronaDistanceMul);
+		}
 	}
 	else
 	{
-		RenderUtil::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, pDummyConfig->position, activeColor, material->Size, -1.0f, material->CoronaType);
+		if (LightsConfig::Get().bSirenCoronas)
+		{
+			RenderUtil::RegisterCorona(vehicle, (reinterpret_cast<unsigned int>(vehicle) * 255) + 255 + id, pDummyConfig->position, activeColor, pDummyConfig->corona.size, LightsConfig::Get().fSirenCoronaDistanceMul, material->CoronaType);
+		}
 	}
 
-	if (material->Type == eLightingMode::Directional)
+	if (LightsConfig::Get().bSirenShadows)
 	{
-		RenderUtil::RegisterShadowDirectional(pDummyConfig, material->Shadow.Type, material->Shadow.Size, material->InertiaMultiplier);
-	}
-	else
-	{
-		RenderUtil::RegisterShadow(vehicle, pDummyConfig->position, activeColor, dummyAngle, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
+		if (material->Type == eLightingMode::Directional)
+		{
+			RenderUtil::RegisterShadowDirectional(pDummyConfig, material->Shadow.Type, material->Shadow.Size, material->InertiaMultiplier);
+		}
+		else
+		{
+			RenderUtil::RegisterShadow(vehicle, pDummyConfig->position, activeColor, dummyAngle, material->Shadow.Type, {material->Shadow.Size, material->Shadow.Size}, {material->Shadow.Offset, material->Shadow.Offset}, nullptr);
+		}
 	}
 };
 
@@ -1480,9 +1489,9 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 			} else if (mat.second->Size > 0.0f) {
 				sirenRadius = mat.second->Size * 3.0f;
 			}
-			sirenRadius = std::clamp(sirenRadius, 5.0f, 15.0f) * LightsConfig::Get().fSirenPointLightSize * mat.second->PointLight.Size;
+			sirenRadius = std::clamp(sirenRadius, 5.0f, 15.0f) * LightsConfig::Get().fSirenPointLightSizeMul * mat.second->PointLight.Size;
 
-			float intensity = LightsConfig::Get().fSirenPointLightIntensity * mat.second->PointLight.Intensity;
+			float intensity = mat.second->PointLight.Intensity;
 			float r = std::clamp((activeColor.r / 255.0f) * intensity, 0.0f, 1.0f);
 			float g = std::clamp((activeColor.g / 255.0f) * intensity, 0.0f, 1.0f);
 			float b = std::clamp((activeColor.b / 255.0f) * intensity, 0.0f, 1.0f);
@@ -1534,7 +1543,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 				CVector worldDir = vehMat.right * localDir.x + vehMat.up * localDir.y + vehMat.at * localDir.z;
 				worldDir.Normalize();
 
-				float pushDist = ((gbProperShadersDetected ? 0.05f : 0.45f) * LightsConfig::Get().fSirenPointLightDistance) + mat.second->PointLight.Distance;
+				float pushDist = ((gbProperShadersDetected ? 0.05f : 0.45f) * LightsConfig::Get().fSirenPointLightOffsetMul) + mat.second->PointLight.Distance;
 				CVector plightPos = pVeh->TransformFromObjectSpace(cfg.shadow.position + localDir * pushDist);
 				CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, worldDir, sirenRadius, r, g, b, 0, false, nullptr);
 			}
@@ -1547,9 +1556,9 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 		{
 			uint32_t step = (CTimer::m_snTimeInMilliseconds / 120) % 4;
 			CMatrix vehMat = pVeh->GetMatrix();
-			float intensity = LightsConfig::Get().fSirenPointLightIntensity;
-			float bikeSirenRadius = 8.5f * LightsConfig::Get().fSirenPointLightSize;
-			float bikeDist = (gbProperShadersDetected ? 0.05f : 0.45f) * LightsConfig::Get().fSirenPointLightDistance;
+			float intensity = 1.0f;
+			float bikeSirenRadius = 8.5f * LightsConfig::Get().fSirenPointLightSizeMul;
+			float bikeDist = (gbProperShadersDetected ? 0.05f : 0.45f) * LightsConfig::Get().fSirenPointLightOffsetMul;
 			if (step == 0 || step == 1)
 			{
 				CVector localLeft(-0.35f, 0.70f + (bikeDist - 0.45f), 0.45f);

@@ -65,7 +65,7 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
         c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
         c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
-        c.shadow.size = LightsConfig::Get().gfHeadLightShadowSize;
+        c.shadow.size = LightsConfig::Get().gfHeadLightShadowSizeMul;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = name != "headlights2";
         
@@ -99,7 +99,7 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
         c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
         c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
-        c.shadow.size = LightsConfig::Get().gfHeadLightShadowSize;
+        c.shadow.size = LightsConfig::Get().gfHeadLightShadowSizeMul;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = true;
         c.mirroredX = false;
@@ -248,7 +248,7 @@ void HeadlightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
     }
 
     if (isHeadlightsOn && AreHeadlightsOpen(pVeh, data)) {
-        float rangeMul = data.bLongLightsOn ? LightsConfig::Get().fHighBeamPointLightMul : 1.0f;
+        float rangeMul = data.bLongLightsOn ? 2.0f : 1.0f;
 
         for (eMaterialType type : {eMaterialType::HeadLightLeft, eMaterialType::HeadLightRight}) {
             if (!LightManager::IsDummyAvailable(data, type) || !data.bLightStates[type]) {

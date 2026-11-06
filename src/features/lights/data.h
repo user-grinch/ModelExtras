@@ -28,16 +28,21 @@ struct LightsConfig {
     float gfGlobalCoronaSize = 0.3f;
     int gGlobalCoronaIntensity = 80;
     int gGlobalShadowIntensity = 80;
+    float gfLightShadowSizeMul = 1.0f;
+
+    bool bSirenCoronas = true;
+    float fSirenCoronaDistanceMul = 0.07f;
+    bool bSirenShadows = true;
 
     float gfHeadLightCoronaSize = 0.4f;
     int gHeadLightCoronaIntensity = 80;
     int gHeadLightShadowIntensity = 80;
-    float gfHeadLightShadowSize = 1.0f;
+    float gfHeadLightShadowSizeMul = 1.0f;
 
     float gfTailLightCoronaSize = 0.4f;
     int gTailLightCoronaIntensity = 60;
     int gTailLightShadowIntensity = 80;
-    float gfTailLightShadowSize = 1.0f;
+    float gfTailLightShadowSizeMul = 1.0f;
 
     float headlightSz = 5.0f;
 
@@ -52,33 +57,35 @@ struct LightsConfig {
     bool bPlayerIdleBrakeLights = false;
     bool bLightsRequireEngine = false;
     bool bSirensRequireEngine = false;
-    float fHighBeamPointLightMul = 2.0f;
-    float fPointLightIntensity = 0.8f;
-    float fPointLightSize = 1.0f;
-    float fPointLightDistance = 1.0f;
-    float fSirenPointLightIntensity = 0.8f;
-    float fSirenPointLightSize = 1.0f;
-    float fSirenPointLightDistance = 1.0f;
+    float fPointLightSizeMul = 1.0f;
+    float fPointLightOffsetMul = 1.0f;
+    float fSirenPointLightSizeMul = 1.0f;
+    float fSirenPointLightOffsetMul = 1.0f;
 
     void InitConfig() {
-        gbGlobalIndicatorLights = gConfig.ReadBoolean("LIGHTS", "StandardLights_GlobalIndicatorLights", gConfig.ReadBoolean("FEATURES", "StandardLights_GlobalIndicatorLights", false));
-        gbLightCoronasFeature = gConfig.ReadBoolean("LIGHTS", "LightCoronas", gConfig.ReadBoolean("FEATURES", "LightCoronas", false));
-        gbLightPointLights = ::gbLightPointLights = gConfig.ReadBoolean("LIGHTS", "PointLights", gConfig.ReadBoolean("LIGHTS", "LightPointLights", gConfig.ReadBoolean("FEATURES", "PointLights", true)));
-        gbSirenPointLights = ::gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", gConfig.ReadBoolean("FEATURES", "SirenPointLights", false));
+        gbGlobalIndicatorLights = gConfig.ReadBoolean("LIGHTS", "GlobalIndicatorLights", false);
+        gbLightCoronasFeature = gConfig.ReadBoolean("LIGHTS", "LightCoronas", false);
+        gbLightPointLights = ::gbLightPointLights = gConfig.ReadBoolean("LIGHTS", "LightPointLights", true);
+        gbSirenPointLights = ::gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", false);
 
-        gfGlobalCoronaSize = ::gfGlobalCoronaSize = gConfig.ReadFloat("LIGHTS", "LightCoronaSize", gConfig.ReadFloat("VISUAL", "LightCoronaSize", 0.3f));
-        gGlobalShadowIntensity = ::gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 80));
-        gGlobalCoronaIntensity = ::gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 80));
+        gfGlobalCoronaSize = ::gfGlobalCoronaSize = gConfig.ReadFloat("LIGHTS", "LightCoronaSize", 0.3f);
+        gGlobalShadowIntensity = ::gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", 80);
+        gGlobalCoronaIntensity = ::gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", 80);
+        gfLightShadowSizeMul = gConfig.ReadFloat("LIGHTS", "LightShadowSizeMul", 1.0f);
+
+        bSirenCoronas = gConfig.ReadBoolean("LIGHTS", "SirenCoronas", true);
+        fSirenCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "SirenCoronaDistanceMul", 0.07f);
+        bSirenShadows = gConfig.ReadBoolean("LIGHTS", "SirenShadows", true);
 
         gfHeadLightCoronaSize = gConfig.ReadFloat("LIGHTS", "HeadLightCoronaSize", gfGlobalCoronaSize);
         gHeadLightCoronaIntensity = gConfig.ReadInteger("LIGHTS", "HeadLightCoronaIntensity", gGlobalCoronaIntensity);
         gHeadLightShadowIntensity = gConfig.ReadInteger("LIGHTS", "HeadLightShadowIntensity", gGlobalShadowIntensity);
-        gfHeadLightShadowSize = gConfig.ReadFloat("LIGHTS", "HeadLightShadowSize", 1.0f);
+        gfHeadLightShadowSizeMul = gConfig.ReadFloat("LIGHTS", "HeadLightShadowSizeMul", 1.0f);
 
-        gfTailLightCoronaSize = gConfig.ReadFloat("LIGHTS", "TailLightCoronaSize", gConfig.ReadFloat("VISUAL", "TailLightCoronaSize", 0.4f));
-        gTailLightCoronaIntensity = gConfig.ReadInteger("LIGHTS", "TailLightCoronaIntensity", gConfig.ReadInteger("VISUAL", "TailLightCoronaIntensity", 60));
+        gfTailLightCoronaSize = gConfig.ReadFloat("LIGHTS", "TailLightCoronaSize", 0.4f);
+        gTailLightCoronaIntensity = gConfig.ReadInteger("LIGHTS", "TailLightCoronaIntensity", 60);
         gTailLightShadowIntensity = gConfig.ReadInteger("LIGHTS", "TailLightShadowIntensity", gGlobalShadowIntensity);
-        gfTailLightShadowSize = gConfig.ReadFloat("LIGHTS", "TailLightShadowSize", 1.0f);
+        gfTailLightShadowSizeMul = gConfig.ReadFloat("LIGHTS", "TailLightShadowSizeMul", 1.0f);
 
         nFogLightKey = gConfig.ReadInteger("KEYS", "FogLightKey", 'J');
         nLongLightKey = gConfig.ReadInteger("KEYS", "LongLightKey", 'G');
@@ -86,32 +93,23 @@ struct LightsConfig {
         nIndicatorLeftKey = gConfig.ReadInteger("KEYS", "IndicatorLightLeftKey", 'Z');
         nIndicatorRightKey = gConfig.ReadInteger("KEYS", "IndicatorLightRightKey", 'C');
         nIndicatorBothKey = gConfig.ReadInteger("KEYS", "IndicatorLightBothKey", 'X');
-        bAutoIndicatorsOnSteer = gConfig.ReadBoolean("LIGHTS", "AutoIndicatorsOnSteer", gConfig.ReadBoolean("TWEAKS", "AutoIndicatorsOnSteer", false));
-        bFoglightTiedToHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", gConfig.ReadBoolean("TWEAKS", "FoglightTiedToHeadlight", false));
-        bPlayerIdleBrakeLights = gConfig.ReadBoolean("LIGHTS", "PlayerIdleBrakeLights", gConfig.ReadBoolean("TWEAKS", "PlayerIdleBrakeLights", false));
-        bLightsRequireEngine = gConfig.ReadBoolean("LIGHTS", "LightsRequireEngine", gConfig.ReadBoolean("TWEAKS", "LightsRequireEngine", false));
-        bSirensRequireEngine = gConfig.ReadBoolean("LIGHTS", "SirensRequireEngine", gConfig.ReadBoolean("TWEAKS", "SirensRequireEngine", false));
+        bAutoIndicatorsOnSteer = gConfig.ReadBoolean("LIGHTS", "AutoIndicatorsOnSteer", false);
+        bFoglightTiedToHeadlight = gConfig.ReadBoolean("LIGHTS", "FoglightTiedToHeadlight", false);
+        bPlayerIdleBrakeLights = gConfig.ReadBoolean("LIGHTS", "PlayerIdleBrakeLights", false);
+        bLightsRequireEngine = gConfig.ReadBoolean("LIGHTS", "LightsRequireEngine", false);
+        bSirensRequireEngine = gConfig.ReadBoolean("LIGHTS", "SirensRequireEngine", false);
         
-        float rawMul = gConfig.ReadFloat("LIGHTS", "HighBeamPointLightMul", gConfig.ReadFloat("TWEAKS", "HighBeamPointLightMul", 2.0f));
-        fHighBeamPointLightMul = (rawMul < 1.0f) ? 1.0f : ((rawMul > 4.0f) ? 4.0f : rawMul);
+        float rawSize = gConfig.ReadFloat("LIGHTS", "LightPointLightSizeMul", 1.0f);
+        fPointLightSizeMul = std::clamp(rawSize, 0.1f, 5.0f);
 
-        float rawIntensity = gConfig.ReadFloat("LIGHTS", "PointLightIntensity", gConfig.ReadFloat("TWEAKS", "PointLightIntensity", 0.8f));
-        fPointLightIntensity = std::clamp(rawIntensity, 0.0f, 1.0f);
+        float rawOffset = gConfig.ReadFloat("LIGHTS", "LightPointLightOffsetMul", 1.0f);
+        fPointLightOffsetMul = std::clamp(rawOffset, 0.0f, 5.0f);
 
-        float rawSize = gConfig.ReadFloat("LIGHTS", "PointLightSize", gConfig.ReadFloat("TWEAKS", "PointLightSize", 1.0f));
-        fPointLightSize = std::clamp(rawSize, 0.1f, 5.0f);
+        float rawSirenSize = gConfig.ReadFloat("LIGHTS", "SirenPointLightSizeMul", 1.0f);
+        fSirenPointLightSizeMul = std::clamp(rawSirenSize, 0.1f, 4.0f);
 
-        float rawDist = gConfig.ReadFloat("LIGHTS", "PointLightDistance", gConfig.ReadFloat("TWEAKS", "PointLightDistance", 1.0f));
-        fPointLightDistance = std::clamp(rawDist, 0.0f, 5.0f);
-
-        float rawSirenIntensity = gConfig.ReadFloat("LIGHTS", "SirenPointLightIntensity", fPointLightIntensity);
-        fSirenPointLightIntensity = std::clamp(rawSirenIntensity, 0.0f, 1.0f);
-
-        float rawSirenSize = gConfig.ReadFloat("LIGHTS", "SirenPointLightSize", gConfig.ReadFloat("TWEAKS", "SirenPointLightSize", 1.0f));
-        fSirenPointLightSize = std::clamp(rawSirenSize, 0.1f, 4.0f);
-
-        float rawSirenDist = gConfig.ReadFloat("LIGHTS", "SirenPointLightDistance", gConfig.ReadFloat("TWEAKS", "SirenPointLightDistance", 1.0f));
-        fSirenPointLightDistance = std::clamp(rawSirenDist, 0.0f, 5.0f);
+        float rawSirenOffset = gConfig.ReadFloat("LIGHTS", "SirenPointLightOffsetMul", 1.0f);
+        fSirenPointLightOffsetMul = std::clamp(rawSirenOffset, 0.0f, 5.0f);
     }
 
 private:

@@ -27,7 +27,7 @@ bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         c.corona.size = LightsConfig::Get().gfTailLightCoronaSize;
         c.corona.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
         c.shadow.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
-        c.shadow.size = LightsConfig::Get().gfTailLightShadowSize;
+        c.shadow.size = LightsConfig::Get().gfTailLightShadowSizeMul;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = name != "taillights2";
 
@@ -61,7 +61,7 @@ bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         c.corona.size = LightsConfig::Get().gfTailLightCoronaSize;
         c.corona.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
         c.shadow.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
-        c.shadow.size = LightsConfig::Get().gfTailLightShadowSize;
+        c.shadow.size = LightsConfig::Get().gfTailLightShadowSizeMul;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = true;
         c.mirroredX = false;

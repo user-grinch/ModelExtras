@@ -49,6 +49,8 @@ DummyConfig LightManager::CreateBaseConfig(CVehicle* pVeh, RwFrame* pFrame) {
     c.corona.size = LightsConfig::Get().gfGlobalCoronaSize;
     c.corona.color = {255, 255, 255, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
     c.corona.lightingType = eLightingMode::NonDirectional;
+    c.shadow.size = LightsConfig::Get().gfLightShadowSizeMul;
+    c.shadow.color = {255, 255, 255, static_cast<unsigned char>(LightsConfig::Get().gGlobalShadowIntensity)};
     return c;
 }
 

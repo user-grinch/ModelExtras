@@ -118,8 +118,6 @@ void ModelInfoMgr::ResetEditableMaterials(RpClump *clump) {
 }
 
 void ModelInfoMgr::ReloadConfig() {
-  float rawMul = gConfig.ReadFloat("LIGHTS", "MaterialAmbientMul", gConfig.ReadFloat("TWEAKS", "MaterialAmbientMul", 1.0f));
-  gfMaterialAmbientMul = std::clamp(rawMul, 0.0f, 1.0f);
   ms_LightSurfaceProps = *reinterpret_cast<RwSurfaceProperties *>(0x8A645C);
 }
 
@@ -410,9 +408,9 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
       float offG = defaultOff ? 0.0f : static_cast<float>(matCol.off.g);
       float offB = defaultOff ? 0.0f : static_cast<float>(matCol.off.b);
 
-      pColor->red   = static_cast<RwUInt8>(std::clamp((offR + (matCol.on.r - offR) * factor) * gfMaterialAmbientMul, 0.0f, 255.0f));
-      pColor->green = static_cast<RwUInt8>(std::clamp((offG + (matCol.on.g - offG) * factor) * gfMaterialAmbientMul, 0.0f, 255.0f));
-      pColor->blue  = static_cast<RwUInt8>(std::clamp((offB + (matCol.on.b - offB) * factor) * gfMaterialAmbientMul, 0.0f, 255.0f));
+      pColor->red   = static_cast<RwUInt8>(std::clamp(offR + (matCol.on.r - offR) * factor, 0.0f, 255.0f));
+      pColor->green = static_cast<RwUInt8>(std::clamp(offG + (matCol.on.g - offG) * factor, 0.0f, 255.0f));
+      pColor->blue  = static_cast<RwUInt8>(std::clamp(offB + (matCol.on.b - offB) * factor, 0.0f, 255.0f));
       m_RestoreEntries.push_back({&material->texture, material->texture});
 
       if (material->texture) {

@@ -217,13 +217,12 @@ void SpotLights::ProcessPointLights(CVehicle *pVeh)
 
 	// 1. 3D Point Light: Placed forward along cone (3.5m) with 18m reach
 	CVector plightPos = lightPos + lightDir * 3.5f;
-	float intensity = LightsConfig::Get().fPointLightIntensity;
 	CPointLights::AddLight(
 		PLTYPE_SPOTLIGHT,
 		plightPos,
 		lightDir,
 		18.0f,
-		1.2f * intensity, 1.2f * intensity, 1.2f * intensity,
+		1.2f, 1.2f, 1.2f,
 		0,
 		false,
 		nullptr

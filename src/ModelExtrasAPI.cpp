@@ -928,15 +928,6 @@ bool ME_GetSirenAudioPath(int modeIndex, char *outBuffer, int maxLen) {
 }
 
 // Visual & Render Configuration
-float ME_GetMaterialAmbientMul() {
-  return ModelInfoMgr::GetMaterialAmbientMul();
-}
-
-void ME_SetMaterialAmbientMul(float mul) {
-  ModelInfoMgr::gfMaterialAmbientMul = std::clamp(mul, 0.0f, 1.0f);
-  ModelInfoMgr::ms_LightSurfaceProps = *reinterpret_cast<RwSurfaceProperties *>(0x8A645C);
-}
-
 float ME_GetHeadLightCoronaDistanceMul() {
   return RenderUtil::GetHeadLightCoronaDistanceMul();
 }
@@ -949,37 +940,44 @@ float ME_GetCoronaDistanceMul() {
   return RenderUtil::GetCoronaDistanceMul();
 }
 
-float ME_GetCoronaNearClip() {
-  return RenderUtil::GetCoronaNearClip();
-}
-
 float ME_GetLightShadowDistance() {
   return RenderUtil::GetLightShadowDistance();
 }
 
+float ME_GetHighBeamPointLightMul() {
+  return 2.0f;
+}
 
 float ME_GetPointLightIntensity() {
-  return LightsConfig::Get().fPointLightIntensity;
+  return 1.0f;
 }
 
 float ME_GetPointLightSize() {
-  return LightsConfig::Get().fPointLightSize;
+  return LightsConfig::Get().fPointLightSizeMul;
 }
 
 float ME_GetPointLightDistance() {
-  return LightsConfig::Get().fPointLightDistance;
+  return LightsConfig::Get().fPointLightOffsetMul;
+}
+
+float ME_GetPointLightOffsetMul() {
+  return LightsConfig::Get().fPointLightOffsetMul;
 }
 
 float ME_GetSirenPointLightIntensity() {
-  return LightsConfig::Get().fSirenPointLightIntensity;
+  return 1.0f;
 }
 
 float ME_GetSirenPointLightSize() {
-  return LightsConfig::Get().fSirenPointLightSize;
+  return LightsConfig::Get().fSirenPointLightSizeMul;
 }
 
 float ME_GetSirenPointLightDistance() {
-  return LightsConfig::Get().fSirenPointLightDistance;
+  return LightsConfig::Get().fSirenPointLightOffsetMul;
+}
+
+float ME_GetSirenPointLightOffsetMul() {
+  return LightsConfig::Get().fSirenPointLightOffsetMul;
 }
 
 bool ME_IsAutoIndicatorsOnSteerEnabled() {

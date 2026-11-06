@@ -70,8 +70,7 @@ static bool gbLightShadows = false;
 static float gfCoronaDistanceMul = 0.07f;
 static float gfHeadLightCoronaDistanceMul = 0.07f;
 static float gfTailLightCoronaDistanceMul = 0.05f;
-static float gfCoronaNearClip = 0.45f;
-static float gfLightHeightLimit = 1.4f;
+constexpr float gfCoronaNearClip = 0.45f;
 static bool gbConfigInitialized = false;
 static float gfLightShadowDistance = 120.0f;
 static int gnHeadLightShadowIntensity = 80;
@@ -82,15 +81,13 @@ extern int gGlobalCoronaIntensity;
 
 void RenderUtil::ReloadConfig()
 {
-    gbLightCoronas = gConfig.ReadBoolean("LIGHTS", "LightCoronas", gConfig.ReadBoolean("FEATURES", "LightCoronas", true));
-    gbLightShadows = gConfig.ReadBoolean("LIGHTS", "LightShadows", gConfig.ReadBoolean("FEATURES", "LightShadows", true));
-    gfCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "CoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "CoronaDistanceMul", 0.07f));
-    gfHeadLightCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "HeadLightCoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "HeadLightCoronaDistanceMul", gfCoronaDistanceMul));
-    gfTailLightCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "TailLightCoronaDistanceMul", gConfig.ReadFloat("TWEAKS", "TailLightCoronaDistanceMul", 0.05f));
-    gfCoronaNearClip = gConfig.ReadFloat("LIGHTS", "CoronaNearClip", gConfig.ReadFloat("TWEAKS", "CoronaNearClip", 0.45f));
-    gfLightHeightLimit = gConfig.ReadFloat("LIGHTS", "LightHeightLimit", gConfig.ReadFloat("TWEAKS", "LightHeightLimit", 1.4f));
-    gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", gConfig.ReadInteger("VISUAL", "LightShadowIntensity", 80));
-    gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", gConfig.ReadInteger("VISUAL", "LightCoronaIntensity", 80));
+    gbLightCoronas = gConfig.ReadBoolean("LIGHTS", "LightCoronas", true);
+    gbLightShadows = gConfig.ReadBoolean("LIGHTS", "LightShadows", true);
+    gfCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "LightCoronaDistanceMul", 0.07f);
+    gfHeadLightCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "HeadLightCoronaDistanceMul", gfCoronaDistanceMul);
+    gfTailLightCoronaDistanceMul = gConfig.ReadFloat("LIGHTS", "TailLightCoronaDistanceMul", 0.05f);
+    gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", 80);
+    gGlobalCoronaIntensity = gConfig.ReadInteger("LIGHTS", "LightCoronaIntensity", 80);
     gnHeadLightShadowIntensity = gConfig.ReadInteger("LIGHTS", "HeadLightShadowIntensity", gGlobalShadowIntensity);
     gnTailLightShadowIntensity = gConfig.ReadInteger("LIGHTS", "TailLightShadowIntensity", gGlobalShadowIntensity);
     gfLightShadowDistance = gConfig.ReadFloat("LIGHTS", "LightShadowDistance", 120.0f);
@@ -121,12 +118,6 @@ float RenderUtil::GetTailLightCoronaDistanceMul()
 {
     EnsureConfigLoaded();
     return gfTailLightCoronaDistanceMul;
-}
-
-float RenderUtil::GetCoronaNearClip()
-{
-    EnsureConfigLoaded();
-    return gfCoronaNearClip;
 }
 
 float RenderUtil::GetLightShadowDistance()
@@ -246,9 +237,9 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
     }
 
     CRGBA col = pConfig->corona.color;
-    float intensity = LightsConfig::Get().fPointLightIntensity * pConfig->pointlight.intensity;
-    CVector plightPos = lightPos + lightDir * (pConfig->pointlight.distance * LightsConfig::Get().fPointLightDistance);
-    float effectiveRange = HEADLIGHT_PLIGHT_RANGE * rangeMul * LightsConfig::Get().fPointLightSize * pConfig->pointlight.size;
+    float intensity = pConfig->pointlight.intensity;
+    CVector plightPos = lightPos + lightDir * (pConfig->pointlight.distance * LightsConfig::Get().fPointLightOffsetMul);
+    float effectiveRange = HEADLIGHT_PLIGHT_RANGE * rangeMul * LightsConfig::Get().fPointLightSizeMul * pConfig->pointlight.size;
     CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, lightDir, effectiveRange,
                            (col.r / 255.0f) * intensity, (col.g / 255.0f) * intensity, (col.b / 255.0f) * intensity, 0, 0, 0);
 }
@@ -430,16 +421,16 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
         }
     }
 
-    float effectivePushDist = (pushDist * LightsConfig::Get().fPointLightDistance) + pConfig->pointlight.distance;
+    float effectivePushDist = (pushDist * LightsConfig::Get().fPointLightOffsetMul) + pConfig->pointlight.distance;
     CVector plightPos = lightPos + lightDir * effectivePushDist;
 
     constexpr float INV_255 = 1.0f / 255.0f;
-    float intensity = LightsConfig::Get().fPointLightIntensity * pConfig->pointlight.intensity;
+    float intensity = pConfig->pointlight.intensity;
     float r = std::clamp((col.r * INV_255) * intensity, 0.0f, 1.0f);
     float g = std::clamp((col.g * INV_255) * intensity, 0.0f, 1.0f);
     float b = std::clamp((col.b * INV_255) * intensity, 0.0f, 1.0f);
 
-    float effectiveRadius = radius * LightsConfig::Get().fPointLightSize * pConfig->pointlight.size;
+    float effectiveRadius = radius * LightsConfig::Get().fPointLightSizeMul * pConfig->pointlight.size;
     if (effectiveRadius <= 0.0f)
     {
         return;
@@ -563,11 +554,6 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
         return;
     }
 
-    if (gfLightHeightLimit != 0.0f && pConfig->frame->modelling.pos.z >= gfLightHeightLimit)
-    {
-        return;
-    }
-
     if (IsDummyPointingUp(*(CMatrix *)&pConfig->frame->ltm))
     {
         return;
@@ -594,6 +580,21 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
 
         worldPos = pBike->m_mLeanMatrix * pConfig->shadow.position;
         pBike->m_bLeanMatrixCalculated = wasCalculated;
+    }
+
+    // Prevent unrealistic ground shadow projection when vehicle is airborne (flying off ramps/in air)
+    if (pConfig->pVeh && pConfig->pVeh->GetNumContactWheels() == 0)
+    {
+        float groundZ = pConfig->pVeh->m_fVehicleFrontGroundZ;
+        if (groundZ == 0.0f || groundZ < -100.0f)
+        {
+            bool found = false;
+            groundZ = CWorld::FindGroundZFor3DCoord(worldPos.x, worldPos.y, worldPos.z, &found, nullptr);
+        }
+        if ((worldPos.z - groundZ) >= 1.4f)
+        {
+            return;
+        }
     }
 
     // 3D light direction vectors directly from dummy matrix (retaining full 3D roll, pitch, and yaw)

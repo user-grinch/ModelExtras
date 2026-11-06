@@ -25,11 +25,11 @@ void SoundEffects::ReloadConfig()
     ValidForReverseSound.clear();
     Util::GetModelsFromIni(line, ValidForReverseSound);
 
-    bReverseSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalReverseSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalReverseSound", false));
-    bEngineSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalEngineSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalEngineSound", false));
-    bIndicatorSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalIndicatorSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalIndicatorSound", false));
-    bAirbreakSounds = gConfig.ReadBoolean("SOUND", "SoundEffects_GlobalAirbreakSound", gConfig.ReadBoolean("FEATURES", "SoundEffects_GlobalAirbreakSound", false));
-    bOnlyPlayerVehicle = !gConfig.ReadBoolean("SOUND", "SoundEffects_NonPlayerVehicles", gConfig.ReadBoolean("FEATURES", "SoundEffects_NonPlayerVehicles", false));
+    bReverseSounds = gConfig.ReadBoolean("SOUND", "ReverseSound", false);
+    bEngineSounds = gConfig.ReadBoolean("SOUND", "EngineSound", false);
+    bIndicatorSounds = gConfig.ReadBoolean("SOUND", "IndicatorSound", false);
+    bAirbreakSounds = gConfig.ReadBoolean("SOUND", "AirbreakSound", false);
+    bOnlyPlayerVehicle = !gConfig.ReadBoolean("SOUND", "NonPlayerVehicles", false);
 }
 
 void SoundEffects::Reload(CVehicle *pVeh)

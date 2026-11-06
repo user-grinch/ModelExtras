@@ -249,7 +249,7 @@ protected:
     void Init() override;
 
 public:
-    Sirens() : CVehFeature<VehicleSiren>("SirenLights", "FEATURES", eFeatureMatrix::SirenLights) {}
+    Sirens() : CVehFeature<VehicleSiren>("SirenLights", "LIGHTS", eFeatureMatrix::SirenLights) {}
     static inline int CurrentModel = -1;
 
     static void Parse(const nlohmann::json &data, int model);

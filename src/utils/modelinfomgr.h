@@ -72,10 +72,8 @@ private:
   static void __fastcall SetupRender(CVehicle *ptr);
 
 public:
-  static inline float gfMaterialAmbientMul = 1.0f;
   static inline RwSurfaceProperties ms_LightSurfaceProps{1.0f, 1.0f, 1.0f};
   static void ReloadConfig();
-  static float GetMaterialAmbientMul() { return gfMaterialAmbientMul; }
   static RwSurfaceProperties GetLightSurfaceProps(float factor, const RwSurfaceProperties &origProps) {
     float f = std::clamp(factor, 0.0f, 1.0f);
     RwSurfaceProperties props;
