@@ -89,6 +89,8 @@ enum ME_LightID
     ME_ReverseLightRight,
     ME_BrakeLightLeft,
     ME_BrakeLightRight,
+    ME_HighBeamLeft,
+    ME_HighBeamRight,
     ME_AllDayLight,
     ME_DayLight,
     ME_NightLight,
@@ -162,6 +164,8 @@ extern "C"
     ME_WRAPPER void  ME_SetLightOverride(CVehicle *pVeh, int overrideMode);
     ME_WRAPPER bool  ME_GetFogLights(CVehicle *pVeh);
     ME_WRAPPER void  ME_SetFogLights(CVehicle *pVeh, bool on);
+    ME_WRAPPER bool  ME_GetHighBeam(CVehicle *pVeh);
+    ME_WRAPPER void  ME_SetHighBeam(CVehicle *pVeh, bool on);
     ME_WRAPPER float ME_GetLightInertia(CVehicle *pVeh, ME_LightID lightId);
     ME_WRAPPER bool  ME_GetLightColor(CVehicle *pVeh, ME_LightID lightId, ME_Color *onColor, ME_Color *offColor);
     ME_WRAPPER float ME_GetLightFactor(CVehicle *pVeh, ME_LightID lightId);
@@ -298,6 +302,7 @@ extern "C"
     ME_WRAPPER float ME_GetTailLightCoronaDistanceMul();
     ME_WRAPPER float ME_GetCoronaDistanceMul();
     ME_WRAPPER float ME_GetLightShadowDistance();
+    ME_WRAPPER float ME_GetHighBeamPointLightMul();
     ME_WRAPPER float ME_GetPointLightIntensity();
     ME_WRAPPER float ME_GetPointLightSize();
     ME_WRAPPER float ME_GetPointLightDistance();
