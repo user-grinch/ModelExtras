@@ -36,6 +36,8 @@
 #include "utils/frameextension.h"
 #include "utils/meevents.h"
 #include "utils/samp.h"
+#include "gui/studio.h"
+#include "gui/studio_live.h"
 
 constexpr uint32_t TEST_CHEAT = 0x0ADC;
 
@@ -155,6 +157,7 @@ void ModelExtras::Init()
 
     Events::processScriptsEvent += []()
     {
+        Studio::Tick();
         InputMgr::Update();
 
         for (auto *pFeature : s_ActiveTickFeatures)
@@ -178,32 +181,35 @@ void ModelExtras::Init()
             }
         }
     };
+    Studio::Init();
 }
 
 void ModelExtras::Reload()
 {
     gConfig.data.clear();
     gConfig.SetIniPath();
+    Studio::PreserveRestartSettings();
     ReloadConfig();
     AudioMgr::ReloadConfig();
     RenderUtil::ReloadConfig();
     LightsConfig::Get().InitConfig();
     ModelInfoMgr::ReloadConfig();
-    DataMgr::Init();
-    for (const auto &pFeature : m_Features) {
-        if (pFeature) {
-            pFeature->ReloadConfig();
-        }
-    }
-    for (CVehicle *pVeh : CPools::ms_pVehiclePool) {
-        for (const auto &pFeature : m_Features) {
-            if (pFeature) {
-                pFeature->Reload(pVeh);
-            }
-        }
-        ModelInfoMgr::Reload(pVeh);
-    }
+    ReloadModels();
     static std::string msg = "~g~ModelExtras:~w~ Config reloaded";
     CMessages::AddMessageWithString(const_cast<char*>(msg.c_str()), 3000, false, nullptr, true);
     LOG(INFO) << "ModelExtras: Configuration reloaded successfully.";
+    Studio::FilesReloaded();
+}
+
+void ModelExtras::ReloadModels() {
+    std::unordered_map<int, nlohmann::json> previous;
+    if (CPools::ms_pVehiclePool) for (auto *vehicle : CPools::ms_pVehiclePool)
+        if (vehicle && !previous.contains(vehicle->m_nModelIndex))
+            previous.emplace(vehicle->m_nModelIndex, DataMgr::Get(vehicle->m_nModelIndex));
+    DataMgr::Init();
+    for (const auto &feature : m_Features) if (feature) feature->ReloadConfig();
+    StudioLive::ApplyIni("LIGHTS", "LightCoronaSize");
+    // Reuse discovered nodes. Re-running FindDummies duplicates animations and randomizes gauges.
+    for (const auto &[model, before] : previous)
+        StudioLive::ApplyModel(model, before, DataMgr::Get(model));
 }

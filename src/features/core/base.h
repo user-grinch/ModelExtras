@@ -2,6 +2,8 @@
 #include "ini/ini.hpp"
 #include "enums/featurematrix.h"
 #include "utils/util.h"
+#include "frame_state.h"
+#include <CPools.h>
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -26,6 +28,7 @@ public:
 
   [[nodiscard]] bool IsActive() const;
   [[nodiscard]] bool IsActiveCached() const { return m_bActive; }
+  [[nodiscard]] const std::string &GetName() const { return m_name; }
   static bool IsEnabled(eFeatureMatrix featureId);
 
   virtual void Init() = 0;
@@ -43,7 +46,23 @@ public:
 };
 
 template <typename T> class CVehFeature : public CBaseFeature {
+protected:
+  static void CaptureState(CVehicle *vehicle, RwFrame *frame, bool transform = true, unsigned depth = 0) {
+    if (vehicle) m_VehData.Get(vehicle).frameState.Capture(frame, transform, depth);
+  }
+  virtual void OnToggle(CVehicle *, bool) {}
 public:
+  void ReloadConfig() override {
+    bool previous = m_bActive;
+    CBaseFeature::ReloadConfig();
+    if (previous == m_bActive || !CPools::ms_pVehiclePool) return;
+    for (auto *vehicle : CPools::ms_pVehiclePool) if (vehicle) {
+      if constexpr (requires(T &data) { data.frameState; })
+        if (!m_bActive) m_VehData.Get(vehicle).frameState.Restore(vehicle);
+      OnToggle(vehicle, m_bActive);
+    }
+  }
+
   static inline VehicleExtendedData<T> m_VehData;
 
   CVehFeature(std::string name, std::string configSection,

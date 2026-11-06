@@ -15,6 +15,7 @@ enum class eWheelPos
 
 struct ExtraWheelData
 {
+    FeatureFrameState frameState;
     std::vector<RwFrame*> pOriginals[static_cast<int>(eWheelPos::COUNT)];
     std::vector<RwFrame*> pExtras[static_cast<int>(eWheelPos::COUNT)];
 

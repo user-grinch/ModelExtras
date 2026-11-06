@@ -17,6 +17,7 @@ enum class AnimPhase {
         MovingRoof,
         ClosingBoots
     };struct RoofData {
+    FeatureFrameState frameState;
     bool m_bInit = false;
     bool m_bRoofTargetExpanded = false;
     bool m_bPrevTarget = false;
@@ -32,6 +33,7 @@ enum class AnimPhase {
 class ConvertibleRoof : public CVehFeature<RoofData>
 {
 protected:
+    void OnToggle(CVehicle *vehicle, bool enabled) override;
     void Init() override;
     
 

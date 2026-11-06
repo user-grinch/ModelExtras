@@ -31,7 +31,13 @@ target("ModelExtras")
         "RW",
         "NOMINMAX",
         "WIN32_LEAN_AND_MEAN",
-        "_USE_MATH_DEFINES"
+        "_USE_MATH_DEFINES",
+        "IMGUI_DISABLE_DEBUG_TOOLS",
+        "IMGUI_DISABLE_DEFAULT_FONT_BITMAP",
+        "IMGUI_USE_BGRA_PACKED_COLOR",
+        "IMGUI_IMPL_WIN32_DISABLE_GAMEPAD",
+        "IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS",
+        "IMGUI_DISABLE_OBSOLETE_FUNCTIONS"
     )
 
     add_includedirs(
@@ -43,6 +49,7 @@ target("ModelExtras")
         path.join(PLUGIN_SDK_DIR, "shared"),
         path.join(PLUGIN_SDK_DIR, "shared", "game"),
         "include", 
+        "include/imgui",
         "src", 
         "src/features"
     )
@@ -56,7 +63,7 @@ target("ModelExtras")
     )
 
     add_syslinks(
-        "user32"
+        "user32", "d3d9", "dwmapi"
     )
 
     set_warnings("all")

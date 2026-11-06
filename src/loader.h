@@ -22,4 +22,5 @@ public:
     static void ReloadConfig();
     static void Init();
     static void Reload();
+    static void ReloadModels();
 };

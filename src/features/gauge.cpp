@@ -20,6 +20,7 @@ void GearIndicator::Init()
             VehGearData &data = m_VehData.Get(pVeh);
 
             GearIndicatorData indData;
+            CaptureState(pVeh, pFrame, false, 1);
             indData.pRoot = pFrame;
             FrameUtil::StoreChilds(pFrame, indData.vecFrameList);
             data.vecIndicatorData.push_back(std::move(indData));
@@ -55,6 +56,8 @@ void MileageIndicator::Init()
             auto& indicator = data.vecIndicatorData[name];
 
             FrameUtil::StoreChilds(pFrame, indicator.vecFrameList);
+            for (size_t i = 0; i < std::min<size_t>(6, indicator.vecFrameList.size()); ++i)
+                CaptureState(pVeh, indicator.vecFrameList[i]);
 
             indicator.dCurrentDistance = static_cast<double>(rand() % 999999);
             indicator.pFrame = pFrame;
@@ -134,6 +137,7 @@ void RPMGauge::Init()
                     data.vecGaugeData[name].fMaxRotation = jsonData["gauges"][name].value("maxrotation", data.vecGaugeData[name].fMaxRotation);
                 }
             }
+            CaptureState(pVeh, pFrame);
             data.vecGaugeData[name].pFrame = pFrame;
             data.bInitialized = true;
         }
@@ -203,6 +207,7 @@ void SpeedGauge::Init()
                     data.vecGaugeData[name].fMaxRotation = jsonData["gauges"][name].value("maxrotation", data.vecGaugeData[name].fMaxRotation);
                 }
             }
+            CaptureState(pVeh, pFrame);
             data.vecGaugeData[name].pFrame = pFrame;
             data.bInitialized = true;
         }
@@ -252,6 +257,7 @@ void TurboGauge::Init()
                     data.vecGaugeData[name].fMaxRotation = jsonData["gauges"][name].value("maxrotation", data.vecGaugeData[name].fMaxRotation);
                 }
             }
+            CaptureState(pVeh, pFrame);
             data.vecGaugeData[name].pFrame = pFrame;
             data.bInitialized = true;
         }
@@ -305,7 +311,61 @@ void FixedGauge::Init()
                 minAngle = jsonData["gauges"][name].value("minangle", minAngle);
                 maxAngle = jsonData["gauges"][name].value("maxangle", maxAngle);
             }
-            FrameUtil::SetRotationY(pFrame, RandomNumberInRange(minAngle, maxAngle));
+            auto &gauges = m_VehData.Get(pVeh).gauges;
+            for (auto &entry : gauges) if (entry.frame == pFrame) {
+                float angle = CBaseFeature::IsEnabled(eFeatureMatrix::AnimatedGasMeter) ? minAngle + entry.fraction * (maxAngle - minAngle) : 0.0f;
+                FrameUtil::SetRotationY(pFrame, angle - entry.angle);
+                entry.angle = angle;
+                return;
+            }
+            CaptureState(pVeh, pFrame);
+            float angle = RandomNumberInRange(minAngle, maxAngle);
+            float fraction = maxAngle != minAngle ? (angle - minAngle) / (maxAngle - minAngle) : 0.0f;
+            if (!CBaseFeature::IsEnabled(eFeatureMatrix::AnimatedGasMeter)) angle = 0.0f;
+            FrameUtil::SetRotationY(pFrame, angle);
+            gauges.push_back({pFrame, fraction, angle});
         }
     });
+}
+
+void GearIndicator::OnToggle(CVehicle *vehicle, bool enabled) {
+    if (enabled) return;
+    for (auto &e : m_VehData.Get(vehicle).vecIndicatorData) e.iCurrent = UINT_MAX;
+}
+
+void MileageIndicator::OnToggle(CVehicle *vehicle, bool enabled) {
+    for (auto &[name, e] : m_VehData.Get(vehicle).vecIndicatorData) {
+        std::fill(std::begin(e.lastDigits), std::end(e.lastDigits), -1);
+        if (vehicle->m_nVehicleSubClass == VEHICLE_BIKE) e.fLastWheelRot = static_cast<CBike *>(vehicle)->m_aWheelPitchAngles[1];
+        else if (vehicle->m_nVehicleSubClass == VEHICLE_AUTOMOBILE) e.fLastWheelRot = static_cast<CAutomobile *>(vehicle)->m_fWheelRotation[3];
+    }
+}
+
+void RPMGauge::OnToggle(CVehicle *vehicle, bool enabled) {
+    if (enabled) return;
+    for (auto &[name, e] : m_VehData.Get(vehicle).vecGaugeData) e.fCurRotation = 0.0f;
+}
+
+void SpeedGauge::OnToggle(CVehicle *vehicle, bool enabled) {
+    if (enabled) return;
+    for (auto &[name, e] : m_VehData.Get(vehicle).vecGaugeData) e.fCurRotation = 0.0f;
+}
+
+void TurboGauge::OnToggle(CVehicle *vehicle, bool enabled) {
+    for (auto &[name, e] : m_VehData.Get(vehicle).vecGaugeData) { e.fCurRotation = 0.0f; e.fPrevTurbo = Util::GetVehicleSpeedRealistic(vehicle); }
+}
+
+void FixedGauge::OnToggle(CVehicle *vehicle, bool enabled) {
+    for (auto &e : m_VehData.Get(vehicle).gauges) {
+        e.angle = 0.0f;
+        if (!enabled || !m_VehData.Get(vehicle).frameState.IsCurrent(vehicle, e.frame)) continue;
+        const auto &data = DataMgr::Get(vehicle->m_nModelIndex);
+        float min = 30.0f, max = 120.0f;
+        if (data.contains("gauges") && data["gauges"].contains(GetSafeFrameNodeName(e.frame))) {
+            const auto &json = data["gauges"][GetSafeFrameNodeName(e.frame)];
+            min = json.value("minangle", min); max = json.value("maxangle", max);
+        }
+        e.angle = min + e.fraction * (max - min);
+        FrameUtil::SetRotationY(e.frame, e.angle);
+    }
 }
