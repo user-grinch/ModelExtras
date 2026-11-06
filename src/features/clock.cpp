@@ -9,6 +9,7 @@ void DigitalClockFeature::Init()
     LOG_VERBOSE("Init {}", __FUNCTION__);
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
     {
+        if (!pVeh || !pFrame || !CBaseFeature::IsEnabled(eFeatureMatrix::Clock)) return;
         if (nodeName.starts_with("x_dclock")) {
             ClockData &data = m_VehData.Get(pVeh);
             data.m_pRootFrame = pFrame;

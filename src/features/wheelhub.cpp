@@ -7,6 +7,8 @@ void WheelHub::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view name)
     {
+        if (name == "hub_rf" || name == "hub_rm" || name == "hub_rr" || name == "hub_rb" ||
+            name == "hub_lf" || name == "hub_lm" || name == "hub_lr" || name == "hub_lb") CaptureState(pVeh, pFrame);
         WheelHubData& data = m_VehData.Get(pVeh);
         
         if (name == "wheel_rf_dummy")      { data.m_pWRF = pFrame; }

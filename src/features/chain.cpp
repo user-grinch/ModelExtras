@@ -11,6 +11,7 @@ void ChainFeature::Init() {
   ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName) {
     if (nodeName.starts_with("x_chain") || nodeName.starts_with("fc_chain")) {
       ChainData &data = m_VehData.Get(pVeh);
+      CaptureState(pVeh, pFrame, false, 2);
       data.m_pRootFrame = pFrame;
       FrameUtil::StoreChilds(pFrame, data.m_FrameList);
     }
@@ -62,4 +63,9 @@ void ChainFeature::Init() {
       data.lastUpdateTime = curTime;
     }
   });
+}
+
+void ChainFeature::OnToggle(CVehicle *vehicle, bool enabled) {
+    if (enabled) return;
+    auto &data = m_VehData.Get(vehicle); data.m_nCurChain = 0; data.lastUpdateTime = 0;
 }

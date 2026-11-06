@@ -248,7 +248,7 @@ void BackFireEffect::ReloadConfig()
 {
     bool previous = m_bActive, previousFilter = onlySelected;
     auto previousModels = ValidModels;
-    CBaseFeature::ReloadConfig();
+    CVehFeature::ReloadConfig();
     std::string line = gConfig.ReadString("TABLE", "BackFireEffect_VehicleModels", "");
     onlySelected = gConfig.ReadBoolean("FEATURES", "BackfireEffect_OnlySelectedModels", true);
     ValidModels.clear();

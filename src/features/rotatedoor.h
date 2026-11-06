@@ -12,6 +12,7 @@ struct RotateDoorConfig {
     };
 
 struct RotateDoorData {
+    FeatureFrameState frameState;
     std::vector<RotateDoorConfig> leftFront;
     std::vector<RotateDoorConfig> rightFront;
     std::vector<RotateDoorConfig> leftRear;
@@ -25,6 +26,7 @@ struct RotateDoorData {
 class RotateDoor : public CVehFeature<RotateDoorData>
 {
 protected:
+    void OnToggle(CVehicle *vehicle, bool enabled) override;
     void Init() override;
     
 

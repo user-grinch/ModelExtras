@@ -14,6 +14,7 @@ struct SpoilerData
 
 struct SpoilerVehData
 {
+    FeatureFrameState frameState;
   std::vector<SpoilerData> m_Spoilers;
   SpoilerVehData(CVehicle *pVeh) {}
   ~SpoilerVehData() {}
@@ -22,6 +23,7 @@ struct SpoilerVehData
 class Spoiler : public CVehFeature<SpoilerVehData>
 {
 protected:
+    void OnToggle(CVehicle *vehicle, bool enabled) override;
     void Init() override;
   
 
