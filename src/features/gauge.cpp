@@ -12,6 +12,33 @@ static inline float ClampRotation(float value, float maxRot)
     return Clamp(value, -limit, limit);
 }
 
+static int ParseGearIndex(std::string_view name)
+{
+    if (name.empty()) return -1;
+
+    if (name == "r" || name == "R" || name == "n" || name == "N" ||
+        name.ends_with("_r") || name.ends_with("_R") ||
+        name.ends_with("_n") || name.ends_with("_N")) {
+        return 0;
+    }
+
+    size_t last = name.find_last_of("0123456789");
+    if (last != std::string_view::npos) {
+        size_t first = last;
+        while (first > 0 && name[first - 1] >= '0' && name[first - 1] <= '9') {
+            first--;
+        }
+        if (last - first > 2) return -1;
+        int val = 0;
+        for (size_t i = first; i <= last; ++i) {
+            val = val * 10 + (name[i] - '0');
+        }
+        return val;
+    }
+
+    return -1;
+}
+
 void GearIndicator::Init()
 {
     ModelInfoMgr::RegisterDummy([](CVehicle *pVeh, RwFrame *pFrame, const std::string_view nodeName)
@@ -21,7 +48,26 @@ void GearIndicator::Init()
 
             GearIndicatorData indData;
             indData.pRoot = pFrame;
-            FrameUtil::StoreChilds(pFrame, indData.vecFrameList);
+
+            for (RwFrame *child = pFrame->child; child; child = child->next) {
+                std::string_view name = GetSafeFrameNodeName(child);
+                int gear = ParseGearIndex(name);
+                if (gear >= 0 && gear <= 32) {
+                    if (static_cast<size_t>(gear) >= indData.vecFrameList.size()) {
+                        indData.vecFrameList.resize(gear + 1, nullptr);
+                    }
+                    bool isReverse = (name == "r" || name == "R" || name.ends_with("_r") || name.ends_with("_R"));
+                    if (!indData.vecFrameList[gear] || (gear == 0 && isReverse)) {
+                        indData.vecFrameList[gear] = child;
+                    }
+                }
+            }
+
+            if (indData.vecFrameList.empty()) {
+                FrameUtil::StoreChilds(pFrame, indData.vecFrameList);
+            }
+
+            FrameUtil::HideAllChilds(pFrame);
             data.vecIndicatorData.push_back(std::move(indData));
         }
     });
@@ -36,7 +82,7 @@ void GearIndicator::Init()
         for (auto&e : data.vecIndicatorData) {
             if (!e.vecFrameList.empty() &&  pVeh->m_nCurrentGear != e.iCurrent) {
                 FrameUtil::HideAllChilds(e.pRoot);
-                if (static_cast<size_t>(pVeh->m_nCurrentGear) < e.vecFrameList.size())
+                if (static_cast<size_t>(pVeh->m_nCurrentGear) < e.vecFrameList.size() && e.vecFrameList[pVeh->m_nCurrentGear])
                 {
                     FrameUtil::ShowAllAtomics(e.vecFrameList[pVeh->m_nCurrentGear]);
                 }
