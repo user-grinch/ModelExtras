@@ -10,6 +10,7 @@
 #include "utils/mathutil.h"
 #include "utils/render.h"
 #include <CShadows.h>
+#include <CWorld.h>
 #include <CModelInfo.h>
 #include <CVehicleModelInfo.h>
 #include <CBike.h>
@@ -323,18 +324,20 @@ void Neon::Init()
         const auto &minB = pInfo->m_pColModel->m_boundBox.m_vecMin;
         const auto &maxB = pInfo->m_pColModel->m_boundBox.m_vecMax;
 
-        const CMatrix &matrix = *(CMatrix *)pVeh->m_matrix;
+        const CMatrix &matrix = *reinterpret_cast<const CMatrix *>(pVeh->m_matrix);
         CVector upDir = matrix.up;
         CVector rightDir = matrix.right;
         if (pVeh->m_nVehicleSubClass == VEHICLE_BIKE)
         {
             CBike *pBike = static_cast<CBike *>(pVeh);
-            if (!pBike->m_bLeanMatrixCalculated)
+            bool wasCalculated = pBike->m_bLeanMatrixCalculated;
+            if (!wasCalculated)
             {
                 pBike->CalculateLeanMatrix();
             }
             upDir = pBike->m_mLeanMatrix.up;
             rightDir = pBike->m_mLeanMatrix.right;
+            pBike->m_bLeanMatrixCalculated = wasCalculated;
         }
         upDir.z = rightDir.z = 0.0f;
         upDir.Normalize();
@@ -345,6 +348,21 @@ void Neon::Init()
 
         CVector center = pVeh->TransformFromObjectSpace(CVector((minB.x + maxB.x) * 0.5f + offset.x,
                                                                 (minB.y + maxB.y) * 0.5f + offset.y, 0.0f));
+        // Prevent unrealistic ground shadow projection when vehicle is airborne (flying off ramps/in air)
+        if (pVeh->GetNumContactWheels() == 0)
+        {
+            float groundZ = pVeh->m_fVehicleFrontGroundZ;
+            if (groundZ < -100.0f)
+            {
+                bool found = false;
+                groundZ = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z, &found, nullptr);
+            }
+            if ((center.z - groundZ) >= 1.4f)
+            {
+                return;
+            }
+        }
+
         CVector shdwPos(center.x, center.y, pVeh->GetPosition().z + 1.5f);
 
         RwTexture *pTex = TextureMgr::Get("neon");

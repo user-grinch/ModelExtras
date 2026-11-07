@@ -12,57 +12,27 @@
 #include "features/lights/data.h"
 #include <CPointLights.h>
 
-inline CVector2D GetPerpRight(const CVector2D &vec)
+// Test if dummy forward vector points toward vehicle center (catches backward-facing dummies from 3D models)
+static inline bool IsShadowTowardVehicle(const CMatrix &dummyMatrix, const CVector &vehicleCenter)
 {
-    return {vec.y, -vec.x};
+    CVector toVehicle = vehicleCenter - dummyMatrix.pos;
+    // Dot product sign in 2D determines direction alignment without needing vector normalization
+    return (dummyMatrix.up.x * toVehicle.x + dummyMatrix.up.y * toVehicle.y) > 0.0f;
 }
 
-inline CVector2D Rotate2D(const CVector2D &vec, float angle)
+static inline void RotateMatrix180Z(CMatrix &mat)
 {
-    float cosA = cos(angle);
-    float sinA = sin(angle);
-    return CVector2D(
-        vec.x * cosA - vec.y * sinA,
-        vec.x * sinA + vec.y * cosA);
-}
-
-bool IsShadowTowardVehicle(CMatrix *dummyMatrix, CVector vehicleCenter)
-{
-    // Dummy world position
-    CVector dummyPos = dummyMatrix->pos;
-
-    // Shadow direction (assume 'up' is forward in dummy frame)
-    CVector shadowDir = dummyMatrix->up;
-    shadowDir.z = 0.0f;
-    shadowDir.Normalize();
-
-    // Vector from dummy to vehicle center
-    CVector toVehicle = vehicleCenter - dummyPos;
-    toVehicle.z = 0.0f;
-    toVehicle.Normalize();
-
-    // If dot > 0, shadow is cast toward vehicle
-    return CVector::Dot(shadowDir, toVehicle) > 0.0f;
-}
-
-void RotateMatrix180Z(CMatrix &mat)
-{
-    // Flip X and Y of right and up vectors
     mat.right.x = -mat.right.x;
     mat.right.y = -mat.right.y;
-
     mat.up.x = -mat.up.x;
     mat.up.y = -mat.up.y;
-
-    // forward stays unchanged (Z axis)
 }
 
-bool IsDummyPointingUp(CMatrix mat)
+// In RenderWare frame conventions, mat.up represents the dummy's forward direction.
+// Checking if up.z > 0.7f verifies if the dummy points upward (e.g., roof/vertical markers) without temporary allocations.
+static inline bool IsDummyPointingUp(const CMatrix &mat)
 {
-    CVector forward = mat.up;
-    CVector up = {0.0f, 0.0f, 1.0f};
-    float alignment = CVector::Dot(forward, up);
-    return alignment > 0.7f;
+    return mat.up.z > 0.7f;
 }
 
 static bool gbLightCoronas = false;
@@ -203,7 +173,7 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
         return;
     }
 
-    CVector lightPos = pConfig->pVeh->TransformFromObjectSpace(pConfig->shadow.position);
+    CVector lightPos = pConfig->pVeh->TransformFromObjectSpace(pConfig->position);
     if (pConfig->pVeh->m_nVehicleSubClass == VEHICLE_BIKE && pConfig->leanAffected)
     {
         CBike *pBike = static_cast<CBike *>(pConfig->pVeh);
@@ -213,7 +183,7 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
             pBike->CalculateLeanMatrix();
         }
 
-        lightPos = pBike->m_mLeanMatrix * pConfig->shadow.position;
+        lightPos = pBike->m_mLeanMatrix * pConfig->position;
         pBike->m_bLeanMatrixCalculated = wasCalculated;
     }
 
@@ -335,7 +305,7 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
     }
 
     CMatrix vehMat = pConfig->pVeh->GetMatrix();
-    CVector lightPos = pConfig->pVeh->TransformFromObjectSpace(pConfig->shadow.position);
+    CVector lightPos = pConfig->pVeh->TransformFromObjectSpace(pConfig->position);
     if (pConfig->pVeh->m_nVehicleSubClass == VEHICLE_BIKE && pConfig->leanAffected)
     {
         CBike *pBike = static_cast<CBike *>(pConfig->pVeh);
@@ -345,7 +315,7 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
             pBike->CalculateLeanMatrix();
         }
 
-        lightPos = pBike->m_mLeanMatrix * pConfig->shadow.position;
+        lightPos = pBike->m_mLeanMatrix * pConfig->position;
         pBike->m_bLeanMatrixCalculated = wasCalculated;
     }
 
@@ -368,7 +338,7 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
                                pConfig->lightType == eMaterialType::IndicatorLightLeftRear || pConfig->lightType == eMaterialType::IndicatorLightRightRear);
 
     // If modder did not rotate the dummy (localDir is default +Y forward) but placed it at the rear:
-    if (isExplicitRearType || (pConfig->shadow.position.y < -0.3f && localDir.y > 0.7f && std::abs(localDir.x) < 0.3f))
+    if (isExplicitRearType || (pConfig->position.y < -0.3f && localDir.y > 0.7f && std::abs(localDir.x) < 0.3f))
     {
         localDir.y = -std::abs(localDir.y);
     }
@@ -538,12 +508,12 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     const float SHDW_SZ_MUL = 2.0f;
     const float SHDW_MAX_DIST = gfLightShadowDistance;
     const float SHDW_FADE_DIST = gfLightShadowDistance * 0.60f;
-    if (!pConfig || !pConfig->pVeh || shdwSz == 0.0f || !gbLightShadows)
+    if (!pConfig || !pConfig->pVeh || !pConfig->frame || shdwSz <= 0.0f || !gbLightShadows)
     {
         return;
     }
 
-    // Cull first, the shadow isn't visible past this range anyway
+    // Distance culling: shadow is not visible past configured distance
     float distSq = MathUtil::DistanceSquared(pConfig->pVeh->GetPosition(), TheCamera.GetPosition());
     if (distSq > (SHDW_MAX_DIST * SHDW_MAX_DIST))
     {
@@ -557,19 +527,20 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
         return;
     }
 
-    if (IsDummyPointingUp(*(CMatrix *)&pConfig->frame->ltm))
+    const CMatrix &ltmMat = *reinterpret_cast<const CMatrix *>(&pConfig->frame->ltm);
+    if (IsDummyPointingUp(ltmMat))
     {
         return;
     }
 
-    CMatrix mat = *(CMatrix *)&pConfig->frame->ltm;
-    if (pConfig->shadow.rotationChecks && IsShadowTowardVehicle((CMatrix *)&pConfig->frame->ltm, pConfig->pVeh->GetPosition()))
+    CMatrix mat = ltmMat;
+    if (pConfig->shadow.rotationChecks && IsShadowTowardVehicle(ltmMat, pConfig->pVeh->GetPosition()))
     {
         RotateMatrix180Z(mat);
     }
 
-    // Calculate correct world position using shadow.position (which contains mirroredX translation)
-    CVector worldPos = pConfig->pVeh->TransformFromObjectSpace(pConfig->shadow.position);
+    // Calculate world position from vehicle object space
+    CVector worldPos = pConfig->pVeh->TransformFromObjectSpace(pConfig->position);
 
     // Expand through bike lean matrix when available so roll angle matches the chassis
     if (pConfig->pVeh->m_nVehicleSubClass == VEHICLE_BIKE && pConfig->leanAffected)
@@ -581,15 +552,15 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
             pBike->CalculateLeanMatrix();
         }
 
-        worldPos = pBike->m_mLeanMatrix * pConfig->shadow.position;
+        worldPos = pBike->m_mLeanMatrix * pConfig->position;
         pBike->m_bLeanMatrixCalculated = wasCalculated;
     }
 
     // Prevent unrealistic ground shadow projection when vehicle is airborne (flying off ramps/in air)
-    if (pConfig->pVeh && pConfig->pVeh->GetNumContactWheels() == 0)
+    if (pConfig->pVeh->GetNumContactWheels() == 0)
     {
         float groundZ = pConfig->pVeh->m_fVehicleFrontGroundZ;
-        if (groundZ == 0.0f || groundZ < -100.0f)
+        if (groundZ < -100.0f)
         {
             bool found = false;
             groundZ = CWorld::FindGroundZFor3DCoord(worldPos.x, worldPos.y, worldPos.z, &found, nullptr);
@@ -602,11 +573,7 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
 
     // 3D light direction vectors directly from dummy matrix (retaining full 3D roll, pitch, and yaw)
     CVector lightDir = mat.up;
-    CVector rightDir = mat.right;
-    if (pConfig->mirroredX)
-    {
-        rightDir = -rightDir;
-    }
+    CVector rightDir = pConfig->mirroredX ? -mat.right : mat.right;
 
     // Scale shadow size/thickness with inertia factor so it expands/contracts naturally
     float currentShdwSz = shdwSz * (0.35f + 0.65f * std::clamp(alphaMul, 0.0f, 1.0f));
@@ -668,7 +635,7 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
     extern bool gbProperShadersDetected;
     extern bool gbLightPointLights;
     extern bool gbSirenPointLights;
-    if (shdwSz.x == 0.0f || shdwSz.y == 0.0f || !gbLightShadows)
+    if (!pEntity || shdwSz.x == 0.0f || shdwSz.y == 0.0f || !gbLightShadows)
     {
         return;
     }
@@ -679,19 +646,22 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
 
     const float angleRad = DegToRad(angle);
     const CVector vehPos = pEntity->GetPosition();
-    const CMatrix &entityMatrix = *(CMatrix *)pEntity->m_matrix;
+    const CMatrix &entityMatrix = *reinterpret_cast<const CMatrix *>(pEntity->m_matrix);
 
-    auto RotateVector2D = [angleRad](const CVector &v) -> CVector
+    float cosA = std::cos(angleRad);
+    float sinA = std::sin(angleRad);
+
+    auto RotateVector2D = [cosA, sinA](const CVector &v) -> CVector
     {
         return {
-            v.x * cos(angleRad) - v.y * sin(angleRad),
-            v.x * sin(angleRad) + v.y * cos(angleRad),
+            v.x * cosA - v.y * sinA,
+            v.x * sinA + v.y * cosA,
             v.z};
     };
+
     CVector upDir = entityMatrix.up;
     CVector rightDir = entityMatrix.right;
-
-    upDir.z = rightDir.z = 0.0f; // Flatten vertical influence
+    upDir.z = rightDir.z = 0.0f;
     upDir.Normalize();
     rightDir.Normalize();
 
@@ -718,16 +688,9 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
         shdwPos = pBike->m_mLeanMatrix * position + dir * shdwOffset.y + rightVec * shdwOffset.x;
         pBike->m_bLeanMatrixCalculated = wasCalculated;
     }
-    shdwPos.z = CWorld::FindGroundZFor3DCoord(shdwPos.x, shdwPos.y, shdwPos.z + 100.0f, NULL, &pEntity) + 2.0f;
 
-    const float zDiff = abs(shdwPos.z - vehPos.z);
-    if (zDiff > 3.0f)
-    {
-        shdwPos.z = vehPos.z + position.z + 1.0f;
-    }
-
-    if (abs(vehPos.z - shdwPos.z) > 15.0f)
-        return;
+    // Engine's StoreShadowToBeRendered natively casts downward along fZDistance (6.0f)
+    shdwPos.z = vehPos.z + 1.5f;
 
     RwTexture *pTex = (pTexture != nullptr)
                           ? pTexture

@@ -6,6 +6,7 @@
 #include "utils/datamgr.h"
 #include "ModelExtrasAPI.h"
 #include "utils/samp.h"
+#include <game_sa/CPools.h>
 
 
 float gfGlobalCoronaSize = 0.3f;
@@ -102,6 +103,18 @@ void Lights::Init() {
 	{
 		if (!m_bEnabled) return;
 		LightManager::ProcessPointLights(pVeh);
+	};
+
+	// Process point lights for off-screen vehicles right before scene render (0x53EABF).
+	// vehPreRenderEvent only executes for visible vehicles, so off-screen vehicles (e.g. behind camera)
+	// need their forward-reaching headlight pointlights registered here before RenderScene consumes them.
+	Events::renderSceneEvent.before += []()
+	{
+		if (!m_bEnabled) return;
+		for (CVehicle *pVeh : CPools::ms_pVehiclePool) {
+			if (!pVeh || pVeh->m_nType != ENTITY_TYPE_VEHICLE || pVeh->GetIsOnScreen()) continue;
+			LightManager::ProcessPointLights(pVeh);
+		}
 	};
 
 

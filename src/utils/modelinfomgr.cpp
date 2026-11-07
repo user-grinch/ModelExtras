@@ -206,7 +206,12 @@ void ModelInfoMgr::Init() {
     }
   };
 
-  Events::drawingEvent += []() {
+  // Render scene event fires at 0x53EABF (immediately before RenderScene 0x53DF40).
+  // At this point, camera frustum and physics matrices are completely up to date.
+  // Rendering off-screen vehicles here ensures their directional shadows and coronas
+  // are stored in the CURRENT frame's shadow pass (sub_70A960) with ZERO latency.
+  // This eliminates both 1-frame camera turn flicker and high-speed stuttering.
+  Events::renderSceneEvent.before += []() {
     for (CVehicle *pVeh : CPools::ms_pVehiclePool) {
       if (!pVeh || pVeh->m_nType != ENTITY_TYPE_VEHICLE) {
         continue;
@@ -237,6 +242,10 @@ void ModelInfoMgr::Init() {
       }
 
       pVeh->UpdateRwFrame();
+
+      if (pVeh->m_pTrailer && !pVeh->m_pTrailer->GetIsOnScreen()) {
+        pVeh->m_pTrailer->UpdateRwFrame();
+      }
 
       if (data.nFrameCount > 10) {
         ModelInfoMgr::OnRender(pVeh);

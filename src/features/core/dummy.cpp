@@ -319,9 +319,9 @@ void VehicleDummy::Update() {
     CVector offset = data.frame->ltm.pos - basis.pos;
 
     // Transform to local space using  transpose of the rotation matrix
-    data.shadow.position.x = data.position.x = basis.right.x * offset.x + basis.right.y * offset.y + basis.right.z * offset.z;
-    data.shadow.position.y = data.position.y = basis.up.x * offset.x + basis.up.y * offset.y + basis.up.z * offset.z;
-    data.shadow.position.z = data.position.z = basis.at.x * offset.x + basis.at.y * offset.y + basis.at.z * offset.z;
+    data.position.x = basis.right.x * offset.x + basis.right.y * offset.y + basis.right.z * offset.z;
+    data.position.y = basis.up.x * offset.x + basis.up.y * offset.y + basis.up.z * offset.z;
+    data.position.z = basis.at.x * offset.x + basis.at.y * offset.y + basis.at.z * offset.z;
 
     // Protection against buggy DFF models where child dummies are exported with root-space coordinates
     // (causing RenderWare hierarchy translation to double-offset the position far beyond the vehicle body)
@@ -336,7 +336,6 @@ void VehicleDummy::Update() {
             || data.position.z > box.m_vecMax.z + MARGIN || data.position.z < box.m_vecMin.z - MARGIN)
         {
             data.position = data.frame->modelling.pos;
-            data.shadow.position = data.frame->modelling.pos;
             wasDoubleOffset = true;
         }
     }
@@ -354,14 +353,13 @@ void VehicleDummy::Update() {
             mirroredStatic.x = -mirroredStatic.x;
             CVector worldPos = *(CMatrix *)&parent->ltm * mirroredStatic;
             CVector off = worldPos - basis.pos;
-            data.shadow.position.x = data.position.x = basis.right.x * off.x + basis.right.y * off.y + basis.right.z * off.z;
-            data.shadow.position.y = data.position.y = basis.up.x * off.x + basis.up.y * off.y + basis.up.z * off.z;
-            data.shadow.position.z = data.position.z = basis.at.x * off.x + basis.at.y * off.y + basis.at.z * off.z;
+            data.position.x = basis.right.x * off.x + basis.right.y * off.y + basis.right.z * off.z;
+            data.position.y = basis.up.x * off.x + basis.up.y * off.y + basis.up.z * off.z;
+            data.position.z = basis.at.x * off.x + basis.at.y * off.y + basis.at.z * off.z;
         }
         else
         {
             data.position.x *= -1;
-            data.shadow.position.x *= -1;
         }
     }
 }

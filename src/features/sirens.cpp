@@ -1556,7 +1556,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 				worldDir.Normalize();
 
 				float pushDist = ((gbProperShadersDetected ? 0.05f : 0.45f) * LightsConfig::Get().fSirenPointLightOffsetMul) + mat.second->PointLight.Distance;
-				CVector plightPos = pVeh->TransformFromObjectSpace(cfg.shadow.position + localDir * pushDist);
+				CVector plightPos = pVeh->TransformFromObjectSpace(cfg.position + localDir * pushDist);
 				CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, worldDir, sirenRadius, r, g, b, 0, false, nullptr);
 			}
 		}

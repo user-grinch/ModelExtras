@@ -48,7 +48,6 @@ struct DummyConfig {
         CRGBA color = {255, 255, 255, 100};
         CVector2D offset = {0.0f, 0.0f};
         float size = 1.0f;
-        CVector position;
     } shadow;
 
     struct {
