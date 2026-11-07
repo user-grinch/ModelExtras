@@ -159,7 +159,8 @@ void TailLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
 
     // 1. Taillights
     if (isHeadlightsOn || (isBraking && !hasDedicatedBrakeDummy)) {
-        float tailRadius = isBike ? 1.5f : 3.5f;
+        // Proper Shaders uses physically-based inverse square falloff, so scale down radius to prevent excessive red bleed
+        float tailRadius = isBike ? (gbProperShadersDetected ? 1.2f : 1.5f) : (gbProperShadersDetected ? 2.5f : 3.5f);
         constexpr float tailPointLightMul = 0.40f;
 
         for (eMaterialType t : {eMaterialType::TailLightLeft, eMaterialType::TailLightRight}) {
