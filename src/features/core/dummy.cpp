@@ -325,6 +325,7 @@ void VehicleDummy::Update() {
 
     // Protection against buggy DFF models where child dummies are exported with root-space coordinates
     // (causing RenderWare hierarchy translation to double-offset the position far beyond the vehicle body)
+    bool wasDoubleOffset = false;
     CVehicleModelInfo *pInfo = static_cast<CVehicleModelInfo *>(GetSafeModelInfo(data.pVeh->m_nModelIndex));
     if (pInfo && pInfo->m_pColModel)
     {
@@ -336,12 +337,31 @@ void VehicleDummy::Update() {
         {
             data.position = data.frame->modelling.pos;
             data.shadow.position = data.frame->modelling.pos;
+            wasDoubleOffset = true;
         }
     }
 
     if (data.mirroredX)
     {
-        data.position.x *= -1;
-        data.shadow.position.x *= -1;
+        // Simple X negation fails on swinging chassis (or animated parent) hierarchies because
+        // mirror(R * v) != R * mirror(v): rotated displacements flip across the wrong axis.
+        // Transforming the mirrored static offset through the parent's world matrix applies
+        // the swing rotation to the correct local origin.
+        RwFrame *parent = RwFrameGetParent(data.frame);
+        if (parent && !wasDoubleOffset)
+        {
+            CVector mirroredStatic = data.frame->modelling.pos;
+            mirroredStatic.x = -mirroredStatic.x;
+            CVector worldPos = *(CMatrix *)&parent->ltm * mirroredStatic;
+            CVector off = worldPos - basis.pos;
+            data.shadow.position.x = data.position.x = basis.right.x * off.x + basis.right.y * off.y + basis.right.z * off.z;
+            data.shadow.position.y = data.position.y = basis.up.x * off.x + basis.up.y * off.y + basis.up.z * off.z;
+            data.shadow.position.z = data.position.z = basis.at.x * off.x + basis.at.y * off.y + basis.at.z * off.z;
+        }
+        else
+        {
+            data.position.x *= -1;
+            data.shadow.position.x *= -1;
+        }
     }
 }
