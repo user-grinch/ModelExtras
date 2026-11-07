@@ -163,30 +163,18 @@ void TailLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
         float tailRadius = isBike ? (gbProperShadersDetected ? 1.2f : 1.5f) : (gbProperShadersDetected ? 2.5f : 3.5f);
         constexpr float tailPointLightMul = 0.40f;
 
-        for (eMaterialType t : {eMaterialType::TailLightLeft, eMaterialType::TailLightRight}) {
-            eMaterialType actualType = t;
-            if (!LightManager::IsDummyAvailable(data, t) && isBike) {
-                if (LightManager::IsDummyAvailable(data, eMaterialType::TailLightRight))
-                    actualType = eMaterialType::TailLightRight;
-                else if (LightManager::IsDummyAvailable(data, eMaterialType::TailLightLeft))
-                    actualType = eMaterialType::TailLightLeft;
-            }
-
+        auto renderSingleTailLight = [&](eMaterialType actualType, eLights lightEnum, ePanels wingEnum, bool isLeft) {
             if (!LightManager::IsDummyAvailable(data, actualType) || !data.bLightStates[actualType]) {
-                continue;
+                return;
             }
-
-            bool isLeft = (t == eMaterialType::TailLightLeft);
-            eLights lightEnum = isLeft ? eLights::LIGHT_REAR_LEFT : eLights::LIGHT_REAR_RIGHT;
-            ePanels wingEnum = isLeft ? ePanels::WING_REAR_LEFT : ePanels::WING_REAR_RIGHT;
             if (Util::IsLightDamaged(pVeh, lightEnum) || Util::IsPanelDamaged(pVeh, wingEnum)) {
-                continue;
+                return;
             }
 
             if (data.bUsingGlobalIndicators && !LightManager::IsMaterialAvailable(pVeh, INDICATOR_LIGHTS_TYPE)) {
-                if (data.nIndicatorState == eIndicatorState::BothOn) continue;
-                if (data.nIndicatorState == eIndicatorState::LeftOn && isLeft) continue;
-                if (data.nIndicatorState == eIndicatorState::RightOn && !isLeft) continue;
+                if (data.nIndicatorState == eIndicatorState::BothOn) return;
+                if (data.nIndicatorState == eIndicatorState::LeftOn && isLeft) return;
+                if (data.nIndicatorState == eIndicatorState::RightOn && !isLeft) return;
             }
 
             for (auto& e : data.dummies[actualType]) {
@@ -200,6 +188,19 @@ void TailLightComponent::ProcessPointLights(CVehicle* pVeh, VehLightData& data) 
                             baseCol.a);
                 RenderUtil::RegisterPointLight(&e->Get(), tailColor, tailRadius, true);
             }
+        };
+
+        // If a motorcycle has only a single taillight dummy, render it once to avoid duplicate point lights
+        bool isSingleBikeTail = isBike && (!LightManager::IsDummyAvailable(data, eMaterialType::TailLightLeft) || !LightManager::IsDummyAvailable(data, eMaterialType::TailLightRight));
+        if (isSingleBikeTail) {
+            eMaterialType singleType = LightManager::IsDummyAvailable(data, eMaterialType::TailLightRight) ? eMaterialType::TailLightRight : eMaterialType::TailLightLeft;
+            bool isLeft = (singleType == eMaterialType::TailLightLeft);
+            eLights lightEnum = isLeft ? eLights::LIGHT_REAR_LEFT : eLights::LIGHT_REAR_RIGHT;
+            ePanels wingEnum = isLeft ? ePanels::WING_REAR_LEFT : ePanels::WING_REAR_RIGHT;
+            renderSingleTailLight(singleType, lightEnum, wingEnum, isLeft);
+        } else {
+            renderSingleTailLight(eMaterialType::TailLightLeft, eLights::LIGHT_REAR_LEFT, ePanels::WING_REAR_LEFT, true);
+            renderSingleTailLight(eMaterialType::TailLightRight, eLights::LIGHT_REAR_RIGHT, ePanels::WING_REAR_RIGHT, false);
         }
     }
 

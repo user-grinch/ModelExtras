@@ -225,7 +225,7 @@ void ExhaustFx::ProcessPointLights(CVehicle *pVeh)
                 CVector pos = e.second.pFrame->ltm.pos;
                 if (!pos.IsZero())
                 {
-                    CVector backwardDir = -(CVector &)e.second.pFrame->ltm.up;
+                    CVector backwardDir = -*reinterpret_cast<const CVector *>(&e.second.pFrame->ltm.up);
                     backwardDir.Normalize();
                     CVector plightPos = pos + backwardDir * rearOffset;
                     CPointLights::AddLight(PLTYPE_POINTLIGHT, plightPos, CVector(0.0f, 0.0f, 0.0f), radius, r, g, b, 0, false, nullptr);

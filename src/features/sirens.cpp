@@ -1445,7 +1445,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 		return;
 	}
 
-	if (CVector::Distance(pVeh->GetPosition(), TheCamera.GetPosition()) > 75.0f)
+	if (MathUtil::DistanceSquared(pVeh->GetPosition(), TheCamera.GetPosition()) > (75.0f * 75.0f))
 	{
 		return;
 	}
@@ -1551,7 +1551,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 				}
 				localDir.Normalize();
 
-				CMatrix vehMat = pVeh->GetMatrix();
+				const CMatrix &vehMat = pVeh->GetMatrix();
 				CVector worldDir = vehMat.right * localDir.x + vehMat.up * localDir.y + vehMat.at * localDir.z;
 				worldDir.Normalize();
 
@@ -1567,7 +1567,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 		if (!bSkyGfx)
 		{
 			uint32_t step = (CTimer::m_snTimeInMilliseconds / 120) % 4;
-			CMatrix vehMat = pVeh->GetMatrix();
+			const CMatrix &vehMat = pVeh->GetMatrix();
 			float intensity = 1.0f;
 			float bikeSirenRadius = 8.5f * LightsConfig::Get().fSirenPointLightSizeMul;
 			float bikeDist = (gbProperShadersDetected ? 0.05f : 0.45f) * LightsConfig::Get().fSirenPointLightOffsetMul;

@@ -10,6 +10,7 @@
 #include "defines.h"
 #include "features/core/dummy.h"
 #include "features/lights/data.h"
+#include "features/lights/damage.h"
 #include <CPointLights.h>
 
 // Test if dummy forward vector points toward vehicle center (catches backward-facing dummies from 3D models)
@@ -128,52 +129,8 @@ void RenderUtil::RegisterCorona(CEntity *pEntity, int coronaID, CVector pos, CRG
 }
 
 // Vanilla reach of the headlight spotlight
-static const float HEADLIGHT_PLIGHT_RANGE = 20.0f;
-
-void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float rangeMul)
+static inline CVector GetDummyWorldPosition(const DummyConfig *pConfig)
 {
-    extern bool gbLightPointLights;
-    if (!gbLightPointLights || !pConfig || !pConfig->frame || !pConfig->pVeh)
-    {
-        return;
-    }
-
-    bool isBike = pConfig->pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
-    if (!isBike && pConfig->pVeh->GetIsOnScreen())
-    {
-        RwFrame *parent = pConfig->frame ? RwFrameGetParent(pConfig->frame) : nullptr;
-        bool isDamaged = false;
-        if (pConfig->damagePanel != -1 || pConfig->damageDoor != -1) {
-            isDamaged = CarUtil::IsDummyDamaged(pConfig->pVeh, *pConfig);
-        } else if (parent) {
-            isDamaged = Util::IsFrameDamaged(pConfig->pVeh, parent);
-        }
-        if (!isDamaged && parent) {
-            isDamaged = !FrameUtil::IsOkAtomicVisible(parent);
-        }
-        if (isDamaged)
-        {
-            return;
-        }
-    }
-
-    bool isLeft = (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HighBeamLeft || pConfig->position.x < 0.0f);
-    eLights lightEnum = isLeft ? eLights::LIGHT_FRONT_LEFT : eLights::LIGHT_FRONT_RIGHT;
-    ePanels wingEnum = isLeft ? ePanels::WING_FRONT_LEFT : ePanels::WING_FRONT_RIGHT;
-    if (Util::IsLightDamaged(pConfig->pVeh, lightEnum) || Util::IsPanelDamaged(pConfig->pVeh, wingEnum))
-    {
-        return;
-    }
-
-    CMatrix mat = *(CMatrix *)&pConfig->frame->ltm;
-
-    // An upward facing dummy isn't a headlight pointing down the road
-    if (IsDummyPointingUp(mat))
-    {
-        return;
-    }
-
-    CVector lightPos = pConfig->pVeh->TransformFromObjectSpace(pConfig->position);
     if (pConfig->pVeh->m_nVehicleSubClass == VEHICLE_BIKE && pConfig->leanAffected)
     {
         CBike *pBike = static_cast<CBike *>(pConfig->pVeh);
@@ -182,16 +139,120 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
         {
             pBike->CalculateLeanMatrix();
         }
-
-        lightPos = pBike->m_mLeanMatrix * pConfig->position;
+        CVector pos = pBike->m_mLeanMatrix * pConfig->position;
         pBike->m_bLeanMatrixCalculated = wasCalculated;
+        return pos;
+    }
+    return pConfig->pVeh->TransformFromObjectSpace(pConfig->position);
+}
+
+static inline bool IsPointLightDummyDamaged(const DummyConfig *pConfig)
+{
+    if (pConfig->pVeh->m_nVehicleSubClass == VEHICLE_BIKE || !pConfig->pVeh->GetIsOnScreen())
+    {
+        return false;
     }
 
-    CMatrix vehMat = pConfig->pVeh->GetMatrix();
-    CVector localDir;
-    localDir.x = CVector::Dot(mat.up, vehMat.right);
-    localDir.y = CVector::Dot(mat.up, vehMat.up);
-    localDir.z = CVector::Dot(mat.up, vehMat.at);
+    if (pConfig->damagePanel != -1 || pConfig->damageDoor != -1)
+    {
+        return CarUtil::IsDummyDamaged(pConfig->pVeh, *pConfig);
+    }
+
+    RwFrame *parent = pConfig->frame ? RwFrameGetParent(pConfig->frame) : nullptr;
+    if (parent)
+    {
+        return Util::IsFrameDamaged(pConfig->pVeh, parent) || !FrameUtil::IsOkAtomicVisible(parent);
+    }
+    return false;
+}
+
+static inline bool IsLightTypeDamaged(CVehicle *pVeh, eMaterialType type)
+{
+    auto damage = LightDamageState::Get(pVeh);
+    switch (type)
+    {
+    case eMaterialType::HeadLightLeft:
+    case eMaterialType::HighBeamLeft:
+    case eMaterialType::FogLightLeft:
+        return !damage.isHeadlightLeftOk;
+
+    case eMaterialType::HeadLightRight:
+    case eMaterialType::HighBeamRight:
+    case eMaterialType::FogLightRight:
+        return !damage.isHeadlightRightOk;
+
+    case eMaterialType::IndicatorLightLeftFront:
+        return !damage.isFrontLeftOk;
+
+    case eMaterialType::IndicatorLightRightFront:
+        return !damage.isFrontRightOk;
+
+    case eMaterialType::TailLightLeft:
+    case eMaterialType::BrakeLightLeft:
+    case eMaterialType::ReverseLightLeft:
+    case eMaterialType::IndicatorLightLeftRear:
+    case eMaterialType::NABrakeLightLeft:
+    case eMaterialType::STTLightLeft:
+        return !damage.isRearLeftOk;
+
+    case eMaterialType::TailLightRight:
+    case eMaterialType::BrakeLightRight:
+    case eMaterialType::ReverseLightRight:
+    case eMaterialType::IndicatorLightRightRear:
+    case eMaterialType::NABrakeLightRight:
+    case eMaterialType::STTLightRight:
+        return !damage.isRearRightOk;
+
+    case eMaterialType::SideLightLeft:
+    case eMaterialType::IndicatorLightLeftMiddle:
+        return !damage.isMiddleLeftOk;
+
+    case eMaterialType::SideLightRight:
+    case eMaterialType::IndicatorLightRightMiddle:
+        return !damage.isMiddleRightOk;
+
+    default:
+        return false;
+    }
+}
+
+// Vanilla reach of the headlight spotlight
+static const float HEADLIGHT_PLIGHT_RANGE = 20.0f;
+
+void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float rangeMul)
+{
+    extern bool gbLightPointLights;
+    if (!gbLightPointLights || !pConfig || !pConfig->frame || !pConfig->pVeh || !pConfig->pointlight.enabled)
+    {
+        return;
+    }
+
+    if (IsPointLightDummyDamaged(pConfig))
+    {
+        return;
+    }
+
+    bool isLeft = (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HighBeamLeft || pConfig->position.x < 0.0f);
+    eMaterialType checkType = isLeft ? eMaterialType::HeadLightLeft : eMaterialType::HeadLightRight;
+    if (IsLightTypeDamaged(pConfig->pVeh, checkType))
+    {
+        return;
+    }
+
+    const CMatrix &mat = *reinterpret_cast<const CMatrix *>(&pConfig->frame->ltm);
+    if (IsDummyPointingUp(mat))
+    {
+        return;
+    }
+
+    CVector lightPos = GetDummyWorldPosition(pConfig);
+    const CMatrix &vehMat = pConfig->pVeh->GetMatrix();
+
+    CVector localDir(
+        CVector::Dot(mat.up, vehMat.right),
+        CVector::Dot(mat.up, vehMat.up),
+        CVector::Dot(mat.up, vehMat.at)
+    );
     if (pConfig->mirroredX) localDir.x = -localDir.x;
     if (localDir.Magnitude() < 0.1f || localDir.y <= 0.0f) {
         localDir = CVector(0.0f, 1.0f, -0.10f);
@@ -200,11 +261,6 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
 
     CVector lightDir = vehMat.right * localDir.x + vehMat.up * localDir.y + vehMat.at * localDir.z;
     lightDir.Normalize();
-
-    if (!pConfig->pointlight.enabled)
-    {
-        return;
-    }
 
     CRGBA col = pConfig->corona.color;
     float intensity = pConfig->pointlight.intensity;
@@ -222,108 +278,31 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
         return;
     }
 
-    if (MathUtil::DistanceSquared(pConfig->pVeh->GetPosition(), TheCamera.GetPosition()) > (75.0f * 75.0f))
+    if (IsPointLightDummyDamaged(pConfig))
     {
         return;
     }
 
-    bool isBike = pConfig->pVeh->m_nVehicleSubClass == VEHICLE_BIKE;
-    if (!isBike && pConfig->pVeh->GetIsOnScreen())
+    if (IsLightTypeDamaged(pConfig->pVeh, pConfig->lightType))
     {
-        RwFrame *parent = pConfig->frame ? RwFrameGetParent(pConfig->frame) : nullptr;
-        bool isDamaged = false;
-        if (pConfig->damagePanel != -1 || pConfig->damageDoor != -1) {
-            isDamaged = CarUtil::IsDummyDamaged(pConfig->pVeh, *pConfig);
-        } else if (parent) {
-            isDamaged = Util::IsFrameDamaged(pConfig->pVeh, parent);
-        }
-        if (!isDamaged && parent) {
-            isDamaged = !FrameUtil::IsOkAtomicVisible(parent);
-        }
-        if (isDamaged)
-        {
-            return;
-        }
+        return;
     }
 
-    bool isSirenFlashing = pConfig->pVeh->bSirenOrAlarm;
-
-    // Front Left
-    if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HighBeamLeft || pConfig->lightType == eMaterialType::FogLightLeft)
-    {
-        if (Util::IsLightDamaged(pConfig->pVeh, eLights::LIGHT_FRONT_LEFT) || Util::IsPanelDamaged(pConfig->pVeh, ePanels::WING_FRONT_LEFT))
-            return;
-    }
-    else if (pConfig->lightType == eMaterialType::IndicatorLightLeftFront)
-    {
-        if (!isSirenFlashing && (Util::IsLightDamaged(pConfig->pVeh, eLights::LIGHT_FRONT_LEFT) || Util::IsPanelDamaged(pConfig->pVeh, ePanels::WING_FRONT_LEFT)))
-            return;
-    }
-    // Front Right
-    else if (pConfig->lightType == eMaterialType::HeadLightRight || pConfig->lightType == eMaterialType::HighBeamRight || pConfig->lightType == eMaterialType::FogLightRight)
-    {
-        if (Util::IsLightDamaged(pConfig->pVeh, eLights::LIGHT_FRONT_RIGHT) || Util::IsPanelDamaged(pConfig->pVeh, ePanels::WING_FRONT_RIGHT))
-            return;
-    }
-    else if (pConfig->lightType == eMaterialType::IndicatorLightRightFront)
-    {
-        if (!isSirenFlashing && (Util::IsLightDamaged(pConfig->pVeh, eLights::LIGHT_FRONT_RIGHT) || Util::IsPanelDamaged(pConfig->pVeh, ePanels::WING_FRONT_RIGHT)))
-            return;
-    }
-    // Rear Left (TailLight, BrakeLight, ReverseLight, Rear Indicator, NABrakeLight, STTLight)
-    else if (pConfig->lightType == eMaterialType::TailLightLeft || pConfig->lightType == eMaterialType::BrakeLightLeft ||
-             pConfig->lightType == eMaterialType::ReverseLightLeft || pConfig->lightType == eMaterialType::IndicatorLightLeftRear ||
-             pConfig->lightType == eMaterialType::NABrakeLightLeft || pConfig->lightType == eMaterialType::STTLightLeft)
-    {
-        if (Util::IsLightDamaged(pConfig->pVeh, eLights::LIGHT_REAR_LEFT) || Util::IsPanelDamaged(pConfig->pVeh, ePanels::WING_REAR_LEFT))
-            return;
-    }
-    // Rear Right (TailLight, BrakeLight, ReverseLight, Rear Indicator, NABrakeLight, STTLight)
-    else if (pConfig->lightType == eMaterialType::TailLightRight || pConfig->lightType == eMaterialType::BrakeLightRight ||
-             pConfig->lightType == eMaterialType::ReverseLightRight || pConfig->lightType == eMaterialType::IndicatorLightRightRear ||
-             pConfig->lightType == eMaterialType::NABrakeLightRight || pConfig->lightType == eMaterialType::STTLightRight)
-    {
-        if (Util::IsLightDamaged(pConfig->pVeh, eLights::LIGHT_REAR_RIGHT) || Util::IsPanelDamaged(pConfig->pVeh, ePanels::WING_REAR_RIGHT))
-            return;
-    }
-    // Side Indicators & Side Lights
-    else if (pConfig->lightType == eMaterialType::SideLightLeft || pConfig->lightType == eMaterialType::IndicatorLightLeftMiddle)
-    {
-        if (Util::IsPanelDamaged(pConfig->pVeh, ePanels::WING_FRONT_LEFT) || Util::IsPanelDamaged(pConfig->pVeh, ePanels::WING_REAR_LEFT))
-            return;
-    }
-    else if (pConfig->lightType == eMaterialType::SideLightRight || pConfig->lightType == eMaterialType::IndicatorLightRightMiddle)
-    {
-        if (Util::IsPanelDamaged(pConfig->pVeh, ePanels::WING_FRONT_RIGHT) || Util::IsPanelDamaged(pConfig->pVeh, ePanels::WING_REAR_RIGHT))
-            return;
-    }
-
-    CMatrix mat = *(CMatrix *)&pConfig->frame->ltm;
+    const CMatrix &mat = *reinterpret_cast<const CMatrix *>(&pConfig->frame->ltm);
     if (IsDummyPointingUp(mat))
     {
         return;
     }
 
-    CMatrix vehMat = pConfig->pVeh->GetMatrix();
-    CVector lightPos = pConfig->pVeh->TransformFromObjectSpace(pConfig->position);
-    if (pConfig->pVeh->m_nVehicleSubClass == VEHICLE_BIKE && pConfig->leanAffected)
-    {
-        CBike *pBike = static_cast<CBike *>(pConfig->pVeh);
-        bool wasCalculated = pBike->m_bLeanMatrixCalculated;
-        if (!wasCalculated)
-        {
-            pBike->CalculateLeanMatrix();
-        }
-
-        lightPos = pBike->m_mLeanMatrix * pConfig->position;
-        pBike->m_bLeanMatrixCalculated = wasCalculated;
-    }
+    CVector lightPos = GetDummyWorldPosition(pConfig);
+    const CMatrix &vehMat = pConfig->pVeh->GetMatrix();
 
     // Extract dummy forward vector directly in vehicle space (respecting modder's 3D rotation)
-    CVector localDir;
-    localDir.x = CVector::Dot(mat.up, vehMat.right);
-    localDir.y = CVector::Dot(mat.up, vehMat.up);
-    localDir.z = CVector::Dot(mat.up, vehMat.at);
+    CVector localDir(
+        CVector::Dot(mat.up, vehMat.right),
+        CVector::Dot(mat.up, vehMat.up),
+        CVector::Dot(mat.up, vehMat.at)
+    );
 
     if (pConfig->mirroredX)
     {
@@ -362,32 +341,41 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
     CVector lightDir = vehMat.right * localDir.x + vehMat.up * localDir.y + vehMat.at * localDir.z;
     lightDir.Normalize();
 
-    float pushDist = gbProperShadersDetected ? 0.05f : 0.5f;
-    if (!gbProperShadersDetected)
+    float pushDist = 0.5f;
+    if (gbProperShadersDetected)
     {
-        if (pConfig->lightType == eMaterialType::FogLightLeft || pConfig->lightType == eMaterialType::FogLightRight)
+        pushDist = 0.05f;
+    }
+    else
+    {
+        switch (pConfig->lightType)
         {
+        case eMaterialType::FogLightLeft:
+        case eMaterialType::FogLightRight:
             pushDist = 0.65f;
-        }
-        else if (pConfig->lightType == eMaterialType::ReverseLightLeft || pConfig->lightType == eMaterialType::ReverseLightRight)
-        {
+            break;
+        case eMaterialType::ReverseLightLeft:
+        case eMaterialType::ReverseLightRight:
             pushDist = 0.55f;
-        }
-        else if (pConfig->lightType == eMaterialType::BrakeLightLeft || pConfig->lightType == eMaterialType::BrakeLightRight ||
-                 pConfig->lightType == eMaterialType::NABrakeLightLeft || pConfig->lightType == eMaterialType::NABrakeLightRight)
-        {
-            pushDist = 0.5f;
-        }
-        else if (pConfig->lightType == eMaterialType::IndicatorLightLeftFront || pConfig->lightType == eMaterialType::IndicatorLightRightFront ||
-                 pConfig->lightType == eMaterialType::IndicatorLightLeftRear || pConfig->lightType == eMaterialType::IndicatorLightRightRear ||
-                 pConfig->lightType == eMaterialType::IndicatorLightLeftMiddle || pConfig->lightType == eMaterialType::IndicatorLightRightMiddle)
-        {
+            break;
+        case eMaterialType::IndicatorLightLeftFront:
+        case eMaterialType::IndicatorLightRightFront:
+        case eMaterialType::IndicatorLightLeftRear:
+        case eMaterialType::IndicatorLightRightRear:
+        case eMaterialType::IndicatorLightLeftMiddle:
+        case eMaterialType::IndicatorLightRightMiddle:
             pushDist = 0.4f;
-        }
-        else if (pConfig->lightType == eMaterialType::SideLightLeft || pConfig->lightType == eMaterialType::SideLightRight ||
-                 pConfig->lightType == eMaterialType::AllDayLight || pConfig->lightType == eMaterialType::DayLight || pConfig->lightType == eMaterialType::NightLight)
-        {
+            break;
+        case eMaterialType::SideLightLeft:
+        case eMaterialType::SideLightRight:
+        case eMaterialType::AllDayLight:
+        case eMaterialType::DayLight:
+        case eMaterialType::NightLight:
             pushDist = 0.25f;
+            break;
+        default:
+            pushDist = 0.5f;
+            break;
         }
     }
 
@@ -396,9 +384,9 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
 
     constexpr float INV_255 = 1.0f / 255.0f;
     float intensity = pConfig->pointlight.intensity;
-    float r = std::clamp((col.r * INV_255) * intensity, 0.0f, 1.0f);
-    float g = std::clamp((col.g * INV_255) * intensity, 0.0f, 1.0f);
-    float b = std::clamp((col.b * INV_255) * intensity, 0.0f, 1.0f);
+    float r = std::max(0.0f, (col.r * INV_255) * intensity);
+    float g = std::max(0.0f, (col.g * INV_255) * intensity);
+    float b = std::max(0.0f, (col.b * INV_255) * intensity);
 
     float effectiveRadius = radius * LightsConfig::Get().fPointLightSizeMul * pConfig->pointlight.size;
     if (effectiveRadius <= 0.0f)
@@ -539,22 +527,8 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
         RotateMatrix180Z(mat);
     }
 
-    // Calculate world position from vehicle object space
-    CVector worldPos = pConfig->pVeh->TransformFromObjectSpace(pConfig->position);
-
-    // Expand through bike lean matrix when available so roll angle matches the chassis
-    if (pConfig->pVeh->m_nVehicleSubClass == VEHICLE_BIKE && pConfig->leanAffected)
-    {
-        CBike *pBike = static_cast<CBike *>(pConfig->pVeh);
-        bool wasCalculated = pBike->m_bLeanMatrixCalculated;
-        if (!wasCalculated)
-        {
-            pBike->CalculateLeanMatrix();
-        }
-
-        worldPos = pBike->m_mLeanMatrix * pConfig->position;
-        pBike->m_bLeanMatrixCalculated = wasCalculated;
-    }
+    // Calculate world position (accounting for motorcycle lean when applicable)
+    CVector worldPos = GetDummyWorldPosition(pConfig);
 
     // Prevent unrealistic ground shadow projection when vehicle is airborne (flying off ramps/in air)
     if (pConfig->pVeh->GetNumContactWheels() == 0)
