@@ -59,10 +59,11 @@ void ModelExtras::Init()
     Events::initGameEvent.after += []()
     {
         DataMgr::Init();
-        gbProperShadersDetected = GetModuleHandle("ProperShaders.asi") != nullptr;
+        gbProperShadersDetected = GetModuleHandleA("ProperShaders.asi") != nullptr;
         if (gbProperShadersDetected)
         {
             LOG(INFO) << "Proper Shaders detected, enabling compatibility mode for ModelExtras lights.";
+            Lights::UpdateProperShadersState();
         }
 
         if (SAMP::IsPresent())

@@ -8,6 +8,7 @@ protected:
 
 public:
     static inline bool m_bEnabled = false;
+    static void UpdateProperShadersState();
     Lights() : CBaseFeature("Lights", "LIGHTS", eFeatureMatrix::Lights) {}
     void ReloadConfig() override;
     void Reload(CVehicle* pVeh) override;

@@ -1,5 +1,6 @@
 #include "enums/materialtype.h"
 #include "pch.h"
+#include "defines.h"
 #include "lights.h"
 #include "manager.h"
 #include "utils/meevents.h"
@@ -136,10 +137,24 @@ void Lights::Init() {
 	});
 }
 
+void Lights::UpdateProperShadersState() {
+	if (!gbProperShadersDetected) return;
+
+	HMODULE hProperShaders = GetModuleHandleA("ProperShaders.asi");
+	if (!hProperShaders) return;
+
+	using PS_SetVehicleLightsEnabled_t = void(__cdecl *)(int);
+	if (auto pfnSetVehicleLights = reinterpret_cast<PS_SetVehicleLightsEnabled_t>(GetProcAddress(hProperShaders, "PS_SetVehicleLightsEnabled"))) {
+		const bool bDisablePSVehicleLights = m_bEnabled && LightsConfig::Get().gbLightPointLights;
+		pfnSetVehicleLights(bDisablePSVehicleLights ? 0 : 1);
+	}
+}
+
 void Lights::ReloadConfig() {
 	CBaseFeature::ReloadConfig();
 	m_bEnabled = m_bActive;
 	LightsConfig::Get().InitConfig();
+	UpdateProperShadersState();
 }
 
 void Lights::Reload(CVehicle* pVeh) {
