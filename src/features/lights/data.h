@@ -23,7 +23,7 @@ struct LightsConfig {
     bool gbGlobalIndicatorLights = false;
     bool gbLightCoronasFeature = false;
     bool gbLightPointLights = true;
-    bool gbSirenPointLights = false;
+    bool gbSirenPointLights = true;
 
     float gfGlobalCoronaSize = 0.3f;
     int gGlobalCoronaIntensity = 80;
@@ -57,6 +57,7 @@ struct LightsConfig {
     bool bPlayerIdleBrakeLights = false;
     bool bLightsRequireEngine = false;
     bool bSirensRequireEngine = false;
+    float fPointLightIntensity = 1.0f;
     float fPointLightSizeMul = 1.0f;
     float fPointLightOffsetMul = 1.0f;
     float fSirenPointLightSizeMul = 1.0f;
@@ -66,7 +67,7 @@ struct LightsConfig {
         gbGlobalIndicatorLights = gConfig.ReadBoolean("LIGHTS", "GlobalIndicatorLights", false);
         gbLightCoronasFeature = gConfig.ReadBoolean("LIGHTS", "LightCoronas", false);
         gbLightPointLights = ::gbLightPointLights = gConfig.ReadBoolean("LIGHTS", "LightPointLights", true);
-        gbSirenPointLights = ::gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", false);
+        gbSirenPointLights = ::gbSirenPointLights = gConfig.ReadBoolean("LIGHTS", "SirenPointLights", true);
 
         gfGlobalCoronaSize = ::gfGlobalCoronaSize = gConfig.ReadFloat("LIGHTS", "LightCoronaSize", 0.3f);
         gGlobalShadowIntensity = ::gGlobalShadowIntensity = gConfig.ReadInteger("LIGHTS", "LightShadowIntensity", 80);
@@ -99,6 +100,9 @@ struct LightsConfig {
         bLightsRequireEngine = gConfig.ReadBoolean("LIGHTS", "LightsRequireEngine", false);
         bSirensRequireEngine = gConfig.ReadBoolean("LIGHTS", "SirensRequireEngine", false);
         
+        float rawIntensity = gConfig.ReadFloat("LIGHTS", "LightPointLightIntensity", gConfig.ReadFloat("LIGHTS", "PointLightIntensity", 1.0f));
+        fPointLightIntensity = std::clamp(rawIntensity, 0.0f, 1.0f);
+
         float rawSize = gConfig.ReadFloat("LIGHTS", "LightPointLightSizeMul", 1.0f);
         fPointLightSizeMul = std::clamp(rawSize, 0.1f, 5.0f);
 

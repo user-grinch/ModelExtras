@@ -1503,7 +1503,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 			}
 			sirenRadius = std::clamp(sirenRadius, 5.0f, 15.0f) * LightsConfig::Get().fSirenPointLightSizeMul * mat.second->PointLight.Size;
 
-			float intensity = mat.second->PointLight.Intensity;
+			float intensity = mat.second->PointLight.Intensity * LightsConfig::Get().fPointLightIntensity;
 			float r = std::clamp((activeColor.r / 255.0f) * intensity, 0.0f, 1.0f);
 			float g = std::clamp((activeColor.g / 255.0f) * intensity, 0.0f, 1.0f);
 			float b = std::clamp((activeColor.b / 255.0f) * intensity, 0.0f, 1.0f);
@@ -1568,7 +1568,7 @@ void Sirens::ProcessPointLights(CVehicle *pVeh)
 		{
 			uint32_t step = (CTimer::m_snTimeInMilliseconds / 120) % 4;
 			const CMatrix &vehMat = pVeh->GetMatrix();
-			float intensity = 1.0f;
+			float intensity = LightsConfig::Get().fPointLightIntensity;
 			float bikeSirenRadius = 8.5f * LightsConfig::Get().fSirenPointLightSizeMul;
 			float bikeDist = (gbProperShadersDetected ? 0.05f : 0.45f) * LightsConfig::Get().fSirenPointLightOffsetMul;
 			if (step == 0 || step == 1)

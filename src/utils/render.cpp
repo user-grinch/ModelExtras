@@ -263,7 +263,7 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
     lightDir.Normalize();
 
     CRGBA col = pConfig->corona.color;
-    float intensity = pConfig->pointlight.intensity;
+    float intensity = pConfig->pointlight.intensity * LightsConfig::Get().fPointLightIntensity;
     CVector plightPos = lightPos + lightDir * (pConfig->pointlight.distance * LightsConfig::Get().fPointLightOffsetMul);
     float effectiveRange = HEADLIGHT_PLIGHT_RANGE * rangeMul * LightsConfig::Get().fPointLightSizeMul * pConfig->pointlight.size;
     CPointLights::AddLight(PLTYPE_SPOTLIGHT, plightPos, lightDir, effectiveRange,
@@ -383,7 +383,7 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
     CVector plightPos = lightPos + lightDir * effectivePushDist;
 
     constexpr float INV_255 = 1.0f / 255.0f;
-    float intensity = pConfig->pointlight.intensity;
+    float intensity = pConfig->pointlight.intensity * LightsConfig::Get().fPointLightIntensity;
     float r = std::max(0.0f, (col.r * INV_255) * intensity);
     float g = std::max(0.0f, (col.g * INV_255) * intensity);
     float b = std::max(0.0f, (col.b * INV_255) * intensity);

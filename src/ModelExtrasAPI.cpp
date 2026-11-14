@@ -972,7 +972,7 @@ float ME_GetHighBeamPointLightMul() {
 }
 
 float ME_GetPointLightIntensity() {
-  return 1.0f;
+  return LightsConfig::Get().fPointLightIntensity;
 }
 
 float ME_GetPointLightSize() {
@@ -988,7 +988,7 @@ float ME_GetPointLightOffsetMul() {
 }
 
 float ME_GetSirenPointLightIntensity() {
-  return 1.0f;
+  return LightsConfig::Get().fPointLightIntensity;
 }
 
 float ME_GetSirenPointLightSize() {

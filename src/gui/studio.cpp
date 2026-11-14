@@ -422,7 +422,7 @@ void IniTab() {
                         float value, max = 10.0f;
                         try { value = std::stof(row.value); } catch (...) { value = std::stof(spec.fallback); }
                         std::string_view key(spec.key);
-                        if (key == "SoundMult") max = 1.0f;
+                        if (key == "SoundMult" || key == "LightPointLightIntensity") max = 1.0f;
                         else if (key == "LightShadowDistance") max = 500.0f;
                         else if (key == "LightPointLightSizeMul" || key == "LightPointLightOffsetMul" || key == "SirenPointLightSizeMul" || key == "SirenPointLightOffsetMul" || key == "LightShadowSizeMul" || key == "HeadLightShadowSizeMul" || key == "TailLightShadowSizeMul") max = 5.0f;
                         max = std::max(max, value);

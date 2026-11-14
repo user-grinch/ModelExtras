@@ -29,7 +29,7 @@ inline const char *RestartReason(std::string_view section, std::string_view key)
         for (auto live : {"LightCoronas", "LightShadows", "LightPointLights", "HeadLightBeams", "SirenPointLights", "AutoIndicatorsOnSteer",
             "GlobalIndicatorLights", "PlayerIdleBrakeLights",
             "HeadLightCoronaDistanceMul", "TailLightCoronaDistanceMul", "LightCoronaDistanceMul", "LightShadowDistance",
-            "LightPointLightSizeMul", "LightPointLightOffsetMul",
+            "LightPointLightIntensity", "LightPointLightSizeMul", "LightPointLightOffsetMul",
             "SirenCoronas", "SirenCoronaDistanceMul", "SirenShadows",
             "SirenPointLightSizeMul", "SirenPointLightOffsetMul", "LightCoronaSize",
             "LightCoronaIntensity", "LightShadowSizeMul", "LightShadowIntensity", "HeadLightCoronaSize", "HeadLightCoronaIntensity", "HeadLightShadowSizeMul",

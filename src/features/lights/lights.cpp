@@ -14,7 +14,7 @@ float gfGlobalCoronaSize = 0.3f;
 int gGlobalCoronaIntensity = 80;
 int gGlobalShadowIntensity = 80;
 bool gbLightPointLights = true;
-bool gbSirenPointLights = false;
+bool gbSirenPointLights = true;
 
 // Keep GTA's beam geometry, vertex initialization and rendering intact.
 static CRGBA g_HeadLightBeamColor{255, 255, 255, 255};
