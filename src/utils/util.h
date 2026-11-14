@@ -35,7 +35,7 @@ public:
   static inline bool IsVehicleDoingWheelie(CVehicle *pVeh) { return CarUtil::IsVehicleDoingWheelie(pVeh); }
   static inline float GetVehicleSpeed(CVehicle *pVeh) { return CarUtil::GetVehicleSpeed(pVeh); }
   static inline float GetVehicleSpeedRealistic(CVehicle *vehicle) { return CarUtil::GetVehicleSpeedRealistic(vehicle); }
-  static inline void GetModelsFromIni(std::string &line, std::vector<int> &vec) { StringUtil::GetModelsFromIni(line, vec); }
+  static inline void GetModelsFromIni(const std::string &line, std::vector<int> &vec) { StringUtil::GetModelsFromIni(line, vec); }
 
   static inline std::optional<int> GetDigitsAfter(const std::string_view str, const std::string_view prefix) {
     return StringUtil::GetDigitsAfter(str, prefix);

@@ -50,14 +50,19 @@ std::optional<std::string> StringUtil::GetCharsAfterPrefix(const std::string_vie
     return std::nullopt;
 }
 
-void StringUtil::GetModelsFromIni(std::string &line, std::vector<int> &vec)
+void StringUtil::GetModelsFromIni(const std::string &line, std::vector<int> &vec)
 {
     if (line.empty()) return;
-    std::stringstream ss(line);
+    std::string_view view = line;
+    size_t commentPos = view.find_first_of(";#");
+    if (commentPos != std::string_view::npos) {
+        view = view.substr(0, commentPos);
+    }
+    std::stringstream ss{std::string(view)};
     std::string item;
     while (std::getline(ss, item, ',')) {
-        size_t start = item.find_first_not_of(" \t");
-        size_t end = item.find_last_not_of(" \t");
+        size_t start = item.find_first_not_of(" \t\r\n\"'");
+        size_t end = item.find_last_not_of(" \t\r\n\"'");
         if (start != std::string::npos && end != std::string::npos) {
             item = item.substr(start, end - start + 1);
             try {
