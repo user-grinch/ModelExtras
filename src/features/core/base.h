@@ -5,6 +5,7 @@
 #include "frame_state.h"
 #include <CPools.h>
 #include <algorithm>
+#include <bitset>
 #include <string>
 #include <vector>
 
@@ -12,6 +13,9 @@ class CVehicle;
 
 class CBaseFeature {
   friend class ModelExtrasLoader;
+
+private:
+  static inline std::bitset<static_cast<int>(eFeatureMatrix::FeatureCount)> s_EnabledFeatures;
 
 protected:
   std::string m_name;

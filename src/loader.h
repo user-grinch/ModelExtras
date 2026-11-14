@@ -9,7 +9,6 @@
 class ModelExtras {
 public:
     static inline std::vector<std::unique_ptr<CBaseFeature>> m_Features;
-    static inline std::bitset<static_cast<int>(eFeatureMatrix::FeatureCount)> m_bEnabledFeatures;
 
     template <typename T, typename... Args>
     static T* RegisterFeature(Args&&... args) {

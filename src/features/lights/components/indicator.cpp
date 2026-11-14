@@ -39,21 +39,21 @@ bool IndicatorComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
     bool isLeft = false;
     char pos = 'F';
 
-    if (STR_FOUND(name, "_lf") || STR_FOUND(name, "_fl")) {
+    if (name.contains("_lf") || name.contains("_fl")) {
         isLeft = true; pos = 'F';
-    } else if (STR_FOUND(name, "_rf") || STR_FOUND(name, "_fr")) {
+    } else if (name.contains("_rf") || name.contains("_fr")) {
         isLeft = false; pos = 'F';
-    } else if (STR_FOUND(name, "_lr") || STR_FOUND(name, "_rl")) {
+    } else if (name.contains("_lr") || name.contains("_rl")) {
         isLeft = true; pos = 'R';
-    } else if (STR_FOUND(name, "_rr")) {
+    } else if (name.contains("_rr")) {
         isLeft = false; pos = 'R';
-    } else if (STR_FOUND(name, "_lm") || STR_FOUND(name, "_ml")) {
+    } else if (name.contains("_lm") || name.contains("_ml")) {
         isLeft = true; pos = 'M';
-    } else if (STR_FOUND(name, "_rm") || STR_FOUND(name, "_mr")) {
+    } else if (name.contains("_rm") || name.contains("_mr")) {
         isLeft = false; pos = 'M';
     } else {
-        bool hasLeft = name.ends_with("_l") || STR_FOUND(name, "_l_") || STR_FOUND(name, "left");
-        bool hasRight = name.ends_with("_r") || STR_FOUND(name, "_r_") || STR_FOUND(name, "right");
+        bool hasLeft = name.ends_with("_l") || name.contains("_l_") || name.contains("left");
+        bool hasRight = name.ends_with("_r") || name.contains("_r_") || name.contains("right");
 
         if (hasLeft && !hasRight) {
             isLeft = true;
@@ -63,11 +63,11 @@ bool IndicatorComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
             isLeft = (c.position.x < -0.05f);
         }
 
-        if (STR_FOUND(name, "_m") || STR_FOUND(name, "side") || STR_FOUND(name, "mid")) {
+        if (name.contains("_m") || name.contains("side") || name.contains("mid")) {
             pos = 'M';
-        } else if (STR_FOUND(name, "rear") || STR_FOUND(name, "back")) {
+        } else if (name.contains("rear") || name.contains("back")) {
             pos = 'R';
-        } else if (STR_FOUND(name, "front") || STR_FOUND(name, "_f") || STR_FOUND(name, "_frnt")) {
+        } else if (name.contains("front") || name.contains("_f") || name.contains("_frnt")) {
             pos = 'F';
         } else {
             pos = (c.position.y >= 0.0f ? 'F' : 'R');

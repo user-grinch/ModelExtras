@@ -52,11 +52,7 @@ int ME_GetAPIVersion() { return ME_API_VERSION; }
 int ME_GetVersion() { return MOD_VERSION_NUMBER; }
 
 bool ME_IsFeatureAvail(ME_FeatureID featureId) {
-  auto idx = static_cast<int>(featureId);
-  if (idx < 0 || idx >= static_cast<int>(eFeatureMatrix::FeatureCount)) {
-    return false;
-  }
-  return ModelExtras::m_bEnabledFeatures.test(idx);
+  return ME_IsFeatureEnabled(featureId);
 }
 
 bool ME_IsFeatureEnabled(ME_FeatureID featureId) {

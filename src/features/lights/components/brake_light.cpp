@@ -18,11 +18,11 @@ eMaterialType BrakeLightComponent::GetMatType(CRGBA matCol) {
 
 bool BrakeLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
     if ((name.starts_with("breakl") || name.starts_with("brakel") || name.starts_with("brake_") || name.starts_with("break_")) &&
-        !STR_FOUND(name, "disc") && !STR_FOUND(name, "caliper")) {
+        !name.contains("disc") && !name.contains("caliper")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Rear;
-        bool hasLeft = name.ends_with("_l") || STR_FOUND(name, "_l_") || STR_FOUND(name, "left");
-        bool hasRight = name.ends_with("_r") || STR_FOUND(name, "_r_") || STR_FOUND(name, "right");
+        bool hasLeft = name.ends_with("_l") || name.contains("_l_") || name.contains("left");
+        bool hasRight = name.ends_with("_r") || name.contains("_r_") || name.contains("right");
         if (hasLeft && !hasRight) {
             c.lightType = eMaterialType::BrakeLightLeft;
         } else if (hasRight && !hasLeft) {

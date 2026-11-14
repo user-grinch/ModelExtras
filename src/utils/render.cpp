@@ -694,15 +694,3 @@ eCoronaType RenderUtil::ParseCoronaType(std::string_view name)
     return CORONATYPE_SHINYSTAR;
 }
 
-std::string_view RenderUtil::GetCoronaTypeName(eCoronaType type)
-{
-    switch (type)
-    {
-    case CORONATYPE_TORUS: return "torus";
-    case CORONATYPE_HEADLIGHTLINE: return "headlightline";
-    case CORONATYPE_NONE: return "none";
-    case CORONATYPE_SHINYSTAR:
-    default:
-        return "shinystar";
-    }
-}

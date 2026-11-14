@@ -94,12 +94,6 @@ void Remap::EnsureRemapsLoaded(int modelIndex)
     CTxdStore::PopCurrentTxd();
 }
 
-void Remap::LoadRemaps(CVehicle* vehicle)
-{
-    if (!vehicle) return;
-    EnsureRemapsLoaded(vehicle->m_nModelIndex);
-}
-
 bool Remap::HasRemaps(int modelIndex)
 {
     if (modelIndex < 0) return false;

@@ -12,7 +12,7 @@ CBaseFeature::CBaseFeature(std::string name, std::string configSection, eFeature
 {
     m_bActive = IsActive();
     if (m_featureId <= eFeatureMatrix::FeatureCount) {
-        ModelExtras::m_bEnabledFeatures.set(static_cast<int>(m_featureId), m_bActive);
+        s_EnabledFeatures.set(static_cast<int>(m_featureId), m_bActive);
     }
     if (m_bActive) {
         LOG(INFO) << std::format("Feature '{}' enabled.", m_name);
@@ -24,8 +24,8 @@ bool CBaseFeature::IsActive() const {
 }
 
 bool CBaseFeature::IsEnabled(eFeatureMatrix featureId) {
-    if (static_cast<size_t>(featureId) < ModelExtras::m_bEnabledFeatures.size()) {
-        return ModelExtras::m_bEnabledFeatures.test(static_cast<size_t>(featureId));
+    if (static_cast<size_t>(featureId) < s_EnabledFeatures.size()) {
+        return s_EnabledFeatures.test(static_cast<size_t>(featureId));
     }
     return false;
 }
@@ -34,6 +34,6 @@ void CBaseFeature::ReloadConfig() {
     if (StudioPolicy::RestartReason(m_configSection, m_name)) return;
     m_bActive = IsActive();
     if (m_featureId <= eFeatureMatrix::FeatureCount) {
-        ModelExtras::m_bEnabledFeatures.set(static_cast<int>(m_featureId), m_bActive);
+        s_EnabledFeatures.set(static_cast<int>(m_featureId), m_bActive);
     }
 }

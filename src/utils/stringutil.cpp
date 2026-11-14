@@ -4,11 +4,6 @@
 #include <cctype>
 #include <sstream>
 
-bool StringUtil::IsNumber(const std::string &s)
-{
-    return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
-}
-
 std::optional<int> StringUtil::GetDigitsAfter(const std::string_view str, const std::string_view prefix)
 {
     if (!str.starts_with(prefix)) return std::nullopt;

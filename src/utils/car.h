@@ -14,7 +14,6 @@ public:
     static bool IsLightsForcedOff(CVehicle *pVeh);
     static bool IsLightsForcedOn(CVehicle *pVeh);
     static bool AreLightsOn(CVehicle *pVeh);
-    static bool AreHeadlightsPopUpOpen(CVehicle *pVeh);
 
     static bool IsEngineOff(CVehicle *pVeh);
     static bool IsDoorDamaged(CVehicle *pVeh, eDoors door);

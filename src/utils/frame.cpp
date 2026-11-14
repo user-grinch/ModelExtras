@@ -17,29 +17,6 @@ void FrameUtil::SetRotationY(RwFrame *frame, float angle)
     RwFrameUpdateObjects(frame);
 }
 
-void FrameUtil::SetRotationZ(RwFrame *frame, float angle)
-{
-    if (!frame) return;
-    RwFrameRotate(frame, (RwV3d *)0x008D2E18, (RwReal)angle, rwCOMBINEPRECONCAT);
-    RwFrameUpdateObjects(frame);
-}
-
-uint32_t FrameUtil::GetChildCount(RwFrame *parent)
-{
-    RwFrame *child = parent->child;
-    uint32_t count = 0U;
-    if (child)
-    {
-        while (child)
-        {
-            ++count;
-            child = child->next;
-        }
-        return count;
-    }
-    return 0U;
-}
-
 void FrameUtil::DestroyNodeHierarchyRecursive(RwFrame * frame)
 {
     if (frame == nullptr)
@@ -144,34 +121,6 @@ void FrameUtil::HideAllAtomics(RwFrame *frame)
     }
 }
 
-void FrameUtil::HideChildWithName(RwFrame *parent_frame, const char *name)
-{
-    RwFrame *child = parent_frame->child;
-    while (child)
-    {
-        if (!strcmp(GetFrameNodeName(child), name))
-        {
-            FrameUtil::HideAllAtomics(child);
-            return;
-        }
-        child = child->next;
-    }
-}
-
-void FrameUtil::ShowChildWithName(RwFrame *parent_frame, const char *name)
-{
-    RwFrame *child = parent_frame->child;
-    while (child)
-    {
-        if (!strcmp(GetFrameNodeName(child), name))
-        {
-            FrameUtil::ShowAllAtomics(child);
-            return;
-        }
-        child = child->next;
-    }
-}
-
 void FrameUtil::HideAllChilds(RwFrame *parent_frame)
 {
     if (!parent_frame) return;
@@ -243,39 +192,4 @@ bool FrameUtil::IsOkAtomicVisible(RwFrame* frame) {
     }
 
     return true;
-}
-
-// VehFuncs
-RwFrame * FrameUtil::Clone(RwFrame *frame, RpClump *clump, RwFrame *parent, bool isRoot) {
-	RwFrame * newFrame = parent;
-	if (isRoot) {
-		*(uint32_t*)0xC1CB58 = (uint32_t)clump;
-		RwFrameForAllObjects(frame, CopyObjectsCB, parent);
-		if (RwFrame * nextFrame = frame->child) Clone(nextFrame, clump, parent, false);
-	} else {
-		newFrame = RwFrameCreate();
-
-		//CVisibilityPlugins::SetFrameHierarchyId(newFrame, 101);
-
-		memcpy(&newFrame->modelling, &frame->modelling, sizeof(RwMatrix));
-		RwMatrixUpdate(&newFrame->modelling);
-
-		const std::string frameName = GetFrameNodeName(frame);
-		SetFrameNodeName(newFrame, &frameName[0]);
-
-		RpAtomic * atomic = (RpAtomic*)GetFirstObject(frame);
-
-		if (atomic) {
-			RpAtomic * newAtomic = RpAtomicClone(atomic);
-			RpAtomicSetFrame(newAtomic, newFrame);
-			RpClumpAddAtomic(clump, newAtomic);
-			//CVisibilityPlugins::SetAtomicRenderCallback(newAtomic, (RpAtomic *(*)(RpAtomic *))0x007323C0);
-		}
-
-		RwFrameAddChild(parent, newFrame);
-
-		if (RwFrame * nextFrame = frame->child) Clone(nextFrame, clump, newFrame, false);
-		// if (RwFrame * nextFrame = frame->next)  CloneNode(nextFrame, clump, parent, false);
-	}
-	return newFrame;
 }

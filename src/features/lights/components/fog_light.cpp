@@ -20,8 +20,8 @@ bool FogLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
     if (name.starts_with("fogl") || name.starts_with("fog_")) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Front;
-        bool hasLeft = name.ends_with("_l") || STR_FOUND(name, "_l_") || STR_FOUND(name, "left");
-        bool hasRight = name.ends_with("_r") || STR_FOUND(name, "_r_") || STR_FOUND(name, "right");
+        bool hasLeft = name.ends_with("_l") || name.contains("_l_") || name.contains("left");
+        bool hasRight = name.ends_with("_r") || name.contains("_r_") || name.contains("right");
         bool isLeft = hasLeft ? true : hasRight ? false : (c.position.x < 0.0f);
         c.lightType = isLeft ? eMaterialType::FogLightLeft : eMaterialType::FogLightRight;
         c.shadow.render = false;

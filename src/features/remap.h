@@ -22,7 +22,6 @@ class Remap : public CVehFeature<RemapVehData>
 private: 
   static inline std::unordered_map<int, RemapData> xRemaps;
   static inline bool m_bEnabled = false;
-  static void LoadRemaps(CVehicle* vehicle);
 
 protected:
   void Init() override;

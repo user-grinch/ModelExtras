@@ -1,5 +1,6 @@
 #pragma once
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <windows.h>
 #include <filesystem>
 #include <algorithm>
@@ -173,7 +174,7 @@ inline bool NavigationButton(const char *id, const char *text, bool selected, fl
     if (selected || hovered || focused) {
         const auto accent = ImGui::GetStyle().Colors[ImGuiCol_CheckMark];
         const ImVec4 color(selected ? .09f + accent.x * .18f : .18f, selected ? .10f + accent.y * .18f : .21f, selected ? .12f + accent.z * .18f : .28f, 1);
-        draw->AddRectFilled(start, ImVec2(start.x + size.x, start.y + size.y), ImGui::GetColorU32(color), 8 * unit);
+        draw->AddRectFilled(start, start + size, ImGui::GetColorU32(color), 8 * unit);
     }
     const float textHeight = ImGui::CalcTextSize(text).y;
     const float textStartX = icon >= 0 ? start.x + 35 * unit : start.x + 14 * unit;
@@ -193,12 +194,12 @@ inline bool CloseButton(float unit) {
     const bool pressed = ImGui::InvisibleButton("##close", size, ImGuiButtonFlags_EnableNav);
     if (!ImGui::IsItemVisible()) return pressed;
     auto *draw = ImGui::GetWindowDrawList();
-    draw->AddRectFilled(start, ImVec2(start.x + size.x, start.y + size.y), ImGui::GetColorU32(ImGui::IsItemHovered() ? ImGuiCol_ButtonHovered : ImGuiCol_Button), 6 * unit);
+    draw->AddRectFilled(start, start + size, ImGui::GetColorU32(ImGui::IsItemHovered() ? ImGuiCol_ButtonHovered : ImGuiCol_Button), 6 * unit);
     const ImVec2 center(start.x + size.x * .5f, start.y + size.y * .5f);
     const float radius = 4 * unit;
     const auto ink = ImGui::GetColorU32(ImGuiCol_Text);
-    draw->AddLine(ImVec2(center.x - radius, center.y - radius), ImVec2(center.x + radius, center.y + radius), ink, 1.4f * unit);
-    draw->AddLine(ImVec2(center.x - radius, center.y + radius), ImVec2(center.x + radius, center.y - radius), ink, 1.4f * unit);
+    draw->AddLine(center - ImVec2(radius, radius), center + ImVec2(radius, radius), ink, 1.4f * unit);
+    draw->AddLine(center + ImVec2(-radius, radius), center + ImVec2(radius, -radius), ink, 1.4f * unit);
     return pressed;
 }
 inline void SameLineFor(const char *label) {
@@ -371,16 +372,16 @@ inline void BeginShell(int &page, bool &visible, const char *version, const Pref
     lastShellSize = ImGui::GetWindowSize();
     const auto start = ImGui::GetCursorScreenPos();
     auto *draw = ImGui::GetWindowDrawList();
-    draw->AddRectFilled(start, ImVec2(start.x + 38 * unit, start.y + 38 * unit), ImGui::GetColorU32(IM_COL32(48, 53, 72, 255)), 8 * unit);
+    draw->AddRectFilled(start, start + ImVec2(38 * unit, 38 * unit), ImGui::GetColorU32(IM_COL32(48, 53, 72, 255)), 8 * unit);
     const auto ink = ImGui::GetColorU32(IM_COL32(168, 182, 221, 255));
     // Compact vehicle emblem: vector artwork remains sharp at every UI scale.
-    draw->AddRect(ImVec2(start.x + 7 * unit, start.y + 17 * unit), ImVec2(start.x + 31 * unit, start.y + 27 * unit), ink, 3 * unit, 1.7f * unit);
-    draw->AddLine(ImVec2(start.x + 11 * unit, start.y + 17 * unit), ImVec2(start.x + 15 * unit, start.y + 10 * unit), ink, 1.7f * unit);
-    draw->AddLine(ImVec2(start.x + 15 * unit, start.y + 10 * unit), ImVec2(start.x + 25 * unit, start.y + 10 * unit), ink, 1.7f * unit);
-    draw->AddLine(ImVec2(start.x + 25 * unit, start.y + 10 * unit), ImVec2(start.x + 29 * unit, start.y + 17 * unit), ink, 1.7f * unit);
-    draw->AddCircleFilled(ImVec2(start.x + 12 * unit, start.y + 28 * unit), 3 * unit, ink);
-    draw->AddCircleFilled(ImVec2(start.x + 27 * unit, start.y + 28 * unit), 3 * unit, ink);
-    ImGui::SetCursorScreenPos(ImVec2(start.x + 52 * unit, start.y + 5 * unit));
+    draw->AddRect(start + ImVec2(7 * unit, 17 * unit), start + ImVec2(31 * unit, 27 * unit), ink, 3 * unit, 1.7f * unit);
+    draw->AddLine(start + ImVec2(11 * unit, 17 * unit), start + ImVec2(15 * unit, 10 * unit), ink, 1.7f * unit);
+    draw->AddLine(start + ImVec2(15 * unit, 10 * unit), start + ImVec2(25 * unit, 10 * unit), ink, 1.7f * unit);
+    draw->AddLine(start + ImVec2(25 * unit, 10 * unit), start + ImVec2(29 * unit, 17 * unit), ink, 1.7f * unit);
+    draw->AddCircleFilled(start + ImVec2(12 * unit, 28 * unit), 3 * unit, ink);
+    draw->AddCircleFilled(start + ImVec2(27 * unit, 28 * unit), 3 * unit, ink);
+    ImGui::SetCursorScreenPos(start + ImVec2(52 * unit, 5 * unit));
     ImGui::PushFont(nullptr, 22);
     ImGui::Text("ModelExtras v%s", version);
     ImGui::PopFont();

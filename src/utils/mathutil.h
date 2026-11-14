@@ -19,11 +19,6 @@ public:
         return dx * dx + dy * dy + dz * dz;
     }
 
-    static inline float GetSquaredMagnitude(const CVector &v)
-    {
-        return v.x * v.x + v.y * v.y + v.z * v.z;
-    }
-
     static inline float NormalizeAngle(float angle)
     {
         if (angle >= 0.0f && angle < 360.0f)
