@@ -10,7 +10,6 @@
 #include "utils/modelinfomgr.h"
 #include "utils/datamgr.h"
 #include "ModelExtrasAPI.h"
-#include "backfire.h"
 #include "enums/vehdummy.h"
 #include "utils/meevents.h"
 #include <CPointLights.h>

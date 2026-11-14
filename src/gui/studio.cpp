@@ -7,6 +7,7 @@
 #include "studio_theme.h"
 #include "studio_workshop.h"
 #include "studio_model.h"
+#include "features/backfire.h"
 #include <CStreaming.h>
 #include <CText.h>
 #include "loader.h"
@@ -263,7 +264,8 @@ void LoadIni() {
     for (const auto &spec : iniSpecs) {
         auto value = gConfig.data.get(spec.section, spec.key, spec.fallback);
         const bool restart = StudioPolicy::RestartReason(spec.section, spec.key) != nullptr
-            || (std::string_view(spec.key) == "Carcols" && SAMP::IsPresent());
+            || (std::string_view(spec.key) == "Carcols" && SAMP::IsPresent())
+            || ((std::string_view(spec.key) == "BackfireEffect" || std::string_view(spec.key) == "BackfireEffect_OnlySelectedModels") && BackFireEffect::IsDisabledByConflict());
         if (restart) value = saved.data.get(spec.section, spec.key, spec.fallback);
         iniRows.push_back({&spec, value, value, false, restart, SettingLabel(spec.key)});
         if (spec.kind == Kind::Text) {
@@ -388,24 +390,38 @@ void IniTab() {
                     ImGui::TextWrapped("%s", row.label.c_str());
                     StudioTheme::Hint(spec.help);
                     if (row.restart) {
-                        const char *note = std::string_view(spec.key) == "Carcols" ? "Unavailable in SA-MP" : "Restart required";
+                        const bool isCarcols = std::string_view(spec.key) == "Carcols";
+                        const bool isBackfire = (std::string_view(spec.key) == "BackfireEffect" || std::string_view(spec.key) == "BackfireEffect_OnlySelectedModels") && BackFireEffect::IsDisabledByConflict();
+                        const char *note = isCarcols ? "Unavailable in SA-MP" : (isBackfire ? "External mod conflict" : "Restart required");
                         ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * .75f);
                         if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + ImGui::CalcTextSize(note).x
                             <= ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x) ImGui::SameLine();
                         ImGui::TextColored(ImVec4(.76f, .65f, .44f, 1), "%s", note);
                         ImGui::PopFont();
-                        StudioTheme::Hint(StudioPolicy::RestartReason(spec.section, spec.key));
+                        if (isBackfire) {
+                            StudioTheme::Hint("VehFuncs and Soundize handle vehicle backfire; ModelExtras backfire is disabled to prevent conflicts.");
+                        } else {
+                            StudioTheme::Hint(StudioPolicy::RestartReason(spec.section, spec.key));
+                        }
                     }
                     ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1);
                     bool changed = false;
                     if (spec.kind == Kind::Boolean) {
                         bool value = row.value != "0" && ::_stricmp(row.value.c_str(), "false") != 0;
-                        ImGui::BeginDisabled(std::string_view(spec.key) == "Carcols" && SAMP::IsPresent());
+                        const bool isCarcolsDisabled = std::string_view(spec.key) == "Carcols" && SAMP::IsPresent();
+                        const bool isBackfireDisabled = (std::string_view(spec.key) == "BackfireEffect" || std::string_view(spec.key) == "BackfireEffect_OnlySelectedModels") && BackFireEffect::IsDisabledByConflict();
+                        ImGui::BeginDisabled(isCarcolsDisabled || isBackfireDisabled);
                         changed = StudioTheme::Toggle("##value", &value);
                         ImGui::EndDisabled();
-                        StudioTheme::Hint(spec.help);
+                        StudioTheme::Hint(isBackfireDisabled
+                            ? "VehFuncs and Soundize handle vehicle backfire; ModelExtras backfire is disabled to prevent conflicts."
+                            : spec.help);
                         if (changed) row.value = value ? "1" : "0";
-                        if (!paired) { ImGui::SameLine(); ImGui::TextDisabled("%s", value ? "Enabled" : "Disabled"); }
+                        if (!paired) {
+                            ImGui::SameLine();
+                            if (isBackfireDisabled) ImGui::TextDisabled("Disabled (conflict)");
+                            else ImGui::TextDisabled("%s", value ? "Enabled" : "Disabled");
+                        }
                     } else if (spec.kind == Kind::Integer) {
                         int value;
                         try { value = std::stoi(row.value, nullptr, row.value.starts_with("0x") || row.value.starts_with("0X") ? 16 : 10); }
