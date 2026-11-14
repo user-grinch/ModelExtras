@@ -19,7 +19,6 @@ using namespace plugin;
 extern CIniReader gConfig;
 extern bool gVerboseLogging;
 
-#define LOG_NO_LEVEL(x) LOG(INFO) << x;
 #define LOG_VERBOSE(fmt, ...)             \
   do                                      \
   {                                       \

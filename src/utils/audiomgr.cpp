@@ -66,7 +66,7 @@ namespace BassAPI
                 HWND hWnd = (RsGlobal.ps && RsGlobal.ps->window) ? RsGlobal.ps->window : NULL;
                 fnInit(-1, 44100, 0, hWnd, nullptr);
                 bReady = true;
-                LOG_VERBOSE("AudioMgr: BASS audio engine initialized successfully.");
+                LOG_VERBOSE("[Audio] BASS audio engine initialized successfully.");
             }
         }
     }

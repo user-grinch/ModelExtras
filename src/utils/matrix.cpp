@@ -26,7 +26,7 @@ bool MatrixUtil::CreateBackup(RwFrame *frame)
     auto *backup = new RwMatrix();
     if (!backup)
     {
-        LOG(ERROR) << "Failed to create matrix backup";
+        LOG(ERROR) << "[Core] Failed to create matrix backup";
         RwFrameExtension::Get(frame)->pOrigMatrix = nullptr;
         return false;
     }
@@ -45,7 +45,7 @@ void MatrixUtil::RestoreBackup(RwMatrix *dest, RwMatrix *backup)
 {
     if (!backup)
     {
-        LOG(ERROR) << "Failed to restore matrix backup";
+        LOG(ERROR) << "[Core] Failed to restore matrix backup";
         return;
     }
 

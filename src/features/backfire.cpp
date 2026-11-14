@@ -184,7 +184,7 @@ void BackFireEffect::ReloadConfig()
     s_bDisabledByConflict = GetModuleHandleA("VehFuncs.asi") && GetModuleHandleA("Soundize (Junior_Djjr).asi");
     if (s_bDisabledByConflict)
     {
-        LOG(INFO) << "VehFuncs and Soundize detected; disabling ModelExtras backfire to prevent conflicts.";
+        LOG(INFO) << "[Backfire] VehFuncs and Soundize detected; disabling ModelExtras backfire to prevent conflicts.";
     }
     s_bOnlySelected = gConfig.ReadBoolean("FEATURES", "BackfireEffect_OnlySelectedModels", true);
     std::string line = gConfig.ReadString("TABLE", "BackFireEffect_VehicleModels", "");

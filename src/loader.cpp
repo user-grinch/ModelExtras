@@ -62,19 +62,19 @@ void ModelExtras::Init()
         gbProperShadersDetected = GetModuleHandleA("ProperShaders.asi") != nullptr;
         if (gbProperShadersDetected)
         {
-            LOG(INFO) << "Proper Shaders detected, enabling compatibility mode for ModelExtras lights.";
+            LOG(INFO) << "[Lights] Proper Shaders detected, enabling compatibility mode for ModelExtras lights.";
             Lights::UpdateProperShadersState();
         }
 
         if (SAMP::IsPresent())
         {
-            LOG(INFO) << "SAMP detected, disabling Carcols feature.";
+            LOG(INFO) << "[Carcols] SAMP detected, disabling Carcols feature.";
         }
 
-        if (GetModuleHandle("SilentPatchSA.asi") == nullptr)
+        if (GetModuleHandleA("SilentPatchSA.asi") == nullptr)
         {
             static std::string text = "ModelExtras requires SilentPatchSA installed!";
-            LOG(WARNING) << text;
+            LOG(WARNING) << "[Core] " << text;
         }
     };
 
@@ -106,7 +106,7 @@ void ModelExtras::Init()
                     static std::string text;
                     text = std::format("Model {} requires ModelExtras v{} but v{} is installed.", model, ver, MOD_VERSION_NUMBER);
                     CMessages::AddMessageWithString(std::remove_const_t<char*>(text.c_str()), 5000, false, nullptr, true);
-                    LOG(WARNING) << text;
+                    LOG(WARNING) << "[Core] " << text;
                 }
             }
         };
@@ -198,7 +198,7 @@ void ModelExtras::Reload()
     ReloadModels();
     static std::string msg = "~g~ModelExtras:~w~ Config reloaded";
     CMessages::AddMessageWithString(const_cast<char*>(msg.c_str()), 3000, false, nullptr, true);
-    LOG(INFO) << "ModelExtras: Configuration reloaded successfully.";
+    LOG(INFO) << "[Core] Configuration reloaded successfully.";
     Studio::FilesReloaded();
 }
 

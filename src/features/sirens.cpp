@@ -179,7 +179,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 	nlohmann::json json = jsonRaw;
 	if (json.size() == 0)
 	{
-		LOG_VERBOSE("Model {} siren configuration exception!", Sirens::CurrentModel);
+		LOG_VERBOSE("[Sirens] Model {} siren configuration exception!", Sirens::CurrentModel);
 		return;
 	}
 
@@ -196,11 +196,11 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 				if (reference.value().is_string())
 					references.push_back(reference.value());
 				else
-					LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, reference array property is not an string!", Sirens::CurrentModel, state, material);
+					LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, reference array property is not an string!", Sirens::CurrentModel, state, material);
 			}
 		}
 		else
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, reference property is not an array or string!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, reference property is not an array or string!", Sirens::CurrentModel, state, material);
 
 		if (references.size() != 0)
 		{
@@ -232,7 +232,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 					}
 				}
 				else
-					LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, reference array property '{}' is not an recognized reference!", Sirens::CurrentModel, state, material, (*ref));
+					LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, reference array property '{}' is not an recognized reference!", Sirens::CurrentModel, state, material, (*ref));
 			}
 		}
 	}
@@ -242,7 +242,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 		if (json["size"].is_number())
 			Size = json["size"];
 		else
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, size property is not an acceptable number!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, size property is not an acceptable number!", Sirens::CurrentModel, state, material);
 	}
 
 	if (json.contains("diffuse"))
@@ -256,7 +256,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 				if (json["diffuse"]["color"].is_boolean())
 					Diffuse.Color = json["diffuse"]["color"];
 				else
-					LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, diffuse property color is not an boolean!", Sirens::CurrentModel, state, material);
+					LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, diffuse property color is not an boolean!", Sirens::CurrentModel, state, material);
 			}
 
 			if (json["diffuse"].contains("transparent"))
@@ -264,11 +264,11 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 				if (json["diffuse"]["transparent"].is_boolean())
 					Diffuse.Transparent = json["diffuse"]["transparent"];
 				else
-					LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, diffuse property transparent is not an boolean!", Sirens::CurrentModel, state, material);
+					LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, diffuse property transparent is not an boolean!", Sirens::CurrentModel, state, material);
 			}
 		}
 		else
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, diffuse property is not an boolean or object!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, diffuse property is not an boolean or object!", Sirens::CurrentModel, state, material);
 	}
 
 	if (json.contains("radius"))
@@ -276,7 +276,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 		if (json["radius"].is_number())
 			Radius = json["radius"];
 		else
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, radius property is not an acceptable number!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, radius property is not an acceptable number!", Sirens::CurrentModel, state, material);
 	}
 
 	if (json.contains("color"))
@@ -288,7 +288,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 			DefaultColor = Color;
 		}
 		else
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, color property is not an object!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, color property is not an object!", Sirens::CurrentModel, state, material);
 	}
 
 	if (json.contains("color_off"))
@@ -311,7 +311,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 			StateDefault = state;
 		}
 		else
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, state property is not an boolean or number!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, state property is not an boolean or number!", Sirens::CurrentModel, state, material);
 	}
 
 	if (json.contains("colors"))
@@ -324,14 +324,14 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 
 				if (!value.is_array())
 				{
-					LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, colors array property is not an array!", Sirens::CurrentModel, state, material);
+					LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, colors array property is not an array!", Sirens::CurrentModel, state, material);
 
 					continue;
 				}
 
 				if (value.size() != 2)
 				{
-					LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, colors array property is not an array with a pair value of delay and color!", Sirens::CurrentModel, state, material);
+					LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, colors array property is not an array with a pair value of delay and color!", Sirens::CurrentModel, state, material);
 
 					continue;
 				}
@@ -362,11 +362,11 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 					ColorTotal += time;
 				}
 				else
-					LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, colors array property does not contain an array!", Sirens::CurrentModel, state, material);
+					LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, colors array property does not contain an array!", Sirens::CurrentModel, state, material);
 			}
 		}
 		else
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, colors property is not an array!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, colors property is not an array!", Sirens::CurrentModel, state, material);
 	}
 
 	if (json.contains("pattern"))
@@ -381,7 +381,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 				{
 					if (value.size() < 2)
 					{
-						LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, pattern array property is an array but does not contain an iteration and pattern setting!", Sirens::CurrentModel, state, material);
+						LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, pattern array property is an array but does not contain an iteration and pattern setting!", Sirens::CurrentModel, state, material);
 
 						continue;
 					}
@@ -409,11 +409,11 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 					PatternTotal += time;
 				}
 				else
-					LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, pattern array property is not an array or number!", Sirens::CurrentModel, state, material);
+					LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, pattern array property is not an array or number!", Sirens::CurrentModel, state, material);
 			}
 		}
 		else
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, pattern property is not an array!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, pattern property is not an array!", Sirens::CurrentModel, state, material);
 	}
 
 	if (json.contains("texture") && json["texture"].is_string())
@@ -435,11 +435,11 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 				if (json["rotator"].is_object())
 					Rotator = new VehicleSirenRotator(json["rotator"]);
 				else
-					LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, rotator property is not an object!", Sirens::CurrentModel, state, material);
+					LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, rotator property is not an object!", Sirens::CurrentModel, state, material);
 			}
 		}
 		else
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, type property is not a string!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, type property is not a string!", Sirens::CurrentModel, state, material);
 	}
 
 	if (json.contains("pointlight"))
@@ -481,7 +481,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 				}
 				else
 				{
-					LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, shadow object property type is not an acceptable number or string!", Sirens::CurrentModel, state, material);
+					LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, shadow object property type is not an acceptable number or string!", Sirens::CurrentModel, state, material);
 				}
 			}
 
@@ -493,7 +493,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 				}
 				else
 				{
-					LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, shadow object property type is not an acceptable number or string!", Sirens::CurrentModel, state, material);
+					LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, shadow object property type is not an acceptable number or string!", Sirens::CurrentModel, state, material);
 				}
 			}
 
@@ -505,7 +505,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 				}
 				else
 				{
-					LOG_VERBOSE("Model {} has wrong shadow size. Using default value!", Sirens::CurrentModel);
+					LOG_VERBOSE("[Sirens] Model {} has wrong shadow size. Using default value!", Sirens::CurrentModel);
 				}
 			}
 
@@ -514,12 +514,12 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 				if (json["shadow"]["offset"].is_number())
 					Shadow.Offset = json["shadow"]["offset"];
 				else
-					LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, shadow object property offset is not an acceptable number!", Sirens::CurrentModel, state, material);
+					LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, shadow object property offset is not an acceptable number!", Sirens::CurrentModel, state, material);
 			}
 		}
 		else
 		{
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, shadow property is not an object!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, shadow property is not an object!", Sirens::CurrentModel, state, material);
 		}
 	}
 
@@ -528,7 +528,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 		if (json["delay"].is_number())
 			Delay = json["delay"];
 		else
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, delay property is not an acceptable number!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, delay property is not an acceptable number!", Sirens::CurrentModel, state, material);
 	}
 
 	if (json.contains("inertia"))
@@ -536,7 +536,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 		if (json["inertia"].is_number())
 			Inertia = json["inertia"];
 		else
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, inertia property is not an acceptable number!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, inertia property is not an acceptable number!", Sirens::CurrentModel, state, material);
 	}
 
 	if (json.contains("imvehft"))
@@ -544,7 +544,7 @@ VehicleSirenMaterial::VehicleSirenMaterial(std::string_view state, int material,
 		if (json["imvehft"].is_boolean() || json["imvehft"].is_number())
 			ImVehFt = json["imvehft"];
 		else
-			LOG_VERBOSE("Model {} siren configuration exception! State '{}' material {}, ImVehFt property is not a boolean or number!", Sirens::CurrentModel, state, material);
+			LOG_VERBOSE("[Sirens] Model {} siren configuration exception! State '{}' material {}, ImVehFt property is not a boolean or number!", Sirens::CurrentModel, state, material);
 	}
 
 	Validate = Type != eLightingMode::Rotator || Rotator != nullptr;
@@ -558,7 +558,7 @@ VehicleSirenState::VehicleSirenState(std::string_view state, const nlohmann::jso
 
 	if (json.size() == 0)
 	{
-		LOG_VERBOSE("Failed to set up state {}, could not find any keys in the manifest!", state);
+		LOG_VERBOSE("[Sirens] Failed to set up state {}, could not find any keys in the manifest!", state);
 
 		return;
 	}
@@ -595,7 +595,7 @@ VehicleSirenState::VehicleSirenState(std::string_view state, const nlohmann::jso
 			delete Materials[materialIndex];
 			Materials.erase(materialIndex);
 
-			LOG_VERBOSE("Failed to set up state {}'s material {}, could not configure object from manifest!", state, material.key());
+			LOG_VERBOSE("[Sirens] Failed to set up state {}'s material {}, could not configure object from manifest!", state, material.key());
 
 			continue;
 		}
@@ -608,7 +608,7 @@ VehicleSirenData::VehicleSirenData(const nlohmann::json &json)
 {
 	if (json.size() == 0)
 	{
-		LOG_VERBOSE("Failed to set up states, could not find any keys in the manifest!");
+		LOG_VERBOSE("[Sirens] Failed to set up states, could not find any keys in the manifest!");
 		return;
 	}
 
@@ -649,7 +649,7 @@ VehicleSirenData::VehicleSirenData(const nlohmann::json &json)
 
 			if (!state->Validate)
 			{
-				LOG_VERBOSE("Failed to set up state {}, could not configure object from manifest!", stateObject.key());
+				LOG_VERBOSE("[Sirens] Failed to set up state {}, could not configure object from manifest!", stateObject.key());
 				delete state;
 				continue;
 			}
@@ -666,7 +666,7 @@ VehicleSirenData::VehicleSirenData(const nlohmann::json &json)
 
 			if (!state->Validate)
 			{
-				LOG_VERBOSE("Failed to set up state {}, could not configure object from manifest!", idx);
+				LOG_VERBOSE("[Sirens] Failed to set up state {}, could not configure object from manifest!", idx);
 				delete state;
 				continue;
 			}
@@ -702,7 +702,7 @@ void Sirens::Parse(const nlohmann::json &data, int model)
 
 		if (!pNewData->Validate)
 		{
-			LOG_VERBOSE("Failed to read siren configuration, cannot configure JSON manifest!");
+			LOG_VERBOSE("[Sirens] Failed to read siren configuration, cannot configure JSON manifest!");
 			delete pNewData;
 		}
 		else

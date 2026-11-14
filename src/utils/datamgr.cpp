@@ -187,21 +187,22 @@ void DataMgr::LoadBaseData()
     std::error_code ec;
     if (!std::filesystem::exists(dataPath, ec) || !std::filesystem::is_directory(dataPath, ec))
     {
-        LOG(WARNING) << "ModelExtras/data directory doesn't exist or is not a directory";
+        LOG(WARNING) << "[Data] ModelExtras/data directory doesn't exist or is not a directory";
         return;
     }
 
-    LOG(INFO) << "Loading base data files from ModelExtras/data...";
+    LOG_VERBOSE("[Data] Scanning base data files from ModelExtras/data...");
     try
     {
         for (const auto &e : std::filesystem::directory_iterator(dataPath, ec))
         {
             LoadFile(e);
         }
+        LOG(INFO) << std::format("[Data] Loaded {} base model configurations from 'ModelExtras/data'.", data.size());
     }
     catch (const std::exception &ex)
     {
-        LOG(ERROR) << std::format("Failed to iterate data directory: {}", ex.what());
+        LOG(ERROR) << std::format("[Data] Failed to iterate data directory: {}", ex.what());
     }
 }
 
@@ -216,7 +217,7 @@ void DataMgr::LoadModLoaderData()
     const DWORD gamePathLength = GetModuleFileNameA(nullptr, gamePath, MAX_PATH);
     if (gamePathLength == 0 || gamePathLength >= MAX_PATH)
     {
-        LOG(WARNING) << "Unable to locate the game directory; skipping ModLoader data scan";
+        LOG(WARNING) << "[Data] Unable to locate the game directory; skipping ModLoader data scan";
         return;
     }
 
@@ -440,10 +441,16 @@ void DataMgr::LoadModLoaderData()
     }
     catch (const std::exception &ex)
     {
-        LOG(ERROR) << std::format("Failed during modloader directory scan: {}", ex.what());
+        LOG(ERROR) << std::format("[Data] Failed during modloader directory scan: {}", ex.what());
     }
 
-    LOG(INFO) << std::format("Applying configs from ModLoader (found {} models)...", candidatesByModel.size());
+    if (candidatesByModel.empty())
+    {
+        LOG(INFO) << "[Data] No vehicle configurations found in ModLoader.";
+        return;
+    }
+
+    LOG(INFO) << std::format("[Data] Applying configs from ModLoader (found {} models)...", candidatesByModel.size());
 
     for (auto &[model, candidates] : candidatesByModel)
     {
@@ -478,14 +485,14 @@ void DataMgr::LoadModLoaderData()
                             if (ver > MOD_VERSION_NUMBER)
                             {
                                 std::string text = std::format("Model {} requires version [{}] but [{}] is installed.", model, ver, MOD_VERSION_NUMBER);
-                                MessageBox(RsGlobal.ps->window, text.c_str(), "ModelExtras version mismatch!", MB_OK);
-                                LOG(WARNING) << text;
+                                MessageBox(RsGlobal.ps ? RsGlobal.ps->window : nullptr, text.c_str(), "ModelExtras version mismatch!", MB_OK);
+                                LOG(WARNING) << "[Data] " << text;
                             }
                         }
                     }
                     data[model] = std::move(jsonData);
                     modelPath[model] = cand.path.string();
-                    LOG(INFO) << std::format("Loaded modloader JSONC (priority {}) for model {} from '{}'", cand.modPriority, model, cand.path.string());
+                    LOG_VERBOSE("[Data] Loaded modloader JSONC (priority {}) for model {} from '{}'", cand.modPriority, model, cand.path.string());
                 }
                 else if (cand.format == ConfigFormat::AvsJson)
                 {
@@ -504,7 +511,7 @@ void DataMgr::LoadModLoaderData()
                             data[model] = std::move(converted);
                         }
                         modelPath[model] = cand.path.string();
-                        LOG(INFO) << std::format("Loaded modloader AVS JSON (priority {}) for model {} from '{}'", cand.modPriority, model, cand.path.string());
+                        LOG_VERBOSE("[Data] Loaded modloader AVS JSON (priority {}) for model {} from '{}'", cand.modPriority, model, cand.path.string());
                     }
                 }
                 else if (cand.format == ConfigFormat::Eml)
@@ -525,7 +532,7 @@ void DataMgr::LoadModLoaderData()
                             data[model] = std::move(converted);
                         }
                         modelPath[model] = cand.path.string();
-                        LOG(INFO) << std::format("Loaded modloader EML (priority {}) for model {} from '{}'", cand.modPriority, model, cand.path.string());
+                        LOG_VERBOSE("[Data] Loaded modloader EML (priority {}) for model {} from '{}'", cand.modPriority, model, cand.path.string());
                     }
                 }
                 else if (cand.format == ConfigFormat::Ivfc)
@@ -546,16 +553,17 @@ void DataMgr::LoadModLoaderData()
                             data[model] = std::move(converted);
                         }
                         modelPath[model] = cand.path.string();
-                        LOG(INFO) << std::format("Loaded modloader IVFC (priority {}) for model {} from '{}'", cand.modPriority, model, cand.path.string());
+                        LOG_VERBOSE("[Data] Loaded modloader IVFC (priority {}) for model {} from '{}'", cand.modPriority, model, cand.path.string());
                     }
                 }
             }
             catch (const std::exception &ex)
             {
-                LOG(ERROR) << std::format("Failed to parse modloader file '{}': {}", cand.path.string(), ex.what());
+                LOG(ERROR) << std::format("[Data] Failed to parse modloader file '{}': {}", cand.path.string(), ex.what());
             }
         }
     }
+    LOG(INFO) << std::format("[Data] Successfully applied ModLoader vehicle configs for {} models.", candidatesByModel.size());
 }
 
 void DataMgr::Reload(int model)
@@ -617,26 +625,26 @@ void DataMgr::LoadFile(const std::filesystem::directory_entry &e)
                     if (ver > MOD_VERSION_NUMBER)
                     {
                         std::string text = std::format("Model {} requires version [{}] but [{}] is installed.", model, ver, MOD_VERSION_NUMBER);
-                        MessageBox(RsGlobal.ps->window, text.c_str(), "ModelExtras version mismatch!", MB_OK);
-                        LOG(WARNING) << text;
+                        MessageBox(RsGlobal.ps ? RsGlobal.ps->window : nullptr, text.c_str(), "ModelExtras version mismatch!", MB_OK);
+                        LOG(WARNING) << "[Data] " << text;
                     }
                 }
             }
 
             modelPath[model] = e.path().string();
             data[model] = std::move(jsonData);
-            LOG(INFO) << std::format("Registered base file '{}' for model {}", filename, model);
+            LOG_VERBOSE("[Data] Registered base file '{}' for model {}", filename, model);
         }
         catch (const nlohmann::json::parse_error &ex)
         {
-            LOG(ERROR) << std::format("Failed to parse JSONC file '{}': {}", e.path().string(), ex.what());
+            LOG(ERROR) << std::format("[Data] Failed to parse JSONC file '{}': {}", e.path().string(), ex.what());
         }
     }
     catch (const std::exception &ex)
     {
         std::u8string u8Path = e.path().u8string();
         std::string path(reinterpret_cast<const char *>(u8Path.data()), u8Path.size());
-        LOG(ERROR) << std::format("Parsing {} failed. ({})", path, ex.what());
+        LOG(ERROR) << std::format("[Data] Parsing {} failed. ({})", path, ex.what());
     }
 }
 

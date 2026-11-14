@@ -132,7 +132,7 @@ void Carcols::Parse(const nlohmann::json &data, int model)
                 static_cast<size_t>(tIdx) >= maxIdx || static_cast<size_t>(qIdx) >= maxIdx)
             {
                 LOG(ERROR) << std::format(
-                    "Carcols index out of bounds for model '{}': "
+                    "[Carcols] Carcols index out of bounds for model '{}': "
                     "primary={}, secondary={}, tertiary={}, quaternary={}, max={}",
                     model, pIdx, sIdx, tIdx, qIdx, maxIdx);
                 continue;

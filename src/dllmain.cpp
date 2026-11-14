@@ -2,6 +2,83 @@
 #include "defines.h"
 #include "loader.h"
 
+constexpr std::string_view SeverityToString(AixLog::Severity severity) noexcept
+{
+    switch (severity)
+    {
+        case AixLog::Severity::trace:   return "TRACE";
+        case AixLog::Severity::debug:   return "DEBUG";
+        case AixLog::Severity::info:    return "INFO ";
+        case AixLog::Severity::notice:  return "NOTE ";
+        case AixLog::Severity::warning: return "WARN ";
+        case AixLog::Severity::error:   return "ERROR";
+        case AixLog::Severity::fatal:   return "FATAL";
+        default:                        return "INFO ";
+    }
+}
+
+inline std::string FormatLogLine(const AixLog::Metadata &metadata, const std::string &message)
+{
+    std::string timeStr = metadata.timestamp ? metadata.timestamp.to_string("%H:%M:%S.#ms") : "00:00:00.000";
+    return std::format("[{}] [{}] {}\n", timeStr, SeverityToString(metadata.severity), message);
+}
+
+struct ModLogSink : public AixLog::Sink
+{
+    ModLogSink(const AixLog::Filter &filter, const std::string &filename)
+        : AixLog::Sink(filter)
+    {
+        ofs.open(filename.c_str(), std::ofstream::out | std::ofstream::trunc);
+        SYSTEMTIME st;
+        GetLocalTime(&st);
+        std::string dateBuf = std::format("{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}",
+                                          st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+
+        ofs << "//==========================================================\n"
+            << "// " << MOD_TITLE << " (Built: " << __DATE__ << ")\n"
+            << "// Authors:    Grinch_, Caner Karaca, Ameer, KaiQ\n"
+            << "// GitHub:     " << GITHUB_LINK << "\n"
+            << "// Discord:    " << DISCORD_INVITE << "\n"
+            << "// Started at: " << dateBuf << "\n"
+            << "//==========================================================\n\n";
+        ofs.flush();
+    }
+
+    ~ModLogSink() override
+    {
+        ofs.close();
+    }
+
+    void log(const AixLog::Metadata &metadata, const std::string &message) override
+    {
+        if (metadata.severity < AixLog::Severity::info && !gVerboseLogging)
+        {
+            return;
+        }
+
+        ofs << FormatLogLine(metadata, message);
+        ofs.flush();
+    }
+
+protected:
+    mutable std::ofstream ofs;
+};
+
+struct ModConsoleSink : public AixLog::Sink
+{
+    ModConsoleSink(const AixLog::Filter &filter) : AixLog::Sink(filter) {}
+
+    void log(const AixLog::Metadata &metadata, const std::string &message) override
+    {
+        if (metadata.severity < AixLog::Severity::info && !gVerboseLogging)
+        {
+            return;
+        }
+
+        std::cout << FormatLogLine(metadata, message);
+    }
+};
+
 void InitLog()
 {
     if (!gConfig.ReadBoolean("CONFIG", "EnableLogging", true))
@@ -10,23 +87,11 @@ void InitLog()
         return;
     }
 
-    auto sink_cout = std::make_shared<AixLog::SinkCout>(AixLog::Severity::debug);
-    auto sink_file = std::make_shared<AixLog::SinkFile>(AixLog::Severity::debug, std::string(MOD_NAME) + ".log");
+    auto sink_cout = std::make_shared<ModConsoleSink>(AixLog::Severity::trace);
+    auto sink_file = std::make_shared<ModLogSink>(AixLog::Severity::trace, std::string(MOD_NAME) + ".log");
     AixLog::Log::init({sink_cout, sink_file});
 
-    std::string header = "Starting " + std::string(MOD_TITLE) + " (" + __DATE__ + ")\n"
-                         "Authors: Grinch_, Caner Karaca, Ameer, KaiQ\n"
-                         "Discord: " + DISCORD_INVITE + "\n"
-                         "More Info: " + GITHUB_LINK + "\n";
-    
-    SYSTEMTIME st;
-    GetSystemTime(&st);
-    char timeBuf[64];
-    sprintf_s(timeBuf, "Date: %04d-%02d-%02d Time: %02d:%02d\n", 
-              st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute);
-    
-    header += timeBuf;
-    LOG(INFO) << header;
+    LOG(INFO) << "[Core] Initializing " << MOD_TITLE << "...";
 }
 
 #pragma comment(lib, "version.lib")
@@ -87,7 +152,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
             InitLog();
             if (!gVerboseLogging)
             {
-                LOG(INFO) << "Enable 'VerboseLogging' in ModelExtras.ini to display model-related errors.";
+                LOG(INFO) << "[Core] Verbose logging is disabled (enable 'VerboseLogging' in ModelExtras.ini for debug output).";
             }
 
             HMODULE hCleo = GetModuleHandleA("CLEO.asi");
@@ -96,7 +161,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
                 MessageBoxA(RsGlobal.ps ? RsGlobal.ps->window : NULL,
                             "CLEO Library 4.4.4 or above is required!\nCLEO.asi was not found.",
                             "ModelExtras", MB_OK | MB_ICONERROR);
-                LOG(ERROR) << "CLEO Library 4.4.4 or above is required! CLEO.asi was not found.";
+                LOG(ERROR) << "[CLEO] CLEO Library 4.4.4 or above is required! CLEO.asi was not found.";
             }
             else
             {
@@ -109,19 +174,18 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID Reserved)
 
                     if (isOutdated)
                     {
-                        char msg[256];
-                        sprintf_s(msg,
-                                  "CLEO Library 4.4.4 or above is required!\n"
-                                  "Detected CLEO version: %d.%d.%d\n"
-                                  "Please update CLEO to 4.4.4 or above to avoid audio issues.",
-                                  major, minor, patch);
+                        std::string msg = std::format(
+                            "CLEO Library 4.4.4 or above is required!\n"
+                            "Detected CLEO version: {}.{}.{}\n"
+                            "Please update CLEO to 4.4.4 or above to avoid audio issues.",
+                            major, minor, patch);
 
-                        MessageBoxA(RsGlobal.ps ? RsGlobal.ps->window : NULL, msg, "ModelExtras", MB_OK | MB_ICONWARNING);
-                        LOG(WARNING) << msg;
+                        MessageBoxA(RsGlobal.ps ? RsGlobal.ps->window : NULL, msg.c_str(), "ModelExtras", MB_OK | MB_ICONWARNING);
+                        LOG(WARNING) << "[CLEO] " << msg;
                     }
                     else
                     {
-                        LOG(INFO) << "CLEO version " << major << "." << minor << "." << patch << " detected.";
+                        LOG(INFO) << "[CLEO] CLEO version " << major << "." << minor << "." << patch << " detected.";
                     }
                 }
             }

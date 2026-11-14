@@ -37,10 +37,10 @@ static void LogSkippedUpgradePart() {
   static int count = 0;
   if (count < 10) {
     ++count;
-    LOG_VERBOSE("Skipped an upgrade part, the vehicle model has no frame for "
+    LOG_VERBOSE("[Core] Skipped an upgrade part, the vehicle model has no frame for "
                 "that slot");
     if (count == 10) {
-      LOG_VERBOSE("Silencing further upgrade slot messages");
+      LOG_VERBOSE("[Core] Silencing further upgrade slot messages");
     }
   }
 }
@@ -133,9 +133,9 @@ void ModelInfoMgr::Init() {
   size_t guarded = GuardUpgradeFrameCalls(0x6D3300, 0x6D3C00);
   guarded += GuardUpgradeFrameCalls(0x6DF900, 0x6DFC00);
   if (guarded > 0) {
-    LOG_VERBOSE("Guarded {} vehicle upgrade frame calls", guarded);
+    LOG_VERBOSE("[Core] Guarded {} vehicle upgrade frame calls", guarded);
   } else {
-    LOG(ERROR) << "Found no vehicle upgrade frame calls to guard, the "
+    LOG(ERROR) << "[Core] Found no vehicle upgrade frame calls to guard, the "
                   "addresses may have moved";
   }
 
@@ -498,7 +498,7 @@ RpMaterial *ModelInfoMgr::SetEditableMaterialsCB(RpMaterial *material,
           if (pTex) {
             material->texture = pTex;
           } else {
-            LOG_VERBOSE("Expected an 'on' texture for {} but none found",
+            LOG_VERBOSE("[Lights] Expected an 'on' texture for {} but none found",
                         material->texture->name);
           }
         }
