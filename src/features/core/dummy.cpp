@@ -110,9 +110,12 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
                     data.corona.color.r = coronaSec["color"].value("red", data.corona.color.r);
                     data.corona.color.g = coronaSec["color"].value("green", data.corona.color.g);
                     data.corona.color.b = coronaSec["color"].value("blue", data.corona.color.b);
-                    data.corona.color.a = coronaSec["color"].value("alpha", gGlobalCoronaIntensity);
+                    data.corona.color.a = coronaSec["color"].value("alpha", data.corona.color.a);
                 }
-                data.corona.size = coronaSec.value("size", gfGlobalCoronaSize);
+                if (coronaSec.contains("size") && coronaSec["size"].is_number())
+                {
+                    data.corona.size = coronaSec["size"].get<float>();
+                }
                 data.corona.lightingType = GetLightingMode(coronaSec.value("type", "directional"));
                 if (coronaSec.contains("texture") && coronaSec["texture"].is_string())
                 {
@@ -128,11 +131,20 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
                     data.shadow.color.r = shadow["color"].value("red", data.shadow.color.r);
                     data.shadow.color.g = shadow["color"].value("green", data.shadow.color.g);
                     data.shadow.color.b = shadow["color"].value("blue", data.shadow.color.b);
-                    data.shadow.color.a = shadow["color"].value("alpha", gGlobalShadowIntensity);
+                    data.shadow.color.a = shadow["color"].value("alpha", data.shadow.color.a);
                 }
-                data.shadow.size = shadow.value("size", 1.0f);
-                data.shadow.texture = shadow.value("texture", "");
-                data.shadow.rotationChecks = shadow.value("rotationchecks", true);
+                if (shadow.contains("size") && shadow["size"].is_number())
+                {
+                    data.shadow.size = shadow["size"].get<float>();
+                }
+                if (shadow.contains("texture") && shadow["texture"].is_string())
+                {
+                    data.shadow.texture = shadow["texture"].get<std::string>();
+                }
+                if (shadow.contains("rotationchecks") && shadow["rotationchecks"].is_boolean())
+                {
+                    data.shadow.rotationChecks = shadow["rotationchecks"].get<bool>();
+                }
 
                 if (shadow.contains("offset"))
                 {
@@ -162,7 +174,7 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
 
             if (lights.contains("inertia"))
             {
-                data.inertia = lights.value("inertia", 0.0f);
+                data.inertia = lights.value("inertia", data.inertia);
             }
 
             // Inherit corona color to shadow if no explicit shadow color was set
@@ -176,7 +188,7 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
             // Only for StrobeLights
             if (lights.contains("strobedelay"))
             {
-                data.strobe.delay = lights.value("strobedelay", 1000);
+                data.strobe.delay = lights.value("strobedelay", data.strobe.delay);
             }
 
             if (lights.contains("pointlight"))
@@ -188,10 +200,10 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
                 }
                 else if (pl.is_object())
                 {
-                    data.pointlight.enabled = pl.value("enabled", true);
-                    data.pointlight.intensity = pl.value("intensity", 1.0f);
-                    data.pointlight.size = pl.value("size", 1.0f);
-                    data.pointlight.distance = pl.value("distance", 0.0f);
+                    data.pointlight.enabled = pl.value("enabled", data.pointlight.enabled);
+                    data.pointlight.intensity = pl.value("intensity", data.pointlight.intensity);
+                    data.pointlight.size = pl.value("size", data.pointlight.size);
+                    data.pointlight.distance = pl.value("distance", data.pointlight.distance);
                 }
             }
         }
@@ -276,7 +288,6 @@ void VehicleDummy::RefreshConfig()
         || type == eMaterialType::NABrakeLightLeft || type == eMaterialType::NABrakeLightRight;
     base.corona.size = front ? lights.gfHeadLightCoronaSize : rear ? lights.gfTailLightCoronaSize : lights.gfGlobalCoronaSize;
     base.corona.color.a = static_cast<unsigned char>(front ? lights.gHeadLightCoronaIntensity : rear ? lights.gTailLightCoronaIntensity : lights.gGlobalCoronaIntensity);
-    base.corona.textureType = data.corona.textureType;
     base.shadow.color.a = static_cast<unsigned char>(front ? lights.gHeadLightShadowIntensity : rear ? lights.gTailLightShadowIntensity : lights.gGlobalShadowIntensity);
     if (front || rear) base.shadow.size = front ? lights.gfHeadLightShadowSizeMul : lights.gfTailLightShadowSizeMul;
     VehicleDummy refreshed(base);
