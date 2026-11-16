@@ -58,7 +58,7 @@ void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
 
         if (InputMgr::IsKeyJustDown(LightsConfig::Get().nFogLightKey) && hasFogSupport && canToggleFogLight) {
             data.bFogLightsOn = !data.bFogLightsOn;
-            AudioMgr::PlaySwitchSound(pVeh);
+            AudioMgr::PlaySwitchSound();
         }
     }
 }

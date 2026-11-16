@@ -894,7 +894,7 @@ bool ME_SetPedColors(CPed *pPed, ME_Color col1, ME_Color col2, ME_Color col3, ME
 // Audio & Sounds API
 bool ME_PlaySound(CVehicle *pVeh, const char *soundPath, float volume) {
   if (!pVeh || !soundPath) return false;
-  AudioMgr::Play3DSound(soundPath, pVeh->GetPosition(), pVeh, volume);
+  AudioMgr::Play3DSound(soundPath, pVeh->GetPosition(), volume);
   return true;
 }
 
@@ -935,7 +935,7 @@ bool ME_PlayFileSound(const char *soundPath, float volume) {
 }
 
 void ME_PlaySwitchSound(CVehicle *pVeh) {
-  AudioMgr::PlaySwitchSound(pVeh);
+  AudioMgr::PlaySwitchSound();
 }
 
 bool ME_GetSirenAudioPath(int modeIndex, char *outBuffer, int maxLen) {

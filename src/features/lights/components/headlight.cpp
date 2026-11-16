@@ -225,7 +225,7 @@ void HeadlightComponent::Process(CVehicle* pVeh, VehLightData& data) {
         bool canToggleLongLights = !(gbProperShadersDetected && !LightsConfig::Get().gbLightPointLights);
         if (InputMgr::IsKeyJustDown(LightsConfig::Get().nLongLightKey) && isHeadlightsActive && canToggleLongLights) {
             data.bLongLightsOn = !data.bLongLightsOn;
-            AudioMgr::PlaySwitchSound(pVeh);
+            AudioMgr::PlaySwitchSound();
         }
     }
 }

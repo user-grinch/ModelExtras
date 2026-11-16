@@ -190,7 +190,7 @@ void RollbackBed::Init()
                 if (data.bInit && !Util::IsEngineOff(pVeh))
                 {
                     data.bExpanded = !data.bExpanded;
-                    AudioMgr::PlaySwitchSound(pVeh);
+                    AudioMgr::PlaySwitchSound();
                 }
             }
         }

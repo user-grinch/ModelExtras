@@ -21,8 +21,15 @@ namespace BassAPI
     using tBASS_ChannelSetAttribute = BOOL(WINAPI *)(DWORD, DWORD, float);
     using tBASS_ChannelIsActive = DWORD(WINAPI *)(DWORD);
     using tBASS_StreamFree = BOOL(WINAPI *)(HSTREAM);
-    using tBASS_Pause = BOOL(WINAPI *)();
-    using tBASS_Start = BOOL(WINAPI *)();
+
+    // BASS constants (bass.dll is resolved dynamically, so no SDK headers)
+    constexpr DWORD BASS_SAMPLE_MONO    = 0x2; // downmix stereo sources so PAN can steer them
+    constexpr DWORD BASS_SAMPLE_LOOP    = 0x4;
+    constexpr DWORD BASS_ATTRIB_VOL     = 0x2;
+    constexpr DWORD BASS_ATTRIB_PAN     = 0x3;
+    constexpr DWORD BASS_ACTIVE_STOPPED = 0x0;
+    constexpr DWORD BASS_ACTIVE_PLAYING = 0x1;
+    constexpr DWORD BASS_ACTIVE_PAUSED  = 0x3;
 
     static tBASS_Init fnInit = nullptr;
     static tBASS_StreamCreateFile fnStreamCreate = nullptr;
@@ -31,8 +38,6 @@ namespace BassAPI
     static tBASS_ChannelSetAttribute fnChannelSetAttr = nullptr;
     static tBASS_ChannelIsActive fnChannelIsActive = nullptr;
     static tBASS_StreamFree fnStreamFree = nullptr;
-    static tBASS_Pause fnPause = nullptr;
-    static tBASS_Start fnStart = nullptr;
 
     static bool bReady = false;
 
@@ -58,8 +63,6 @@ namespace BassAPI
             fnChannelSetAttr = (tBASS_ChannelSetAttribute)GetProcAddress(hBass, "BASS_ChannelSetAttribute");
             fnChannelIsActive = (tBASS_ChannelIsActive)GetProcAddress(hBass, "BASS_ChannelIsActive");
             fnStreamFree = (tBASS_StreamFree)GetProcAddress(hBass, "BASS_StreamFree");
-            fnPause = (tBASS_Pause)GetProcAddress(hBass, "BASS_Pause");
-            fnStart = (tBASS_Start)GetProcAddress(hBass, "BASS_Start");
 
             if (fnInit && fnStreamCreate && fnChannelPlay && fnChannelPause && fnChannelSetAttr && fnChannelIsActive && fnStreamFree)
             {
@@ -74,6 +77,82 @@ namespace BassAPI
 
 static bool gbSoundEffectsEnabled = false;
 static float gfSoundMult = 1.0f;
+
+// Full volume within nearDist, then fading to zero at maxDistance.
+// rolloff 1.0 = linear fade for one-shots, 2.0 = quadratic fade so constant
+// loop sounds (brake squeal) drop off faster with distance.
+static float ComputeDistanceFactor(const CVector &worldPos, float maxDistance, float rolloff)
+{
+    float distSq = MathUtil::DistanceSquared(worldPos, TheCamera.GetPosition());
+    if (distSq > maxDistance * maxDistance)
+    {
+        return 0.0f; // Beyond maximum audible range
+    }
+
+    float dist = std::sqrt(distSq);
+    constexpr float nearDist = 5.0f;
+    if (dist <= nearDist)
+    {
+        return 1.0f;
+    }
+
+    float ratio = std::clamp((dist - nearDist) / (maxDistance - nearDist), 0.0f, 1.0f);
+    return std::pow(1.0f - ratio, rolloff);
+}
+
+// Camera-relative stereo panning (-1.0 = left, 0.0 = center, +1.0 = right).
+// Follows the game's own right-vector convention (CCamera::Find3rdPersonCam-
+// TargetVector): cross(front, up) of the active cam. m_mCameraMatrix rows use
+// GTA's own axis layout (the look direction is stored where a plain RwMatrix
+// keeps "up"), so reading its "right" row directly panned sounds to the wrong
+// side.
+static float ComputePan(const CVector &worldPos)
+{
+    CVector toSound = worldPos - TheCamera.GetPosition();
+    float dist = toSound.Magnitude();
+    if (dist <= 0.1f)
+    {
+        return 0.0f;
+    }
+
+    const CCam &cam = TheCamera.m_aCams[TheCamera.m_nActiveCam];
+    CVector camRight = CVector::Cross(cam.m_vecFront, cam.m_vecUp);
+    float rightLen = camRight.Magnitude();
+    if (rightLen < 0.01f)
+    {
+        return 0.0f; // degenerate front/up pair
+    }
+    camRight.x /= rightLen;
+    camRight.y /= rightLen;
+    camRight.z /= rightLen;
+
+    float rightDot = (toSound.x * camRight.x + toSound.y * camRight.y + toSound.z * camRight.z) / dist;
+    return std::clamp(rightDot, -1.0f, 1.0f);
+}
+
+// Streams are always created mono: BASS PAN cannot reposition stereo sources,
+// it only attenuates one channel, so a stereo file (door chime, brake squeal)
+// keeps sounding from the side it was recorded on.
+static BassAPI::HSTREAM CreateStream(const std::string &path, DWORD flags)
+{
+    DWORD createFlags = flags | BassAPI::BASS_SAMPLE_MONO;
+    BassAPI::HSTREAM stream = BassAPI::fnStreamCreate(FALSE, path.c_str(), 0, 0, createFlags);
+    if (!stream)
+    {
+        // Some BASS builds reject forward slashes; retry with backslashes
+        std::string altPath = path;
+        std::replace(altPath.begin(), altPath.end(), '/', '\\');
+        stream = BassAPI::fnStreamCreate(FALSE, altPath.c_str(), 0, 0, createFlags);
+    }
+    return stream;
+}
+
+// In-game SFX master volume (0xBA6797)
+static float GetMasterSfxVolume()
+{
+    constexpr float INV_64 = 1.0f / 64.0f;
+    return *(BYTE *)0xBA6797 * INV_64;
+}
 
 void AudioMgr::ReloadConfig()
 {
@@ -101,23 +180,11 @@ void AudioMgr::Init()
         needToFree.clear();
     };
 
-    Events::onPauseAllSounds += []
-    {
-        if (BassAPI::bReady && BassAPI::fnPause)
-        {
-            BassAPI::fnPause();
-        }
-    };
-
-    Events::onResumeAllSounds += []
-    {
-        if (BassAPI::bReady && BassAPI::fnStart)
-        {
-            BassAPI::fnStart();
-        }
-    };
-
-    Events::processScriptsEvent += []
+    // gameProcessEvent (Idle -> CGame::Process) keeps firing while the game is
+    // paused, unlike processScriptsEvent which is skipped entirely. Running here
+    // lets loop streams be suspended for the pause menu and finished one-shots
+    // be freed even when ESC/menu pauses the game.
+    Events::gameProcessEvent += []
     {
         static bool bWasPaused = false;
         bool bIsPaused = CTimer::m_UserPause || CTimer::m_CodePause;
@@ -129,22 +196,21 @@ void AudioMgr::Init()
             {
                 for (auto stream : needToFree)
                 {
-                    if (stream)
+                    if (!stream)
                     {
-                        if (bIsPaused)
+                        continue;
+                    }
+
+                    if (bIsPaused)
+                    {
+                        if (BassAPI::fnChannelIsActive(stream) == BassAPI::BASS_ACTIVE_PLAYING)
                         {
-                            if (BassAPI::fnChannelIsActive(stream) == 1 /* BASS_ACTIVE_PLAYING */)
-                            {
-                                BassAPI::fnChannelPause(stream);
-                            }
+                            BassAPI::fnChannelPause(stream);
                         }
-                        else
-                        {
-                            if (BassAPI::fnChannelIsActive(stream) == 3 /* BASS_ACTIVE_PAUSED */)
-                            {
-                                BassAPI::fnChannelPlay(stream, FALSE);
-                            }
-                        }
+                    }
+                    else if (BassAPI::fnChannelIsActive(stream) == BassAPI::BASS_ACTIVE_PAUSED)
+                    {
+                        BassAPI::fnChannelPlay(stream, FALSE);
                     }
                 }
             }
@@ -157,7 +223,7 @@ void AudioMgr::Init()
         {
             for (auto it = needToFree.begin(); it != needToFree.end();)
             {
-                if (!*it || !BassAPI::fnChannelIsActive || BassAPI::fnChannelIsActive(*it) == 0 /* BASS_ACTIVE_STOPPED */)
+                if (!*it || !BassAPI::fnChannelIsActive || BassAPI::fnChannelIsActive(*it) == BassAPI::BASS_ACTIVE_STOPPED)
                 {
                     if (*it && BassAPI::fnStreamFree)
                     {
@@ -175,7 +241,7 @@ void AudioMgr::Init()
     };
 }
 
-void AudioMgr::PlaySwitchSound(CEntity *pEntity)
+void AudioMgr::PlaySwitchSound()
 {
     static std::string path = MOD_DATA_PATH("audio/switch_toggle.wav");
     PlayFileSound(path, 1.0f);
@@ -190,44 +256,20 @@ bool AudioMgr::ShouldPlaySound()
     return true;
 }
 
-void AudioMgr::Play3DSound(const std::string &path, const CVector &worldPos, CEntity *pEntity, float baseVolume, float maxDistance)
+void AudioMgr::Play3DSound(const std::string &path, const CVector &worldPos, float baseVolume, float maxDistance)
 {
     if (!ShouldPlaySound() || path.empty())
     {
         return;
     }
 
-    float distSq = MathUtil::DistanceSquared(worldPos, TheCamera.GetPosition());
-    if (distSq > (maxDistance * maxDistance))
+    float distFactor = ComputeDistanceFactor(worldPos, maxDistance, 1.0f);
+    if (distFactor <= 0.0f)
     {
         return; // Beyond maximum audible range: cull
     }
-    float dist = std::sqrt(distSq);
 
-    // Natural smooth distance attenuation
-    // Full volume within near radius (5m), then linear acoustic decay up to maxDistance
-    const float nearDist = 5.0f;
-    float distFactor = 1.0f;
-    if (dist > nearDist)
-    {
-        float ratio = std::clamp((dist - nearDist) / (maxDistance - nearDist), 0.0f, 1.0f);
-        distFactor = 1.0f - ratio;
-    }
-
-    // 3D camera-relative stereo panning (-1.0 = left, 0.0 = center, +1.0 = right)
-    float pan = 0.0f;
-    if (dist > 0.1f)
-    {
-        CVector toSound = worldPos - TheCamera.GetPosition();
-        CVector camRight = TheCamera.m_mCameraMatrix.right;
-        float rightDot = (toSound.x * camRight.x + toSound.y * camRight.y + toSound.z * camRight.z) / dist;
-        pan = std::clamp(rightDot, -1.0f, 1.0f);
-    }
-
-    // Calibrated volume scaling with in-game SFX master volume (0xBA6797)
-    constexpr float INV_64 = 1.0f / 64.0f;
-    float masterSfxVol = *(BYTE *)0xBA6797 * INV_64;
-    float finalVolume = baseVolume * distFactor * gfSoundMult * masterSfxVol;
+    float finalVolume = baseVolume * distFactor * gfSoundMult * GetMasterSfxVolume();
     if (finalVolume < 0.005f)
     {
         return;
@@ -235,18 +277,11 @@ void AudioMgr::Play3DSound(const std::string &path, const CVector &worldPos, CEn
 
     if (BassAPI::bReady && BassAPI::fnStreamCreate)
     {
-        BassAPI::HSTREAM stream = BassAPI::fnStreamCreate(FALSE, path.c_str(), 0, 0, 0);
-        if (!stream)
-        {
-            std::string altPath = path;
-            std::replace(altPath.begin(), altPath.end(), '/', '\\');
-            stream = BassAPI::fnStreamCreate(FALSE, altPath.c_str(), 0, 0, 0);
-        }
-
+        BassAPI::HSTREAM stream = CreateStream(path, 0);
         if (stream)
         {
-            BassAPI::fnChannelSetAttr(stream, 2 /* BASS_ATTRIB_VOL */, std::clamp(finalVolume, 0.0f, 1.0f));
-            BassAPI::fnChannelSetAttr(stream, 3 /* BASS_ATTRIB_PAN */, pan);
+            BassAPI::fnChannelSetAttr(stream, BassAPI::BASS_ATTRIB_VOL, std::clamp(finalVolume, 0.0f, 1.0f));
+            BassAPI::fnChannelSetAttr(stream, BassAPI::BASS_ATTRIB_PAN, ComputePan(worldPos));
             BassAPI::fnChannelPlay(stream, TRUE);
             needToFree.push_back(stream);
         }
@@ -260,9 +295,7 @@ void AudioMgr::PlayFileSound(const std::string &path, float volume)
         return;
     }
 
-    constexpr float INV_64 = 1.0f / 64.0f;
-    float masterSfxVol = *(BYTE *)0xBA6797 * INV_64;
-    float finalVolume = volume * gfSoundMult * masterSfxVol;
+    float finalVolume = volume * gfSoundMult * GetMasterSfxVolume();
     if (finalVolume < 0.005f)
     {
         return;
@@ -270,18 +303,10 @@ void AudioMgr::PlayFileSound(const std::string &path, float volume)
 
     if (BassAPI::bReady && BassAPI::fnStreamCreate)
     {
-        BassAPI::HSTREAM stream = BassAPI::fnStreamCreate(FALSE, path.c_str(), 0, 0, 0);
-        if (!stream)
-        {
-            std::string altPath = path;
-            std::replace(altPath.begin(), altPath.end(), '/', '\\');
-            stream = BassAPI::fnStreamCreate(FALSE, altPath.c_str(), 0, 0, 0);
-        }
-
+        BassAPI::HSTREAM stream = CreateStream(path, 0);
         if (stream)
         {
-            BassAPI::fnChannelSetAttr(stream, 2 /* BASS_ATTRIB_VOL */, std::clamp(finalVolume, 0.0f, 1.0f));
-            BassAPI::fnChannelSetAttr(stream, 3 /* BASS_ATTRIB_PAN */, 0.0f);
+            BassAPI::fnChannelSetAttr(stream, BassAPI::BASS_ATTRIB_VOL, std::clamp(finalVolume, 0.0f, 1.0f));
             BassAPI::fnChannelPlay(stream, TRUE);
             needToFree.push_back(stream);
         }
@@ -323,47 +348,19 @@ StreamHandle AudioMgr::PlayLoopStream(const std::string &path, const CVector &wo
         return 0;
     }
 
-    float distSq = MathUtil::DistanceSquared(worldPos, TheCamera.GetPosition());
-    if (distSq > (maxDistance * maxDistance))
+    float distFactor = ComputeDistanceFactor(worldPos, maxDistance, 2.0f);
+    if (distFactor <= 0.0f)
     {
         return 0;
     }
 
-    float dist = std::sqrt(distSq);
-    const float nearDist = 5.0f;
-    float distFactor = 1.0f;
-    if (dist > nearDist)
-    {
-        float ratio = std::clamp((dist - nearDist) / (maxDistance - nearDist), 0.0f, 1.0f);
-        distFactor = (1.0f - ratio) * (1.0f - ratio);
-    }
+    float finalVolume = baseVolume * distFactor * gfSoundMult * GetMasterSfxVolume();
 
-    float pan = 0.0f;
-    if (dist > 0.1f)
-    {
-        CVector toSound = worldPos - TheCamera.GetPosition();
-        CVector camRight = TheCamera.m_mCameraMatrix.right;
-        float rightDot = (toSound.x * camRight.x + toSound.y * camRight.y + toSound.z * camRight.z) / dist;
-        pan = std::clamp(rightDot, -1.0f, 1.0f);
-    }
-
-    constexpr float INV_64 = 1.0f / 64.0f;
-    float masterSfxVol = *(BYTE *)0xBA6797 * INV_64;
-    float finalVolume = baseVolume * distFactor * gfSoundMult * masterSfxVol;
-
-    constexpr DWORD BASS_SAMPLE_LOOP = 4;
-    BassAPI::HSTREAM stream = BassAPI::fnStreamCreate(FALSE, path.c_str(), 0, 0, BASS_SAMPLE_LOOP);
-    if (!stream)
-    {
-        std::string altPath = path;
-        std::replace(altPath.begin(), altPath.end(), '/', '\\');
-        stream = BassAPI::fnStreamCreate(FALSE, altPath.c_str(), 0, 0, BASS_SAMPLE_LOOP);
-    }
-
+    BassAPI::HSTREAM stream = CreateStream(path, BassAPI::BASS_SAMPLE_LOOP);
     if (stream)
     {
-        BassAPI::fnChannelSetAttr(stream, 2 /* BASS_ATTRIB_VOL */, std::clamp(finalVolume, 0.0f, 1.0f));
-        BassAPI::fnChannelSetAttr(stream, 3 /* BASS_ATTRIB_PAN */, pan);
+        BassAPI::fnChannelSetAttr(stream, BassAPI::BASS_ATTRIB_VOL, std::clamp(finalVolume, 0.0f, 1.0f));
+        BassAPI::fnChannelSetAttr(stream, BassAPI::BASS_ATTRIB_PAN, ComputePan(worldPos));
         BassAPI::fnChannelPlay(stream, FALSE);
         needToFree.push_back(stream);
         return stream;
@@ -379,42 +376,21 @@ void AudioMgr::UpdateLoopStream(StreamHandle stream, const CVector &worldPos, fl
         return;
     }
 
-    if (BassAPI::fnChannelIsActive(stream) != 1 /* BASS_ACTIVE_PLAYING */)
+    if (BassAPI::fnChannelIsActive(stream) != BassAPI::BASS_ACTIVE_PLAYING)
     {
         return;
     }
 
     if (!ShouldPlaySound())
     {
-        BassAPI::fnChannelSetAttr(stream, 2 /* BASS_ATTRIB_VOL */, 0.0f);
+        BassAPI::fnChannelSetAttr(stream, BassAPI::BASS_ATTRIB_VOL, 0.0f);
         return;
     }
 
-    float distSq = MathUtil::DistanceSquared(worldPos, TheCamera.GetPosition());
-    float dist = std::sqrt(distSq);
-    const float nearDist = 5.0f;
-    float distFactor = 1.0f;
-    if (dist > nearDist)
-    {
-        float ratio = std::clamp((dist - nearDist) / (maxDistance - nearDist), 0.0f, 1.0f);
-        distFactor = (1.0f - ratio) * (1.0f - ratio);
-    }
+    float finalVolume = baseVolume * ComputeDistanceFactor(worldPos, maxDistance, 2.0f) * gfSoundMult * GetMasterSfxVolume();
 
-    float pan = 0.0f;
-    if (dist > 0.1f)
-    {
-        CVector toSound = worldPos - TheCamera.GetPosition();
-        CVector camRight = TheCamera.m_mCameraMatrix.right;
-        float rightDot = (toSound.x * camRight.x + toSound.y * camRight.y + toSound.z * camRight.z) / dist;
-        pan = std::clamp(rightDot, -1.0f, 1.0f);
-    }
-
-    constexpr float INV_64 = 1.0f / 64.0f;
-    float masterSfxVol = *(BYTE *)0xBA6797 * INV_64;
-    float finalVolume = baseVolume * distFactor * gfSoundMult * masterSfxVol;
-
-    BassAPI::fnChannelSetAttr(stream, 2 /* BASS_ATTRIB_VOL */, std::clamp(finalVolume, 0.0f, 1.0f));
-    BassAPI::fnChannelSetAttr(stream, 3 /* BASS_ATTRIB_PAN */, pan);
+    BassAPI::fnChannelSetAttr(stream, BassAPI::BASS_ATTRIB_VOL, std::clamp(finalVolume, 0.0f, 1.0f));
+    BassAPI::fnChannelSetAttr(stream, BassAPI::BASS_ATTRIB_PAN, ComputePan(worldPos));
 }
 
 void AudioMgr::StopLoopStream(StreamHandle &stream)
@@ -424,36 +400,11 @@ void AudioMgr::StopLoopStream(StreamHandle &stream)
         return;
     }
 
-    if (BassAPI::bReady)
+    if (BassAPI::bReady && BassAPI::fnStreamFree)
     {
-        if (BassAPI::fnChannelPause)
-        {
-            BassAPI::fnChannelPause(stream);
-        }
-        if (BassAPI::fnStreamFree)
-        {
-            BassAPI::fnStreamFree(stream);
-        }
+        BassAPI::fnStreamFree(stream);
     }
-    auto it = std::find(needToFree.begin(), needToFree.end(), stream);
-    if (it != needToFree.end())
-    {
-        needToFree.erase(it);
-    }
+
+    std::erase(needToFree, stream);
     stream = 0;
-}
-
-StreamHandle AudioMgr::PlaySirenStream(const std::string &path, const CVector &worldPos, float baseVolume, float maxDistance)
-{
-    return PlayLoopStream(path, worldPos, baseVolume, maxDistance);
-}
-
-void AudioMgr::UpdateSirenStream(StreamHandle stream, const CVector &worldPos, float baseVolume, float maxDistance)
-{
-    UpdateLoopStream(stream, worldPos, baseVolume, maxDistance);
-}
-
-void AudioMgr::StopSirenStream(StreamHandle &stream)
-{
-    StopLoopStream(stream);
 }

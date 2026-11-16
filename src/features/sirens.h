@@ -233,7 +233,7 @@ public:
     ~VehicleSiren()
     {
         if (m_nSirenStream) {
-            AudioMgr::StopSirenStream(m_nSirenStream);
+            AudioMgr::StopLoopStream(m_nSirenStream);
             m_nSirenStream = 0;
         }
         ClearDummies();

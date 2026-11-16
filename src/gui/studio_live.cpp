@@ -105,7 +105,7 @@ void StudioLive::ApplyModel(int model, const Json &before, const Json &after) {
             data.ActiveRotators.clear();
             data.State = 0;
             data.Delay = 0;
-            if (data.m_nSirenStream) AudioMgr::StopSirenStream(data.m_nSirenStream);
+            if (data.m_nSirenStream) AudioMgr::StopLoopStream(data.m_nSirenStream);
             data.m_nSirenStream = 0;
             data.m_nActiveSirenSoundState = -1;
             data.m_bPlayingCustomSiren = false;

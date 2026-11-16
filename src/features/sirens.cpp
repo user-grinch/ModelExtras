@@ -931,7 +931,7 @@ void Sirens::Init()
 						if (data.Mute)
 							vehicle->bSirenOrAlarm = false;
 
-						AudioMgr::PlaySwitchSound(vehicle);
+						AudioMgr::PlaySwitchSound();
 					}
 				}
 
@@ -971,7 +971,7 @@ void Sirens::Init()
 									break;
 								}
 							}
-							AudioMgr::PlaySwitchSound(vehicle);
+							AudioMgr::PlaySwitchSound();
 						}
 					}
 				}
@@ -998,7 +998,7 @@ void Sirens::Init()
 								if (data.SoundMode != newSound)
 								{
 									data.SoundMode = newSound;
-									AudioMgr::PlaySwitchSound(vehicle);
+									AudioMgr::PlaySwitchSound();
 								}
 							}
 							else if (modelData[model]->States.size() > 0)
@@ -1010,7 +1010,7 @@ void Sirens::Init()
 									if (modelData[model]->States[newState]->Paintjob == -1 || modelData[model]->States[newState]->Paintjob == vehicle->GetRemapIndex())
 									{
 										data.State = newState;
-										AudioMgr::PlaySwitchSound(vehicle);
+										AudioMgr::PlaySwitchSound();
 									}
 								}
 							}
@@ -1044,7 +1044,7 @@ void Sirens::Init()
 			{
 				if (data.m_nSirenStream)
 				{
-					AudioMgr::StopSirenStream(data.m_nSirenStream);
+					AudioMgr::StopLoopStream(data.m_nSirenStream);
 					data.m_nActiveSirenSoundState = -1;
 					data.m_bPlayingCustomSiren = false;
 				}
@@ -1081,22 +1081,22 @@ void Sirens::Init()
 				{
 					if (data.m_nSirenStream)
 					{
-						AudioMgr::StopSirenStream(data.m_nSirenStream);
+						AudioMgr::StopLoopStream(data.m_nSirenStream);
 					}
-					data.m_nSirenStream = AudioMgr::PlaySirenStream(soundPath, pVeh->GetPosition());
+					data.m_nSirenStream = AudioMgr::PlayLoopStream(soundPath, pVeh->GetPosition(), 1.0f, 120.0f);
 					data.m_nActiveSirenSoundState = curSoundMode;
 					data.m_bPlayingCustomSiren = (data.m_nSirenStream != 0);
 				}
 				else if (data.m_nSirenStream)
 				{
-					AudioMgr::UpdateSirenStream(data.m_nSirenStream, pVeh->GetPosition());
+					AudioMgr::UpdateLoopStream(data.m_nSirenStream, pVeh->GetPosition(), 1.0f, 120.0f);
 				}
 			}
 			else
 			{
 				if (data.m_nSirenStream)
 				{
-					AudioMgr::StopSirenStream(data.m_nSirenStream);
+					AudioMgr::StopLoopStream(data.m_nSirenStream);
 					data.m_nActiveSirenSoundState = -1;
 					data.m_bPlayingCustomSiren = false;
 				}

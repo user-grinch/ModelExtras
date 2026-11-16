@@ -157,7 +157,7 @@ void BackFireEffect::BackFireSingle(CVehicle *pVeh, bool bPlaySound, bool bHighI
         static const std::string s_AudioPath = MOD_DATA_PATH("audio/backfire.wav");
         float volume = bHighIntensity ? 1.6f : 1.1f;
         float maxDist = bHighIntensity ? 80.0f : 60.0f;
-        AudioMgr::Play3DSound(s_AudioPath, pVeh->TransformFromObjectSpace(soundPos), pVeh, volume, maxDist);
+        AudioMgr::Play3DSound(s_AudioPath, pVeh->TransformFromObjectSpace(soundPos), volume, maxDist);
     }
 }
 

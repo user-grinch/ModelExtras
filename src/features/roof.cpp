@@ -181,7 +181,7 @@ void ConvertibleRoof::Init()
                 if (data.m_bInit)
                 {
                     data.m_bRoofTargetExpanded = !data.m_bRoofTargetExpanded;
-                    AudioMgr::PlaySwitchSound(pVeh);
+                    AudioMgr::PlaySwitchSound();
                 }
             }
         }

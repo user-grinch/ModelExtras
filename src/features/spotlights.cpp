@@ -120,7 +120,7 @@ void SpotLights::OnHudRender()
 		{
 			data.bEnabled = !data.bEnabled;
 			prev = now;
-			AudioMgr::PlaySwitchSound(pVeh);
+			AudioMgr::PlaySwitchSound();
 		}
 	}
 

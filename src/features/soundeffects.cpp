@@ -43,7 +43,7 @@ static bool IsVehicleEligible(int model, std::string_view jsonKey, bool onlySele
         return true;
     }
 
-    return std::find(modelList.begin(), modelList.end(), model) != modelList.end();
+    return std::ranges::contains(modelList, model);
 }
 
 void SoundEffects::ReloadConfig()
@@ -92,29 +92,33 @@ void SoundEffects::Init()
 
 static void HandleChimeSounds(CVehicle *pVeh, SoundEffectsData &data, int model, bool isPlayerDriver)
 {
+    const auto deactivate = [&data]()
+    {
+        data.m_bDoorChimeActive = false;
+        data.m_nLastDoorChimeTime = 0;
+    };
+
     if (!bDoorChimeSounds || pVeh->m_nVehicleSubClass != VEHICLE_AUTOMOBILE)
     {
+        deactivate();
         return;
     }
 
     if (bOnlyPlayerVehicle && !isPlayerDriver)
     {
-        data.m_bDoorChimeActive = false;
-        data.m_nLastDoorChimeTime = 0;
+        deactivate();
         return;
     }
 
     if (pVeh->bEngineBroken || pVeh->bIsDrowning)
     {
-        data.m_bDoorChimeActive = false;
-        data.m_nLastDoorChimeTime = 0;
+        deactivate();
         return;
     }
 
     if (!IsVehicleEligible(model, "door_chime", bDoorChimeOnlySelected, ValidForDoorChime))
     {
-        data.m_bDoorChimeActive = false;
-        data.m_nLastDoorChimeTime = 0;
+        deactivate();
         return;
     }
 
@@ -126,8 +130,7 @@ static void HandleChimeSounds(CVehicle *pVeh, SoundEffectsData &data, int model,
 
     if (!leftOpen && !rightOpen)
     {
-        data.m_bDoorChimeActive = false;
-        data.m_nLastDoorChimeTime = 0;
+        deactivate();
         return;
     }
 
@@ -136,7 +139,7 @@ static void HandleChimeSounds(CVehicle *pVeh, SoundEffectsData &data, int model,
     if (curTime - data.m_nLastDoorChimeTime >= 1000)
     {
         static std::string chimePath = MOD_DATA_PATH("audio/door_chime.mp3");
-        AudioMgr::Play3DSound(chimePath, pVeh->GetPosition(), pVeh, fDoorChimeVolume, 25.0f);
+        AudioMgr::Play3DSound(chimePath, pVeh->GetPosition(), fDoorChimeVolume, 25.0f);
         data.m_nLastDoorChimeTime = curTime;
     }
 }
@@ -231,18 +234,21 @@ void SoundEffects::ProcessVehicle(CVehicle *pVeh)
         return;
     }
     CPed *pPlayer = FindPlayerPed();
-    if (!pPlayer) {
-        return;
-    }
-    if (MathUtil::DistanceSquared(pVeh->GetPosition(), pPlayer->GetPosition()) > (75.0f * 75.0f)) {
-        return;
-    }
-
-    if (bOnlyPlayerVehicle && pVeh->m_pDriver != pPlayer) {
-        return;
-    }
-
     auto &data = m_VehData.Get(pVeh);
+
+    // Early-outs must release the brake pad loop, otherwise it keeps playing at
+    // its last volume forever (leaving the vehicle, walking away, etc.)
+    const bool bSkip = !pPlayer
+        || (bOnlyPlayerVehicle && pVeh->m_pDriver != pPlayer)
+        || MathUtil::DistanceSquared(pVeh->GetPosition(), pPlayer->GetPosition()) > (75.0f * 75.0f);
+    if (bSkip)
+    {
+        if (data.m_hBrakePadStream)
+        {
+            AudioMgr::StopLoopStream(data.m_hBrakePadStream);
+        }
+        return;
+    }
     float speed = Util::GetVehicleSpeed(pVeh);
     int model = pVeh->m_nModelIndex;
     bool isPlayerDriver = (pVeh->m_pDriver == pPlayer);
@@ -276,11 +282,11 @@ void SoundEffects::ProcessVehicle(CVehicle *pVeh)
                     static std::string bikePath = MOD_DATA_PATH("audio/bike_engine_start.wav");
                     if (CModelInfo::IsBikeModel(model) || CModelInfo::IsQuadBikeModel(model))
                     {
-                        AudioMgr::Play3DSound(bikePath, pVeh->GetPosition(), pVeh, 1.0f, 65.0f);
+                        AudioMgr::Play3DSound(bikePath, pVeh->GetPosition(), 1.0f, 65.0f);
                     }
                     else
                     {
-                        AudioMgr::Play3DSound(carPath, pVeh->GetPosition(), pVeh, 1.0f, 65.0f);
+                        AudioMgr::Play3DSound(carPath, pVeh->GetPosition(), 1.0f, 65.0f);
                     }
                     data.m_nLastEngineSoundTime = curTime;
                 }
@@ -327,7 +333,7 @@ void SoundEffects::ProcessVehicle(CVehicle *pVeh)
         if (pedal <= 0.05f && data.m_fMaxPedal > 0.0f)
         {
             static std::string path = MOD_DATA_PATH("audio/airbreak.wav");
-            AudioMgr::Play3DSound(path, pVeh->GetPosition(), pVeh, data.m_fBrakePressure, 60.0f);
+            AudioMgr::Play3DSound(path, pVeh->GetPosition(), data.m_fBrakePressure, 60.0f);
             data.m_fMaxPedal = 0.0f;
             data.m_fBrakePressure = 0.0f;
         }
@@ -342,7 +348,7 @@ void SoundEffects::ProcessVehicle(CVehicle *pVeh)
             unsigned int curTime = CTimer::m_snTimeInMilliseconds;
             if (curTime - data.m_nLastReverseSoundTime >= 1000)
             {
-                AudioMgr::Play3DSound(path, pVeh->GetPosition(), pVeh, 0.7f, 50.0f);
+                AudioMgr::Play3DSound(path, pVeh->GetPosition(), 0.7f, 50.0f);
                 data.m_nLastReverseSoundTime = curTime;
             }
         }
