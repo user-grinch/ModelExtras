@@ -10,7 +10,6 @@
 #include "utils/mathutil.h"
 #include "utils/render.h"
 #include <CShadows.h>
-#include <CWorld.h>
 #include <CModelInfo.h>
 #include <CVehicleModelInfo.h>
 #include <CBike.h>
@@ -348,20 +347,6 @@ void Neon::Init()
 
         CVector center = pVeh->TransformFromObjectSpace(CVector((minB.x + maxB.x) * 0.5f + offset.x,
                                                                 (minB.y + maxB.y) * 0.5f + offset.y, 0.0f));
-        // Prevent unrealistic ground shadow projection when vehicle is airborne (flying off ramps/in air)
-        if (pVeh->GetNumContactWheels() == 0)
-        {
-            float groundZ = pVeh->m_fVehicleFrontGroundZ;
-            if (groundZ < -100.0f)
-            {
-                bool found = false;
-                groundZ = CWorld::FindGroundZFor3DCoord(center.x, center.y, center.z, &found, nullptr);
-            }
-            if ((center.z - groundZ) >= 1.4f)
-            {
-                return;
-            }
-        }
 
         CVector shdwPos(center.x, center.y, pVeh->GetPosition().z + 1.5f);
 
@@ -371,6 +356,6 @@ void Neon::Init()
 
         short intensity = static_cast<short>(col.a * distAlpha);
         CShadows::StoreShadowToBeRendered(2, pTex, &shdwPos, up.x, up.y, right.x, right.y,
-                                          intensity, col.r, col.g, col.b, 6.0f, false, 1.0f, nullptr, true);
+                                          intensity, col.r, col.g, col.b, RenderUtil::GROUND_SHADOW_REACH, false, 1.0f, nullptr, true);
     });
 }

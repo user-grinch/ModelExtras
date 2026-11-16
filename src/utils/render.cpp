@@ -30,10 +30,12 @@ static inline void RotateMatrix180Z(CMatrix &mat)
 }
 
 // In RenderWare frame conventions, mat.up represents the dummy's forward direction.
-// Checking if up.z > 0.7f verifies if the dummy points upward (e.g., roof/vertical markers) without temporary allocations.
-static inline bool IsDummyPointingUp(const CMatrix &mat)
+// Compare against the vehicle's up axis instead of world Z: a chassis pitched up a
+// ramp rotates every forward dummy towards the world sky, which used to make plain
+// headlights look like vertical roof markers and killed their light before liftoff.
+static inline bool IsDummyPointingUp(const CMatrix &mat, const CMatrix &vehMat)
 {
-    return mat.up.z > 0.7f;
+    return CVector::Dot(mat.up, vehMat.at) > 0.7f;
 }
 
 static bool gbLightCoronas = false;
@@ -240,7 +242,7 @@ void RenderUtil::RegisterHeadlightPointLight(const DummyConfig *pConfig, float r
     }
 
     const CMatrix &mat = *reinterpret_cast<const CMatrix *>(&pConfig->frame->ltm);
-    if (IsDummyPointingUp(mat))
+    if (IsDummyPointingUp(mat, pConfig->pVeh->GetMatrix()))
     {
         return;
     }
@@ -289,7 +291,7 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
     }
 
     const CMatrix &mat = *reinterpret_cast<const CMatrix *>(&pConfig->frame->ltm);
-    if (IsDummyPointingUp(mat))
+    if (IsDummyPointingUp(mat, pConfig->pVeh->GetMatrix()))
     {
         return;
     }
@@ -400,11 +402,16 @@ void RenderUtil::RegisterPointLight(const DummyConfig *pConfig, CRGBA col, float
 
 void RenderUtil::RegisterCoronaDirectional(const DummyConfig *pConfig, float angle, float radius, float szMul, bool inversed, bool skipCheck, float coronaDistMul)
 {
+    if (!pConfig || !pConfig->pVeh || !pConfig->frame)
+    {
+        return;
+    }
+
     float sz = pConfig->corona.size * szMul;
     CRGBA col = pConfig->corona.color;
 
     CMatrix mat = *(CMatrix *)&pConfig->frame->ltm;
-    if (!IsDummyPointingUp(mat))
+    if (!IsDummyPointingUp(mat, pConfig->pVeh->GetMatrix()))
     {
         float targetAngle = angle;
         if (pConfig->lightType == eMaterialType::HeadLightLeft || pConfig->lightType == eMaterialType::HeadLightRight
@@ -517,7 +524,7 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     }
 
     const CMatrix &ltmMat = *reinterpret_cast<const CMatrix *>(&pConfig->frame->ltm);
-    if (IsDummyPointingUp(ltmMat))
+    if (IsDummyPointingUp(ltmMat, pConfig->pVeh->GetMatrix()))
     {
         return;
     }
@@ -531,23 +538,12 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
     // Calculate world position (accounting for motorcycle lean when applicable)
     CVector worldPos = GetDummyWorldPosition(pConfig);
 
-    // Prevent unrealistic ground shadow projection when vehicle is airborne (flying off ramps/in air)
-    if (pConfig->pVeh->GetNumContactWheels() == 0)
-    {
-        float groundZ = pConfig->pVeh->m_fVehicleFrontGroundZ;
-        if (groundZ < -100.0f)
-        {
-            bool found = false;
-            groundZ = CWorld::FindGroundZFor3DCoord(worldPos.x, worldPos.y, worldPos.z, &found, nullptr);
-        }
-        if ((worldPos.z - groundZ) >= 1.4f)
-        {
-            return;
-        }
-    }
-
     // 3D light direction vectors directly from dummy matrix (retaining full 3D roll, pitch, and yaw)
     CVector lightDir = mat.up;
+    if (lightDir.Magnitude2D() < 0.1f)
+    {
+        return; // light aimed straight up/down leaves no usable ground quad
+    }
     CVector rightDir = pConfig->mirroredX ? -mat.right : mat.right;
 
     // Scale shadow size/thickness with inertia factor so it expands/contracts naturally
@@ -595,7 +591,7 @@ void RenderUtil::RegisterShadowDirectional(const DummyConfig *pConfig, const std
         r,
         g,
         b,
-        7.0f,
+        GROUND_SHADOW_REACH,
         false,
         1.0f,
         0,
@@ -664,7 +660,9 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
         pBike->m_bLeanMatrixCalculated = wasCalculated;
     }
 
-    // Engine's StoreShadowToBeRendered natively casts downward along fZDistance (6.0f)
+    // Ground shadows are cast down by GROUND_SHADOW_REACH from the vehicle height,
+    // so an airborne car keeps its pool on the ground below instead of losing it
+    // once the default few-meter cast can no longer reach the surface.
     shdwPos.z = vehPos.z + 1.5f;
 
     RwTexture *pTex = (pTexture != nullptr)
@@ -682,7 +680,7 @@ void RenderUtil::RegisterShadow(CEntity *pEntity, CVector position, CRGBA col, f
                                           up.x, up.y,
                                           right.x, right.y,
                                           255, r, g, b,
-                                          6.0f, false, 1.0f, 0, true);
+                                          GROUND_SHADOW_REACH, false, 1.0f, 0, true);
     }
 }
 
