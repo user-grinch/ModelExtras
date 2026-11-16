@@ -33,7 +33,7 @@ bool IndicatorComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
     }
 
     DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
-    c.corona.color = c.shadow.color = {255, 128, 0, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
+    c.corona.color = c.shadow.color = {255, 145, 0, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
     c.corona.lightingType = eLightingMode::Directional;
 
     bool isLeft = false;

@@ -39,4 +39,6 @@ public:
     static const char* GetLightSpecificKey(eMaterialType type);
     static float GetLightInertia(CVehicle* pVeh, VehLightData& data, eMaterialType type);
     static MatStateColor GetMaterialColor(CVehicle* pVeh, eMaterialType type);
+    static std::optional<CRGBA> ParseColor(const nlohmann::json& val, const nlohmann::json* pRoot = nullptr);
+    static std::optional<CRGBA> GetBulbColorPreset(std::string_view bulb);
 };

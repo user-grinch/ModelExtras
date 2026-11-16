@@ -161,6 +161,12 @@ bool Model::Allows(const std::vector<std::string> &p, const StudioConfig::Json *
     if (!flags) return false;
     if (p.size() == 2) return true;
     if (s == "lights" || s == "leds") {
+        if (p[2] == "bulb" || p[2] == "preset") {
+            const auto &k = p[1];
+            bool isHeadlight = (k == "headlights" || k == "headlight_l" || k == "headlight_r" ||
+                                k.starts_with("highbeam") || k.starts_with("headlight"));
+            return isHeadlight && ((flags & (Dummy | Material)) != 0);
+        }
         if (p[2] == "material" || p[2] == "color" || p[2] == "color_off") return (flags & Material) != 0;
         if (p[2] == "corona" || p[2] == "shadow" || p[2] == "pointlight") return (flags & Dummy) != 0;
         if (p[2] == "strobedelay") return (flags & Strobe) != 0;

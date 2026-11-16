@@ -25,7 +25,7 @@ bool ReverseLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, co
         bool isLeft = hasLeft ? true : hasRight ? false : (c.position.x < 0.0f);
         c.dummyPos = eDummyPos::Rear;
         c.lightType = isLeft ? eMaterialType::ReverseLightLeft : eMaterialType::ReverseLightRight;
-        c.corona.color = c.shadow.color = {255, 255, 255, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
+        c.corona.color = c.shadow.color = {255, 245, 225, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
         c.corona.lightingType = eLightingMode::Directional;
         data.dummies[c.lightType].push_back(VehicleDummy(c));
         return true;

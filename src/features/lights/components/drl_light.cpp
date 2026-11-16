@@ -38,7 +38,7 @@ bool DRLLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
     c.lightType = type;
     c.dummyPos = eDummyPos::Front;
     c.shadow.size = 1.85f;
-    c.shadow.color = {220, 220, 220, static_cast<unsigned char>(LightsConfig::Get().gGlobalShadowIntensity)};
+    c.shadow.color = {240, 240, 240, static_cast<unsigned char>(LightsConfig::Get().gGlobalShadowIntensity)};
     data.dummies[type].push_back(VehicleDummy(c));
     return true;
 }

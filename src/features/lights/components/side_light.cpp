@@ -20,6 +20,7 @@ eMaterialType SideLightComponent::GetMatType(CRGBA matCol) {
 bool SideLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
     if (auto d = Util::GetCharsAfterPrefix(name, "sidelight_", 1)) {
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
+        c.corona.color = c.shadow.color = {255, 145, 0, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
         if (d == "L") {
             c.lightType = eMaterialType::SideLightLeft;
             c.dummyPos = eDummyPos::Left;

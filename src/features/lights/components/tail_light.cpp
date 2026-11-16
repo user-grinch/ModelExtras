@@ -25,8 +25,8 @@ bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Rear;
         c.corona.size = LightsConfig::Get().gfTailLightCoronaSize;
-        c.corona.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
-        c.shadow.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
+        c.corona.color = {215, 25, 15, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
+        c.shadow.color = {215, 25, 15, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
         c.shadow.size = LightsConfig::Get().gfTailLightShadowSizeMul;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = name != "taillights2";
@@ -59,8 +59,8 @@ bool TailLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         bool isLeft = (name == "taillight_l" || name == "taillights_l");
         c.lightType = isLeft ? eMaterialType::TailLightLeft : eMaterialType::TailLightRight;
         c.corona.size = LightsConfig::Get().gfTailLightCoronaSize;
-        c.corona.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
-        c.shadow.color = {250, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
+        c.corona.color = {215, 25, 15, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
+        c.shadow.color = {215, 25, 15, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
         c.shadow.size = LightsConfig::Get().gfTailLightShadowSizeMul;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = true;

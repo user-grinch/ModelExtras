@@ -17,6 +17,7 @@ std::string Label(std::string_view key) {
         {"12hformat", "12 hour clock"},
         {"angleoffset", "Shadow angle offset"},
         {"author", "Author"},
+        {"bulb", "Bulb preset"},
         {"carcols", "Paint colors"},
         {"color", "Color"},
         {"color_off", "Off color"},

@@ -48,10 +48,10 @@ DummyConfig LightManager::CreateBaseConfig(CVehicle* pVeh, RwFrame* pFrame) {
     c.position = pFrame->modelling.pos;
     c.pVeh = pVeh;
     c.corona.size = LightsConfig::Get().gfGlobalCoronaSize;
-    c.corona.color = {255, 255, 255, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
+    c.corona.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
     c.corona.lightingType = eLightingMode::NonDirectional;
     c.shadow.size = LightsConfig::Get().gfLightShadowSizeMul;
-    c.shadow.color = {255, 255, 255, static_cast<unsigned char>(LightsConfig::Get().gGlobalShadowIntensity)};
+    c.shadow.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gGlobalShadowIntensity)};
     return c;
 }
 
@@ -709,13 +709,38 @@ static std::optional<CRGBA> Helper_ParseLightColor(const nlohmann::json& val, co
     return std::nullopt;
 }
 
-static std::optional<CRGBA> GetJsonMaterialOnColor(const nlohmann::json& lights, const char* key, const nlohmann::json* pRoot = nullptr) {
+std::optional<CRGBA> LightManager::ParseColor(const nlohmann::json& val, const nlohmann::json* pRoot) {
+    return Helper_ParseLightColor(val, pRoot);
+}
+
+std::optional<CRGBA> LightManager::GetBulbColorPreset(std::string_view bulb) {
+    if (bulb == "default" || bulb == "hid" || bulb == "xenon") {
+        return CRGBA(255, 242, 225, 255);
+    }
+    if (bulb == "halogen" || bulb == "warm") {
+        return CRGBA(255, 205, 135, 255);
+    }
+    if (bulb == "led" || bulb == "cool") {
+        return CRGBA(215, 230, 255, 255);
+    }
+    return std::nullopt;
+}
+
+static std::optional<CRGBA> GetJsonMaterialOnColor(const nlohmann::json& lights, const char* key, const nlohmann::json* pRoot = nullptr, bool isHeadlight = false) {
     if (!key || !lights.contains(key)) return std::nullopt;
     const auto& sec = lights[key];
     const auto* pCol = sec.contains("material") && sec["material"].contains("color") ? &sec["material"]["color"]
                      : nullptr;
     if (pCol) {
-        return Helper_ParseLightColor(*pCol, pRoot);
+        return LightManager::ParseColor(*pCol, pRoot);
+    }
+    if (isHeadlight) {
+        if (sec.contains("bulb") && sec["bulb"].is_string()) {
+            return LightManager::GetBulbColorPreset(sec["bulb"].get<std::string>());
+        }
+        if (sec.contains("preset") && sec["preset"].is_string()) {
+            return LightManager::GetBulbColorPreset(sec["preset"].get<std::string>());
+        }
     }
     return std::nullopt;
 }
@@ -742,10 +767,12 @@ MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type)
     auto& json = DataMgr::Get(pVeh->m_nModelIndex);
     const char* specKey = GetLightSpecificKey(type);
     const char* grpKey = GetLightGroupKey(type);
+    bool isHeadlight = (type == eMaterialType::HeadLightLeft || type == eMaterialType::HeadLightRight ||
+                        type == eMaterialType::HighBeamLeft || type == eMaterialType::HighBeamRight);
 
     auto checkSec = [&](const nlohmann::json& container, const char* k) {
         if (!k || !container.contains(k)) return;
-        if (!onCol) onCol = GetJsonMaterialOnColor(container, k, &json);
+        if (!onCol) onCol = GetJsonMaterialOnColor(container, k, &json, isHeadlight);
         if (!offCol) offCol = GetJsonOffColor(container, k, &json);
     };
 
@@ -762,9 +789,15 @@ MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type)
         if (type == eMaterialType::ReverseLightLeft || type == eMaterialType::ReverseLightRight) {
             checkSec(lights, "reverselight"); checkSec(lights, "reverse"); checkSec(lights, "revl");
         }
+        if (type == eMaterialType::BrakeLightLeft || type == eMaterialType::NABrakeLightLeft) {
+            checkSec(lights, "breakl_l"); checkSec(lights, "brakel_l");
+        }
+        if (type == eMaterialType::BrakeLightRight || type == eMaterialType::NABrakeLightRight) {
+            checkSec(lights, "breakl_r"); checkSec(lights, "brakel_r");
+        }
         if (type == eMaterialType::BrakeLightLeft || type == eMaterialType::BrakeLightRight ||
             type == eMaterialType::NABrakeLightLeft || type == eMaterialType::NABrakeLightRight) {
-            for (const char* k : {"brakelight", "breaklight", "breakl", "brakel", "breakl_l", "breakl_r", "brakel_l", "brakel_r"}) checkSec(lights, k);
+            for (const char* k : {"brakelight", "breaklight", "breakl", "brakel"}) checkSec(lights, k);
         }
         if (type == eMaterialType::HighBeamLeft || type == eMaterialType::HighBeamRight) {
             checkSec(lights, "highbeam");
@@ -785,10 +818,17 @@ MatStateColor LightManager::GetMaterialColor(CVehicle* pVeh, eMaterialType type)
         if (grpKey) checkSec(json["leds"], grpKey);
     }
 
-    if (onCol || offCol) {
-        return MatStateColor{onCol.value_or(DEFAULT_MAT_COL), offCol.value_or(DEFAULT_MAT_COL)};
+    CRGBA defaultOnCol = DEFAULT_MAT_COL;
+    if (isHeadlight || type == eMaterialType::FogLightLeft || type == eMaterialType::FogLightRight) {
+        defaultOnCol = CRGBA(255, 242, 225, 255);
+    } else if (type == eMaterialType::ReverseLightLeft || type == eMaterialType::ReverseLightRight) {
+        defaultOnCol = CRGBA(255, 245, 225, 255);
     }
 
-    return MatStateColor{DEFAULT_MAT_COL, DEFAULT_MAT_COL};
+    if (onCol || offCol) {
+        return MatStateColor{onCol.value_or(defaultOnCol), offCol.value_or(DEFAULT_MAT_COL)};
+    }
+
+    return MatStateColor{defaultOnCol, DEFAULT_MAT_COL};
 }
 

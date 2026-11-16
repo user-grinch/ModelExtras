@@ -2,6 +2,7 @@
 #include "fog_light.h"
 #include "utils/audiomgr.h"
 #include "utils/render.h"
+#include "utils/datamgr.h"
 #include "defines.h"
 #include "../damage.h"
 
@@ -24,9 +25,11 @@ bool FogLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
         bool hasRight = name.ends_with("_r") || name.contains("_r_") || name.contains("right");
         bool isLeft = hasLeft ? true : hasRight ? false : (c.position.x < 0.0f);
         c.lightType = isLeft ? eMaterialType::FogLightLeft : eMaterialType::FogLightRight;
-        c.shadow.render = false;
-        c.corona.color = c.shadow.color = {255, 255, 255, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
-        c.corona.lightingType = eLightingMode::NonDirectional;
+        c.shadow.render = true;
+        c.shadow.texture = "foglight";
+        c.shadow.size = 1.0f;
+        c.corona.color = c.shadow.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
+        c.corona.lightingType = eLightingMode::Directional;
         data.dummies[c.lightType].push_back(VehicleDummy(c));
         return true;
     }
@@ -36,11 +39,24 @@ bool FogLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const 
 void FogLightComponent::Process(CVehicle* pVeh, VehLightData& data) {
     CPed* pPlayer = FindPlayerPed();
     if (pPlayer && pVeh->IsDriver(pPlayer)) {
-        static size_t prev = 0;
         bool isHeadlightsActive = CarUtil::AreLightsOn(pVeh);
         bool canToggleFogLight = !LightsConfig::Get().bFoglightTiedToHeadlight || isHeadlightsActive;
 
-        if (InputMgr::IsKeyJustDown(LightsConfig::Get().nFogLightKey) && (LightManager::IsMaterialAvailable(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight}) || LightManager::IsDummyAvailable(data, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight})) && canToggleFogLight) {
+        bool hasFogSupport = LightManager::IsMaterialAvailable(pVeh, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight, eMaterialType::FogLightLed})
+                          || LightManager::IsDummyAvailable(data, {eMaterialType::FogLightLeft, eMaterialType::FogLightRight});
+
+        if (!hasFogSupport && DataMgr::Has(pVeh->m_nModelIndex)) {
+            const auto& j = DataMgr::Get(pVeh->m_nModelIndex);
+            if (j.contains("lights")) {
+                const auto& l = j["lights"];
+                if (l.contains("foglights") || l.contains("foglight") || l.contains("fogl") ||
+                    l.contains("foglight_l") || l.contains("foglight_r") || l.contains("fogl_l") || l.contains("fogl_r")) {
+                    hasFogSupport = true;
+                }
+            }
+        }
+
+        if (InputMgr::IsKeyJustDown(LightsConfig::Get().nFogLightKey) && hasFogSupport && canToggleFogLight) {
             data.bFogLightsOn = !data.bFogLightsOn;
             AudioMgr::PlaySwitchSound(pVeh);
         }

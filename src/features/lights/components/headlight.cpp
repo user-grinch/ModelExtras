@@ -67,8 +67,8 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Front;
         c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
-        c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
-        c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
+        c.corona.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
+        c.shadow.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
         c.shadow.size = LightsConfig::Get().gfHeadLightShadowSizeMul;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = name != "headlights2";
@@ -101,8 +101,8 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         bool isLeft = (name == "headlight_l" || name == "headlights_l");
         c.lightType = isLeft ? eMaterialType::HeadLightLeft : eMaterialType::HeadLightRight;
         c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
-        c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
-        c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
+        c.corona.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
+        c.shadow.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
         c.shadow.size = LightsConfig::Get().gfHeadLightShadowSizeMul;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = true;
@@ -121,8 +121,8 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         bool isLeft = (name == "highbeam_l" || name == "highbeams_l");
         c.lightType = isLeft ? eMaterialType::HighBeamLeft : eMaterialType::HighBeamRight;
         c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
-        c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
-        c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
+        c.corona.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
+        c.shadow.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
         c.shadow.size = LightsConfig::Get().gfHeadLightShadowSizeMul;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = false;
@@ -139,8 +139,8 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Front;
         c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
-        c.corona.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
-        c.shadow.color = {250, 250, 250, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
+        c.corona.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
+        c.shadow.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
         c.shadow.size = LightsConfig::Get().gfHeadLightShadowSizeMul;
         c.corona.lightingType = eLightingMode::Directional;
         c.shadow.render = false;

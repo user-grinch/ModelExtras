@@ -22,6 +22,19 @@ const Json &PointLight() {
     return v;
 }
 
+const Json &Headlight() {
+    static const Json v = {
+        {"bulb", "default"},
+        {"material", Material()},
+        {"inertia", 0.0},
+        {"strobedelay", 1000},
+        {"corona", {{"size", 0.4}, {"type", "directional"}, {"texture", "shinystar"}, {"color", Color()}}},
+        {"shadow", {{"size", 1.0}, {"texture", "headlight_short"}, {"rotationchecks", true}, {"offset", {{"x", 0.0}, {"y", 0.0}}}, {"color", Color()}}},
+        {"pointlight", PointLight()}
+    };
+    return v;
+}
+
 const Json &Light() {
     static const Json v = {
         {"material", Material()},
@@ -91,7 +104,13 @@ const char *Help(std::string_view section) {
 
 Json NodeFields(std::string_view section, std::string_view name) {
     const auto &t = StudioConfig::Templates();
-    if (section == "lights") return Light();
+    if (section == "lights") {
+        if (name == "headlights" || name == "headlight_l" || name == "headlight_r" ||
+            name.starts_with("highbeam") || name.starts_with("headlight")) {
+            return Headlight();
+        }
+        return Light();
+    }
     if (section == "leds") return Json{{"material", Material()}};
     if (section == "exhausts" && Prefix(name, "x_exhaust")) return t.at("exhausts").begin().value();
     if (section == "roofs" && (Prefix(name, "x_convertible_roof") || Prefix(name, "x_convertible_boot"))) return t.at("roofs").begin().value();
@@ -317,6 +336,7 @@ Json ObjectColor(const Json &value) {
 std::vector<std::string_view> Choices(const std::vector<std::string> &p) {
     if (p.empty()) return {};
     auto k = p.back();
+    if (k == "bulb" || k == "preset") return {"default", "halogen", "led"};
     if (p[0] == "neon" && k == "mode") return {"static", "rainbow", "vehicle", "primary", "secondary", "tertiary", "quaternary"};
     if (k == "direction" && p[0] == "sirens") return {"clockwise", "counter-clockwise", "switch"};
     if (k == "type" && p.size() > 1 && p[p.size() - 2] == "rotator") return {"linear", "ease"};

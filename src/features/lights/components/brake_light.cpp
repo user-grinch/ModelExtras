@@ -32,8 +32,8 @@ bool BrakeLightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, cons
             c.lightType = (c.position.x < -0.05f) ? eMaterialType::BrakeLightLeft : eMaterialType::BrakeLightRight;
         }
         c.corona.size = LightsConfig::Get().gfTailLightCoronaSize;
-        c.corona.color = {240, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
-        c.shadow.color = {240, 0, 0, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
+        c.corona.color = {255, 20, 10, static_cast<unsigned char>(LightsConfig::Get().gTailLightCoronaIntensity)};
+        c.shadow.color = {255, 20, 10, static_cast<unsigned char>(LightsConfig::Get().gTailLightShadowIntensity)};
         c.shadow.size = LightsConfig::Get().gfTailLightShadowSizeMul;
         c.corona.lightingType = eLightingMode::Directional;
         data.dummies[c.lightType].push_back(VehicleDummy(c));

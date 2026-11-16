@@ -96,21 +96,67 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
         {
             pLightsSec = &jsonData["lights"][fallbackKey];
         }
+        else if (data.lightType == eMaterialType::FogLightLeft || data.lightType == eMaterialType::FogLightRight)
+        {
+            if (data.lightType == eMaterialType::FogLightLeft && jsonData["lights"].contains("fogl_l")) pLightsSec = &jsonData["lights"]["fogl_l"];
+            else if (data.lightType == eMaterialType::FogLightRight && jsonData["lights"].contains("fogl_r")) pLightsSec = &jsonData["lights"]["fogl_r"];
+            else if (jsonData["lights"].contains("foglight")) pLightsSec = &jsonData["lights"]["foglight"];
+            else if (jsonData["lights"].contains("fogl")) pLightsSec = &jsonData["lights"]["fogl"];
+        }
 
         if (pLightsSec)
         {
             auto &lights = *pLightsSec;
+
+            bool isHeadlightType = (data.lightType == eMaterialType::HeadLightLeft || data.lightType == eMaterialType::HeadLightRight ||
+                                    data.lightType == eMaterialType::HighBeamLeft || data.lightType == eMaterialType::HighBeamRight);
+            if (isHeadlightType)
+            {
+                std::string bStr;
+                if (lights.contains("bulb") && lights["bulb"].is_string())
+                {
+                    bStr = lights["bulb"].get<std::string>();
+                }
+                else if (lights.contains("preset") && lights["preset"].is_string())
+                {
+                    bStr = lights["preset"].get<std::string>();
+                }
+                if (!bStr.empty())
+                {
+                    if (auto bCol = LightManager::GetBulbColorPreset(bStr))
+                    {
+                        data.hasCustomColor = true;
+                        data.corona.color.r = bCol->r;
+                        data.corona.color.g = bCol->g;
+                        data.corona.color.b = bCol->b;
+                        data.shadow.color.r = bCol->r;
+                        data.shadow.color.g = bCol->g;
+                        data.shadow.color.b = bCol->b;
+                    }
+                }
+            }
 
             if (lights.contains("corona"))
             {
                 auto &coronaSec = lights["corona"];
                 if (coronaSec.contains("color"))
                 {
-                    data.hasCustomColor = true;
-                    data.corona.color.r = coronaSec["color"].value("red", data.corona.color.r);
-                    data.corona.color.g = coronaSec["color"].value("green", data.corona.color.g);
-                    data.corona.color.b = coronaSec["color"].value("blue", data.corona.color.b);
-                    data.corona.color.a = coronaSec["color"].value("alpha", data.corona.color.a);
+                    if (auto parsed = LightManager::ParseColor(coronaSec["color"], &jsonData))
+                    {
+                        data.hasCustomColor = true;
+                        data.corona.color.r = parsed->r;
+                        data.corona.color.g = parsed->g;
+                        data.corona.color.b = parsed->b;
+                        const auto &cVal = coronaSec["color"];
+                        if (cVal.is_object() && (cVal.contains("alpha") || cVal.contains("a")))
+                        {
+                            data.corona.color.a = parsed->a;
+                        }
+                        else if (cVal.is_array() && cVal.size() >= 4)
+                        {
+                            data.corona.color.a = parsed->a;
+                        }
+                    }
                 }
                 if (coronaSec.contains("size") && coronaSec["size"].is_number())
                 {
@@ -128,10 +174,21 @@ VehicleDummy::VehicleDummy(const DummyConfig& config)
                 auto &shadow = lights["shadow"];
                 if (shadow.contains("color"))
                 {
-                    data.shadow.color.r = shadow["color"].value("red", data.shadow.color.r);
-                    data.shadow.color.g = shadow["color"].value("green", data.shadow.color.g);
-                    data.shadow.color.b = shadow["color"].value("blue", data.shadow.color.b);
-                    data.shadow.color.a = shadow["color"].value("alpha", data.shadow.color.a);
+                    if (auto parsed = LightManager::ParseColor(shadow["color"], &jsonData))
+                    {
+                        data.shadow.color.r = parsed->r;
+                        data.shadow.color.g = parsed->g;
+                        data.shadow.color.b = parsed->b;
+                        const auto &cVal = shadow["color"];
+                        if (cVal.is_object() && (cVal.contains("alpha") || cVal.contains("a")))
+                        {
+                            data.shadow.color.a = parsed->a;
+                        }
+                        else if (cVal.is_array() && cVal.size() >= 4)
+                        {
+                            data.shadow.color.a = parsed->a;
+                        }
+                    }
                 }
                 if (shadow.contains("size") && shadow["size"].is_number())
                 {

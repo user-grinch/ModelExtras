@@ -143,7 +143,7 @@ inline const Json &Templates() {
       "leds": {"leds":{"material":{"color":"#FFFFFF","color_off":"#101010"}}},
       "sound": {"door_chime":true,"brake_pad":false},
       "plate": {"material":{"color":{"red":255,"green":255,"blue":255}, "color_off":{"red":128,"green":128,"blue":128}}},
-      "lights": {"headlights":{"inertia":0.0,"material":{"color":"#FFFFFF","color_off":"#101010"},"corona":{"size":0.4,"type":"directional","texture":"shinystar","color":{"red":255,"green":255,"blue":255,"alpha":80}},"shadow":{"size":1.0,"texture":"", "rotationchecks":true,"offset":{"x":0.0,"y":0.0},"color":{"red":255,"green":255,"blue":255,"alpha":80}},"pointlight":{"enabled":true,"intensity":1.0,"size":1.0,"distance":0.0}}},
+      "lights": {"headlights":{"bulb":"default","inertia":0.0,"material":{"color":"#FFFFFF","color_off":"#101010"},"corona":{"size":0.4,"type":"directional","texture":"shinystar","color":{"red":255,"green":255,"blue":255,"alpha":80}},"shadow":{"size":1.0,"texture":"", "rotationchecks":true,"offset":{"x":0.0,"y":0.0},"color":{"red":255,"green":255,"blue":255,"alpha":80}},"pointlight":{"enabled":true,"intensity":1.0,"size":1.0,"distance":0.0}}},
       "exhausts": {"x_exhaust":{"lifetime":0.25,"speed":1.0,"size":0.85,"nitro_effect":true,"color":{"red":190,"green":190,"blue":190,"alpha":75}}},
       "roofs": {"x_convertible_roof":{"rotation":60.0,"speed":1.5}},
       "spoilers": {"movspoiler":{"rotation":30.0,"time":3000.0,"triggerspeed":20.0}},
