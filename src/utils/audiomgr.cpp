@@ -8,7 +8,8 @@
 
 using namespace plugin;
 
-// Minimal dynamic BASS API (CLEO 4.4.4+ / CLEO 5 engine)
+// Minimal dynamic BASS API. The library is loaded on demand and audio simply
+// stays off when it is unavailable.
 namespace BassAPI
 {
     using HSTREAM = uint32_t;
@@ -71,6 +72,10 @@ namespace BassAPI
                 bReady = true;
                 LOG_VERBOSE("[Audio] BASS audio engine initialized successfully.");
             }
+        }
+        else
+        {
+            LOG(WARNING) << "[Audio] bass.dll not found, ModelExtras sounds are disabled.";
         }
     }
 }
