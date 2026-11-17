@@ -11,6 +11,7 @@ class DirtFx : public CBaseFeature
 private:
 	static inline bool m_bEnabled = false;
 	static inline RwTexture **ms_aDirtTextures = reinterpret_cast<RwTexture **>(0xC02BD0);
+	static inline RwTexture *m_pWhiteTexture = nullptr;
 
 	struct DirtTarget
 	{
@@ -26,6 +27,7 @@ private:
 
 	void Shutdown() override;
 
+	static RwTexture *GetWhiteTexture();
 	static bool EnsureGpuResources();
 	static RwTexture *FindDirtTexture(RwTexture *clean);
 	static RwTexture *CreateTargetTexture(RwTexture *clean, RwTexture *dirt);

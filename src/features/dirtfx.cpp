@@ -2,6 +2,7 @@
 #include "dirtfx.h"
 #include "defines.h"
 #include "utils/modelinfomgr.h"
+#include "utils/texmgr.h"
 #include <d3d9.h>
 #include <cmath>
 #include <bit>
@@ -53,6 +54,33 @@ struct DirtVertex
 	float u, v;
 };
 
+RwTexture *DirtFx::GetWhiteTexture()
+{
+	if (m_pWhiteTexture) return m_pWhiteTexture;
+
+	RwRaster *pRaster = RwRasterCreate(2, 2, 32, rwRASTERTYPETEXTURE | rwRASTERFORMAT8888);
+	if (!pRaster) return nullptr;
+
+	RwUInt8 *pixels = RwRasterLock(pRaster, 0, rwRASTERLOCKWRITE);
+	if (pixels)
+	{
+		std::memset(pixels, 0xFF, pRaster->width * pRaster->height * 4);
+		RwRasterUnlock(pRaster);
+	}
+
+	m_pWhiteTexture = RwTextureCreate(pRaster);
+	if (m_pWhiteTexture)
+	{
+		RwTextureSetName(m_pWhiteTexture, "white");
+		m_pWhiteTexture->filterAddressing = rwFILTERLINEAR;
+	}
+	else
+	{
+		RwRasterDestroy(pRaster);
+	}
+	return m_pWhiteTexture;
+}
+
 bool DirtFx::EnsureGpuResources()
 {
 	if (m_pPixelShader) return true;
@@ -68,12 +96,13 @@ bool DirtFx::EnsureGpuResources()
 
 RwTexture *DirtFx::FindDirtTexture(RwTexture *clean)
 {
-	if (!clean || !clean->dict || !clean->name) return nullptr;
+	if (!clean || !clean->name) return nullptr;
 	const std::string_view name(clean->name);
 	if (name.empty()) return nullptr;
 
 	auto tryFind = [dict = clean->dict](std::string_view base, std::string_view suffix) -> RwTexture *
 	{
+		if (!dict) return nullptr;
 		char buf[64];
 		if (base.size() + suffix.size() >= sizeof(buf)) return nullptr;
 		auto res = std::format_to_n(buf, sizeof(buf) - 1, "{}{}", base, suffix);
@@ -91,15 +120,21 @@ RwTexture *DirtFx::FindDirtTexture(RwTexture *clean)
 		return nullptr;
 	};
 
-	// 1. Direct search for companion dirt suffixes (_dt for BTLC/tyres, _dirt/_d for IVF alpha overlays)
+	// 1. Direct search in vehicle TXD for companion suffixes (_dt for BTLC/tyres, _dirt/_d for IVF alpha overlays)
 	for (std::string_view suffix : {"_dt", "_dirt", "_d"})
 	{
 		if (RwTexture *dirt = tryFind(name, suffix))
 			return dirt;
 	}
 
-	// 2. A random remap may share its base's IVF overlay. A complete _dt image
-	// cannot be shared: that would replace the selected livery at full dirt.
+	// 2. Predefined ModelExtras fallback for tyrewall_dirt from ME_TEXDB.TXD
+	if (_strnicmp(name.data(), "tyrewall_dirt", 13) == 0)
+	{
+		if (RwTexture *dirt = TextureMgr::Get("tyrewall_dirt_dt"))
+			return dirt;
+	}
+
+	// 3. Paintjobs: remap textures sharing base IVF dirt overlay (_dirt, _d)
 	const auto remapPos = [name]() {
 		for (size_t i = 0; i + 6 <= name.size(); ++i)
 		{
@@ -140,8 +175,9 @@ RwTexture *DirtFx::CreateTargetTexture(RwTexture *clean, RwTexture *dirt)
 		return nullptr;
 	}
 
-	RwTextureSetName(pTexture, clean->name);
-	pTexture->filterAddressing = (clean->filterAddressing & 0xFF00) | rwFILTERLINEAR;
+	RwTextureSetName(pTexture, (dirt && dirt->name) ? dirt->name : clean->name);
+	const RwUInt32 addressing = (dirt->filterAddressing & 0xFF00) ? (dirt->filterAddressing & 0xFF00) : (clean->filterAddressing & 0xFF00);
+	pTexture->filterAddressing = addressing | rwFILTERLINEAR;
 	return pTexture;
 }
 
@@ -293,19 +329,46 @@ void DirtFx::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat, RwTexture *baseTe
 		return;
 	}
 
-	// 2. Custom vehicle textures (IVF _dirt/_d, BTLC _dt, tyre sidewalls, paintjobs)
-	if (dirtLvl > 0)
+	// 2. Resolve clean and dirt texture sources for unified GPU blending
+	const bool isIvGrunge = (_stricmp(rawName, "vehiclegrunge_iv") == 0 || _stricmp(rawName, "vehicle_genericmud_truck") == 0);
+	const bool is512Grunge = (_stricmp(rawName, "vehiclegrunge512") == 0);
+
+	RwTexture *cleanTex = nullptr;
+	RwTexture *dirtTex = nullptr;
+
+	if (isIvGrunge || is512Grunge)
+	{
+		cleanTex = GetWhiteTexture();
+		dirtTex = TextureMgr::Get(isIvGrunge ? "vehiclegrunge_iv" : "vehiclegrunge512");
+
+		if (dirtLvl == 0)
+		{
+			// Clean vehicle: grunge mesh is fully invisible (white)
+			if (cleanTex)
+			{
+				ModelInfoMgr::RegisterRestore(&pMat->texture, pMat->texture);
+				pMat->texture = cleanTex;
+			}
+			return;
+		}
+	}
+	else
+	{
+		cleanTex = pMat->texture;
+		dirtTex = FindDirtTexture(pMat->texture);
+		if (!dirtTex && baseTexture) dirtTex = FindDirtTexture(baseTexture);
+	}
+
+	// 3. Unified GPU blending pipeline across 16 dirt stages
+	if (dirtLvl > 0 && cleanTex && dirtTex)
 	{
 		auto it = m_DirtTextures.find(pMat->texture);
 		if (it == m_DirtTextures.end())
 		{
-			RwTexture *dirt = FindDirtTexture(pMat->texture);
-			if (!dirt && baseTexture) dirt = FindDirtTexture(baseTexture);
-
-			RwTexture *targetTex = dirt ? CreateTargetTexture(pMat->texture, dirt) : nullptr;
+			RwTexture *targetTex = CreateTargetTexture(cleanTex, dirtTex);
 			it = m_DirtTextures.emplace(pMat->texture, DirtTarget{
-				.pCleanTexture = pMat->texture,
-				.pDirtTexture = dirt,
+				.pCleanTexture = cleanTex,
+				.pDirtTexture = dirtTex,
 				.pTargetTexture = targetTex,
 				.failed = (targetTex == nullptr)
 			}).first;
@@ -335,6 +398,7 @@ void DirtFx::ProcessTextures(CVehicle *pVeh, RpMaterial *pMat, RwTexture *baseTe
 void DirtFx::Init()
 {
 	ReloadConfig();
+
 	Events::attachRwPluginsEvent += []()
 	{
 		// Release cached copies when either source streams out; pointer reuse must
@@ -398,6 +462,12 @@ void DirtFx::Shutdown()
 		}
 	}
 	m_DirtTextures.clear();
+
+	if (m_pWhiteTexture)
+	{
+		RwTextureDestroy(m_pWhiteTexture);
+		m_pWhiteTexture = nullptr;
+	}
 
 	if (m_pPixelShader)
 	{
