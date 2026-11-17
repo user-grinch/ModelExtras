@@ -72,24 +72,28 @@ void ConvertibleRoof::Init()
         }
 
         RoofData &data = m_VehData.Get(pVeh);
-        data.m_bInit = true;
+        if (!data.m_bInit)
+        {
+            data.m_bInit = true;
+            bool isRainy = (CWeather::Rain > 0.05f) || (CWeather::WetRoads > 0.1f) || (CWeather::NewWeatherType == eWeatherType::WEATHER_RAINY_SF || CWeather::OldWeatherType == eWeatherType::WEATHER_RAINY_SF || CWeather::NewWeatherType == eWeatherType::WEATHER_RAINY_COUNTRYSIDE || CWeather::OldWeatherType == eWeatherType::WEATHER_RAINY_COUNTRYSIDE);
+            data.m_bRoofTargetExpanded = isRainy || (rand() % 2 == 0);
+            data.m_bPrevTarget = data.m_bRoofTargetExpanded;
+        }
 
-                                    // Randomly open the roofs
-                                    if (isRoof)
-                                    {
-                                        bool isRainy = (CWeather::Rain > 0.05f) || (CWeather::WetRoads > 0.1f) || (CWeather::NewWeatherType == eWeatherType::WEATHER_RAINY_SF || CWeather::OldWeatherType == eWeatherType::WEATHER_RAINY_SF || CWeather::NewWeatherType == eWeatherType::WEATHER_RAINY_COUNTRYSIDE || CWeather::OldWeatherType == eWeatherType::WEATHER_RAINY_COUNTRYSIDE);
-                                        if (CBaseFeature::IsEnabled(eFeatureMatrix::ConvertibleRoof) && !data.m_bRoofTargetExpanded && !isRainy)
-                                        {
-                                            MatrixUtil::SetRotationXAbsolute(&pFrame->modelling, c.targetRot - c.prevRot);
-                                            c.prevRot = c.targetRot;
-                                            c.currentRot = c.targetRot;
-                                        }
-                                        data.m_Roofs.push_back(std::move(c));
-                                    }
-                                    else
-                                    {
-                                        data.m_Boots.push_back(std::move(c));
-                                    } });
+        if (isRoof)
+        {
+            if (CBaseFeature::IsEnabled(eFeatureMatrix::ConvertibleRoof) && !data.m_bRoofTargetExpanded)
+            {
+                MatrixUtil::SetRotationXAbsolute(&pFrame->modelling, c.targetRot - c.prevRot);
+                c.prevRot = c.targetRot;
+                c.currentRot = c.targetRot;
+            }
+            data.m_Roofs.push_back(std::move(c));
+        }
+        else
+        {
+            data.m_Boots.push_back(std::move(c));
+        } });
 
     Events::vehicleRenderEvent += [](CVehicle *pVeh)
     {
