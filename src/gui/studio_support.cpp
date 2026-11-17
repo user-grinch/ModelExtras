@@ -53,53 +53,44 @@ bool HasKeyInsensitive(const StudioConfig::Json &object, std::string_view name) 
 
 std::vector<eMaterialType> DummyTypes(std::string_view name, float x, float y, bool bike, bool headlights) {
     if (headlights) {
-        if (name == "headlights" || name == "headlights2" || name == "headlight") {
+        if (name == "headlights" || name == "headlights2") {
             return bike ? std::vector<eMaterialType>{HeadLightLeft} : std::vector<eMaterialType>{HeadLightLeft, HeadLightRight};
         }
-        if (name == "headlights_l" || name == "headlight_l") return {HeadLightLeft};
-        if (name == "headlights_r" || name == "headlight_r") return {HeadLightRight};
-        if (name == "highbeam_l" || name == "highbeams_l") return {HighBeamLeft};
-        if (name == "highbeam_r" || name == "highbeams_r") return {HighBeamRight};
-        if (name == "highbeam" || name == "highbeams") {
+        if (name == "highbeam_l") return {HighBeamLeft};
+        if (name == "highbeam_r") return {HighBeamRight};
+        if (name == "highbeam") {
             return bike ? std::vector<eMaterialType>{HighBeamLeft} : std::vector<eMaterialType>{HighBeamLeft, HighBeamRight};
         }
     }
-    if (name == "taillights" || name == "taillights2" || name == "taillight") {
+    if (name == "taillights" || name == "taillights2") {
         return bike ? std::vector<eMaterialType>{TailLightRight} : std::vector<eMaterialType>{TailLightLeft, TailLightRight};
     }
-    if (name == "taillights_l" || name == "taillight_l") return {TailLightLeft};
-    if (name == "taillights_r" || name == "taillight_r") return {TailLightRight};
-    const bool left = name.ends_with("_l") || name.find("_l_") != std::string_view::npos || name.find("left") != std::string_view::npos;
-    const bool right = name.ends_with("_r") || name.find("_r_") != std::string_view::npos || name.find("right") != std::string_view::npos;
-    if ((name.starts_with("breakl") || name.starts_with("brakel") || name.starts_with("brake_") || name.starts_with("break_")) &&
-        name.find("disc") == std::string_view::npos && name.find("caliper") == std::string_view::npos) {
-        return {(left || (!right && x < -0.05f)) ? BrakeLightLeft : BrakeLightRight};
+    const bool left = name.ends_with("_l") || name.find("_l_") != std::string_view::npos;
+    const bool right = name.ends_with("_r") || name.find("_r_") != std::string_view::npos;
+    if (name.starts_with("breakl") || name.starts_with("breaklight")) {
+        if (left) return {BrakeLightLeft};
+        if (right) return {BrakeLightRight};
+        if (name.find("_m") != std::string_view::npos) return {(x < 0.0f) ? BrakeLightLeft : BrakeLightRight};
+        return {};
     }
-    if (name.starts_with("fogl") || name.starts_with("fog_")) {
-        return {(left || (!right && x < 0.0f)) ? FogLightLeft : FogLightRight};
+    if (name.starts_with("fogl") || name.starts_with("foglight")) {
+        if (left) return {FogLightLeft};
+        if (right) return {FogLightRight};
+        return {};
     }
-    if (name.starts_with("revers") || name.starts_with("revl")) {
-        return {(left || (!right && x < 0.0f)) ? ReverseLightLeft : ReverseLightRight};
+    if (name.starts_with("revl") || name.starts_with("reversingl")) {
+        if (left) return {ReverseLightLeft};
+        if (right) return {ReverseLightRight};
+        return {};
     }
     if (name.starts_with("turnl") || name.starts_with("indicator")) {
-        if (name.find("_lf") != std::string_view::npos || name.find("_fl") != std::string_view::npos) return {IndicatorLightLeftFront};
-        if (name.find("_rf") != std::string_view::npos || name.find("_fr") != std::string_view::npos) return {IndicatorLightRightFront};
-        if (name.find("_lr") != std::string_view::npos || name.find("_rl") != std::string_view::npos) return {IndicatorLightLeftRear};
+        if (name.find("_lf") != std::string_view::npos) return {IndicatorLightLeftFront};
+        if (name.find("_rf") != std::string_view::npos) return {IndicatorLightRightFront};
+        if (name.find("_lr") != std::string_view::npos) return {IndicatorLightLeftRear};
         if (name.find("_rr") != std::string_view::npos) return {IndicatorLightRightRear};
-        if (name.find("_lm") != std::string_view::npos || name.find("_ml") != std::string_view::npos) return {IndicatorLightLeftMiddle};
-        if (name.find("_rm") != std::string_view::npos || name.find("_mr") != std::string_view::npos) return {IndicatorLightRightMiddle};
-
-        const bool l = (left && !right) ? true : (!left && right) ? false : (x < -0.05f);
-        if (name.find("_m") != std::string_view::npos || name.find("side") != std::string_view::npos || name.find("mid") != std::string_view::npos) {
-            return {l ? IndicatorLightLeftMiddle : IndicatorLightRightMiddle};
-        }
-        if (name.find("rear") != std::string_view::npos || name.find("back") != std::string_view::npos) {
-            return {l ? IndicatorLightLeftRear : IndicatorLightRightRear};
-        }
-        if (name.find("front") != std::string_view::npos || name.find("_f") != std::string_view::npos) {
-            return {l ? IndicatorLightLeftFront : IndicatorLightRightFront};
-        }
-        return {l ? (y >= 0.0f ? IndicatorLightLeftFront : IndicatorLightLeftRear) : (y >= 0.0f ? IndicatorLightRightFront : IndicatorLightRightRear)};
+        if (name.find("_lm") != std::string_view::npos) return {IndicatorLightLeftMiddle};
+        if (name.find("_rm") != std::string_view::npos) return {IndicatorLightRightMiddle};
+        return {};
     }
     for (auto [prefix, l, r] : {std::tuple{"sidelight_", SideLightLeft, SideLightRight}, {"sttlight_", STTLightLeft, STTLightRight}, {"nabrakelight_", NABrakeLightLeft, NABrakeLightRight}}) {
         if (auto d = CharsAfter(name, prefix, 1)) return {*d == "L" ? l : r};

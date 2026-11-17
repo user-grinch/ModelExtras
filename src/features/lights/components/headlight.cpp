@@ -60,7 +60,7 @@ bool HeadlightComponent::AreHeadlightsOpen(CVehicle* pVeh, const VehLightData& d
 
 bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const std::string_view name, VehLightData& data) {
     if (!CanVehicleHaveHeadlights(pVeh)) return false;
-    if (name == "headlights" || name == "headlights2" || name == "headlight") {
+    if (name == "headlights" || name == "headlights2") {
         if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
             return false;
         }
@@ -92,33 +92,13 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         return true;
     }
 
-    if (name == "headlight_l" || name == "headlight_r" || name == "headlights_l" || name == "headlights_r") {
+    if (name == "highbeam_l" || name == "highbeam_r") {
         if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
             return false;
         }
         DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
         c.dummyPos = eDummyPos::Front;
-        bool isLeft = (name == "headlight_l" || name == "headlights_l");
-        c.lightType = isLeft ? eMaterialType::HeadLightLeft : eMaterialType::HeadLightRight;
-        c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
-        c.corona.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
-        c.shadow.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gHeadLightShadowIntensity)};
-        c.shadow.size = LightsConfig::Get().gfHeadLightShadowSizeMul;
-        c.corona.lightingType = eLightingMode::Directional;
-        c.shadow.render = true;
-        c.mirroredX = false;
-        
-        data.dummies[c.lightType].push_back(VehicleDummy(c));
-        return true;
-    }
-
-    if (name == "highbeam_l" || name == "highbeam_r" || name == "highbeams_l" || name == "highbeams_r") {
-        if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
-            return false;
-        }
-        DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
-        c.dummyPos = eDummyPos::Front;
-        bool isLeft = (name == "highbeam_l" || name == "highbeams_l");
+        bool isLeft = (name == "highbeam_l");
         c.lightType = isLeft ? eMaterialType::HighBeamLeft : eMaterialType::HighBeamRight;
         c.corona.size = LightsConfig::Get().gfHeadLightCoronaSize;
         c.corona.color = {255, 242, 225, static_cast<unsigned char>(LightsConfig::Get().gHeadLightCoronaIntensity)};
@@ -132,7 +112,7 @@ bool HeadlightComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         return true;
     }
 
-    if (name == "highbeam" || name == "highbeams") {
+    if (name == "highbeam") {
         if (pFrame && !rwLinkListEmpty(&pFrame->objectList)) {
             return false;
         }

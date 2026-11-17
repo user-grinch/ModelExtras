@@ -32,47 +32,28 @@ bool IndicatorComponent::TryRegisterDummy(CVehicle* pVeh, RwFrame* pFrame, const
         return false;
     }
 
-    DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
-    c.corona.color = c.shadow.color = {255, 145, 0, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
-    c.corona.lightingType = eLightingMode::Directional;
-
     bool isLeft = false;
     char pos = 'F';
 
-    if (name.contains("_lf") || name.contains("_fl")) {
+    if (name.contains("_lf")) {
         isLeft = true; pos = 'F';
-    } else if (name.contains("_rf") || name.contains("_fr")) {
+    } else if (name.contains("_rf")) {
         isLeft = false; pos = 'F';
-    } else if (name.contains("_lr") || name.contains("_rl")) {
+    } else if (name.contains("_lr")) {
         isLeft = true; pos = 'R';
     } else if (name.contains("_rr")) {
         isLeft = false; pos = 'R';
-    } else if (name.contains("_lm") || name.contains("_ml")) {
+    } else if (name.contains("_lm")) {
         isLeft = true; pos = 'M';
-    } else if (name.contains("_rm") || name.contains("_mr")) {
+    } else if (name.contains("_rm")) {
         isLeft = false; pos = 'M';
     } else {
-        bool hasLeft = name.ends_with("_l") || name.contains("_l_") || name.contains("left");
-        bool hasRight = name.ends_with("_r") || name.contains("_r_") || name.contains("right");
-
-        if (hasLeft && !hasRight) {
-            isLeft = true;
-        } else if (hasRight && !hasLeft) {
-            isLeft = false;
-        } else {
-            isLeft = (c.position.x < -0.05f);
-        }
-
-        if (name.contains("_m") || name.contains("side") || name.contains("mid")) {
-            pos = 'M';
-        } else if (name.contains("rear") || name.contains("back")) {
-            pos = 'R';
-        } else if (name.contains("front") || name.contains("_f") || name.contains("_frnt")) {
-            pos = 'F';
-        } else {
-            pos = (c.position.y >= 0.0f ? 'F' : 'R');
-        }
+        return false;
     }
+
+    DummyConfig c = LightManager::CreateBaseConfig(pVeh, pFrame);
+    c.corona.color = c.shadow.color = {255, 145, 0, static_cast<unsigned char>(LightsConfig::Get().gGlobalCoronaIntensity)};
+    c.corona.lightingType = eLightingMode::Directional;
 
     switch (pos) {
         case 'M':
