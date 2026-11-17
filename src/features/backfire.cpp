@@ -186,7 +186,7 @@ void BackFireEffect::ReloadConfig()
     {
         LOG(INFO) << "[Backfire] VehFuncs and Soundize detected; disabling ModelExtras backfire to prevent conflicts.";
     }
-    s_bOnlySelected = gConfig.ReadBoolean("FEATURES", "BackfireEffect_OnlySelectedModels", true);
+    s_bOnlySelected = gConfig.ReadBoolean("FEATURES", "BackfireEffect_OnlySelected", true);
     std::string line = gConfig.ReadString("TABLE", "BackFireEffect_VehicleModels", "");
     s_ValidModels.clear();
     Util::GetModelsFromIni(line, s_ValidModels);

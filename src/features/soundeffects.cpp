@@ -17,10 +17,8 @@ static bool bIndicatorSounds = false;
 static bool bAirbreakSounds = false;
 static bool bDoorChimeSounds = true;
 static bool bDoorChimeOnlySelected = true;
-static float fDoorChimeVolume = 0.7f;
 static bool bBrakePadSounds = false;
 static bool bBrakePadOnlySelected = true;
-static float fBrakePadVolume = 0.7f;
 static bool bOnlyPlayerVehicle = true;
 
 static bool IsVehicleEligible(int model, std::string_view jsonKey, bool onlySelected, const std::vector<int> &modelList)
@@ -67,10 +65,8 @@ void SoundEffects::ReloadConfig()
     bAirbreakSounds = gConfig.ReadBoolean("SOUND", "AirbreakSound", false);
     bDoorChimeSounds = gConfig.ReadBoolean("SOUND", "DoorChimeSound", true);
     bDoorChimeOnlySelected = gConfig.ReadBoolean("SOUND", "DoorChimeOnlySelected", true);
-    fDoorChimeVolume = std::clamp(gConfig.ReadFloat("SOUND", "DoorChimeVolume", 0.7f), 0.0f, 1.0f);
     bBrakePadSounds = gConfig.ReadBoolean("SOUND", "BrakePadSound", false);
     bBrakePadOnlySelected = gConfig.ReadBoolean("SOUND", "BrakePadOnlySelected", true);
-    fBrakePadVolume = std::clamp(gConfig.ReadFloat("SOUND", "BrakePadVolume", 0.7f), 0.0f, 1.0f);
     bOnlyPlayerVehicle = !gConfig.ReadBoolean("SOUND", "NonPlayerVehicles", false);
 }
 
@@ -139,7 +135,7 @@ static void HandleChimeSounds(CVehicle *pVeh, SoundEffectsData &data, int model,
     if (curTime - data.m_nLastDoorChimeTime >= 1000)
     {
         static std::string chimePath = MOD_DATA_PATH("audio/door_chime.mp3");
-        AudioMgr::Play3DSound(chimePath, pVeh->GetPosition(), fDoorChimeVolume, 25.0f);
+        AudioMgr::Play3DSound(chimePath, pVeh->GetPosition(), 0.7f, 25.0f);
         data.m_nLastDoorChimeTime = curTime;
     }
 }
@@ -198,7 +194,7 @@ static void HandleBrakePadSounds(CVehicle *pVeh, SoundEffectsData &data, int mod
     if (brakeInput > 0.05f && speed > 0.2f)
     {
         float speedFactor = std::clamp((speed - 0.2f) / 4.0f, 0.0f, 1.0f);
-        targetVol = fBrakePadVolume * std::clamp(brakeInput, 0.35f, 1.0f) * speedFactor;
+        targetVol = 0.7f * std::clamp(brakeInput, 0.35f, 1.0f) * speedFactor;
     }
 
     if (targetVol > data.m_fBrakePadVol)

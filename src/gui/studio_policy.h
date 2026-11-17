@@ -13,7 +13,7 @@ inline const char *RestartReason(std::string_view section, std::string_view key)
     if (key == "DigitalClock") return "Clock setup clones digits and destroys the original node hierarchy.";
     if (key == "SirenLights") return "Siren hooks change vehicle audio capabilities without restoring them on disable.";
     if (section == "FEATURES") {
-        for (auto live : {"AnimatedGasMeter", "Carcols", "DashboardLED", "DirtFX", "ExhaustFx", "Neon", "TextureRemapper", "PedCols", "BackfireEffect", "BackfireEffect_OnlySelectedModels"})
+        for (auto live : {"AnimatedGasMeter", "Carcols", "DashboardLED", "DirtFX", "ExhaustFx", "Neon", "TextureRemapper", "PedCols", "BackfireEffect", "BackfireEffect_OnlySelected"})
             if (key == live) return nullptr;
         for (auto animated : {"AnimatedChain", "AnimatedDoors", "AnimatedGearMeter", "AnimatedOdoMeter", "AnimatedRpmMeter",
             "AnimatedSpeedMeter", "AnimatedSpoiler", "AnimatedTurboMeter", "ConvertibleRoof", "RollbackBed", "ExtraWheels", "RotatingWheelHubs"})
@@ -27,7 +27,7 @@ inline const char *RestartReason(std::string_view section, std::string_view key)
     if (section == "LIGHTS") {
         if (key == "SpotLights") return nullptr;
         for (auto live : {"LightCoronas", "LightShadows", "LightPointLights", "HeadLightBeams", "SirenPointLights", "AutoIndicatorsOnSteer",
-            "GlobalIndicatorLights", "PlayerIdleBrakeLights",
+            "GlobalIndicatorLights", "PlayerIdleBrakeLights", "FoglightTiedToHeadlight", "LightsRequireEngine", "SirensRequireEngine",
             "HeadLightCoronaDistanceMul", "TailLightCoronaDistanceMul", "LightCoronaDistanceMul", "LightShadowDistance",
             "LightPointLightIntensity", "LightPointLightSizeMul", "LightPointLightOffsetMul",
             "SirenCoronas", "SirenCoronaDistanceMul", "SirenShadows",

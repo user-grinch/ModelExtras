@@ -265,7 +265,7 @@ void LoadIni() {
         auto value = gConfig.data.get(spec.section, spec.key, spec.fallback);
         const bool restart = StudioPolicy::RestartReason(spec.section, spec.key) != nullptr
             || (std::string_view(spec.key) == "Carcols" && SAMP::IsPresent())
-            || ((std::string_view(spec.key) == "BackfireEffect" || std::string_view(spec.key) == "BackfireEffect_OnlySelectedModels") && BackFireEffect::IsDisabledByConflict());
+            || ((std::string_view(spec.key) == "BackfireEffect" || std::string_view(spec.key) == "BackfireEffect_OnlySelected") && BackFireEffect::IsDisabledByConflict());
         if (restart) value = saved.data.get(spec.section, spec.key, spec.fallback);
         iniRows.push_back({&spec, value, value, false, restart, SettingLabel(spec.key)});
         if (spec.kind == Kind::Text) {
@@ -391,7 +391,7 @@ void IniTab() {
                     StudioTheme::Hint(spec.help);
                     if (row.restart) {
                         const bool isCarcols = std::string_view(spec.key) == "Carcols";
-                        const bool isBackfire = (std::string_view(spec.key) == "BackfireEffect" || std::string_view(spec.key) == "BackfireEffect_OnlySelectedModels") && BackFireEffect::IsDisabledByConflict();
+                        const bool isBackfire = (std::string_view(spec.key) == "BackfireEffect" || std::string_view(spec.key) == "BackfireEffect_OnlySelected") && BackFireEffect::IsDisabledByConflict();
                         const char *note = isCarcols ? "Unavailable in SA-MP" : (isBackfire ? "External mod conflict" : "Restart required");
                         ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * .75f);
                         if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + ImGui::CalcTextSize(note).x
@@ -409,7 +409,7 @@ void IniTab() {
                     if (spec.kind == Kind::Boolean) {
                         bool value = row.value != "0" && ::_stricmp(row.value.c_str(), "false") != 0;
                         const bool isCarcolsDisabled = std::string_view(spec.key) == "Carcols" && SAMP::IsPresent();
-                        const bool isBackfireDisabled = (std::string_view(spec.key) == "BackfireEffect" || std::string_view(spec.key) == "BackfireEffect_OnlySelectedModels") && BackFireEffect::IsDisabledByConflict();
+                        const bool isBackfireDisabled = (std::string_view(spec.key) == "BackfireEffect" || std::string_view(spec.key) == "BackfireEffect_OnlySelected") && BackFireEffect::IsDisabledByConflict();
                         ImGui::BeginDisabled(isCarcolsDisabled || isBackfireDisabled);
                         changed = StudioTheme::Toggle("##value", &value);
                         ImGui::EndDisabled();
