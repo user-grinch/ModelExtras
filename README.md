@@ -28,8 +28,8 @@
 
 - Install [Silent's ASI Loader](https://github.com/GTAmodding/ASI-Loader/releases) or [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases) if you don't have.
 - Extract the files you downloaded into your GTA San Andreas root directory or scripts folder or Mod Loader folder.
-- Make sure to uninstall ImVehFT (IVF) or Advanced Vehicle Sirens (AVS) if you have them installed. ModelExtras replaces them.
-- Attention: This mod does not replace VehFuncs!
+- Make sure to uninstall ImVehFT (IVF) or Advanced Vehicle Sirens (AVS) if you have them installed.
+- This mod does not replace VehFuncs!
 
 > ⚠️ *Supports only GTA San Andreas v1.0 US (Hoodlum)*
 
